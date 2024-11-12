@@ -3,11 +3,15 @@ Django==5.1.1
 django-cors-headers==4.4.0
 django-filter==24.3
 djangorestframework==3.15.2
-gunicorn==20.1.0  # Useful if you are using Gunicorn as your WSGI server
-psycopg2-binary==2.9.6  # If you're using PostgreSQL
-Pillow==10.0.1  # For handling images
-whitenoise==6.5.0  # For serving static files in production
+gunicorn==20.1.0
+psycopg2-binary==2.9.6
+Pillow==10.0.1
+whitenoise==6.5.0
 numpy==1.25.0
+boto3==1.28.1
 
-# Optional packages if needed
-boto3==1.28.1  # If using AWS S3 for static/media files
+# Health Check packages
+django-health-check==4.5.0
+django-health-check[cache]==4.5.0
+django-health-check[db]==4.5.0
+django-health-check[storage]==4.5.0
