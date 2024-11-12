@@ -41,10 +41,6 @@ INSTALLED_APPS = [
     'base.apps.BaseConfig',
     'rest_framework',
     "corsheaders",
-    'health_check',  # Add this
-    'health_check.cache',  # Optional, depending on your needs
-    'health_check.db',     # Optional, check database health
-    'health_check.storage'
 ]
 
 

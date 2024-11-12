@@ -9,9 +9,3 @@ Pillow==10.0.1
 whitenoise==6.5.0
 numpy==1.25.0
 boto3==1.28.1
-
-# Health Check packages
-django-health-check==4.5.0
-django-health-check[cache]==4.5.0
-django-health-check[db]==4.5.0
-django-health-check[storage]==4.5.0
