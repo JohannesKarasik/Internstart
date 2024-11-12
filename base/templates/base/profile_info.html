@@ -1,0 +1,62 @@
+{% load static %}
+{% block content %}
+<div class="big-profile-box">
+
+
+
+        <div class="profile-box">
+            <!-- Profile Background -->
+            <div class="profile-background">
+                {% if user.background %}
+                    <img src="{{ user.background.url }}" alt="Profile Background">
+                {% else %}
+                    <img src="{% static 'images/background.jpg' %}" alt="Default Background">
+                {% endif %}
+            </div>
+            
+            <!-- Profile Avatar -->
+            <div class="profile-avatar">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Profile Picture">
+                {% else %}
+                    <img src="{% static 'images/avatar.svg' %}" alt="Default Avatar">
+                {% endif %}
+            </div>
+            
+            <div class="profile-header">
+                <h2></h2>
+            </div>
+            <div class="profile-details">
+                <div class="user-info1">
+            <div>
+                <p class="profile-info-username">{{ user.full_name }}</p>
+            </div>
+            <div>
+                <p class="profile-info-occupation">{{ user.occupation }}</p>
+            </div>
+            <div>
+                <p class="profile-info-location">{{ user.location }}</p>
+            </div>
+            <div>
+                <a href="{% url 'view_connections' user.id %}" class="connection-button">View Connections</a>           
+
+            </div>
+            </div>
+            </div>
+        </div>
+
+        <h2></h2>
+        <div class="profile-details-1">
+            <p class="profile-info-connections">Make Connections</p>
+            <p class="profile-info-news">See News</p>
+            <p class="profile-info-bookmarks">See Bookmarks</p>
+
+ 
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}

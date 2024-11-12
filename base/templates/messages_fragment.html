@@ -1,0 +1,186 @@
+{% load static %}
+
+<!-- Messaging Component -->
+<div  class="message-component minimized">
+    <div class="message-header">
+        <div>
+            <span>Messages</span>
+           
+        </div>
+        <button  class="toggle-button">Open</button>
+    </div>
+    <div class="message-content" style="display: none;">
+        <div class="sidebar">
+            <h2 class="thetitle">Your Connections</h2>
+            <ul class="connections-list">
+                {% for connection in connections %}
+                    {% if connection.user == request.user %}
+                        <li>
+                            <a href="#" class="connection-link" data-user-id="{{ connection.connection.id }}">
+                                <img src="{{ connection.connection.avatar.url }}" alt="{{ connection.connection.full_name }}" width="50">
+                                <div>
+                                    <strong>{{ connection.connection.full_name }}</strong><br>
+                                </div>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="#" class="connection-link" data-user-id="{{ connection.user.id }}">
+                                <img src="{{ connection.connection.avatar.url }}" alt="{{ connection.user.full_name }}" width="50">
+                                <strong>{{ connection.user.full_name }}</strong><br>
+                            </a>
+                        </li>
+                    {% endif %}
+                {% empty %}
+                    <li>No connections found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <!-- Messaging Area (Initially Hidden) -->
+        <div class="messaging-area" style="display: none;">
+            <!-- Message display area -->
+            <div class="message-display" style="display: none;">
+                <p>Select a connection to start a conversation.</p>
+            </div>
+
+            <!-- Input Form for Sending Messages -->
+            <div class="message-input" style="display: none;">
+                <textarea class="message-field" name="content" rows="1" placeholder="Type a message..." required></textarea>
+                <button  class="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messaging Container for Chat -->
+<div class="messages">
+    {% for message in room_messages %}
+        <!-- Debugging output -->
+        <p>Is Authenticated: {{ request.user.is_authenticated }}</p>
+        <p>Message Sender ID: {{ message.sender.id }}</p>
+        <p>Current User ID: {{ request.user.id }}</p>
+        <p>Message Content: {{ message.content }}</p>
+        
+        {% if message.sender.id == request.user.id %}
+            <!-- Block for Sent Messages -->
+            <div class="efr2">
+                <div class="avatar avatar--small active">
+                    <img src="{{ message.sender.avatar.url }}" alt="{{ message.sender.username }}" />
+                </div>
+                <div class="content3">
+                    {{ message.content }}
+                </div>
+            </div>
+        {% else %}
+            <!-- Block for Received Messages -->
+            <div class="eheh12">
+                <div class="efr3">
+                    <div class="avatar avatar--small active">
+                        <img src="{{ message.sender.avatar.url }}" alt="{{ message.sender.username }}" width="50">
+                    </div>
+                    <div class="message-received">
+                        <div class="content3">
+                            {{ message.content }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% empty %}
+        <p>No messages yet. Start the conversation!</p>
+    {% endfor %}
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const messagesContainer = document.querySelector('.messages');
+        const sendMessageButton = document.querySelector('.send-button');
+        const messageContentInput = document.querySelector('.message-field');
+        let selectedUserId = null;
+    
+        console.log("DOM fully loaded and parsed");
+    
+        // Function to scroll to the bottom of the messages container
+        function scrollToBottom() {
+            if (messagesContainer) {
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    console.log("Scrolled to bottom:", messagesContainer.scrollTop);
+                }, 100);
+            } else {
+                console.log("Messages container not found");
+            }
+        }
+    
+        // Auto-scroll when new messages are added
+        const observer = new MutationObserver((mutations) => {
+            console.log("Mutation detected");
+            mutations.forEach(mutation => {
+                if (mutation.addedNodes.length > 0) {
+                    console.log("New message detected");
+                    scrollToBottom();
+                }
+            });
+        });
+    
+        if (messagesContainer) {
+            observer.observe(messagesContainer, { childList: true, subtree: true });
+        } else {
+            console.log("Messages container not found for observer");
+        }
+    
+        // Function to send a message
+        async function sendMessage() {
+            const message = messageContentInput.value.trim();
+            if (!message) {
+                console.log("Message is empty, not sending");
+                return;
+            }
+    
+            console.log("Sending message:", message);
+    
+            try {
+                const response = await fetch(`/send_message/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: message, recipient: selectedUserId })
+                });
+    
+                const data = await response.json();
+                console.log("Response from server:", data);
+    
+                if (data.status === "success") {
+                    messageContentInput.value = '';
+                    scrollToBottom();
+                } else {
+                    console.error("Failed to send message:", data);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        }
+    
+        // Send message on button click
+        if (sendMessageButton) {
+            sendMessageButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                sendMessage();
+            });
+        } else {
+            console.log("Send button not found");
+        }
+    
+        // Send message on pressing Enter (without Shift)
+        if (messageContentInput) {
+            messageContentInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        } else {
+            console.log("Message input not found");
+        }
+    });
+    </script>

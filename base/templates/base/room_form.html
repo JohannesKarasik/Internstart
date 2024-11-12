@@ -1,0 +1,71 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<main class="create-room layout">
+  <div class="container">
+    <div class="layout__box">
+      <div class="layout__boxHeader">
+        <div class="layout__boxTitle">
+          <a href="{{ request.META.HTTP_REFERER|default:'#' }}">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+              <title>arrow-left</title>
+              <path d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z"></path>
+            </svg>
+          </a>
+          <h3 class="post-title">Create Post</h3>
+        </div>
+      </div>
+      <div class="layout__body">
+        <!-- Form for Room creation with file uploads -->
+        <form class="form" action="{% url 'create-room' %}" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+        
+          <!-- Dropdown for Predefined Topics -->
+          <div class="form__group">
+            <label for="topic">Select a Topic:</label>
+            <select name="topic" id="topic" required>
+                <option value="" disabled selected>Select a topic</option>
+                {% for topic in topics %}
+                    <option value="{{ topic.id }}">{{ topic.name }}</option>
+                {% endfor %}
+            </select>
+          </div>
+        
+          <!-- Room Title Field -->
+          <div class="form__group">
+            <label for="title">Room Title:</label>
+            <input required type="text" name="title" id="title" placeholder="Enter the room title">
+          </div>
+        
+          <!-- Room Description Field -->
+          <div class="form__group">
+            <label for="room_description">Room Description</label>
+            {{ form.description }}
+          </div>
+        
+          <!-- Multiple File Upload -->
+          <div class="form__group">
+            <label for="room_files">Upload Room Files</label>
+            <input type="file" name="files" multiple> <!-- Single file input with `multiple` attribute -->
+          </div>
+        
+          <!-- Submit Button -->
+          <div class="form__action">
+            <a class="btn btn--dark" href="{% url 'home' %}">Cancel</a>
+            <button class="btn btn--main" type="submit">Create Post</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Display form errors -->
+  {% if form.errors %}
+    <ul>
+      {% for field, error in form.errors.items %}
+        <li>{{ field }}: {{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</main>
+{% endblock content %}

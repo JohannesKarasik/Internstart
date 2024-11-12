@@ -1,0 +1,47 @@
+{% for room in rooms %}
+<div class="roomListRoom">
+    <div class="roomListRoom__header">
+      <a href="{% url 'user-profile' room.host.id %}" class="roomListRoom__author">
+        <div class="avatar avatar--small active">
+          <img src="{{ room.host.avatar.url }}" alt="{{ room.host.username }}" />
+        </div>
+        <span>{{ room.host.username }}</span>
+      </a>
+      <div class="roomListRoom__actions">
+        {% load custom_filters %}
+        <span>{{ room.created|custom_timesince }}</span>
+      </div>
+    </div>
+
+    <div class="roomListRoom__content">
+      <a href="{% url 'room' room.id %}">{{ room.name }}</a>
+      <p class="room-descripton">{{ room.description }}</p>
+      
+      <!-- Display posts with images if available -->
+      {% for post in room.post_set.all %}
+        <div class="post">
+          <p>{{ post.user.username }}: {{ post.body }}</p>
+          
+          {% if post.profile_pic %}
+          <img src="{{ post.profile_pic.url }}" alt="Post Image" style="max-width: 200px; height: auto;">
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="roomListRoom__meta">
+      <a href="{% url 'room' room.id %}" class="roomListRoom__joined">
+
+      
+      </a>
+      <p class="roomListRoom__topic">{{ room.topic.name }}</p>
+    </div>
+
+    <!-- Display the room image if available -->
+    {% if room.postimage %}
+      <div class="room-image">
+        <img src="{{ room.postimage.url }}" alt="{{ room.name }}" style="width: 100%; max-width: 300px;">
+      </div>
+    {% endif %}
+</div>
+{% endfor %}

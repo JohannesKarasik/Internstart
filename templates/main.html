@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{% static 'styles/style.css' %}" />
+    <title>StudyBuddy - Find study partners around the world!</title>
+</head>
+
+<body>
+
+    {% include 'navbar.html' %}
+
+    {% block content %}
+    {% endblock %}
+
+    <!-- Messaging Component -->
+    <div id="message-component" class="message-component minimized">
+        <div class="message-header">
+            <div>
+            <span>Messages</span>
+            <span id="active-connection-name"></span>
+        </div>
+            <button id="toggle-message-button" class="toggle-button">Open</button>
+        </div>
+        <div id="message-content" class="message-content" style="display: none;">
+            <div class="sidebar">
+                <h2 class="thetitle">Your Connections</h2>
+                <ul class="connections-list">
+                    {% for connection in connections %}
+                        {% if connection.user == request.user %}
+                            <li>
+                                <a href="#" class="connection-link" data-user-id="{{ connection.connection.id }}">
+                                    <img src="{{ connection.connection.avatar.url }}" alt="{{ connection.connection.full_name }}" width="50">
+                                    <div>
+                                        <strong>{{ connection.connection.full_name }}</strong><br>
+                                    </div>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="#" class="connection-link" data-user-id="{{ connection.user.id }}">
+                                    <img src="{{ connection.user.avatar.url }}" alt="{{ connection.user.full_name }}" width="50">
+                                    <strong>{{ connection.user.full_name }}</strong><br>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% empty %}
+                        <li>No connections found.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+    
+            <!-- Messaging Area (Initially Hidden) -->
+            <div class="messaging-area" style="display: none;">
+                <!-- Message display area -->
+                <div class="message-display" id="messages" style="display: none;">
+                    <p>Select a connection to start a conversation.</p>
+                </div>
+    
+                <!-- Input Form for Sending Messages -->
+                <div class="message-input" id="message-form" style="display: none;">
+                    <textarea class="message-field" name="content" id="content" rows="1" placeholder="Type a message..." required></textarea>
+                    <button id="send-message" class="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const messageComponent = document.getElementById('message-component');
+        const messageContent = document.getElementById('message-content');
+        const messagesContainer = document.getElementById('messages');
+        const toggleButton = document.getElementById('toggle-message-button');
+        const links = document.querySelectorAll('.connection-link');
+        const messageForm = document.getElementById('message-form');
+        const sendMessageButton = document.getElementById('send-message');
+        const messageContentInput = document.getElementById('content');
+        const connectionsSidebar = document.querySelector('.sidebar');
+        const messagingArea = document.querySelector('.messaging-area');
+        const activeConnectionName = document.getElementById('active-connection-name');
+        let selectedUserId = null;
+
+        // Function to get CSRF token from cookies
+        function getCSRFToken() {
+            let csrfToken = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.startsWith('csrftoken=')) {
+                        csrfToken = decodeURIComponent(cookie.split('=')[1]);
+                        break;
+                    }
+                }
+            }
+            return csrfToken;
+        }
+
+        // Function to scroll to the bottom of the messages container
+        function scrollToBottom() {
+            if (messagesContainer) {
+                // Adding a slight delay to ensure the messages have fully loaded
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+            }
+        }
+
+        // Function to clear the previous messages
+        function clearMessages() {
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
+        }
+
+        // Function to load messages for the selected user
+        function loadMessages() {
+            if (!selectedUserId) return;
+            fetch(`/load_messages_fragment/${selectedUserId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (messagesContainer) {
+                        messagesContainer.innerHTML = data.html;
+                        setTimeout(scrollToBottom, 100); // Ensure scrolling after loading
+                    }
+                    if (messageForm) {
+                        messageForm.style.display = 'block';
+                    }
+                })
+                .catch(error => console.error('Error loading messages:', error));
+        }
+
+        // Function to send a message
+        function sendMessage() {
+            const message = messageContentInput ? messageContentInput.value.trim() : '';
+            if (!message || !selectedUserId) {
+                console.log("Message or User ID missing");
+                return;
+            }
+
+            const csrfToken = getCSRFToken();
+            if (!csrfToken) {
+                console.error("CSRF Token is missing");
+                alert("CSRF Token not found. Please refresh the page.");
+                return;
+            }
+
+            fetch(`/send_message/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    recipient: selectedUserId,
+                    content: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    messageContentInput.value = '';
+                    loadMessages(); // Reload messages after sending
+                    setTimeout(scrollToBottom, 100); // Ensure scrolling after sending
+                } else {
+                    console.error("Failed to send message:", data);
+                }
+            })
+            .catch(error => console.error('Error sending message:', error));
+        }
+
+        // Attach event listeners to the send button and the input field
+        if (sendMessageButton) {
+            sendMessageButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                sendMessage();
+            });
+        }
+
+        if (messageContentInput) {
+            messageContentInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        // Handle toggling the message component
+        toggleButton.addEventListener('click', function() {
+            if (messageContent.style.display === 'none' || messageContent.style.display === '') {
+                messageContent.style.display = 'block';
+                messageComponent.classList.remove('minimized');
+                toggleButton.textContent = 'Close';
+                setTimeout(scrollToBottom, 100); // Scroll to bottom when opening
+            } else {
+                messageContent.style.display = 'none';
+                messageComponent.classList.add('minimized');
+                toggleButton.textContent = 'Open';
+                activeConnectionName.textContent = '';
+                messagingArea.style.display = 'none';
+                connectionsSidebar.style.display = 'block';
+            }
+        });
+
+        // Handle clicking on a connection
+        links.forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                selectedUserId = this.getAttribute('data-user-id');
+
+                const fullNameElement = this.querySelector('strong');
+                if (fullNameElement) {
+                    activeConnectionName.textContent = ` - ${fullNameElement.textContent}`;
+                }
+
+                clearMessages();
+                loadMessages();
+                messagingArea.style.display = 'flex';
+                connectionsSidebar.style.display = 'none';
+                setTimeout(scrollToBottom, 100); // Scroll to bottom when opening a conversation
+            });
+        });
+    });
+</script>
+
+</html>

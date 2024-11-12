@@ -1,0 +1,31 @@
+{% extends 'main.html' %}
+
+
+
+{% load static %}
+
+
+{% block content %}
+ 
+{% block header__search %}
+
+{% endblock %}
+
+<div class="flex-container">
+    <div class="left-column">
+    <div>
+        <h1 class="landing_page_heading">Connect with Commercial Real Estate Professionals</h1>
+    </div>
+    
+        <button class="front-button-1" onclick="window.location.href='{% url 'login' %}'">Sign in with Email</button>
+        <button class="front-button" onclick="window.location.href='{% url 'login' %}'">
+            <img src="{% static 'images/google_icon.jpg' %}" 
+                 alt="Google icon" style="width:26px; vertical-align:middle;">
+            Sign in with Google
+        </button>
+    </div>
+    <div class="right-column">
+        <img class="landing_page_background" src="{% static 'images/background_for_landing_page.jpg' %}" />
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,177 @@
+{% for room in rooms %}
+<div class="roomListRoom">
+  <div class="roomListRoom__header">
+    {% if room.host and room.host.id %}
+    <a href="{% url 'user-profile' room.host.id %}" class="roomListRoom__author">
+{% else %}
+    <span class="roomListRoom__author">Unknown User</span>
+{% endif %}
+      <div class="avatar">
+        <img class="av1" src="{{ room.host.avatar.url }}" alt="{{ room.host.username }}" />
+      </div>
+      <div class="name-and-career">
+        <div>
+          <span>{{ room.host.full_name }}</span>
+        </div>
+        <div>
+          <p class="post-host-career" style="margin: 0; font-size: 0.9em; color: gray;">{{ room.host.occupation }}</p>
+        </div>
+        <div class="roomListRoom__actions">
+          <span class="time_since">
+            {% load custom_filters %}
+            <span class="time-since">{{ room.created|custom_timesince }}</span>
+          </span>
+        </div>
+      </div>
+      <div class="roomListRoom__meta">
+        <a href="{% url 'room' room.id %}" class="roomListRoom__joined"></a>
+        <p class="roomListRoom__topic">{{ room.topic.name }}</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="roomListRoom__content">
+    
+    <!-- Truncated description with Show More functionality -->
+    {% if room.description|length > 150 %}
+        <p id="description-{{ room.id }}">
+            {{ room.description|slice:":150" }}... 
+            <a class="showmore" href="javascript:void(0)" onclick="showMore('{{ room.id }}')">Show more</a>
+        </p>
+        <p id="full-description-{{ room.id }}" style="display: none;">
+            {{ room.description }} 
+            <a class="showless" href="javascript:void(0)" onclick="showLess('{{ room.id }}')">Show less</a>
+        </p>
+    {% else %}
+        <p>{{ room.description }}</p>
+    {% endif %}
+
+    <!-- Display multiple uploaded images -->
+    {% if room.files.exists %}
+    <div class="room-images" id="room-images-{{ room.id }}">
+      {% for file in room.files.all %}
+        {% if forloop.counter <= 2 %}
+        <!-- Show first 2 images as thumbnails -->
+        <div class="room-image">
+          <img src="{{ file.file.url }}" alt="{{ file.file.name }}" onclick="openLightbox('{{ room.id }}', {{ forloop.counter0 }})" style="width: 100%; height: auto; cursor: pointer;">
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="action-buttons">
+      <!-- Show "Show all images" button only if there are images -->
+      {% if room.files.exists %}
+      <div class="show-images">
+        <button class="show-more" onclick="openLightbox('{{ room.id }}', 0)">Show all images</button>
+      </div>
+      {% endif %}
+
+      <!-- Always show "Edit" and "Delete" buttons if the user is the host -->
+      {% if request.user == room.host %}
+      <div class="edit-delete">
+        <!-- Edit Room Form -->
+        <form action="{% url 'updateRoom' room.id %}" method="GET">
+          <button type="submit" class="primary">
+            Edit Post
+          </button>
+        </form>
+
+        <!-- Delete Room Form with custom confirmation modal -->
+        <button type="button" class="danger" onclick="openDeleteModal('{{ room.id }}')">Delete Post</button>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="deleteModal-{{ room.id }}" class="modal">
+          <div class="modal-content">
+            <p>Are you sure you want to delete this post?</p>
+            <button class="confirm-delete" onclick="deletePost('{{ room.id }}')">Delete</button>
+            <button class="cancel-delete" onclick="closeDeleteModal('{{ room.id }}')">Cancel</button>
+
+            <!-- Actual Delete Form (hidden) -->
+            <form id="deleteForm-{{ room.id }}" action="{% url 'deleteRoom' room.id %}" method="POST" style="display: none;">
+              {% csrf_token %}
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- The Lightbox -->
+    <div id="lightbox-{{ room.id }}" class="lightbox" onclick="redirectToHomepage(event, '{{ room.id }}')">
+      <span class="close" onclick="closeLightbox('{{ room.id }}')">&times;</span>
+      <div class="lightbox-content" onclick="event.stopPropagation();">
+        <img id="lightbox-img-{{ room.id }}" src="" alt="">
+        <button class="prev" onclick="changeImage('{{ room.id }}', -1)">&#10094;</button>
+        <button class="next" onclick="changeImage('{{ room.id }}', 1)">&#10095;</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script>
+  let currentImageIndex = 0;
+
+  function openLightbox(roomId, index) {
+      // Get all images from the room's image section
+      const images = Array.from(document.querySelectorAll(`#room-images-${roomId} img`)).map(img => img.src);
+      currentImageIndex = index;
+      document.getElementById(`lightbox-${roomId}`).style.display = 'block';
+      showImage(roomId, index, images);
+  }
+
+  function closeLightbox(roomId) {
+      document.getElementById(`lightbox-${roomId}`).style.display = 'none';
+  }
+
+  function changeImage(roomId, direction) {
+      const images = Array.from(document.querySelectorAll(`#room-images-${roomId} img`)).map(img => img.src);
+      currentImageIndex += direction;
+      if (currentImageIndex < 0) {
+          currentImageIndex = images.length - 1;
+      } else if (currentImageIndex >= images.length) {
+          currentImageIndex = 0;
+      }
+      showImage(roomId, currentImageIndex, images);
+  }
+
+  function showImage(roomId, index, images) {
+      const lightboxImg = document.getElementById(`lightbox-img-${roomId}`);
+      lightboxImg.src = images[index];
+  }
+
+  // Function to redirect to homepage if clicking on the background
+  function redirectToHomepage(event, roomId) {
+      const lightboxContent = document.querySelector(`#lightbox-${roomId} .lightbox-content`);
+      if (!lightboxContent.contains(event.target)) {
+          window.location.href = '/'; // Redirect to homepage
+      }
+  }
+
+  function openDeleteModal(roomId) {
+    document.getElementById('deleteModal-' + roomId).style.display = 'block';
+  }
+
+  function closeDeleteModal(roomId) {
+    document.getElementById('deleteModal-' + roomId).style.display = 'none';
+  }
+
+  function deletePost(roomId) {
+    // Submit the form to delete the post
+    document.getElementById('deleteForm-' + roomId).submit();
+  }
+
+  function showMore(id) {
+    document.getElementById('description-' + id).style.display = 'none';
+    document.getElementById('full-description-' + id).style.display = 'block';
+  }
+
+  function showLess(id) {
+    document.getElementById('full-description-' + id).style.display = 'none';
+    document.getElementById('description-' + id).style.display = 'block';
+  }
+
+
+</script>
