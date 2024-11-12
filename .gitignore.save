@@ -1,0 +1,14 @@
+*.pyc
+__pycache__/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+/opt/anaconda3/bin/python /Users/johanneskarasik/Desktop/studybud/manage.py
+/opt/anaconda3/bin/python /Users/johanneskarasik/Desktop/studybud/manage.py
+s
+/opt/anaconda3/bin/python /Users/johanneskarasik/Desktop/studybud/manage.py
+git add .gitignore
+git commit -m "Add .gitignore file"
+git push origin main

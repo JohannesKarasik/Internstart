@@ -1,0 +1,55 @@
+# Python bytecode files
+*.py[cod]
+__pycache__/
+*.so
+*.pyd
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+.ENV/
+
+# Django and SQLite database files
+db.sqlite3
+*.sqlite3
+
+# Media and static files
+/media/
+staticfiles/
+
+# Ignore environment variables file
+.env
+
+# Ignore compiled translations
+*.mo
+
+# Logs and debug output
+*.log
+
+# Ignore Django migrations
+**/migrations/**
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore IDEs and editors config files
+.vscode/
+.idea/
+*.swp
+*.sublime-project
+*.sublime-workspace
+
+# Ignore Docker files (if using Docker)
+docker-compose.yml
+docker-compose.override.yml
+
+# Ignore files for Elastic Beanstalk
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Ignore build files
+build/
+dist/
