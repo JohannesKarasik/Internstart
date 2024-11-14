@@ -1,0 +1,13 @@
+[0;1;32m●[0m gunicorn.service - gunicorn daemon
+     Loaded: loaded (]8;;file://GridRealEstate/etc/systemd/system/gunicorn.service/etc/systemd/system/gunicorn.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Thu 2024-11-14 21:20:02 UTC; 8min ago
+ Invocation: 620e4d6f2c6149b59f40bcf5bf9bbd6c
+   Main PID: 36468 (gunicorn)
+      Tasks: 4 (limit: 1110)
+     Memory: 126.2M (peak: 126.4M)
+        CPU: 3.372s
+     CGroup: /system.slice/gunicorn.service
+             ├─[0;38;5;245m36468 /home/clinton/Grid-Real-Estate/venv/bin/python /home/clinton/Grid-Real-Estate/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/clinton/studybud.sock studybud.wsgi:application[0m
+             ├─[0;38;5;245m36469 /home/clinton/Grid-Real-Estate/venv/bin/python /home/clinton/Grid-Real-Estate/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/clinton/studybud.sock studybud.wsgi:application[0m
+             ├─[0;38;5;245m36470 /home/clinton/Grid-Real-Estate/venv/bin/python /home/clinton/Grid-Real-Estate/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/clinton/studybud.sock studybud.wsgi:application[0m
+             └─[0;38;5;245m36471 /home/clinton/Grid-Real-Estate/venv/bin/python /home/clinton/Grid-Real-Estate/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/clinton/studybud.sock studybud.wsgi:application[0m
