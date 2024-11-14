@@ -163,7 +163,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/path/to/django/error.log',
+            'filename': '/home/clinton/Grid-Real-Estate/logs/error.log',
         },
     },
     'loggers': {
