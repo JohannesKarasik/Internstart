@@ -14,7 +14,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('base.urls')),
     path('api/', include('base.api.urls')),
-    path('ht/', include('health_check.urls')),
 
 ]
 
