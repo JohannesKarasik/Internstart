@@ -24,7 +24,7 @@ urlpatterns = [
     # Connections URLs
     path('send-connection-request/<int:user_id>/', views.send_connection_request, name='send_connection_request'),
     path('accept-connection-request/<int:request_id>/', views.accept_connection_request, name='accept_connection_request'),
-    path('connections/', views.view_connections, name='view_connections'),
+    path('connections/<int:user_id>/', views.view_connections, name='view_connections'),    
     
     # Messaging URLs
     path('send_message/', views.send_message, name='send_message'),
