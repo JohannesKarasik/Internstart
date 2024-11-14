@@ -140,12 +140,15 @@ def room(request, pk):
     room_messages = room.message_set.all()
     participants = room.participants.all()
 
+    if request.user not in participants:
+        room.participants.add(request.user)
 
-    room.participants.add(request.user)
-    return redirect('room', pk=room.id)
+    context = {
+        'room': room,
+        'room_messages': room_messages,
+        'participants': participants
+    }
 
-    context = {'room': room, 'room_messages': room_messages,
-               'participants': participants}
     return render(request, 'base/room.html', context)
 
 @login_required
@@ -350,11 +353,7 @@ def accept_connection_request(request, request_id):
 @login_required
 def view_connections(request, pk):
     user = get_object_or_404(User, pk=pk)
-    
-    # Fetch all connections where the user is either 'user' or 'connection'
     connections = Connection.objects.filter(Q(user=user) | Q(connection=user))
-    
-    # Fetch all users on the platform except the current user
     suggested_connections = User.objects.exclude(pk=user.pk)
 
     context = {
