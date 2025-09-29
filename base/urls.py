@@ -1,14 +1,50 @@
 from django.urls import path
 from . import views
+from django.urls import path, include
+from django.urls import path
+from .forms import EmployerCompanyForm, EmployerPersonalForm
+from django.urls import path, include
+
+
+
 
 urlpatterns = [
     path('', views.landing_page, name='landing_page'),  # Root URL for the landing page
-    path('login/', views.loginPage, name="login"),
-    path('logout/', views.logoutUser, name="logout"),
+    path('login/', views.loginPage, name="app_login"),
+    path('logout/', views.logoutUser, name="app_logout"),
     path('register/', views.registerPage, name="register"),
-    
+    path('send-test-email/', views.send_test_email, name='send_test_email'),
+    path('start-gmail-auth/', views.start_gmail_auth, name='start_gmail_auth'),
+    path('gmail/callback/', views.gmail_callback, name='gmail_callback'),
+    path('resume/<int:user_id>/', views.view_resume, name='view_resume'),
+    path('generate-coverletter/', views.generate_coverletter, name='generate_coverletter'),
+    path('send-application/', views.send_application, name='send_application'),
+    path('company/<int:pk>/', views.company_profile, name='company-profile'),
+    path("", views.feed_view, name="feed"),        # default feed mode
+    path("swipe/", views.swipe_view, name="swipe_view"), # swipe mode
+    path('apply-swipe-job/', views.apply_swipe_job, name='apply_swipe_job'),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('start-gmail-auth/', views.start_gmail_auth, name='start_gmail_auth'),
+    path("billing/", include("billing.urls")),
+    path('billing/success/', views.billing_success, name='billing_success'),
+    path('billing/cancel/', views.billing_cancel, name='billing_cancel'),
+    path('save-job/', views.save_job, name='save_job'),
+    path('saved-jobs/json/', views.saved_jobs_json, name='saved_jobs_json'),
+
+        path(
+        'activate/<uidb64>/<token>/',
+        views.activate_account,
+        name='activate'
+    ),
+
+
+
+
+
     # Home and Profile URLs
-    path('home/', views.home, name="home"),
+
+    path('swipe/', views.swipe_view, name='home'),   # alias "home" to swipe_view
+
     path('profile/<int:pk>/', views.userProfile, name='user-profile'),
     
     # Room URLs
@@ -16,15 +52,20 @@ urlpatterns = [
     path('create-room/', views.createRoom, name="create-room"),
     path('update-room/<int:pk>/', views.updateRoom, name="update-room"),
     path('delete-room/<int:pk>/', views.deleteRoom, name='deleteRoom'),
-    
+    path('terms/', views.terms_conditions, name='terms_conditions'),
+
+
     # User and Topics
     path('update-user/', views.updateUser, name="update-user"),
     path('topics/', views.topicsPage, name="topics"),
-    
+    path('debug/set-tier/', views.debug_set_tier, name='debug_set_tier'),
+
     # Connections URLs
     path('send-connection-request/<int:user_id>/', views.send_connection_request, name='send_connection_request'),
     path('accept-connection-request/<int:request_id>/', views.accept_connection_request, name='accept_connection_request'),
     path('connections/<int:user_id>/', views.view_connections, name='view_connections'),    
+    path('quota/', views.get_quota, name='get_quota'),
+
     
     # Messaging URLs
     path('send_message/', views.send_message, name='send_message'),

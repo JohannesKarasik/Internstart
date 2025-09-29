@@ -1,31 +1,550 @@
 {% extends 'main.html' %}
-
-
-
 {% load static %}
 
-
 {% block content %}
- 
-{% block header__search %}
 
-{% endblock %}
+<!-- Google Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
 
-<div class="flex-container">
-    <div class="left-column">
-    <div>
-        <h1 class="landing_page_heading">Connect with Commercial Real Estate Professionals</h1>
+<!-- =========================
+      HERO
+========================= -->
+<section class="hero">
+  <div class="hero__copy">
+    <h1 class="hero__title">
+      Swipe Into Your <span class="accent">Dream Career</span> Today
+    </h1>
+    <p class="hero__subhead">
+      Discover internships at top companies, build your skills, and take the first step toward your future career.
+    </p>
+
+    <div class="hero__ctas">
+      <a href="{% url 'register' %}" class="btn btn--primary">Start Your Journey</a>
+      <a href="/browse/" class="btn btn--ghost">Browse Internships</a>
     </div>
-    
-        <button class="front-button-1" onclick="window.location.href='{% url 'login' %}'">Sign in with Email</button>
-        <button class="front-button" onclick="window.location.href='{% url 'login' %}'">
-            <img src="{% static 'images/google_icon.jpg' %}" 
-                 alt="Google icon" style="width:26px; vertical-align:middle;">
-            Sign in with Google
-        </button>
-    </div>
-    <div class="right-column">
-        <img class="landing_page_background" src="{% static 'images/background_for_landing_page.jpg' %}" />
-    </div>
-</div>
+  </div>
+
+  <!-- Card deck -->
+  <div class="deck" aria-label="Featured internships">
+    <!-- Card 1 -->
+    <article class="card card--pink">
+      <div class="card__body">
+        <div class="card__info">
+          <img src="{% static 'images/Goldman-Sachs-1869.png' %}" alt="Goldman Sachs logo" class="card__logo">
+          <h4 class="card__role">Investment Banking Intern</h4>
+          <h3 class="card__company">Goldman Sachs</h3>
+          <p class="card__meta">Location: New York, NY</p>
+        </div>
+
+        <div class="card__actions" aria-label="Card actions">
+          <button class="action" aria-label="Undo last swipe" data-label="Undo" title="Undo (U)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          </button>
+          <button class="action" aria-label="Pass on this job" data-label="Pass" title="Pass (←)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="action" aria-label="Save for later" data-label="Save" title="Save (S)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+          </button>
+          <button class="action" aria-label="Apply to this job" data-label="Apply" title="Apply (Enter)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <button class="action" aria-label="Boost visibility" data-label="Boost" title="Boost">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2 -->
+    <article class="card card--blue">
+      <div class="card__body">
+        <div class="card__info">
+          <img src="{% static 'images/danske-bank.png' %}" alt="Danske Bank logo" class="card__logo">
+          <h4 class="card__role">Corporate Finance Intern</h4>
+          <h3 class="card__company">Danske Bank</h3>
+          <p class="card__meta">Location: Copenhagen, Denmark</p>
+        </div>
+        <div class="card__actions" aria-hidden="true">
+          <button class="action" aria-label="Undo last swipe" data-label="Undo" title="Undo (U)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          </button>
+          <button class="action" aria-label="Pass on this job" data-label="Pass" title="Pass (←)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="action" aria-label="Save for later" data-label="Save" title="Save (S)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+          </button>
+          <button class="action" aria-label="Apply to this job" data-label="Apply" title="Apply (Enter)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <button class="action" aria-label="Boost visibility" data-label="Boost" title="Boost">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3 -->
+    <article class="card card--yellow">
+      <div class="card__body">
+        <div class="card__info">
+          <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
+          <h4 class="card__role">Global Markets Intern</h4>
+          <h3 class="card__company">Deutsche Bank</h3>
+          <p class="card__meta">Location: Frankfurt, Germany</p>
+        </div>
+        <div class="card__actions" aria-hidden="true">
+          <button class="action" aria-label="Undo last swipe" data-label="Undo" title="Undo (U)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          </button>
+          <button class="action" aria-label="Pass on this job" data-label="Pass" title="Pass (←)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="action" aria-label="Save for later" data-label="Save" title="Save (S)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+          </button>
+          <button class="action" aria-label="Apply to this job" data-label="Apply" title="Apply (Enter)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <button class="action" aria-label="Boost visibility" data-label="Boost" title="Boost">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- =========================
+      FOOTER
+========================= -->
+<footer class="site-footer">
+  <div class="footer__inner">
+    <h3>Internship Platform</h3>
+    <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+    <nav class="footer__links" aria-label="Footer">
+      <a href="#">About</a>
+      <a href="#">Careers</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+    </nav>
+    <div class="footer__legal">© 2025 Internship Platform. All rights reserved.</div>
+  </div>
+</footer>
+
+<style>
+  :root{
+    /* Layout */
+    --container-max: 1480px;
+    --gutter-x: 60px;
+    --hero-copy-max: 620px;
+    --hero-gap-min: 72px;
+    --hero-gap-max: 96px;
+  
+    /* Cards */
+    --card-w: clamp(320px, 28vw, 380px);
+    --card-h: 540px;
+    --card-pad: 24px;
+  
+    /* ↓ Closer stack + more “backwards” look */
+    --stack-gap: 160px;
+    --stack-tilt: -15deg;
+  
+    /* Action buttons */
+    --action-size: 48px;
+    --action-gap: 14px;
+  
+    /* Typography */
+    --font: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    --text: #111;
+    --muted: #667085;
+    --meta: #6b7280;
+    --brand: #FF2F5A;
+  }
+  
+  /* ---------- Base ---------- */
+  *{ box-sizing:border-box; }
+  body{ font-family: var(--font); color:var(--text); }
+  
+  /* ---------- Hero ---------- */
+  .hero{
+    display: grid;
+    grid-template-columns: minmax(520px, var(--hero-copy-max)) minmax(0,1fr);
+    column-gap: clamp(var(--hero-gap-min), 6vw, var(--hero-gap-max));
+    align-items: center;
+    min-height: 80vh;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 40px var(--gutter-x) 0;
+  }
+  
+  .hero__copy{ max-width: var(--hero-copy-max); }
+  .hero__title{
+    font-size: clamp(48px, 5.4vw, 72px);
+    line-height: 1.08;
+    letter-spacing: -0.3px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .hero__subhead{
+    margin-top: 28px;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 58ch;
+  }
+  .hero__ctas{ margin-top: 24px; display:flex; gap: 18px; }
+  
+  /* Buttons */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    height: 56px; padding: 0 22px;
+    border-radius: 12px; font-weight: 700; font-size: 18px;
+    text-decoration: none; transition: all .2s ease;
+    border: 1px solid transparent;
+  }
+  .btn--primary{ background: var(--brand); color:#fff; box-shadow: 0 8px 18px rgba(255,47,90,.25); }
+  .btn--primary:hover{ transform: translateY(-1px); box-shadow: 0 10px 22px rgba(255,47,90,.32); }
+  .btn--ghost{ background:#f5f5f5; color:#111; }
+  .btn--ghost:hover{ background:#efefef; }
+  
+  /* ---------- Deck & Cards ---------- */
+  .deck{
+    --gap: min(var(--stack-gap), calc((100% - var(--card-w)) / 2));
+    position: relative;
+    min-height: var(--card-h);
+    perspective: 1600px;
+  }
+  
+  .card{
+    position: absolute; top:0; left:0;
+    width: var(--card-w); height: var(--card-h);
+    background:#fff; border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    transform: translateZ(60px) rotateY(var(--stack-tilt));
+    transition: transform .8s ease-in-out, opacity .6s ease;
+  }
+  
+  .card:nth-child(1){
+    transform: translateX(0) translateZ(40px) rotateY(-14deg);
+    z-index:3;
+  }
+  .card:nth-child(2){
+    transform: translateX(var(--gap)) translateZ(10px) rotateY(-20deg);
+    z-index:2;
+  }
+  .card:nth-child(3){
+    transform: translateX(calc(var(--gap)*2)) translateZ(-20px) rotateY(-24deg);
+    z-index:1;
+  }
+  
+  html, body { overflow-x: clip; }
+  
+  /* IMPORTANT: no !important here so animation can override */
+  .card:hover{
+    transform: translateY(-8px) translateZ(60px) rotateY(-10deg);
+  }
+  
+  .card.swiping{ animation: swipe3D .8s ease forwards; pointer-events:none; }
+  
+  .card__body{
+    height: 100%;
+    padding: var(--card-pad);
+    display:flex; flex-direction:column; justify-content:space-between; align-items:center;
+    text-align:center;
+  }
+  
+  .card__info{ display:flex; flex-direction:column; align-items:center; margin-top: 32px; }
+  .card__logo{ max-width: 220px; max-height: 160px; object-fit:contain; margin-bottom: 16px; }
+  .card__role{ font-size: 18px; font-weight: 600; color:#4b5563; margin: 8px 0 6px; }
+  .card__company{ font-size: 20px; font-weight: 800; color:#2F4858; margin: 2px 0; }
+  .card__meta{ font-size: 15px; color: var(--meta); margin: 6px 0 0; }
+  
+  /* Card colors */
+  .card--pink   { background:#FFE7EC; }
+  .card--blue   { background:#E7F0FF; }
+  .card--yellow { background:#FFF9E6; }
+  
+  /* Actions */
+  .card__actions{ display:flex; gap: var(--action-gap); margin-top:auto; padding-bottom: 22px; }
+  .deck .card:not(:first-child) .card__actions{ opacity:0; pointer-events:none; }
+  
+  /* Action button base */
+  .action{
+    width: var(--action-size); height: var(--action-size);
+    border-radius: 50%; background:#fff; border: none; cursor: default;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    position: relative;
+    outline-offset: 2px;
+  }
+  .action:focus-visible{ outline: 3px solid rgba(59,130,246,.5); }
+  
+  /* Tooltips */
+  .action[data-label]::after{
+    content: attr(data-label);
+    position:absolute; bottom: -28px; left:50%; transform: translateX(-50%) translateY(4px);
+    background:#111; color:#fff; font-size:12px; padding:4px 8px; border-radius:6px;
+    white-space:nowrap; opacity:0; pointer-events:none; transition: .18s ease;
+  }
+  .action:hover::after, .action:focus-visible::after{ opacity:1; transform: translateX(-50%) translateY(0); }
+  
+  /* Swipe animation */
+  @keyframes swipe3D{
+    0%   { transform: translateX(0) translateZ(40px) rotateY(-14deg) scale(1); opacity:1; }
+    40%  { transform: translateX(60px) translateZ(80px) rotateY(-10deg) scale(1.05); opacity:1; }
+    100% { transform: translateX(-520px) translateZ(-40px) rotateY(-26deg) scale(.96); opacity:0; }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .card, .card:hover{ transition: none !important; animation: none !important; transform: none !important; }
+  }
+  
+  /* ---------- Footer ---------- */
+  .site-footer{
+    background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top: 80px;
+    font-family: var(--font);
+  }
+  .footer__inner{ max-width: 1000px; margin: 0 auto; }
+  .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
+  .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
+  .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
+  .footer__links{ margin-bottom: 28px; }
+  .footer__legal{ font-size:14px; color:#777; }
+  
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1279px){
+    :root{ --stack-gap: 140px; }
+    .hero{ column-gap: clamp(56px, 6vw, 80px); }
+    .card__logo{ max-width: 200px; }
+  }
+  @media (max-width: 1024px){
+    .hero{
+      grid-template-columns: 1fr;
+      row-gap: 24px;
+      padding: 32px 28px 0;
+    }
+    .deck{ margin: 0 auto; }
+  }
+  @media (max-width: 640px){
+    :root{ --card-w: 332px; --card-h: 520px; --stack-gap: 120px; }
+    .hero__ctas{ flex-direction: column; gap: 16px; }
+  }
+  
+  /* --------- Full mobile optimisation (≤600px) --------- */
+  @media (max-width: 600px){
+  
+  /* Trim header so the hero sits higher */
+  .header,
+  .header .container{
+    height: 50px !important;               
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    margin-bottom: 0 !important;
+  }
+  .header + .hero{ margin-top: 0 !important; }
+  
+  /* Narrow page gutters */
+  :root{ --gutter-x: 14px; }
+  
+  /* Compact hero */
+  .hero{
+    grid-template-columns: 1fr;
+    padding: 8px var(--gutter-x) 0 !important;
+    row-gap: 6px;
+    min-height: auto;
+    flex: 1 0 auto;
+  }
+  .hero__copy{ max-width: 34rem; }
+  
+  /* Title */
+  .hero__title{
+    font-size: clamp(38px, 9.8vw, 50px);
+    line-height: 1.06;
+    letter-spacing: -0.6px;
+    margin: 0;
+  }
+  .hero__title .accent{
+    background: linear-gradient(90deg, #FF2F5A 0%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+  }
+  .hero__title .accent::after{
+    content: none;
+
+  }
+  
+  /* Subhead */
+  .hero__subhead{
+    margin-top: 6px;
+    font-size: 18px;
+    line-height: 1.45;
+    color: #4f5b6a;
+    max-width: 32ch;
+  }
+  
+  /* CTAs — give more spacing from subhead */
+  .hero__ctas{
+    margin-top: 18px;   /* increased spacing */
+    gap: 12px;          /* more balanced button gap */
+    flex-direction: column;
+  }
+  .btn{
+    height: 48px;
+    font-size: 17px;
+    padding: 0 16px;
+    border-radius: 12px;
+  }
+  .btn--primary{ box-shadow: 0 6px 14px rgba(255,47,90,.18); }
+  .btn--ghost{
+    background:#f3f4f6;
+    border: 1px solid #e5e7eb;
+  }
+  
+  /* Hide deck */
+  .deck { display: none !important; }
+  
+  /* Footer stick */
+  html, body { height: 100%; }
+  body{
+    min-height: 100svh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  .site-footer{
+    margin-top: auto !important;
+    padding: 22px 14px;
+  }
+  }
+  
+  /* Ultra small phones ≤380px */
+  @media (max-width: 380px) {
+    .hero__title { font-size: 32px; }
+    .hero__subhead { font-size: 15px; }
+    .card__logo { max-width: 150px; }
+    .action { width: 40px; height: 40px; }
+    .action svg { width: 18px; height: 18px; }
+  }
+  </style>
+  
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const deck  = document.querySelector(".deck");
+  if (!deck) return;
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const getGap = () => parseFloat(getComputedStyle(deck).getPropertyValue('--gap')) || 140;
+
+  // Match CSS transforms for each index
+  const transformFor = (i, gap) => {
+    if (i === 0) return `translateX(0px) translateZ(40px) rotateY(-14deg)`;
+    if (i === 1) return `translateX(${gap}px) translateZ(10px) rotateY(-20deg)`;
+    return `translateX(${i * gap}px) translateZ(-20px) rotateY(-24deg)`; // i >= 2
+  };
+
+  const reorder = () => {
+    const cards = deck.querySelectorAll(".card");
+    const gap   = getGap();
+    cards.forEach((card, i) => {
+      card.style.zIndex = cards.length - i;         // 1 = back, higher = front
+      card.style.transition = "transform .3s ease-out";
+      card.style.transform  = transformFor(i, gap);
+      setTimeout(() => {
+        card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
+      }, 300);
+    });
+  };
+
+  // Autoplay loop with FADE-IN reinsert (every 2s)
+  let isAnimating = false;
+  const delayBetweenSwipes = 2000;
+
+  const swipeNext = () => {
+    if (prefersReduced || isAnimating) return;
+    const first = deck.querySelector(".card");
+    if (!first) return;
+
+    isAnimating = true;
+
+    // Make absolutely sure the swiping card sits on top of the stack while animating
+    first.style.zIndex = 999;
+
+    // Trigger the swipe animation
+    first.classList.add("swiping");
+
+    first.addEventListener("animationend", () => {
+      // Ensure it's invisible before DOM move to avoid any flash on top
+      first.style.opacity = "0";
+
+      // Move swiped card to end of DOM
+      deck.appendChild(first);
+      first.classList.remove("swiping");
+
+      const cards = deck.querySelectorAll(".card");
+      const gap   = getGap();
+      const lastIndex = cards.length - 1;
+
+      // Place appended card at the BACK immediately, invisible
+      first.style.transition = "none";
+      first.style.zIndex = cards.length - lastIndex;   // lowest z-index (back)
+      first.style.transform = transformFor(lastIndex, gap);
+
+      // Update other cards positions/z-indices smoothly
+      cards.forEach((card, i) => {
+        if (card === first) return;
+        card.style.zIndex = cards.length - i;
+        card.style.transition = "transform .3s ease-out";
+        card.style.transform = transformFor(i, gap);
+      });
+
+      // Fade the appended card in, already at the back
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          first.style.transition = "opacity .35s ease";
+          first.style.opacity = "1";
+
+          // Restore defaults and continue loop
+          setTimeout(() => {
+            first.style.transition = "transform .8s ease-in-out, opacity .6s ease";
+            cards.forEach(card => {
+              if (card !== first) card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
+            });
+            isAnimating = false;
+            setTimeout(swipeNext, delayBetweenSwipes);
+          }, 380);
+        });
+      });
+    }, { once: true });
+  };
+
+  // Kick things off
+  reorder();
+  if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
+
+  // Keep layout correct on resize
+  window.addEventListener('resize', reorder);
+
+  // Pause/resume when tab visibility changes
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      isAnimating = true;
+    } else {
+      isAnimating = false;
+      reorder();
+      if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
+    }
+  });
+});
+</script>
+
 {% endblock content %}

@@ -13,10 +13,26 @@ from django.core.exceptions import ValidationError
 from django.conf import settings  # Import settings for custom User model reference
 from django.db import models
 from django.utils import timezone
+from django.db import models
+from django.contrib.auth.models import User
+from django.db import models
 
 
 
 
+class ListingType(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
+class JobListing(models.Model):
+    topic = models.ForeignKey(ListingType, on_delete=models.SET_NULL, null=True)
+    company_name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    job_title = models.CharField(max_length=255)
+    description = models.TextField()
+    files = models.FileField(upload_to="listing_files/", blank=True, null=True)
 
 class User(AbstractUser):
     full_name = models.CharField(max_length=200, null=True)
@@ -27,12 +43,59 @@ class User(AbstractUser):
     background = models.ImageField(null=True, default="background.jpg")
     avatar = models.ImageField(null=True, default="avatar.svg")
     username = models.CharField(max_length=150, unique=True, null=True, blank=True)
+    onboarding_shown = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'  # Use email for authentication
+    # Resume upload
+    resume = models.FileField(upload_to="resumes/", blank=True, null=True)
+
+    # Role choices
+    ROLE_CHOICES = (
+        ('student', 'Student'),
+        ('employer', 'Employer'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, null=True)
+
+    # Career category
+    category = models.CharField(max_length=50, null=True, blank=True)
+
+    # 🔹 Subscription choices
+    SUBSCRIPTION_CHOICES = [
+        ('free', 'Free'),
+        ('starter', 'Starter'),
+        ('pro', 'Pro'),
+        ('enterprise', 'Enterprise'),
+    ]
+    subscription_tier = models.CharField(
+        max_length=20,
+        choices=SUBSCRIPTION_CHOICES,
+        default='free'
+    )
+
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
+    
+
+
+
+
+class UserGoogleCredential(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='google_credential'
+    )
+    token = models.TextField()                 # access token
+    refresh_token = models.TextField(null=True, blank=True)
+    token_uri = models.TextField()
+    client_id = models.TextField()
+    client_secret = models.TextField()
+    scopes = models.TextField()                # store space-separated list of scopes
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Gmail credentials for {self.user.email}"
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -43,24 +106,29 @@ class Profile(models.Model):
         return self.user.username
 
 class Topic(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
 class Room(models.Model):
-    host = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    host = models.ForeignKey(User, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
-    description = models.TextField(null=True, blank=True)
-    participants = models.ManyToManyField(User, related_name='participants', blank=True)
-    updated = models.DateTimeField(auto_now=True)
-    created = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-updated', '-created']
+    company_name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    job_title = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # New field for company logo / photo
+    logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.job_title} at {self.company_name}"
+
+class RoomFile(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to='room_files/')
     
 class RoomFile(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="files")
@@ -115,3 +183,26 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.full_name} to {self.recipient.full_name}"
+    
+
+class DailySwipeQuota(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    date = models.DateField()
+    count = models.PositiveIntegerField(default=0)
+    limit = models.PositiveIntegerField(default=5)  # 👈 NEW
+
+    class Meta:
+        unique_together = ('user', 'date')
+
+    def __str__(self):
+        return f"{self.user.email} – {self.count}/{self.limit} swipes on {self.date}"
+    
+
+
+class SavedJob(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    room = models.ForeignKey('Room', on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'room')

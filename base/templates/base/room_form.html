@@ -1,67 +1,164 @@
 {% extends 'main.html' %}
 
 {% block content %}
-<main class="create-room layout">
-  <div class="container">
-    <div class="layout__box">
-      <div class="layout__boxHeader">
-        <div class="layout__boxTitle">
-          <a href="{{ request.META.HTTP_REFERER|default:'#' }}">
-            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <title>arrow-left</title>
-              <path d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z"></path>
-            </svg>
-          </a>
-          <h3 class="post-title">Create Post</h3>
-        </div>
+<main class="create-room layout" style="min-height: 140vh; display: flex; justify-content: center; align-items: flex-start;">
+  <div class="container" style="margin-top: 8rem; display: flex; justify-content: center; width: 100%;">
+    <div class="layout__box" style="max-width: 1000px; width: 100%; margin-top: 100px;">
+      <div class="layout__boxHeader" style="background-color: #ff2a55; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem;">
+        <a href="{{ request.META.HTTP_REFERER|default:'#' }}">
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" style="fill: white;">
+            <title>arrow-left</title>
+            <path d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z"></path>
+          </svg>
+        </a>
+        <h3 style="color: white; margin:0;">Create Job / Internship Listing</h3>
       </div>
-      <div class="layout__body">
-        <!-- Form for Room creation with file uploads -->
-        <form class="form" action="{% url 'create-room' %}" method="POST" enctype="multipart/form-data">
-          {% csrf_token %}
-        
-          <!-- Dropdown for Predefined Topics -->
-          <div class="form__group">
-            <label for="topic">Select a Topic:</label>
-            <select name="topic" id="topic" required>
-                <option value="" disabled selected>Select a topic</option>
-                {% for topic in topics %}
-                    <option value="{{ topic.id }}">{{ topic.name }}</option>
-                {% endfor %}
-            </select>
-          </div>
-        
-          <!-- Room Title Field -->
-          <div class="form__group">
-            <label for="title">Room Title:</label>
-            <input required type="text" name="title" id="title" placeholder="Enter the room title">
-          </div>
-        
-          <!-- Room Description Field -->
-          <div class="form__group">
-            <label for="room_description">Room Description</label>
-            {{ form.description }}
-          </div>
-        
-          <!-- Multiple File Upload -->
-          <div class="form__group">
-            <label for="room_files">Upload Room Files</label>
-            <input type="file" name="files" multiple> <!-- Single file input with `multiple` attribute -->
-          </div>
-        
-          <!-- Submit Button -->
-          <div class="form__action">
-            <a class="btn btn--dark" href="{% url 'home' %}">Cancel</a>
-            <button class="btn btn--main" type="submit">Create Post</button>
-          </div>
-        </form>
+
+      <div class="layout__body" style="padding: 3rem;">
+        <style>
+          /* Form Grid */
+          .modern-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            font-family: 'Inter', sans-serif;
+          }
+
+          .form-group {
+            display: flex;
+            flex-direction: column;
+          }
+
+          .full-width {
+            grid-column: 1 / -1;
+          }
+
+          .form-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #444;
+          }
+
+          .form-input {
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background-color: #fff;
+          }
+
+          .form-input:focus {
+            border-color: #0077ff;
+            box-shadow: 0 0 0 3px rgba(0,119,255,0.15);
+            outline: none;
+          }
+
+          .textarea-input {
+            min-height: 120px;
+            resize: vertical;
+          }
+
+          .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+          }
+
+          .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+          }
+
+          .btn-primary {
+            background-color: #ff2a55;
+            color: #fff;
+            border: none;
+          }
+
+          .btn-primary:hover {
+            background-color: #e6003d;
+          }
+
+          .btn-secondary {
+            background-color: #f4f4f4;
+            color: #333;
+            border: 1px solid #ddd;
+          }
+
+          .btn-secondary:hover {
+            background-color: #eaeaea;
+          }
+        </style>
+
+<form method="POST" enctype="multipart/form-data" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem;">
+  {% csrf_token %}
+  
+
+  <!-- Listing Type Dropdown -->
+  <div class="form-group">
+    <label for="{{ form.topic.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Listing Type</label>
+    {{ form.topic }}
+  </div>
+
+  <!-- Company Name -->
+  <div class="form-group">
+    <label for="{{ form.company_name.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Company Name</label>
+    {{ form.company_name }}
+  </div>
+
+  <!-- Company Location -->
+  <div class="form-group">
+    <label for="{{ form.location.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Company Location</label>
+    {{ form.location }}
+  </div>
+
+  <!-- Job / Internship Title -->
+  <div class="form-group">
+    <label for="{{ form.job_title.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Job / Internship Title</label>
+    {{ form.job_title }}
+  </div>
+
+  <!-- Description (full width) -->
+  <div class="form-group" style="grid-column:1/-1;">
+    <label for="{{ form.description.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Description</label>
+    {{ form.description }}
+  </div>
+
+  <!-- File Upload -->
+  <div class="form-group">
+    <label for="{{ form.files.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Upload Files (optional)</label>
+    {{ form.files }}
+  </div>
+
+  <!-- Company Logo Upload -->
+<div class="form-group">
+  <label for="{{ form.logo.id_for_label }}" style="font-weight:500; margin-bottom:0.5rem;">Company Logo (optional)</label>
+  {{ form.logo }}
+</div>
+
+  <!-- Form Actions (full width) -->
+  <div style="grid-column:1/-1; display:flex; justify-content:flex-end; gap:1rem; margin-top:1rem;">
+    <a href="{% url 'home' %}" style="padding:12px 24px; background:#ccc; color:#333; border-radius:8px; text-decoration:none;">Cancel</a>
+    <button type="submit" style="padding:12px 24px; background:#ff2a55; color:white; border:none; border-radius:8px; cursor:pointer;">Post Listing</button>
+  </div>
+</form>
       </div>
     </div>
   </div>
 
   <!-- Display form errors -->
   {% if form.errors %}
-    <ul>
+    <ul style="color:red; margin-top: 1rem;">
       {% for field, error in form.errors.items %}
         <li>{{ field }}: {{ error }}</li>
       {% endfor %}

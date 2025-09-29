@@ -13,6 +13,17 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 
+# === Stripe (TEST MODE FIRST) ===
+STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_xxx")  # dashboard > Developers > API keys
+STRIPE_WEBHOOK_SECRET  = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_xxx")# from `stripe listen` or dashboard endpoint
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_xxx")
+
+# Where users land after checkout
+STRIPE_SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL", "https://your-domain.example/thank-you/")
+STRIPE_CANCEL_URL  = os.getenv("STRIPE_CANCEL_URL",  "https://your-domain.example/pricing/")
+STRIPE_PORTAL_RETURN_URL = os.getenv("STRIPE_PORTAL_RETURN_URL", "https://your-domain.example/account/")
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,8 +37,10 @@ SECRET_KEY = 'django-insecure-3#av2c6nptlbbb6^muqkchu&fe3wv&n$t2+g$v!ir-f5%doocb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
 
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '167.99.242.34']
+
+SITE_URL = 'http://127.0.0.1:8000'  # dev
 
 # Application definition
 
@@ -41,8 +54,32 @@ INSTALLED_APPS = [
     'base.apps.BaseConfig',
     'rest_framework',
     "corsheaders",
+    'widget_tweaks',
+    'billing',
+
+
 ]
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Your Gmail address:
+EMAIL_HOST_USER = 'johanneskarasikweb@gmail.com'
+
+# The 16-character App Password you created in Google account security
+EMAIL_HOST_PASSWORD = 'biql hmmx eoca wvto'   # <— paste your App Password here
+
+# The “from” address that will show up in the email
+DEFAULT_FROM_EMAIL = 'My App <johanneskarasikweb@gmail.com>'
+
+LOGIN_URL = 'app_login'
+LOGIN_REDIRECT_URL = 'swipe_view'
+
+# templates
 
 
 AUTH_USER_MODEL = 'base.User'
@@ -86,6 +123,18 @@ WSGI_APPLICATION = 'studybud.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': 'your_db_name',
+#        'USER': 'newuser',
+#        'PASSWORD': 'yourpassword',
+#        'HOST': 'localhost',
+#        'PORT': '5432',
+#    }
+#}
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -96,6 +145,7 @@ DATABASES = {
         'PORT': '',
     }
 }
+
 
 USE_TZ = True
 # Password validation
@@ -135,17 +185,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 # Static files (CSS, JavaScript, etc.)
 
+# Existing static "images" setup (keep this intact)
 MEDIA_URL = '/images/'
-
-
-
 MEDIA_ROOT = BASE_DIR / 'static/images'
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JS, app images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
+STATIC_ROOT = BASE_DIR/'static'
+# New media setup for user uploads (resumes, avatars, etc.)
+USER_MEDIA_URL = '/media/'                     # URL for user uploads
+USER_MEDIA_ROOT = BASE_DIR / 'media'           # Directory on disk
 # STATIC_ROOT =
 
 # Default primary key field type
@@ -155,22 +205,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/clinton/Grid-Real-Estate/logs/error.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    },
-}

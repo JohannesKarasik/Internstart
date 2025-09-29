@@ -9,6 +9,7 @@
     <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="{% static 'styles/style.css' %}" />
     <title>StudyBuddy - Find study partners around the world!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head>
 
 <body>
@@ -19,59 +20,13 @@
     {% endblock %}
 
     <!-- Messaging Component -->
-    <div id="message-component" class="message-component minimized">
-        <div class="message-header">
-            <div>
-            <span>Messages</span>
-            <span id="active-connection-name"></span>
-        </div>
-            <button id="toggle-message-button" class="toggle-button">Open</button>
-        </div>
-        <div id="message-content" class="message-content" style="display: none;">
-            <div class="sidebar">
-                <h2 class="thetitle">Your Connections</h2>
-                <ul class="connections-list">
-                    {% for connection in connections %}
-                        {% if connection.user == request.user %}
-                            <li>
-                                <a href="#" class="connection-link" data-user-id="{{ connection.connection.id }}">
-                                    <img src="{{ connection.connection.avatar.url }}" alt="{{ connection.connection.full_name }}" width="50">
-                                    <div>
-                                        <strong>{{ connection.connection.full_name }}</strong><br>
-                                    </div>
-                                </a>
-                            </li>
-                        {% else %}
-                            <li>
-                                <a href="#" class="connection-link" data-user-id="{{ connection.user.id }}">
-                                    <img src="{{ connection.user.avatar.url }}" alt="{{ connection.user.full_name }}" width="50">
-                                    <strong>{{ connection.user.full_name }}</strong><br>
-                                </a>
-                            </li>
-                        {% endif %}
-                    {% empty %}
-                        <li>No connections found.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-    
-            <!-- Messaging Area (Initially Hidden) -->
-            <div class="messaging-area" style="display: none;">
-                <!-- Message display area -->
-                <div class="message-display" id="messages" style="display: none;">
-                    <p>Select a connection to start a conversation.</p>
-                </div>
-    
-                <!-- Input Form for Sending Messages -->
-                <div class="message-input" id="message-form" style="display: none;">
-                    <textarea class="message-field" name="content" id="content" rows="1" placeholder="Type a message..." required></textarea>
-                    <button id="send-message" class="send-button">Send</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
+
+
+    
 </body>
+
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
