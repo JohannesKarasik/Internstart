@@ -28,7 +28,8 @@ jiter==0.10.0
 lxml==6.0.1
 oauthlib==3.3.1
 openai==1.107.3
-packaging==25.0
+packaging==25.0pwd
+
 pdf2image==1.17.0
 pillow==11.3.0
 proto-plus==1.26.1
