@@ -1,14 +1,20 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+import base64
+from email.mime.text import MIMEText
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from .models import Room, Topic, User
-from .forms import RoomForm, UserForm, MyUserCreationForm
+from .forms import RoomForm, UserForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from django.forms import modelformset_factory
 from .models import Room, RoomFile, Topic
 from .forms import RoomForm, RoomFileFormSet
@@ -21,7 +27,11 @@ from django.db import IntegrityError
 from base.models import Connection
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import User, Connection
+from docx import Document
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 from django.db.models import Q
 from.models import Connection
 from django.shortcuts import render, get_object_or_404, redirect
@@ -41,6 +51,637 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Connection
 from django.http import JsonResponse
+from .forms import  StudentCreationForm
+from .forms import EmployerCompanyForm, EmployerPersonalForm
+from django.utils import timezone
+from .models import DailySwipeQuota
+
+import logging
+from docx import Document
+
+from django.shortcuts import render, redirect
+from .forms import UserForm
+# views.py
+from django.conf import settings
+from django.conf import settings
+from django.shortcuts import redirect
+from google_auth_oauthlib.flow import Flow
+import os
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import RoomForm, UserForm, EmployerCompanyForm, EmployerPersonalForm
+from django.http import JsonResponse
+from django import template
+import fitz  # PyMuPDF
+import docx
+import openai
+from .models import UserGoogleCredential
+from google.oauth2.credentials import Credentials
+
+from google_auth_oauthlib.flow import Flow
+
+from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+from django.http import HttpResponse
+import os
+import json
+import threading
+
+from django.core.mail import EmailMultiAlternatives
+# views.py
+from django.shortcuts import get_object_or_404
+from django.http import FileResponse, Http404
+import mimetypes
+import os
+from django.contrib.auth import get_user_model
+# views.py
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import openai
+import os
+from django.core.mail import send_mail
+from django.views.decorators.http import require_POST
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from .models import SavedJob, Room   # adjust import to your model names
+
+import re
+
+# views.py
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import SavedJob
+
+import re
+
+def sanitize_letter(raw: str, company_name: str = "") -> str:
+    if not raw:
+        return ""
+    txt = raw.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Drop top “letterhead” lines until a greeting
+    lines = txt.split("\n")
+    keywords = {"your name","your address","city","zip","email","phone","date","company address","hiring manager"}
+    start = 0
+    for i, l in enumerate(lines):
+        s = l.strip().lower()
+        if re.match(r'^(hello,|dear\b)', s):
+            start = i
+            break
+        if s in (company_name or "").lower():
+            continue
+        if not s or any(k in s for k in keywords) or re.search(r'\d{1,5}\s+\w+', s):
+            continue
+        # keep scanning until we see a greeting
+    else:
+        # no greeting found; drop obvious placeholders at top
+        trimmed, skipping = [], True
+        for l in lines:
+            s = l.strip().lower()
+            if skipping and (not s or any(k in s for k in keywords) or s == (company_name or "").lower()):
+                continue
+            skipping = False
+            trimmed.append(l)
+        lines = trimmed
+        txt = "\n".join(lines).lstrip()
+    if start:
+        txt = "\n".join(lines[start:]).lstrip()
+
+    # Normalize greeting
+    txt = re.sub(r'^\s*dear\s+hiring\s+manager[.,]?\s*', "Hello,\n\n", txt, flags=re.IGNORECASE)
+
+    # Remove ANY bracket characters (even unmatched), incl. fullwidth variants
+    txt = re.sub(r'[\[\]\(\)［］（）]', '', txt)
+
+    # Tidy punctuation/spacing/newlines
+    txt = re.sub(r'\s+([,.;:!?])', r'\1', txt)
+    txt = re.sub(r'([,.;:!?])([^\S\n]+)', r'\1 ', txt)
+    txt = re.sub(r'[ \t]{2,}', ' ', txt)
+    txt = re.sub(r'\n{3,}', '\n\n', txt)
+    txt = txt.strip()
+
+    if not re.match(r'^(hello,|dear\b)', txt, flags=re.IGNORECASE):
+        txt = "Hello,\n\n" + txt
+
+    return txt
+
+
+
+@login_required
+def saved_jobs_json(request):
+    saved = SavedJob.objects.filter(user=request.user).select_related('room')
+    return JsonResponse({
+        'jobs': [
+            {
+                'id': s.room.id,
+                'title': s.room.job_title,
+                'company': s.room.company_name,
+                'location': s.room.location,
+                'logo': s.room.logo.url if s.room.logo else '',
+            }
+            for s in saved
+        ]
+    })
+
+# ---- SEND APPLICATION (sends provided cover letter; still strips [placeholders]) ----
+@csrf_exempt
+@login_required
+def send_application(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body or "{}")
+            coverletter = data.get("coverletter", "")
+            if not coverletter:
+                return JsonResponse({"success": False, "error": "No cover letter provided."})
+
+            # Remove ONLY square brackets; keep parentheses
+            coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
+            if 'sanitize_letter' in globals():
+                coverletter = sanitize_letter(coverletter)
+            coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
+
+            user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
+            if not user_creds:
+                return JsonResponse({
+                    "success": False,
+                    "error": "OAuth required",
+                    "redirect": reverse('start_gmail_auth')
+                })
+
+            creds = Credentials(
+                token=user_creds.token,
+                refresh_token=user_creds.refresh_token,
+                token_uri=user_creds.token_uri,
+                client_id=user_creds.client_id,
+                client_secret=user_creds.client_secret,
+                scopes=user_creds.scopes.split()
+            )
+
+            if not creds.valid and creds.refresh_token:
+                creds.refresh(Request())
+                user_creds.token = creds.token
+                user_creds.save()
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    return JsonResponse({"success": False, "error": "OAuth required", "redirect": reverse('start_gmail_auth')})
+
+            service = build("gmail", "v1", credentials=creds)
+
+            message = MIMEText(coverletter, _subtype='plain', _charset='utf-8')
+            message["to"] = "johanneskarasikweb@gmail.com"  # testing target
+            message["subject"] = "Application Submission"
+
+            raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+            send_result = service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
+
+            return JsonResponse({"success": True, "message_id": send_result.get("id")})
+
+        except Exception as e:
+            import traceback
+            print("Error sending application:", e)
+            traceback.print_exc()
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request method."})
+
+
+
+from io import BytesIO
+from django.core.files.storage import default_storage
+import os, fitz
+from docx import Document
+
+def get_user_resume_text(user) -> str:
+    f = getattr(user, "resume", None)
+    if not f:
+        print("[RESUME] no FileField on user")
+        return ""
+
+    # if FieldFile with actual file
+    if hasattr(f, "path") and getattr(f, "name", ""):
+        path = f.path
+    else:
+        # treat .resume as a string path relative to static/images/resumes
+        path = os.path.join(settings.BASE_DIR, 'static', 'images', 'resumes', str(f))
+
+    if not os.path.exists(path):
+        print("[RESUME] file not found at", path)
+        return ""
+
+    ext = os.path.splitext(path)[1].lower()
+    try:
+        if ext == ".pdf":
+            import fitz
+            text = ""
+            with fitz.open(path) as pdf:
+                for page in pdf:
+                    text += page.get_text("text")
+            return text.strip()
+        elif ext == ".docx":
+            from docx import Document
+            doc = Document(path)
+            return "\n".join(p.text for p in doc.paragraphs).strip()
+        else:
+            with open(path, "r", errors="ignore") as fh:
+                return fh.read().strip()
+    except Exception as e:
+        print("[RESUME] failed to read:", e)
+        return ""
+
+
+
+
+openai.api_key = "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"
+@csrf_exempt
+@login_required
+def generate_coverletter(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method."}, status=405)
+
+
+
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+
+
+
+import threading
+import os
+import json
+import base64
+from django.http import JsonResponse, HttpResponse, FileResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import Flow
+from email.mime.text import MIMEText
+import openai
+
+# --- Settings for Gmail OAuth ---
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TOKEN_PATH = os.path.join(BASE_DIR, 'token.json')
+CLIENT_SECRETS_FILE = os.path.join(BASE_DIR, 'credentials.json')
+
+
+def gmail_callback(request):
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE,
+        scopes=SCOPES,
+        redirect_uri='http://127.0.0.1:8000/gmail/callback/'
+    )
+    flow.fetch_token(authorization_response=request.build_absolute_uri())
+    creds = flow.credentials
+
+    # 🔹 Figure out which user we’re linking credentials to
+    new_user_id = request.session.pop('new_user_id', None)
+    if new_user_id:
+        # This OAuth was triggered immediately after registration
+        user = get_object_or_404(User, id=new_user_id)
+    else:
+        # This OAuth was triggered by a logged-in user later
+        user = request.user
+
+    # 🔹 Save or update their Gmail credentials
+    UserGoogleCredential.objects.update_or_create(
+        user=user,
+        defaults={
+            'token': creds.token,
+            'refresh_token': creds.refresh_token,
+            'token_uri': creds.token_uri,
+            'client_id': creds.client_id,
+            'client_secret': creds.client_secret,
+            'scopes': ' '.join(creds.scopes)
+        }
+    )
+
+    # ✅ mark onboarding as done so it won't show again
+    user.onboarding_shown = True
+    user.save()
+
+    messages.success(request, "Gmail connected successfully.")
+    return redirect('swipe_view')   # ⬅️ go back to swipe page instead of check_email.html
+
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.urls import reverse
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from email.mime.text import MIMEText
+import base64, json, re
+from django.utils import timezone
+import traceback
+import openai
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import mimetypes
+
+@csrf_exempt
+@login_required
+def apply_swipe_job(request):
+    print("DEBUG request.user.id:", request.user.id)
+    print("DEBUG request.user.email:", request.user.email)
+    print("DEBUG request.user.resume.name:", getattr(getattr(request.user, "resume", None), "name", None))
+
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request method"})
+
+    today = timezone.localdate()
+    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
+
+    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "enterprise": 40}
+    tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
+    limit = SWIPE_LIMITS.get(tier, 5)
+
+    if quota.count >= limit:
+        return JsonResponse({
+            "success": False,
+            "error": f"Daily swipe limit ({limit}) reached for your {tier.capitalize()} plan."
+        })
+
+    quota.count += 1
+    quota.save()
+
+    try:
+        data = json.loads(request.body or "{}")
+        room_id = data.get("room_id")
+        if not room_id:
+            return JsonResponse({"success": False, "error": "Missing room ID"})
+
+        room = Room.objects.get(id=room_id)
+
+        company_name = room.company_name or ""
+        role_title   = getattr(room, "job_title", "") or ""
+        location     = getattr(room, "location", "") or ""
+        job_desc     = getattr(room, "description", "") or ""
+
+        # ✅ resume text
+        resume_text = get_user_resume_text(request.user) or ""
+        print("[DEBUG] resume_text first 200 chars:", resume_text[:200])
+
+        res_field = getattr(request.user, 'resume', None)
+        print("user.resume.name:", getattr(res_field, 'name', None))
+        if res_field and getattr(res_field, 'name', ''):
+            print("user.resume.path:", res_field.path)
+        else:
+            print("user has no resume uploaded")
+
+        # GPT prompt
+        full_prompt = f"""
+Below is the full resume text of the applicant. Then the job description.
+
+Write a **first-person** professional plain-text cover letter of at most 250 words for the job.
+
+You MUST:
+- Write in first person (“Hello, I’m …” or “My name is …”), not third person.
+- Start by introducing yourself by name and mentioning your current or most recent school/university.
+- Bring up relevant work experience early (in the first few sentences).
+- Use as many real details from the resume as possible; if something is not in the resume, do NOT mention it.
+- Keep it under 250 words.
+- If no named recipient, start with "Hello,".
+- End the letter with a short sentence telling the recipient that your resume is attached (e.g., “I have attached my resume below for your review.”).
+- Return only the letter body (no subject line, no signature placeholders).
+- Make it sound like a natural cover letter you’d actually send.
+
+=== RESUME TEXT ===
+{resume_text or "not provided"}
+
+=== JOB ===
+Company: {company_name or "unknown"}
+Role: {role_title or "unknown"}
+Location: {location or "unknown"}
+Description:
+{job_desc or "not provided"}
+"""
+
+        print("[DEBUG] prompt first 500 chars:", full_prompt[:500])
+
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": full_prompt}],
+            temperature=0.1,
+        )
+        coverletter = (response.choices[0].message.content or "").strip()
+        coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
+        coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
+
+        # ✅ send via Gmail (multipart with attachment)
+        user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
+        if not user_creds:
+            return JsonResponse({
+                "success": False,
+                "error": "OAuth required",
+                "redirect": reverse('start_gmail_auth')
+            })
+
+        creds = Credentials(
+            token=user_creds.token,
+            refresh_token=user_creds.refresh_token,
+            token_uri=user_creds.token_uri,
+            client_id=user_creds.client_id,
+            client_secret=user_creds.client_secret,
+            scopes=user_creds.scopes.split()
+        )
+        if not creds.valid and creds.refresh_token:
+            creds.refresh(Request())
+            user_creds.token = creds.token
+            user_creds.save()
+
+        service = build("gmail", "v1", credentials=creds)
+
+        # Build a multipart message
+        msg = MIMEMultipart()
+        msg["to"] = "johanneskarasikweb@gmail.com"
+        msg["subject"] = f"Application for {role_title or 'internship role'} at {company_name or 'your team'}"
+
+        # Part 1: cover letter body
+        msg.attach(MIMEText(coverletter, _subtype='plain', _charset='utf-8'))
+
+        # Part 2: attach resume if available
+        if res_field and getattr(res_field, 'path', None) and os.path.exists(res_field.path):
+            resume_path = res_field.path
+            ctype, encoding = mimetypes.guess_type(resume_path)
+            if ctype is None or encoding is not None:
+                ctype = 'application/octet-stream'
+            maintype, subtype = ctype.split('/', 1)
+
+            with open(resume_path, 'rb') as f:
+                part = MIMEBase(maintype, subtype)
+                part.set_payload(f.read())
+                encoders.encode_base64(part)
+                part.add_header(
+                    'Content-Disposition',
+                    'attachment',
+                    filename=os.path.basename(resume_path)
+                )
+                msg.attach(part)
+
+        raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+        service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Cover letter sent successfully with resume attached",
+            "coverletter": coverletter
+        })
+
+    except Room.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Room not found"})
+    except Exception as e:
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+
+def view_resume(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if not user.resume:
+        raise Http404("No resume uploaded")
+    
+    resume_path = user.resume.path
+    resume_file = open(resume_path, 'rb')
+    
+    mime_type, _ = mimetypes.guess_type(resume_path)
+    response = FileResponse(resume_file, content_type=mime_type or 'application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{os.path.basename(resume_path)}"'
+    return response
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TOKEN_PATH = os.path.join(BASE_DIR, 'token.json')
+CLIENT_SECRETS_FILE = os.path.join(BASE_DIR, 'credentials.json')
+
+
+
+
+def start_gmail_auth(request):
+    flow = Flow.from_client_secrets_file(
+        os.path.join(settings.BASE_DIR, 'credentials.json'),
+        scopes=["https://www.googleapis.com/auth/gmail.send"],
+        redirect_uri=request.build_absolute_uri('/gmail/callback/')
+    )
+
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent'  # force Google to show the consent screen again
+    )
+
+    request.session['oauth_state'] = state
+    return redirect(authorization_url)
+
+
+def get_quota(request):
+    today = timezone.localdate()
+    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
+
+    left = max(0, quota.limit - quota.count)
+    return JsonResponse({'left': left, 'limit': quota.limit})
+
+@login_required
+def send_test_email(request):
+    user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
+    if not user_creds:
+        return HttpResponseRedirect(reverse('start_gmail_auth'))
+
+    creds = Credentials(
+        token=user_creds.token,
+        refresh_token=user_creds.refresh_token,
+        token_uri=user_creds.token_uri,
+        client_id=user_creds.client_id,
+        client_secret=user_creds.client_secret,
+        scopes=user_creds.scopes.split()
+    )
+
+    if not creds.valid and creds.refresh_token:
+        creds.refresh(Request())
+        # update DB with new token
+        user_creds.token = creds.token
+        user_creds.save()
+
+    service = build("gmail", "v1", credentials=creds)
+
+    message = MIMEText("Hello")
+    message["to"] = "johanneskarasikweb@gmail.com"
+    message["subject"] = "Test Email"
+
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
+
+    return HttpResponse("Email sent from your Gmail!")
+
+
+def gmail_callback(request):
+    state = request.session.get('oauth_state')
+    flow = Flow.from_client_secrets_file(
+        os.path.join(settings.BASE_DIR, 'credentials.json'),
+        scopes=SCOPES,
+        state=state,
+        redirect_uri=request.build_absolute_uri(reverse('gmail_callback'))
+    )
+    flow.fetch_token(authorization_response=request.build_absolute_uri())
+    creds = flow.credentials
+
+    # save creds to user
+    new_user_id = request.session.pop('new_user_id', None)
+    if new_user_id:
+        user = get_object_or_404(User, id=new_user_id)
+    else:
+        user = request.user
+
+    UserGoogleCredential.objects.update_or_create(
+        user=user,
+        defaults={
+            'token': creds.token,
+            'refresh_token': creds.refresh_token,
+            'token_uri': creds.token_uri,
+            'client_id': creds.client_id,
+            'client_secret': creds.client_secret,
+            'scopes': ' '.join(creds.scopes)
+        }
+    )
+    messages.success(request, "Gmail connected successfully.")
+    return redirect('swipe_view')
+
+def classify_user_category(user):
+    if not user.resume:
+        return None
+
+    resume_text = extract_resume_text(user.resume)
+    if not resume_text.strip():
+        return None
+
+    client = openai.OpenAI(api_key="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")  # Replace with your key
+
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a career classifier."},
+            {"role": "user", "content": f"Classify this resume into one of Finance, Accounting, Consulting, Tech, Law. Return only the category: {resume_text}"}
+        ],
+        temperature=0
+    )
+
+    category = response.choices[0].message.content.strip()
+    user.category = category
+    user.save()
+    return category
+
+
+
 
 
 def health_check(request):
@@ -48,14 +689,8 @@ def health_check(request):
 
 
 
-
-
+from django import template
 register = template.Library()
-
-
-
-
-
 
 @register.filter
 def is_image(file_path):
@@ -68,54 +703,117 @@ def landing_page(request):
 
 
 
+
 def loginPage(request):
     page = 'login'
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('swipe_view')
 
     if request.method == 'POST':
-        email = request.POST.get('email').lower()
-        password = request.POST.get('password')
+        # Accept either <input name="username"> or <input name="email">
+        raw_identifier = (request.POST.get('username') or request.POST.get('email') or '').strip()
+        password = (request.POST.get('password') or '').strip()
 
-        try:
-            user = User.objects.get(email=email)
-        except:
-            messages.error(request, 'User does not exist')
+        User = get_user_model()
+        user = None
+        username_to_use = None
+        lookup_user = None
 
-        user = authenticate(request, email=email, password=password)
+        # Resolve identifier to a username (if they typed an email)
+        if '@' in raw_identifier:
+            try:
+                lookup_user = User.objects.get(email__iexact=raw_identifier)
+                username_to_use = getattr(lookup_user, 'username', None) or lookup_user.get_username()
+            except User.DoesNotExist:
+                lookup_user = None
+        else:
+            username_to_use = raw_identifier
+            try:
+                lookup_user = User.objects.get(username__iexact=username_to_use)
+            except User.DoesNotExist:
+                lookup_user = None
+
+        # If the account exists but hasn't been activated yet
+        if lookup_user is not None and not lookup_user.is_active:
+            messages.error(request, "Your account isn’t activated yet. Check your email for the activation link.")
+            return render(request, 'base/login_register.html', {'page': page})
+
+        # Authenticate
+        if username_to_use:
+            user = authenticate(request, username=username_to_use, password=password)
+
+        # Optional fallback if you also have a custom EmailBackend
+        if user is None and '@' in raw_identifier:
+            user = authenticate(request, email=raw_identifier.lower(), password=password)
 
         if user is not None:
             login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'Username OR password does not exit')
+            return redirect('swipe_view')
 
-    context = {'page': page}
-    return render(request, 'base/login_register.html', context)
+        messages.error(request, "Username or password is incorrect.")
 
+    return render(request, 'base/login_register.html', {'page': page})
 
 def logoutUser(request):
     logout(request)
     return redirect('home')
 
 
+
 def registerPage(request):
-    form = MyUserCreationForm()
+    page = 'register'
 
     if request.method == 'POST':
-        form = MyUserCreationForm(request.POST)
+        # Read which step we're on (default to '1' if missing)
+        step = request.POST.get('step', '1')
+
+        # Bind the full form so entered values stick on re-render
+        form = StudentCreationForm(request.POST, request.FILES)
+
+        # === STEP 1 POST (or any non-final post) ===
+        # Just move to step 2; DO NOT create the user or send email.
+        if step != '2':
+            context = {
+                'student_form': form,
+                'page': page,
+                'show_step2': True,   # show the resume step
+            }
+            return render(request, 'base/login_register.html', context)
+
+        # === STEP 2 POST (final submit) ===
         if form.is_valid():
             user = form.save(commit=False)
-            user.full_name = user.full_name.lower()
+            user.role = 'student'
+            user.is_active = False
             user.save()
-            login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'An error occurred during registration')
 
-    return render(request, 'base/login_register.html', {'form': form})
+            # Send activation email now, but ONLY after resume submit
+            current_site = get_current_site(request)
+            html_message = render_to_string('activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            })
+            subject = 'Activate your account'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            to = [user.email]
 
+            email = EmailMultiAlternatives(subject, '', from_email, to)
+            email.attach_alternative(html_message, "text/html")
+            email.send()
 
+            # Now we finally show "check your email"
+            return render(request, 'check_email.html')
+
+        # If the final form is invalid, stay on step 2 and show errors
+        messages.error(request, 'Please correct the errors below.')
+        context = {'student_form': form, 'page': page, 'show_step2': True}
+        return render(request, 'base/login_register.html', context)
+
+    # GET
+    form = StudentCreationForm()
+    return render(request, 'base/login_register.html', {'student_form': form, 'page': 'register'})
 
 
 @login_required(login_url='login')
@@ -134,7 +832,7 @@ def home(request):
                'room_count': room_count}
     return render(request, 'base/home.html', context)
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def room(request, pk):
     room = Room.objects.get(id=pk)
     room_messages = room.message_set.all()
@@ -169,41 +867,177 @@ def userProfile(request, pk):
     }
     return render(request, 'base/profile.html', context)
 
-@login_required(login_url='login')
+
+def feed_view(request):
+    return render(request, "feed_component.html")
+
+from .models import DailySwipeQuota
+from django.utils import timezone
+
+@login_required
+def swipe_view(request):
+    q = request.GET.get('q') or ''
+    rooms = Room.objects.filter(
+        Q(topic__name__icontains=q) |
+        Q(description__icontains=q)
+    )
+    topics = Topic.objects.all()[:5]
+    room_count = rooms.count()
+
+    # determine if this is the user's first login
+    first_login = False
+    if not request.user.onboarding_shown:
+        first_login = True
+        request.user.onboarding_shown = True
+        request.user.save()
+
+    # 🔹 get current day quota
+    today = timezone.localdate()
+    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
+    swipes_left = max(0, quota.limit - quota.count)
+
+    context = {
+        'swipes_left': swipes_left,
+        'swipe_limit': quota.limit,
+        'rooms': rooms,
+        'topics': topics,
+        'room_count': room_count,
+        'user_profile': request.user,
+        'first_login': first_login,
+        'email_configured': getattr(request.user, 'email_configured', False),
+    }
+    return render(request, "base/swipe_component.html", context)
+from base.models import DailySwipeQuota  # adjust if your model lives elsewhere
+
+@login_required
+@csrf_exempt
+def debug_set_tier(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    data = json.loads(request.body or "{}")
+    tier = (data.get("tier") or "free").lower()
+    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "enterprise": 40}
+
+    if tier not in SWIPE_LIMITS:
+        return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
+
+    request.user.subscription_tier = tier
+    request.user.save()
+
+    # update quota for today
+    quota, _ = DailySwipeQuota.objects.get_or_create(
+        user=request.user, date=timezone.localdate()
+    )
+    quota.limit = SWIPE_LIMITS[tier]
+
+    # if you want to reset usage on upgrade:
+    if quota.count >= quota.limit:
+        quota.count = 0  # reset used count on upgrade
+    quota.save()
+
+    left = max(0, quota.limit - quota.count)
+
+    return JsonResponse({"tier": tier, "limit": quota.limit, "left": left})
+
+
+
+@login_required
+@require_POST
+def save_job(request):
+    data = json.loads(request.body)
+    room_id = data.get('room_id')
+    if not room_id:
+        return JsonResponse({'error': 'Missing room_id'}, status=400)
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesNotExist:
+        return JsonResponse({'error': 'Job not found'}, status=404)
+
+    saved, created = SavedJob.objects.get_or_create(user=request.user, room=room)
+    return JsonResponse({'status': 'ok', 'created': created})
+
+# views.py
+import json
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_protect
+
+import stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+def _absolute(request, path_name, **kwargs):
+    """
+    Safer absolute URL builder that doesn't rely on untrusted Host headers.
+    Configure SITE_URL = "https://yourdomain.com" in settings and use that.
+    """
+    base = getattr(settings, 'SITE_URL', None)
+    if base:
+        from urllib.parse import urljoin
+        return urljoin(base, reverse(path_name, kwargs=kwargs))
+    # Fallback to request.build_absolute_uri if you trust your dev host
+    return request.build_absolute_uri(reverse(path_name, kwargs=kwargs))
+
+
+
+# base/views.py
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def billing_success(request):
+    return HttpResponse("Payment successful. You can close this tab.")
+
+@login_required
+def billing_cancel(request):
+    return HttpResponse("Checkout cancelled. No charges were made.")
+
+
+def company_profile(request, pk):
+    company = get_object_or_404(User, pk=pk)
+    return render(request, 'company_profile.html', {'company': company})
+
+
+@login_required(login_url='app_login')
 def createRoom(request):
-    form = RoomForm()
-    topics = Topic.objects.all()  # Fetch all predefined topics
+    # Predefine topics as Internship or Student Job
+    topics = Topic.objects.filter(name__in=["Internship", "Student Jobs"])
 
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES)
 
         if form.is_valid():
-            selected_topic_id = request.POST.get('topic')  # Get the selected topic ID from the POST data
-            topic = Topic.objects.get(id=selected_topic_id)  # Fetch the selected topic from the database
+            selected_topic_id = request.POST.get('topic')  
+            topic = Topic.objects.get(id=selected_topic_id)
 
             room = form.save(commit=False)
             room.host = request.user
-            room.topic = topic  # Assign the selected topic
+            room.topic = topic  
             room.save()
 
-            # Handle multiple file uploads
+            # Handle multiple file uploads (optional company docs, job description PDFs, etc.)
             files = request.FILES.getlist('files')
             for file in files:
                 RoomFile.objects.create(room=room, file=file)
 
-            messages.success(request, 'Room created successfully!')
+            messages.success(request, 'Job listing created successfully!')
             return redirect('home')
         else:
-            messages.error(request, 'There was an error creating the room. Please check the form for errors.')
+            messages.error(request, 'There was an error creating the listing. Please check the form for errors.')
+    else:
+        form = RoomForm()
 
     context = {
         'form': form,
-        'topics': topics,  # Pass the predefined topics to the template
+        'topics': topics,  
     }
     return render(request, 'base/room_form.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def updateRoom(request, pk):
     room = get_object_or_404(Room, id=pk)
     form = RoomForm(instance=room)  # Prepopulate the form with the current room details
@@ -236,7 +1070,7 @@ def updateRoom(request, pk):
     return render(request, 'base/room_form.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def deleteRoom(request, pk):
     room = Room.objects.get(id=pk)
 
@@ -251,26 +1085,42 @@ def deleteRoom(request, pk):
 
 
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def updateUser(request):
     user = request.user
-    form = UserForm(instance=user)
+
+    # Auto-classify if user has resume but no category
+    if user.resume and not user.category:
+        classify_user_category(user)
 
     if request.method == 'POST':
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            form.save()
-            return redirect('user-profile', pk=user.id)
+            user = form.save()  # make sure we use the saved user
+            # classify again after saving new resume
+            if user.resume and not user.category:
+                classify_user_category(user)
+            messages.success(request, "Profile updated!")
+            return redirect('update-user')  # stay on page
+    else:
+        form = UserForm(instance=user)
 
-    return render(request, 'base/update-user.html', {'form': form})
+    return render(
+        request,
+        'base/update-user.html',
+        {
+            'form': form,
+            'user': user,  # still pass user so category can be displayed
+        },
+    )
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def topicsPage(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
     topics = Topic.objects.filter(name__icontains=q)
     return render(request, 'base/topics.html', {'topics': topics})
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
 
@@ -295,7 +1145,7 @@ def home(request):
     return render(request, 'base/home.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='app_login')
 def ProfileInfo(request, pk):
     user = User.objects.get(id=pk)  # Fetch user based on primary key (id)
     context = {'user': user}  # Pass the user object to the template
@@ -470,3 +1320,57 @@ def message_feed(request, user_id):
 
 
 
+from django.core.mail import send_mail
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+
+def register_user(request):
+    if request.method == 'POST':
+        form = StudentCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False   # so they can’t log in until verified
+            user.save()
+
+            # Build activation link
+            current_site = get_current_site(request)
+            subject = 'Activate your account'
+            message = render_to_string('activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            })
+            send_mail(subject, message, None, [user.email])  # None uses DEFAULT_FROM_EMAIL
+
+            return render(request, 'check_email.html')  # page telling them to check email
+        
+def activate_account(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, "Your account has been activated. You can now log in.")
+        return redirect('app_login')  # or whatever your login URL name is
+    else:
+        messages.error(request, "Activation link is invalid or has expired.")
+        return redirect('app_login')
+    
+
+from django.shortcuts import render
+
+def terms_conditions(request):
+    """Render your Terms & Conditions page."""
+    return render(request, 'terms_conditions.html')
+    # or 'base/terms_conditions.html' if you saved it in base/templates/base
+
+    

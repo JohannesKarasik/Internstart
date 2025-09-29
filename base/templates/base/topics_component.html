@@ -1,10 +1,25 @@
-<div class="topics">
-    <div class="topics__header">
-        <h2>Browse Topics</h2>
+<div class="topics" style="margin-left: 30px;">
+    
+    <!-- Toggle Switch Row -->
+    <div class="mode-toggle" style="margin-bottom: 15px;">
+        <span id="mode-label" class="active">Feed Mode</span>
+        <label class="switch">
+            <input type="checkbox" id="modeSwitch">
+            <span class="slider round"></span>
+        </label>
     </div>
+
+    <!-- Topics Header -->
+    <div class="topics__header">
+        <h2>Topics</h2>
+    </div>
+
+    <!-- Topics List -->
     <ul class="topics__list">
         <li>
-            <a href="{% url 'home' %}" class="active">All <span>{{ topics.count }}</span></a>
+            <a href="{% url 'home' %}" class="active" style="color: #2f4858;">
+                All <span>{{ topics.count }}</span>
+            </a>
         </li>
         {% for topic in topics %}
         <li>
@@ -16,7 +31,7 @@
         {% endfor %}
     </ul>
 
-    <button class="btn btn--link">
+    <button class="btn btn--link" style="color: #2f4858;">
         More
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
             <title>chevron-down</title>
@@ -24,3 +39,83 @@
         </svg>
     </button>
 </div>
+
+<style>
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #2f4858;
+  font-weight: 500;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;   /* slightly wider for spacing */
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;   /* smaller than track */
+  width: 18px;
+  left: 3px;      /* padding inside */
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #FF2F5A; /* nice SaaS purple */
+}
+
+input:checked + .slider:before {
+  transform: translateX(13px); /* perfect distance inside track */
+}
+</style>
+
+<script>
+document.getElementById('modeSwitch').addEventListener('change', function() {
+  if (this.checked) {
+
+  } else {
+    window.location.href = "{% url 'feed' %}"; // Go to feed_component.html
+  }
+});
+
+
+
+window.addEventListener("DOMContentLoaded", function() {
+  const modeSwitch = document.getElementById("modeSwitch");
+
+  if (window.location.pathname === "{% url 'swipe_view' %}") {
+    modeSwitch.checked = true;
+  } else {
+    modeSwitch.checked = false;
+  }
+});
+</script>
+
+

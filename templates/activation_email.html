@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <body style="font-family:Arial,sans-serif;">
+    <p>Hi {{ user.full_name }},</p>
+
+    <p>Please click the link below to verify your email and activate your account:</p>
+
+    <p>
+      <a href="http://{{ domain }}/activate/{{ uid }}/{{ token }}/"
+         style="background:#FF2F5A;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;">
+         Activate My Account
+      </a>
+    </p>
+
+    <p>Or copy and paste this link into your browser:<br>
+    http://{{ domain }}/activate/{{ uid }}/{{ token }}/</p>
+  </body>
+</html>

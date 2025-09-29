@@ -1,96 +1,116 @@
 {% extends 'main.html' %}
+{% load static %}
 
 {% block content %}
-<main class="auth layout">
 
+<!-- Background Video -->
+<video autoplay muted loop playsinline style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+">
+    <source src="{% static 'images/dede.mp4' %}" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<!-- Dark Overlay -->
+<div style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    z-index: -1;
+"></div>
+
+<main class="auth layout" style="
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+">
   {% if page == 'login' %}
-  <div class="container">
-    <div class="layout__box">
-      <div class="layout__boxHeader">
-        <div class="layout__boxTitle">
-          <h3>Login</h3>
-        </div>
+  <div class="layout__box" style="
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background-color: white;
+      width: 360px;
+      max-width: 90%;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 2;
+  ">
+      <div class="layout__boxHeader" style="background-color: #ff2a55; color: white; text-align: center; padding: 1rem; border-radius: 8px 8px 0 0;">
+          <h3 style="margin: 0;">Login</h3>
       </div>
-      <div class="layout__body">
-        <h2 class="auth__tagline">Find your study partner</h2>
-
-        <form class="form" action="" method="POST">
-          {% csrf_token %}
-          <div class="form__group form__group">
-            <label for="room_name">Email</label>
-            <input id="username" name="email" type="email" placeholder="e.g. dennis_ivy@email.com />
+      <div class="layout__body" style="margin-top: 1rem;">
+          <h2 class="auth__tagline" style="color: #333; margin-bottom: 1.5rem;">Find your study partner</h2>
+          <form class="form" action="" method="POST">
+              {% csrf_token %}
+              <div class="form__group" style="margin-bottom: 1rem;">
+                  <label for="username">Email</label>
+                  <input id="username" name="email" type="email" placeholder="e.g. dennis_ivy@email.com"
+                      style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;" />
+              </div>
+              <div class="form__group" style="margin-bottom: 1.5rem;">
+                  <label for="password">Password</label>
+                  <input id="password" name="password" type="password" placeholder="••••••••"
+                      style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;" />
+              </div>
+              <button class="btn btn--main" type="submit"
+                  style="background-color: #ff2a55; color: white; border: none; padding: 12px 20px; border-radius: 8px; width: 100%; font-size: 1rem; cursor: pointer;">
+                  Login
+              </button>
+          </form>
+          <div class="auth__action" style="margin-top: 1.5rem;">
+              <p style="margin-bottom: 0.5rem;">Haven't signed up yet?</p>
+              <a href="{% url 'register' %}" style="color: #ff2a55; font-weight: bold;">Sign Up</a>
           </div>
-          <div class=" form__group">
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password"
-              placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" />
-          </div>
-
-          <button class="btn btn--main" type="submit">
-            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <title>lock</title>
-              <path
-                d="M27 12h-1v-2c0-5.514-4.486-10-10-10s-10 4.486-10 10v2h-1c-0.553 0-1 0.447-1 1v18c0 0.553 0.447 1 1 1h22c0.553 0 1-0.447 1-1v-18c0-0.553-0.447-1-1-1zM8 10c0-4.411 3.589-8 8-8s8 3.589 8 8v2h-16v-2zM26 30h-20v-16h20v16z">
-              </path>
-              <path
-                d="M15 21.694v4.306h2v-4.306c0.587-0.348 1-0.961 1-1.694 0-1.105-0.895-2-2-2s-2 0.895-2 2c0 0.732 0.413 1.345 1 1.694z">
-              </path>
-            </svg>
-
-            Login
-          </button>
-        </form>
-
-        <div class="auth__action">
-          <p>Haven't signed up yet?</p>
-          <a href="{% url 'register' %}" class="btn btn--link">Sign Up</a>
-        </div>
       </div>
-    </div>
   </div>
   {% else %}
-  <div class="container">
-    <div class="layout__box">
-      <div class="layout__boxHeader">
-        <div class="layout__boxTitle">
-          <h3>Register</h3>
-        </div>
+  <div class="layout__box" style="
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background-color: white;
+      width: 400px;
+      max-width: 90%;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 2;
+  ">
+      <div class="layout__boxHeader" style="background-color: #ff2a55; color: white; text-align: center; padding: 1rem; border-radius: 8px 8px 0 0;">
+          <h3 style="margin: 0;">Register</h3>
       </div>
-      <div class="layout__body">
-        <h2 class="auth__tagline">Find your study partner</h2>
-
-        <form class="form" action="" method="POST">
-          {% csrf_token %}
-
-          {% for field in form %}
-          <div class="form__group form__group">
-            <label for="room_name">{{field.label}}</label>
-            {{field}}
+      <div class="layout__body" style="margin-top: 1rem;">
+          <h2 class="auth__tagline" style="color: #333; margin-bottom: 1.5rem;">Find your study partner</h2>
+          <form class="form" action="" method="POST">
+              {% csrf_token %}
+              {% for field in form %}
+              <div class="form__group" style="margin-bottom: 1rem;">
+                  <label for="{{field.id_for_label}}">{{field.label}}</label>
+                  {{field}}
+              </div>
+              {% endfor %}
+              <button class="btn btn--main" type="submit"
+                  style="background-color: #ff2a55; color: white; border: none; padding: 12px 20px; border-radius: 8px; width: 100%; font-size: 1rem; cursor: pointer;">
+                  Register
+              </button>
+          </form>
+          <div class="auth__action" style="margin-top: 1.5rem;">
+              <p style="margin-bottom: 0.5rem;">Already signed up?</p>
+              <a href="{% url 'login' %}" style="color: #ff2a55; font-weight: bold;">Login</a>
           </div>
-          {% endfor %}
-
-
-          <button class="btn btn--main" type="submit">
-            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <title>lock</title>
-              <path
-                d="M27 12h-1v-2c0-5.514-4.486-10-10-10s-10 4.486-10 10v2h-1c-0.553 0-1 0.447-1 1v18c0 0.553 0.447 1 1 1h22c0.553 0 1-0.447 1-1v-18c0-0.553-0.447-1-1-1zM8 10c0-4.411 3.589-8 8-8s8 3.589 8 8v2h-16v-2zM26 30h-20v-16h20v16z">
-              </path>
-              <path
-                d="M15 21.694v4.306h2v-4.306c0.587-0.348 1-0.961 1-1.694 0-1.105-0.895-2-2-2s-2 0.895-2 2c0 0.732 0.413 1.345 1 1.694z">
-              </path>
-            </svg>
-
-            Register
-          </button>
-        </form>
-
-        <div class="auth__action">
-          <p>Already signed up yet?</p>
-          <a href="{% url 'login' %}" class="btn btn--link">Sign Up</a>
-        </div>
       </div>
-    </div>
   </div>
   {% endif %}
 </main>

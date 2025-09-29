@@ -1,62 +1,193 @@
 {% load static %}
 {% block content %}
+
 <div class="big-profile-box">
+    <div class="profile-box" style="display: none;">
 
-
-
-        <div class="profile-box">
-            <!-- Profile Background -->
-            <div class="profile-background">
-                {% if user.background %}
-                    <img src="{{ user.background.url }}" alt="Profile Background">
-                {% else %}
-                    <img src="{% static 'images/background.jpg' %}" alt="Default Background">
-                {% endif %}
-            </div>
-            
-            <!-- Profile Avatar -->
-            <div class="profile-avatar">
-                {% if user.avatar %}
-                    <img src="{{ user.avatar.url }}" alt="Profile Picture">
-                {% else %}
-                    <img src="{% static 'images/avatar.svg' %}" alt="Default Avatar">
-                {% endif %}
-            </div>
-            
-            <div class="profile-header">
-                <h2></h2>
-            </div>
-            <div class="profile-details">
-                <div class="user-info1">
-            <div>
-                <p class="profile-info-username">{{ user.full_name }}</p>
-            </div>
-            <div>
-                <p class="profile-info-occupation">{{ user.occupation }}</p>
-            </div>
-            <div>
-                <p class="profile-info-location">{{ user.location }}</p>
-            </div>
-            <div>
-                <a href="{% url 'view_connections' user.id %}" class="connection-button">View Connections</a>           
-
-            </div>
-            </div>
-            </div>
+    <div class="profile-box">
+        <!-- Profile Background -->
+        <div class="profile-background">
+            {% if user.background %}
+                <img src="{{ user.background.url }}" alt="Profile Background">
+            {% else %}
+                <img src="{% static 'images/background.jpg' %}" alt="Default Background">
+            {% endif %}
+        </div>
+        
+        <!-- Profile Avatar -->
+        <div class="profile-avatar">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="Profile Picture">
+            {% else %}
+                <img src="{% static 'images/avatar.svg' %}" alt="Default Avatar">
+            {% endif %}
+        </div>
+        
+        <div class="profile-header">
+            <h2></h2>
         </div>
 
-        <h2></h2>
-        <div class="profile-details-1">
-            <p class="profile-info-connections">Make Connections</p>
-            <p class="profile-info-news">See News</p>
-            <p class="profile-info-bookmarks">See Bookmarks</p>
 
- 
+
+        {% if rooms %}
+        
+        <div class="top-room-description" style="margin-top:20px; padding:15px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb;">
+        
+            {% if rooms.0.company_name %}
+                <!-- If company_name exists directly -->
+                <p class="company-name" style="font-size: 1rem; font-weight: 600; color: #2f4858; margin-bottom: 4px;">
+                    {{ rooms.0.company_name }}
+                </p>
+            {% elif rooms.0.host.company_name %}
+                <!-- Otherwise, check host relation -->
+                <p class="company-name" style="font-size: 1rem; font-weight: 600; color: #2f4858; margin-bottom: 4px;">
+                    {% if rooms.0.company_name %}
+                        {{ rooms.0.company_name }}
+                    {% elif rooms.0.host.company_name %}
+                        {{ rooms.0.host.company_name }}
+                    {% else %}
+                        Unknown Company
+                    {% endif %}
+                </p>
+            {% endif %}
+        
+            <h3>{{ rooms.0.topic.name|default:"No Topic" }}</h3>
+        
+            {% if rooms.0.description|length > 150 %}
+                <p id="description-{{ rooms.0.id }}" style="display:none;">
+                    {{ rooms.0.description|slice:":150" }}... 
+                    <a class="showmore" href="javascript:void(0)" onclick="showMore('{{ rooms.0.id }}')">Show more</a>
+                </p>
+                <p id="full-description-{{ rooms.0.id }}">
+                    {{ rooms.0.description }} 
+                    <a class="showless" href="javascript:void(0)" onclick="showLess('{{ rooms.0.id }}')">Show less</a>
+                </p>
+            {% else %}
+                <p>{{ rooms.0.description }}</p>
+            {% endif %}
+        
+            {% if rooms.0.files.exists %}
+            <div class="room-images" id="room-images-{{ rooms.0.id }}">
+              {% for file in rooms.0.files.all %}
+                {% if forloop.counter <= 2 %}
+                <div class="room-image" style="margin-top:10px;">
+                  <img src="{{ file.file.url }}" alt="{{ file.file.name }}" style="width: 100%; height: auto;">
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+                
+                <script>
+                function showMore(id) {
+                    document.getElementById('description-' + id).style.display = 'block';
+                    document.getElementById('full-description-' + id).style.display = 'none';
+                }
+                
+                function showLess(id) {
+                    document.getElementById('full-description-' + id).style.display = 'block';
+                    document.getElementById('description-' + id).style.display = 'none';
+                }
+                </script>
+                
+
+                <div id="resumeModal" class="resume-modal">
+                    <div class="resume-modal-content">
+                        <span class="close" onclick="closeResumeModal()">&times;</span>
+                        <iframe id="resumeIframe" src="" frameborder="0" style="width:100%; height:90vh;"></iframe>
+                    </div>
+                </div>
+                
+                <!-- Styles for modal and button -->
+                <style>
+.resume-modal {
+    display: none; /* hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+                    .resume-modal-content {
+                        display: flex;
+                        flex-direction: column;
+                        background: #fff;
+                        border-radius: 8px;
+                        width: 90%;
+                        max-width: 1200px;
+                        height: 90%;
+                        position: relative;
+                        padding: 10px;
+                    }
+                    .resume-modal .close {
+                        position: absolute;
+                        right: 15px;
+                        top: 10px;
+                        font-size: 28px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        z-index: 10;
+                    }
+                    #resumeIframe {
+                        flex: 1;
+                        width: 100%;
+                        border: none;
+                    }
+                    .show-resume-btn {
+                        margin-left: 10px;
+                        padding: 6px 12px;
+                        background-color: #4CAF50;
+                        color: #fff;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                    .show-resume-btn:hover {
+                        background-color: #45a049;
+                    }
+                    </style>
+                
+                <script>
+                function openResumeModal(url) {
+                    document.getElementById('resumeIframe').src = url;
+                    document.getElementById('resumeModal').style.display = 'flex';
+                }
+                
+                function closeResumeModal() {
+                    document.getElementById('resumeModal').style.display = 'none';
+                    document.getElementById('resumeIframe').src = "";
+                }
+                
+                // Close modal if clicking outside content
+                window.onclick = function(event) {
+                    const modal = document.getElementById('resumeModal');
+                    if (event.target === modal) {
+                        closeResumeModal();
+                    }
+                }
+                </script>
+
+            
+                <!-- Career Category Section -->
+                <div>
+                    {% if user.category %}
+                        <p>Your career category is: {{ user.category }}</p>
+                    {% else %}
+                        <p>Upload your resume to determine your career category.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
+
+    <h2></h2>
+
+
 </div>
-
-
-
-
 {% endblock %}
