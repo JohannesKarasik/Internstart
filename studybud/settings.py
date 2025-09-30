@@ -79,6 +79,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://167.99.242.34",   # your server IP
     "http://internstart.com",
     "https://internstart.com",
+    "https://www.internstart.com",
 ]
 
 AUTH_USER_MODEL = 'base.User'
