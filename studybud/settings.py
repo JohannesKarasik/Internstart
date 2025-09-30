@@ -12,10 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
 
 # === Stripe (TEST MODE FIRST) ===
 STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_xxx")  # dashboard > Developers > API keys
@@ -28,7 +25,8 @@ STRIPE_CANCEL_URL  = os.getenv("STRIPE_CANCEL_URL",  "https://your-domain.exampl
 STRIPE_PORTAL_RETURN_URL = os.getenv("STRIPE_PORTAL_RETURN_URL", "https://your-domain.example/account/")
 
 
-
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -76,6 +74,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "contact@internstart.com"
 EMAIL_HOST_PASSWORD = "xvtacurmxcibcugp"  # your 16-char App Password
 DEFAULT_FROM_EMAIL = "Internstart <contact@internstart.com>"
+
+# templates
 
 CSRF_TRUSTED_ORIGINS = [
     "http://167.99.242.34",   # your server IP
