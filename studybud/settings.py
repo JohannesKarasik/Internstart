@@ -16,6 +16,11 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 👇 load environment variables from .env file
+load_dotenv(BASE_DIR / ".env")
+
 # === Stripe (TEST MODE FIRST) ===
 STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_xxx")  # dashboard > Developers > API keys
 STRIPE_WEBHOOK_SECRET  = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_xxx")# from `stripe listen` or dashboard endpoint
