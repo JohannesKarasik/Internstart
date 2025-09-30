@@ -82,6 +82,14 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.internstart.com",
 ]
 
+# Ensure cookies are only sent over HTTPS
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Sometimes needed if you're using Nginx as reverse proxy
+CSRF_COOKIE_SAMESITE = None
+
+
 AUTH_USER_MODEL = 'base.User'
 
 MIDDLEWARE = [
