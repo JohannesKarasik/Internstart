@@ -295,7 +295,6 @@ def get_user_resume_text(user) -> str:
 
 
 
-openai.api_key = "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"
 @csrf_exempt
 @login_required
 def generate_coverletter(request):

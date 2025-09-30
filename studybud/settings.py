@@ -38,7 +38,7 @@ SECRET_KEY = 'django-insecure-3#av2c6nptlbbb6^muqkchu&fe3wv&n$t2+g$v!ir-f5%doocb
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '167.99.242.34']
+ALLOWED_HOSTS = ["internstart.com", "www.internstart.com", "167.99.242.34"]
 
 SITE_URL = 'http://127.0.0.1:8000'  # dev
 
@@ -95,6 +95,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'studybud.urls'
 
  
@@ -145,6 +146,8 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+
 
 
 USE_TZ = True
