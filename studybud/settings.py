@@ -14,6 +14,14 @@ from pathlib import Path
 import os
 
 
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / ".env")
+
+
 # === Stripe (TEST MODE FIRST) ===
 STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_xxx")  # dashboard > Developers > API keys
 STRIPE_WEBHOOK_SECRET  = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_xxx")# from `stripe listen` or dashboard endpoint
@@ -68,8 +76,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "apikey"   # this must literally be the word "apikey"
-EMAIL_HOST_PASSWORD = "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"  # paste your real SendGrid API key here
+EMAIL_HOST_USER = "apikey"  # literally the string: apikey
+EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # load from .env
 DEFAULT_FROM_EMAIL = "Internstart <contact@internstart.com>"
 
 # templates
