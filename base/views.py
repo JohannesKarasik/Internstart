@@ -1331,19 +1331,28 @@ def register_user(request):
         form = StudentCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = False   # so they can’t log in until verified
+            user.is_active = False   # Require activation
             user.save()
 
             # Build activation link
             current_site = get_current_site(request)
             subject = 'Activate your account'
-            message = render_to_string('activation_email.html', {
+            html_message = render_to_string('activation_email.html', {
                 'user': user,
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user),
             })
-            send_mail(subject, message, None, [user.email])  # None uses DEFAULT_FROM_EMAIL
+
+            # Create email with HTML + fallback text
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body="Please activate your account using the link in this email.",  # fallback plain text
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            email.attach_alternative(html_message, "text/html")
+            email.send()
 
             return render(request, 'check_email.html')  # page telling them to check email
         
