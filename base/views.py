@@ -74,7 +74,7 @@ from django.http import JsonResponse
 from django import template
 import fitz  # PyMuPDF
 import docx
-import openai
+
 from .models import UserGoogleCredential
 from google.oauth2.credentials import Credentials
 
@@ -98,7 +98,7 @@ from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import openai
+
 import os
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
@@ -321,7 +321,7 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import Flow
 from email.mime.text import MIMEText
-import openai
+
 
 # --- Settings for Gmail OAuth ---
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -380,8 +380,8 @@ from email.mime.text import MIMEText
 import base64, json, re
 from django.utils import timezone
 import traceback
-import openai
 
+from openai import OpenAI
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
