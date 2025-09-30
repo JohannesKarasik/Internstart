@@ -13,12 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import os
-from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# 👇 load environment variables from .env file
 load_dotenv(BASE_DIR / ".env")
 
 # === Stripe (TEST MODE FIRST) ===
@@ -32,8 +28,7 @@ STRIPE_CANCEL_URL  = os.getenv("STRIPE_CANCEL_URL",  "https://your-domain.exampl
 STRIPE_PORTAL_RETURN_URL = os.getenv("STRIPE_PORTAL_RETURN_URL", "https://your-domain.example/account/")
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 
 # Quick-start development settings - unsuitable for production
