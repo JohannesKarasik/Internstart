@@ -470,7 +470,7 @@ Description:
 
         print("[DEBUG] prompt first 500 chars:", full_prompt[:500])
 
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": full_prompt}],
             temperature=0.1,
@@ -666,8 +666,7 @@ def classify_user_category(user):
     if not resume_text.strip():
         return None
 
-    client = openai.OpenAI(api_key="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")  # Replace with your key
-
+    # ✅ Reuse global client
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
