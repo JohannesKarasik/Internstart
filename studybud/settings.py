@@ -73,12 +73,14 @@ INSTALLED_APPS = [
 
 
 # --- Email / SendGrid ---
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.sendgrid.net"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "apikey"  # literally the string: apikey
-EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # load from .env
+# --- Email / SendGrid ---
+INSTALLED_APPS += ["anymail"]
+
+EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
+ANYMAIL = {
+    "SENDGRID_API_KEY": os.getenv("SENDGRID_API_KEY"),
+}
+
 DEFAULT_FROM_EMAIL = "Internstart <contact@internstart.com>"
 
 # templates
