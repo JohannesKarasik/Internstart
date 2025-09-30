@@ -63,16 +63,13 @@ INSTALLED_APPS = [
 
 
 
-if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-EMAIL_HOST = "smtp.gmail.com"
+# --- Email / SendGrid ---
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "contact@internstart.com"
-EMAIL_HOST_PASSWORD = "xvtacurmxcibcugp"  # your 16-char App Password
+EMAIL_HOST_USER = "apikey"   # this must literally be the word "apikey"
+EMAIL_HOST_PASSWORD = "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"  # paste your real SendGrid API key here
 DEFAULT_FROM_EMAIL = "Internstart <contact@internstart.com>"
 
 # templates
