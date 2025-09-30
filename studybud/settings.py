@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+import os
+from pathlib import Path
 
 # === Stripe (TEST MODE FIRST) ===
 STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_xxx")  # dashboard > Developers > API keys
