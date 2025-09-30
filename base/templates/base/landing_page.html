@@ -336,7 +336,6 @@
     .hero__ctas{ flex-direction: column; gap: 16px; }
   }
   
-  /* --------- Full mobile optimisation (≤600px) --------- */
   @media (max-width: 600px){
   
   /* Trim header so the hero sits higher */
@@ -355,20 +354,30 @@
   /* Compact hero */
   .hero{
     grid-template-columns: 1fr;
-    padding: 8px var(--gutter-x) 0 !important;
-    row-gap: 6px;
+    padding: 64px var(--gutter-x) 80px !important; /* added 80px bottom padding */
+    row-gap: 16px; 
     min-height: auto;
     flex: 1 0 auto;
+    padding-bottom: 120px !important; /* was 80px → adds more gap before footer */
+
+  } 
+
+  .hero__copy{ max-width: 34rem;
+    margin-top: 20px; /* adds spacing between title, subhead, and CTAs */
   }
-  .hero__copy{ max-width: 34rem; }
   
   /* Title */
   .hero__title{
-    font-size: clamp(38px, 9.8vw, 50px);
-    line-height: 1.06;
+    font-size: clamp(40px, 10vw, 54px) !important; /* slightly smaller but still bold */
+    line-height: 1.1;
     letter-spacing: -0.6px;
     margin: 0;
   }
+
+  
+
+
+
   .hero__title .accent{
     background-color: #FF2F5A;
     -webkit-background-clip: text;
@@ -382,17 +391,17 @@
   }
   
   /* Subhead */
-  .hero__subhead{
-    margin-top: 6px;
-    font-size: 18px;
-    line-height: 1.45;
+  .hero__subhead {
+    margin-top: 14px;
+    font-size: 20px !important;   /* bigger than 18px */
+    line-height: 1.5;  /* slightly more breathing room */
     color: #4f5b6a;
-    max-width: 32ch;
+    max-width: 34ch;   /* a bit wider so the bigger text doesn’t wrap too quickly */
   }
   
   /* CTAs — give more spacing from subhead */
   .hero__ctas{
-    margin-top: 18px;   /* increased spacing */
+    margin-top: 28px;   /* increased spacing */
     gap: 12px;          /* more balanced button gap */
     flex-direction: column;
   }
@@ -421,7 +430,7 @@
   }
   .site-footer{
     margin-top: auto !important;
-    padding: 22px 14px;
+    padding: 32px 14px;      /* was 22px → more breathing room inside */
   }
   }
   
