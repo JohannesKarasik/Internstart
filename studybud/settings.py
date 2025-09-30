@@ -61,23 +61,17 @@ INSTALLED_APPS = [
 ]
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-# Your Gmail address:
-EMAIL_HOST_USER = 'johanneskarasikweb@gmail.com'
-
-# The 16-character App Password you created in Google account security
-EMAIL_HOST_PASSWORD = 'biql hmmx eoca wvto'   # <— paste your App Password here
-
-# The “from” address that will show up in the email
-DEFAULT_FROM_EMAIL = 'My App <johanneskarasikweb@gmail.com>'
-
-LOGIN_URL = 'app_login'
-LOGIN_REDIRECT_URL = 'swipe_view'
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Internstart <contact@internstart.com>")
 
 # templates
 
