@@ -117,6 +117,9 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'studybud.urls'
 
  
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
