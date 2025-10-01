@@ -48,7 +48,13 @@ SECRET_KEY = 'django-insecure-3#av2c6nptlbbb6^muqkchu&fe3wv&n$t2+g$v!ir-f5%doocb
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["internstart.com", "www.internstart.com", "167.99.242.34"]
+ALLOWED_HOSTS = [
+    "internstart.com",
+    "www.internstart.com",
+    "167.99.242.34",  # server IP if needed
+    "127.0.0.1",      # allow local dev
+    "localhost",
+]
 
 SITE_URL = 'http://127.0.0.1:8000'  # dev
 
@@ -86,15 +92,21 @@ DEFAULT_FROM_EMAIL = "Internstart <contact@internstart.com>"
 # templates
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://167.99.242.34",   # your server IP
-    "http://internstart.com",
     "https://internstart.com",
     "https://www.internstart.com",
+    "http://127.0.0.1:8000",  # allow local dev
+    "http://localhost:8000",  # allow local dev
 ]
 
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+else:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+
 # Ensure cookies are only sent over HTTPS
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+
 
 # Sometimes needed if you're using Nginx as reverse proxy
 CSRF_COOKIE_SAMESITE = None
