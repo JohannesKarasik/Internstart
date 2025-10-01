@@ -1434,3 +1434,10 @@ def terms_conditions(request):
     # or 'base/terms_conditions.html' if you saved it in base/templates/base
 
     
+
+from django.shortcuts import render
+
+def privacy_policy(request):
+    """Render Privacy Policy page."""
+    return render(request, 'privacy_policy.html')
+    # or 'base/privacy_policy.html' if you keep it inside base/
