@@ -37,6 +37,9 @@ urlpatterns = [
         name='activate'
     ),
 
+    path('privacy/', views.privacy_policy, name='privacy_policy'),
+
+
 
 
 
