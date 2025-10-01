@@ -390,6 +390,9 @@ import mimetypes
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
+from .models import SwipedJob
+
+
 @csrf_exempt
 @login_required
 def apply_swipe_job(request):
@@ -423,6 +426,9 @@ def apply_swipe_job(request):
             return JsonResponse({"success": False, "error": "Missing room ID"})
 
         room = Room.objects.get(id=room_id)
+
+        SwipedJob.objects.get_or_create(user=request.user, room=room)
+
 
         company_name = room.company_name or ""
         role_title   = getattr(room, "job_title", "") or ""
@@ -878,24 +884,26 @@ from django.utils import timezone
 @login_required
 def swipe_view(request):
     q = request.GET.get('q') or ''
-    rooms = Room.objects.filter(
+
+    swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
+
+    rooms = Room.objects.exclude(id__in=swiped_ids).filter(
         Q(topic__name__icontains=q) |
         Q(description__icontains=q)
     )
+
     topics = Topic.objects.all()[:5]
     room_count = rooms.count()
 
-    # determine if this is the user's first login
+    today = timezone.localdate()
+    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
+    swipes_left = max(0, quota.limit - quota.count)
+
     first_login = False
     if not request.user.onboarding_shown:
         first_login = True
         request.user.onboarding_shown = True
         request.user.save()
-
-    # 🔹 get current day quota
-    today = timezone.localdate()
-    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
-    swipes_left = max(0, quota.limit - quota.count)
 
     context = {
         'swipes_left': swipes_left,
@@ -908,7 +916,7 @@ def swipe_view(request):
         'email_configured': getattr(request.user, 'email_configured', False),
     }
     return render(request, "base/swipe_component.html", context)
-from base.models import DailySwipeQuota  # adjust if your model lives elsewhere
+
 
 @login_required
 @csrf_exempt

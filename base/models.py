@@ -19,6 +19,15 @@ from django.db import models
 
 
 
+class SwipedJob(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    room = models.ForeignKey("Room", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'room')  # prevents duplicate swipe
+
+
 
 class ListingType(models.Model):
     name = models.CharField(max_length=100)
