@@ -58,7 +58,7 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 =======
-ALLOWED_HOSTS = ["*",]
+ALLOWED_HOSTS = ['internstart.com', 'www.internstart.com']
 >>>>>>> origin/main
 
 SITE_URL = 'http://127.0.0.1:8000'  # dev
