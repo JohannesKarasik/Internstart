@@ -1358,16 +1358,22 @@
 /* --- Phones & small tablets ------------------------------------------------ */
 @media (max-width: 600px) {
 
-.swipe-container {
-  width: 98vw;
-  height: calc(100dvh - 130px);
-  max-height: 88vh;
-}
-
-.card-front,
-.card-back {
-  padding: 22px 18px 18px;
-}
+  .swipe-container {
+    width: 98vw;
+    max-height: none;             /* don’t clamp */
+    height: auto;                 /* let card grow */
+    min-height: calc(100dvh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-front, .card-back {
+    position: relative;           /* not forced absolute */
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-bottom: 90px;         /* space for CTA buttons */
+    overflow-y: auto;             /* scroll if content too long */
+  }
 
 .company-logo {
   max-height: clamp(180px, 42vh, 280px);
@@ -1379,11 +1385,15 @@
 .card-back .desc { font-size: 16px; line-height: 1.7; }
 
 .card-cta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  padding-top: 14px;
+    position: absolute;           /* fix CTA at bottom inside card */
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    margin-top: 0;
+    display: flex;
+    justify-content: space-between; /* one left, one right */
+    gap: 12px;
+  }
 }
 
 .card-cta .swipe-btn {
