@@ -2003,26 +2003,30 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   markSwiped(roomId);
 
   fetch("{% url 'apply_swipe_job' %}", {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
-    body: JSON.stringify({ room_id: roomId })
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,  // add CSRF
+    },
+    body: JSON.stringify({ room_id: roomId }),
+
   })
-    .then(r => r.json())
-    .then(data => {
-      if (data.error === 'OAuth required' && data.redirect) {
+.then(r => r.json())
+.then(data => {
+    if (data.error === "OAuth required" && data.redirect) {
         unmarkSwiped(roomId);
         window.location.href = data.redirect;
-      } else if (data.error) {
+    } else if (data.error) {
         unmarkSwiped(roomId);
-        alert('Error: ' + data.error);
-      } else if (typeof data.left === 'number') {
-        swipesLeftEl.textContent = String(data.left);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      unmarkSwiped(roomId);
-    });
+        alert("Error: " + data.error);
+    } else {
+        swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
+    }
+})
+.catch(err => {
+    console.error(err);
+    unmarkSwiped(roomId);
+});
 }
 
 
