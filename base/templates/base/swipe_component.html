@@ -1075,15 +1075,14 @@
     .theme-light .badge{ background:rgba(2,6,23,.04); color:#0e1320; border-color:rgba(15,23,42,.10); }
     .theme-light .badge--hot{ background:#fde9ea; color:#842a2a; border-color:#f3c8cb; }
   
-    /* CTA buttons */
-    .card-cta{
-      margin-top:auto;
-      margin-bottom: 0px !important;
-      display:grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap:12px;
-      width:100%;
-      padding-top:20px;
+    .card-cta {
+      margin-top: auto;
+      margin-bottom: 0 !important;
+      display: flex;
+      justify-content: space-between; /* push buttons to far edges */
+      align-items: center;
+      width: 100%;
+      padding: 20px;
     }
   
     .swipe-btn{
