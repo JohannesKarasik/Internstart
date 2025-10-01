@@ -2011,14 +2011,13 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   body: JSON.stringify({ room_id: roomId }),
 })
 .then(async r => {
-  let data;
+  const text = await r.text();   // read body once
   try {
-    data = await r.json();
-  } catch (e) {
-    console.error("Response was not JSON:", await r.text());  // 👈 log raw HTML
-    throw e;
+    return JSON.parse(text);     // try JSON
+  } catch {
+    console.error("Non-JSON response from server:", text);
+    throw new Error("Server error, see logs.");
   }
-  return data;
 })
 .then(data => {
   if (data.error === "OAuth required" && data.redirect) {
@@ -2035,6 +2034,7 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   console.error("Fetch error:", err);
   unmarkSwiped(roomId);
 });
+
 
 }
 
