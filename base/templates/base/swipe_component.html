@@ -1999,31 +1999,31 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
   swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
 
-  // only send room_id; let the server load all job info from DB
   const roomId = current.dataset.roomId;
   markSwiped(roomId);
+
   fetch('/apply-swipe-job/', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
-  body: JSON.stringify({ room_id: roomId })
-})
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+    body: JSON.stringify({ room_id: roomId })
+  })
     .then(r => r.json())
     .then(data => {
       if (data.error === 'OAuth required' && data.redirect) {
-      unmarkSwiped(roomId); // don’t hide permanently if it didn’t go through
-      window.location.href = data.redirect;
-    } else if (data.error) {
-      unmarkSwiped(roomId);
-      alert('Error: ' + data.error);
-
+        unmarkSwiped(roomId);
+        window.location.href = data.redirect;
+      } else if (data.error) {
+        unmarkSwiped(roomId);
+        alert('Error: ' + data.error);
       } else if (typeof data.left === 'number') {
         swipesLeftEl.textContent = String(data.left);
       }
     })
     .catch(err => {
-    console.error(err);
-    unmarkSwiped(roomId);
-  });
+      console.error(err);
+      unmarkSwiped(roomId);
+    });
+}
 
 
 
