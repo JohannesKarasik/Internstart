@@ -428,8 +428,8 @@ def apply_swipe_job(request):
 
         room = Room.objects.get(id=room_id)
 
+        # ✅ Ensure swipe is recorded immediately
         SwipedJob.objects.get_or_create(user=request.user, room=room)
-
 
         company_name = room.company_name or ""
         role_title   = getattr(room, "job_title", "") or ""
@@ -443,11 +443,15 @@ def apply_swipe_job(request):
         res_field = getattr(request.user, 'resume', None)
         print("user.resume.name:", getattr(res_field, 'name', None))
         if res_field and getattr(res_field, 'name', ''):
-            print("user.resume.path:", res_field.path)
+            # Some storage backends may not have .path (e.g., S3). Guard access.
+            try:
+                print("user.resume.path:", res_field.path)
+            except Exception:
+                print("user.resume has no local path attribute")
         else:
             print("user has no resume uploaded")
 
-        # GPT prompt
+        # GPT prompt (UNCHANGED)
         full_prompt = f"""
 Below is the full resume text of the applicant. Then the job description.
 
@@ -477,80 +481,100 @@ Description:
 
         print("[DEBUG] prompt first 500 chars:", full_prompt[:500])
 
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": full_prompt}],
-            temperature=0.1,
-        )
-        coverletter = (response.choices[0].message.content or "").strip()
-        coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
-        coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
+        coverletter = ""
+        # Generate cover letter, but don't fail the swipe if GPT errors.
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": full_prompt}],
+                temperature=0.1,
+            )
+            coverletter = (response.choices[0].message.content or "").strip()
+            coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
+            coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
+        except Exception as e:
+            print("[GPT ERROR]", e)
 
         # ✅ send via Gmail (multipart with attachment)
         user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
         if not user_creds:
+            # Swipe is saved; return success so UI can move on, plus tell client to auth.
             return JsonResponse({
-                "success": False,
-                "error": "OAuth required",
-                "redirect": reverse('start_gmail_auth')
+                "success": True,
+                "message": "Swipe saved. Gmail OAuth required to send.",
+                "needs_oauth": True,
+                "redirect": reverse('start_gmail_auth'),
+                "coverletter": coverletter,
             })
 
-        creds = Credentials(
-            token=user_creds.token,
-            refresh_token=user_creds.refresh_token,
-            token_uri=user_creds.token_uri,
-            client_id=user_creds.client_id,
-            client_secret=user_creds.client_secret,
-            scopes=user_creds.scopes.split()
-        )
-        if not creds.valid and creds.refresh_token:
-            creds.refresh(Request())
-            user_creds.token = creds.token
-            user_creds.save()
+        try:
+            creds = Credentials(
+                token=user_creds.token,
+                refresh_token=user_creds.refresh_token,
+                token_uri=user_creds.token_uri,
+                client_id=user_creds.client_id,
+                client_secret=user_creds.client_secret,
+                scopes=user_creds.scopes.split()
+            )
+            if not creds.valid and creds.refresh_token:
+                creds.refresh(Request())
+                user_creds.token = creds.token
+                user_creds.save()
 
-        service = build("gmail", "v1", credentials=creds)
+            service = build("gmail", "v1", credentials=creds)
 
-        # Build a multipart message
-        msg = MIMEMultipart()
-        msg["to"] = "johanneskarasikweb@gmail.com"
-        msg["subject"] = f"Application for {role_title or 'internship role'} at {company_name or 'your team'}"
+            # Build a multipart message
+            msg = MIMEMultipart()
+            msg["to"] = "johanneskarasikweb@gmail.com"
+            msg["subject"] = f"Application for {role_title or 'internship role'} at {company_name or 'your team'}"
 
-        # Part 1: cover letter body
-        msg.attach(MIMEText(coverletter, _subtype='plain', _charset='utf-8'))
+            # Part 1: cover letter body (fallback body if GPT failed)
+            msg.attach(MIMEText(coverletter or "Hello,\n\nPlease find my resume attached.", _subtype='plain', _charset='utf-8'))
 
-        # Part 2: attach resume if available
-        if res_field and getattr(res_field, 'path', None) and os.path.exists(res_field.path):
-            resume_path = res_field.path
-            ctype, encoding = mimetypes.guess_type(resume_path)
-            if ctype is None or encoding is not None:
-                ctype = 'application/octet-stream'
-            maintype, subtype = ctype.split('/', 1)
+            # Part 2: attach resume if available (guard .path)
+            attached = False
+            if res_field:
+                resume_path = None
+                try:
+                    resume_path = res_field.path
+                except Exception:
+                    resume_path = None  # e.g., cloud storage without local path
+                if resume_path and os.path.exists(resume_path):
+                    ctype, encoding = mimetypes.guess_type(resume_path)
+                    if ctype is None or encoding is not None:
+                        ctype = 'application/octet-stream'
+                    maintype, subtype = ctype.split('/', 1)
+                    with open(resume_path, 'rb') as f:
+                        part = MIMEBase(maintype, subtype)
+                        part.set_payload(f.read())
+                        encoders.encode_base64(part)
+                        part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(resume_path))
+                        msg.attach(part)
+                        attached = True
 
-            with open(resume_path, 'rb') as f:
-                part = MIMEBase(maintype, subtype)
-                part.set_payload(f.read())
-                encoders.encode_base64(part)
-                part.add_header(
-                    'Content-Disposition',
-                    'attachment',
-                    filename=os.path.basename(resume_path)
-                )
-                msg.attach(part)
+            raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+            service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
 
-        raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode()
-        service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
-
-        return JsonResponse({
-            "success": True,
-            "message": "Cover letter sent successfully with resume attached",
-            "coverletter": coverletter
-        })
+            return JsonResponse({
+                "success": True,
+                "message": "Cover letter sent successfully with resume attached" if attached else "Cover letter sent successfully",
+                "coverletter": coverletter
+            })
+        except Exception as e:
+            print("[GMAIL ERROR]", e)
+            # Still success because the swipe is recorded.
+            return JsonResponse({
+                "success": True,
+                "message": "Swipe saved. Failed to send email via Gmail.",
+                "coverletter": coverletter
+            })
 
     except Room.DoesNotExist:
         return JsonResponse({"success": False, "error": "Room not found"})
     except Exception as e:
         traceback.print_exc()
-        return JsonResponse({"success": False, "error": str(e)})
+        # If we got here after recording the swipe, the swipe remains saved (autocommit).
+        return JsonResponse({"success": True, "message": "Swipe saved, but an error occurred.", "error": str(e)})
 
 
 
