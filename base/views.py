@@ -388,7 +388,15 @@ from email import encoders
 import mimetypes
 
 
+def discover(request):
+    user = request.user
+    qs = Room.objects.all()
 
+    if user.is_authenticated:
+        swiped_ids = SwipedJob.objects.filter(user=user).values_list("room_id", flat=True)
+        qs = qs.exclude(id__in=swiped_ids)
+
+    return render(request, "swipe_component.html", {"rooms": qs})
 
 from .models import SwipedJob
 
