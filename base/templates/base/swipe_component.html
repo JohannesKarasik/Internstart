@@ -414,39 +414,62 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <!-- Onboarding -->
-    <div id="onboarding-overlay" style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:10000; border-radius:19.9px;">
-      <div id="onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="onb-title" aria-describedby="onb-desc" style="position:relative; max-width:360px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:18px; border:1px solid rgba(148,163,184,.22); color:#e6eef8;">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-          <div id="onb-badge" style="font-size:12px; color:#a6b3c6;">Step <span id="onb-step">1</span> of <span id="onb-total">3</span></div>
+<!-- Onboarding (REPLACED) -->
+<div id="onboarding-overlay"
+     style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; z-index:10000;">
+  <div class="onb" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+    <!-- Left rail: steps -->
+    <aside class="onb__steps" aria-label="Onboarding steps">
+      <header class="onb__header">
+        <span class="onb__chip">Step <span id="onb-step">1</span> / <span id="onb-total">3</span></span>
+        <h3 class="onb__brand">
+          <img src="{% static 'images/logolog.png' %}" alt="Internstart" />
+          Internstart
+        </h3>
+      </header>
+
+      <ol id="onb-step-list" class="onb__list">
+        <!-- Populated by JS -->
+      </ol>
+
+      <footer class="onb__footer">
+        <button id="onb-prev" class="onb__btn onb__btn--ghost" type="button">Back</button>
+        <button id="onb-next" class="onb__btn onb__btn--primary" type="button">Continue</button>
+      </footer>
+    </aside>
+
+    <!-- Right: active panel -->
+    <section class="onb__panel">
+      <div class="onb__panel-inner">
+        <h2 id="onb-title" class="onb__title">Welcome!</h2>
+        <p id="onb-desc" class="onb__desc">Swipe right to apply.</p>
+
+        <!-- Configure email panel content (rendered only on that step) -->
+        <div id="onb-email" class="onb__email" hidden>
+          <!-- 🔴 Keep this EXACT link (id, href, styles OK to tweak) -->
+          <a id="onb-primary-link"
+             href="{% url 'start_gmail_auth' %}"
+             class="onb__cta">Configure email</a>
+
+          <details class="onb__guide" open>
+            <summary>Seeing “Unsafe app”? Here’s how to continue</summary>
+            <ol>
+              <li>Click <strong>Advanced</strong> at the bottom left of the warning screen.</li>
+              <li>Click <strong>Go to Internstart (unsafe)</strong>.</li>
+              <li>Choose your Google account.</li>
+              <li>Allow the requested permissions so your email can be connected.</li>
+            </ol>
+            <p class="onb__note">We’re in beta, so Google shows this warning. It’s safe to continue ✅</p>
+          </details>
         </div>
-        <h3 id="onb-title" style="margin:0 0 6px 0; font-size:18px; color:#fff; font-weight:700;">Welcome!</h3>
-        <p id="onb-desc" style="margin:0 0 14px 0; font-size:14px; color:#cbd5e1;">Swipe right to apply.</p>
-        <div style="display:flex; gap:8px; justify-content:flex-end;">
-          <button id="onb-prev" type="button" style="display:none; padding:8px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:8px;">Back</button>
-          <button id="onb-next" type="button" style="padding:8px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:8px;">Okay</button>
-          <a id="onb-primary-link" 
-          href="{% url 'start_gmail_auth' %}" 
-          style="padding:8px 12px; font-size:13px; background:#ed003c; color:#fff; border:0; border-radius:8px; text-decoration:none;">
-          Configure email
-       </a>
-       
-       <div class="email-guide">
-         <h4>⚠️ How to continue when you see "Unsafe app"</h4>
-         <ol>
-           <li>Click <strong>Advanced</strong> at the bottom left of the warning screen.</li>
-           <li>Click <strong>Go to Internstart (unsafe)</strong>.</li>
-           <li>Choose your Google account.</li>
-           <li>Allow the requested permissions so your email can be connected.</li>
-         </ol>
-         <p class="note">We’re still in beta, so Google shows this warning. It’s safe to continue ✅</p>
-       </div>
-               </div>
-        <div id="onb-arrow" style="position:absolute; width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:10px solid #0f1525; left:50%; transform:translateX(-50%); bottom:-10px; display:none;"></div>
+
+        <!-- Progress dots (mobile only) -->
+        <div class="onb__dots" aria-hidden="true" id="onb-dots"></div>
       </div>
-      <div id="onb-spot" aria-hidden="true" style="position:fixed; border:3px solid #ed003c; border-radius:999px; box-shadow:0 0 0 8px rgba(237,0,60,.18); pointer-events:none; display:none; z-index:10001;"></div>
-    </div>
+    </section>
   </div>
+</div>
+
 
   <div id="savedList" style="display:none; width:min(440px, 92vw);"></div>
 
@@ -1674,6 +1697,151 @@ main.layout {
 .theme-light .email-guide .note { color: #444; }
 
 
+/* ===== Onboarding refined ===== */
+.onb{
+  --onb-bg: #0f1525;
+  --onb-ink:#e6eef8;
+  --onb-muted:#a6b3c6;
+  --onb-border: rgba(148,163,184,.22);
+  --onb-brand:#ed003c;
+
+  position:relative;
+  max-width:min(980px, 96vw);
+  width:100%;
+  margin: max(24px, 4vh) auto;
+  display:grid;
+  grid-template-columns: 260px 1fr;
+  gap:0;
+  background:var(--onb-bg);
+  color:var(--onb-ink);
+  border:1px solid var(--onb-border);
+  border-radius:18px;
+  box-shadow:0 24px 70px rgba(2,6,23,.55);
+  overflow:hidden;
+}
+
+/* Left rail */
+.onb__steps{
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+  border-right:1px solid var(--onb-border);
+  display:flex; flex-direction:column;
+  min-height:420px;
+}
+.onb__header{ padding:16px 16px 8px; }
+.onb__brand{
+  display:flex; align-items:center; gap:10px;
+  margin:8px 0 0;
+  font:800 16px/1.2 Inter, system-ui, sans-serif;
+}
+.onb__brand img{ width:22px; height:22px; border-radius:6px; display:block; }
+.onb__chip{
+  display:inline-block;
+  font:700 11px/1 Inter;
+  color:#fff;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--onb-border);
+  padding:6px 10px;
+  border-radius:999px;
+}
+
+.onb__list{
+  list-style:none; margin:12px 0 0; padding:0 6px 0 8px;
+  overflow:auto;
+}
+.onb__item{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 10px; margin:4px 6px;
+  border-radius:10px; cursor:default;
+  color:#cbd5e1;
+}
+.onb__item[data-active="true"]{
+  background:linear-gradient(180deg, rgba(237,0,60,.18), rgba(237,0,60,.10));
+  color:#fff; border:1px solid var(--onb-border);
+}
+.onb__dot{
+  width:8px; height:8px; border-radius:999px; flex:0 0 auto;
+  background:#7c8aa6; opacity:.9;
+}
+.onb__item[data-active="true"] .onb__dot{ background:var(--onb-brand); }
+
+.onb__footer{
+  margin-top:auto; padding:12px; display:flex; gap:8px;
+}
+.onb__btn{
+  width:100%; padding:10px 12px; border-radius:10px;
+  font:700 14px/1 Inter; cursor:pointer;
+  border:1px solid var(--onb-border);
+  background:rgba(255,255,255,.05); color:#fff;
+}
+.onb__btn--ghost{ background:transparent; }
+.onb__btn--primary{
+  background:var(--onb-brand); border-color:transparent;
+}
+
+/* Right panel */
+.onb__panel{ display:grid; place-items:stretch; }
+.onb__panel-inner{
+  padding:22px clamp(18px, 3.5vw, 28px);
+}
+.onb__title{
+  margin:2px 0 6px; font:800 22px/1.25 Inter;
+}
+.onb__desc{
+  margin:0 0 18px; color:#cbd5e1; font:500 15px/1.6 Inter;
+}
+
+/* Email step */
+.onb__email{ display:grid; gap:14px; }
+.onb__cta{
+  display:inline-block;
+  padding:10px 14px;
+  font:700 14px/1 Inter;
+  background:#ed003c; color:#fff;
+  border:0; border-radius:10px; text-decoration:none;
+  width:max-content;
+}
+.onb__guide{
+  border:1px solid rgba(237,0,60,.25);
+  background:rgba(237,0,60,.08);
+  border-radius:12px;
+  padding:12px 14px;
+}
+.onb__guide > summary{
+  cursor:pointer;
+  font:700 14px/1.4 Inter;
+  margin-bottom:8px;
+  color:#fff;
+}
+.onb__guide ol{
+  margin:8px 0 8px 18px; padding:0; color:#e8edf7;
+}
+.onb__note{ font:500 13px/1.5 Inter; color:#cfd7e6; }
+
+/* Mobile */
+@media (max-width: 760px){
+  .onb{ grid-template-columns: 1fr; border-radius:16px; }
+  .onb__steps{ border-right:0; border-bottom:1px solid var(--onb-border); }
+  .onb__footer{ padding:10px 12px 14px; position:sticky; bottom:0; background:linear-gradient(180deg, rgba(15,21,37,.96), rgba(15,21,37,.98)); }
+  .onb__dots{ display:flex; gap:6px; margin-top:12px; }
+  .onb__dots span{ width:6px; height:6px; border-radius:999px; background:#6b7a95; opacity:.75; }
+  .onb__dots span[data-active="true"]{ background:#ed003c; opacity:1; width:16px; border-radius:6px; }
+}
+
+/* Guardrails for the onboarding rail */
+#onboarding-overlay { display:none; place-items:center; }
+#onboarding-overlay[style*="display: grid"] { display:grid !important; } /* when you set it in JS */
+
+.onb, .onb * { box-sizing:border-box; }
+
+.onb__steps { display:flex; flex-direction:column; }
+.onb__list  { display:block; flex:0 0 auto; }
+.onb__item  { display:flex; align-items:center; gap:10px; height:auto; white-space:normal; }
+
+.onb__footer { margin-top:auto; display:flex; gap:8px; align-items:center; }
+.onb__btn    { flex:1 1 auto; height:auto; }
+
+
+
   </style>
   
   
@@ -2358,5 +2526,100 @@ setInterval(updateMobileHUD, 1500); // cheap polling, or call inside your existi
 
 
 </script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('onboarding-overlay');
+  const main    = document.querySelector('main.layout');
+  const emailConfigured = (main?.dataset.emailConfigured === 'true');
+
+  // Don’t show if already seen
+  if (localStorage.getItem('if_seen_onboarding') === '1') return;
+
+  // Steps (conditionally include Configure Email)
+  const steps = [
+    { key:'welcome',   title:'Welcome!',   desc:'Swipe right to apply.' },
+    ...(emailConfigured ? [] : [{
+      key:'email',
+      title:'Configure email',
+      desc:'Connect Gmail to auto-send tailored applications.',
+      render: () => {
+        document.getElementById('onb-email').hidden = false;
+      },
+      cleanup: () => {
+        document.getElementById('onb-email').hidden = true;
+      }
+    }]),
+    { key:'tips',      title:'Tips',       desc:'Save jobs with the star, undo mistakes, and track your streak.' }
+  ];
+
+  const title  = document.getElementById('onb-title');
+  const desc   = document.getElementById('onb-desc');
+  const stepEl = document.getElementById('onb-step');
+  const totalEl= document.getElementById('onb-total');
+  const prev   = document.getElementById('onb-prev');
+  const next   = document.getElementById('onb-next');
+  const list   = document.getElementById('onb-step-list');
+  const dots   = document.getElementById('onb-dots');
+
+  let i = 0;
+
+  // Build left list & dots
+  steps.forEach((s, idx) => {
+    const li = document.createElement('li');
+    li.className = 'onb__item';
+    li.dataset.index = idx;
+    li.innerHTML = `<span class="onb__dot" aria-hidden="true"></span><span>${s.title}</span>`;
+    list.appendChild(li);
+  });
+  const updateDots = () => {
+    if (!dots) return;
+    dots.innerHTML = steps.map((_, idx) =>
+      `<span ${idx===i?'data-active="true"':''}></span>`).join('');
+  };
+
+  function setActiveListItem(){
+    [...list.children].forEach((el, idx) => {
+      el.setAttribute('data-active', String(idx === i));
+    });
+  }
+
+  function render() {
+    const s = steps[i];
+    title.textContent = s.title;
+    desc.textContent  = s.desc;
+    stepEl.textContent = i + 1;
+    totalEl.textContent = steps.length;
+
+    // toggle email block if needed
+    steps.forEach(x => x.cleanup && x.cleanup());
+    s.render && s.render();
+
+    prev.disabled = (i === 0);
+    next.textContent = (i === steps.length - 1) ? 'Finish' : 'Continue';
+
+    setActiveListItem();
+    updateDots();
+  }
+
+  prev.addEventListener('click', () => { if (i>0) i--; render(); });
+  next.addEventListener('click', () => {
+    if (i < steps.length - 1) { i++; render(); }
+    else {
+      overlay.style.display = 'none';
+      localStorage.setItem('if_seen_onboarding', '1');
+    }
+  });
+
+  // Open overlay on first login only
+  const firstLogin = (main?.dataset.firstLogin === 'true');
+  if (firstLogin) {
+    overlay.style.display = 'block';
+    render();
+  }
+});
+</script>
+
 
 {% endblock content %}
