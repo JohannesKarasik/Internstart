@@ -388,7 +388,10 @@ from email import encoders
 import mimetypes
 
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+from django.conf import settings
+
+def get_openai_client():
+    return OpenAI(api_key=settings.OPENAI_API_KEY)
 
 @csrf_exempt
 @login_required
@@ -470,11 +473,13 @@ Description:
 
         print("[DEBUG] prompt first 500 chars:", full_prompt[:500])
 
+        client = get_openai_client()
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": full_prompt}],
             temperature=0.1,
         )
+
         coverletter = (response.choices[0].message.content or "").strip()
         coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
         coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
