@@ -388,7 +388,7 @@ from email import encoders
 import mimetypes
 
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
 
 from .models import SwipedJob
 
@@ -396,6 +396,7 @@ from .models import SwipedJob
 @csrf_exempt
 @login_required
 def apply_swipe_job(request):
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
     print("DEBUG request.user.id:", request.user.id)
     print("DEBUG request.user.email:", request.user.email)
     print("DEBUG request.user.resume.name:", getattr(getattr(request.user, "resume", None), "name", None))
