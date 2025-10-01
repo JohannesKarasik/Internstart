@@ -425,8 +425,23 @@
         <div style="display:flex; gap:8px; justify-content:flex-end;">
           <button id="onb-prev" type="button" style="display:none; padding:8px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:8px;">Back</button>
           <button id="onb-next" type="button" style="padding:8px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:8px;">Okay</button>
-          <a id="onb-primary-link" href="{% url 'start_gmail_auth' %}" style="padding:8px 12px; font-size:13px; background:#ed003c; color:#fff; border:0; border-radius:8px; text-decoration:none;">Configure email</a>
-        </div>
+          <a id="onb-primary-link" 
+          href="{% url 'start_gmail_auth' %}" 
+          style="padding:8px 12px; font-size:13px; background:#ed003c; color:#fff; border:0; border-radius:8px; text-decoration:none;">
+          Configure email
+       </a>
+       
+       <div class="email-guide">
+         <h4>⚠️ How to continue when you see "Unsafe app"</h4>
+         <ol>
+           <li>Click <strong>Advanced</strong> at the bottom left of the warning screen.</li>
+           <li>Click <strong>Go to Internstart (unsafe)</strong>.</li>
+           <li>Choose your Google account.</li>
+           <li>Allow the requested permissions so your email can be connected.</li>
+         </ol>
+         <p class="note">We’re still in beta, so Google shows this warning. It’s safe to continue ✅</p>
+       </div>
+               </div>
         <div id="onb-arrow" style="position:absolute; width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:10px solid #0f1525; left:50%; transform:translateX(-50%); bottom:-10px; display:none;"></div>
       </div>
       <div id="onb-spot" aria-hidden="true" style="position:fixed; border:3px solid #ed003c; border-radius:999px; box-shadow:0 0 0 8px rgba(237,0,60,.18); pointer-events:none; display:none; z-index:10001;"></div>
@@ -1615,6 +1630,48 @@ main.layout {
 }
 
 
+.email-guide {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(237,0,60,.08);
+  border: 1px solid rgba(237,0,60,.25);
+  color: #f1f5f9;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.email-guide h4 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.email-guide ol {
+  margin: 0 0 10px 20px;
+  padding: 0;
+}
+
+.email-guide ol li {
+  margin: 6px 0;
+}
+
+.email-guide .note {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-top: 8px;
+}
+
+.theme-light .email-guide {
+  background: #fff0f3;
+  border-color: #ed003c55;
+  color: #0e1320;
+}
+
+.theme-light .email-guide h4 { color: #0e1320; }
+.theme-light .email-guide .note { color: #444; }
 
 
   </style>
