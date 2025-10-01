@@ -2003,30 +2003,39 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   markSwiped(roomId);
 
   fetch("{% url 'apply_swipe_job' %}", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken,  // add CSRF
-    },
-    body: JSON.stringify({ room_id: roomId }),
-
-  })
-.then(r => r.json())
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-CSRFToken": csrftoken,
+  },
+  body: JSON.stringify({ room_id: roomId }),
+})
+.then(async r => {
+  let data;
+  try {
+    data = await r.json();
+  } catch (e) {
+    console.error("Response was not JSON:", await r.text());  // 👈 log raw HTML
+    throw e;
+  }
+  return data;
+})
 .then(data => {
-    if (data.error === "OAuth required" && data.redirect) {
-        unmarkSwiped(roomId);
-        window.location.href = data.redirect;
-    } else if (data.error) {
-        unmarkSwiped(roomId);
-        alert("Error: " + data.error);
-    } else {
-        swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
-    }
+  if (data.error === "OAuth required" && data.redirect) {
+    unmarkSwiped(roomId);
+    window.location.href = data.redirect;
+  } else if (data.error) {
+    unmarkSwiped(roomId);
+    alert("Error: " + data.error);
+  } else {
+    swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
+  }
 })
 .catch(err => {
-    console.error(err);
-    unmarkSwiped(roomId);
+  console.error("Fetch error:", err);
+  unmarkSwiped(roomId);
 });
+
 }
 
 
