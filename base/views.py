@@ -792,9 +792,6 @@ def loginPage(request):
                 lookup_user = None
 
         # If the account exists but hasn't been activated yet
-        if lookup_user is not None and not lookup_user.is_active:
-            messages.error(request, "Your account isn’t activated yet. Check your email for the activation link.")
-            return render(request, 'base/login_register.html', {'page': page})
 
         # Authenticate
         if username_to_use:
@@ -842,27 +839,13 @@ def registerPage(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.role = 'student'
-            user.is_active = False
+            user.is_active = True         # ✅ activate immediately
             user.save()
 
-            # Send activation email now, but ONLY after resume submit
-            current_site = get_current_site(request)
-            html_message = render_to_string('activation_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-            })
-            subject = 'Activate your account'
-            from_email = settings.DEFAULT_FROM_EMAIL
-            to = [user.email]
+            login(request, user)          # ✅ log them in right away
+            messages.success(request, "Welcome to Internstart! Your account is ready.")
+            return redirect('swipe_view') # or 'start_gmail_auth' if you want OAuth first
 
-            email = EmailMultiAlternatives(subject, '', from_email, to)
-            email.attach_alternative(html_message, "text/html")
-            email.send()
-
-            # Now we finally show "check your email"
-            return render(request, 'check_email.html')
 
         # If the final form is invalid, stay on step 2 and show errors
         messages.error(request, 'Please correct the errors below.')
