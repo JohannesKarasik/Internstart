@@ -193,15 +193,23 @@ def send_application(request):
         try:
             data = json.loads(request.body or "{}")
             coverletter = data.get("coverletter", "")
+            room_id = data.get("room_id")
+
             if not coverletter:
                 return JsonResponse({"success": False, "error": "No cover letter provided."})
+            if not room_id:
+                return JsonResponse({"success": False, "error": "Missing room ID"})
 
-            # Remove ONLY square brackets; keep parentheses
-            coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
+            # Fetch the room (employer/job listing)
+            room = get_object_or_404(Room, id=room_id)
+
+            # Clean the cover letter
+            coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)  # remove only square brackets
             if 'sanitize_letter' in globals():
                 coverletter = sanitize_letter(coverletter)
             coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
 
+            # Get Gmail credentials for current user
             user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
             if not user_creds:
                 return JsonResponse({
@@ -219,6 +227,7 @@ def send_application(request):
                 scopes=user_creds.scopes.split()
             )
 
+            # Refresh token if needed
             if not creds.valid and creds.refresh_token:
                 creds.refresh(Request())
                 user_creds.token = creds.token
@@ -227,14 +236,21 @@ def send_application(request):
                 if creds and creds.expired and creds.refresh_token:
                     creds.refresh(Request())
                 else:
-                    return JsonResponse({"success": False, "error": "OAuth required", "redirect": reverse('start_gmail_auth')})
+                    return JsonResponse({
+                        "success": False,
+                        "error": "OAuth required",
+                        "redirect": reverse('start_gmail_auth')
+                    })
 
+            # Gmail service
             service = build("gmail", "v1", credentials=creds)
 
+            # Build the email
             message = MIMEText(coverletter, _subtype='plain', _charset='utf-8')
-            message["to"] = "johanneskarasikweb@gmail.com"  # testing target
-            message["subject"] = "Application Submission"
+            message["to"] = room.email if room.email else "fallback@internstart.com"
+            message["subject"] = f"Application for {room.job_title or 'internship role'} at {room.company_name or 'your team'}"
 
+            # Encode and send
             raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
             send_result = service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
 
@@ -247,6 +263,7 @@ def send_application(request):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Invalid request method."})
+
 
 
 
@@ -533,8 +550,9 @@ Description:
 
             # Build a multipart message
             msg = MIMEMultipart()
-            msg["to"] = "johanneskarasikweb@gmail.com"
+            msg["to"] = room.email if room.email else "fallback@internstart.com"
             msg["subject"] = f"Application for {role_title or 'internship role'} at {company_name or 'your team'}"
+
 
             # Part 1: cover letter body (fallback body if GPT failed)
             msg.attach(MIMEText(coverletter or "Hello,\n\nPlease find my resume attached.", _subtype='plain', _charset='utf-8'))
