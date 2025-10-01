@@ -1,0 +1,299 @@
+{% extends "main.html" %}
+{% load static %}
+
+{% block content %}
+<!-- =========================
+     ABOUT: Internstart
+     Mobile-first, responsive, lightweight CSS
+========================= -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0b0f1a;
+    --bg-2:#0e162a;
+    --text:#e6e8ee;
+    --muted:#a9b0c3;
+    --card:#121826;
+    --border: rgba(255,255,255,.08);
+    --accent:#ed003c; /* brand accent */
+    --accent-2:#6366f1; /* soft indigo */
+    --radius: 18px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .about-page{
+    min-height: 100%;
+    background:
+      radial-gradient(1100px 520px at 100% -10%, rgba(237,0,60,.10), transparent 60%),
+      linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 40%, var(--bg) 100%);
+    color: var(--text);
+    font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  .container{
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px clamp(16px, 4vw, 28px);
+  }
+  /* Hero */
+  .hero{
+    display: grid;
+    gap: 22px;
+    align-items: center;
+    padding: clamp(32px, 4vw, 48px) 0 10px;
+    text-align: left;
+  }
+  .badge{
+    display: inline-flex;
+    align-items: center;
+    gap:10px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.02);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .glow-dot{
+    width:8px;height:8px;border-radius:999px;background:var(--accent);
+    box-shadow: 0 0 16px var(--accent);
+  }
+  .title{
+    font-size: clamp(28px, 6vw, 46px);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .title .accent{ color: var(--accent); }
+  .subtitle{
+    color: var(--muted);
+    font-size: clamp(15px, 2.8vw, 18px);
+    max-width: 720px;
+  }
+  .cta{
+    display:flex; flex-wrap:wrap; gap:12px; margin-top: 6px;
+  }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border:1px solid var(--border);
+    text-decoration:none;
+    font-weight: 600;
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    will-change: transform;
+    color: var(--text);
+    background: #161c2c;
+  }
+  .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn--primary{
+    background: linear-gradient(180deg, var(--accent) 0%, #b1002e 100%);
+    border-color: transparent;
+  }
+  .btn--ghost{ background: rgba(255,255,255,.03); }
+  .btn small{ color: var(--muted); font-weight: 500; }
+
+  /* Sections */
+  .section{ padding: clamp(28px, 6vw, 56px) 0; }
+  .grid{
+    display:grid; gap:16px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 740px){
+    .grid-3{ grid-template-columns: repeat(3, 1fr); }
+    .grid-2{ grid-template-columns: repeat(2, 1fr); }
+  }
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: clamp(14px, 3.5vw, 22px);
+    box-shadow: 0 8px 18px rgba(0,0,0,.25);
+  }
+  .card h3{
+    font-size: clamp(16px, 2.4vw, 18px);
+    margin: 0 0 6px;
+  }
+  .card p{ color: var(--muted); margin:0; }
+  .icon{
+    width: 36px; height: 36px; border-radius: 10px;
+    display:grid; place-items:center;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  /* How it works */
+  .step{
+    display:flex; gap:12px; align-items:flex-start;
+    padding: 12px; border-radius: 14px;
+    border:1px dashed var(--border);
+    background: rgba(255,255,255,.02);
+  }
+  .step-num{
+    min-width: 28px; height:28px; border-radius:999px;
+    background: var(--accent-2); color: white; font-weight: 700;
+    display:grid; place-items:center; font-size: 14px;
+    box-shadow: 0 6px 14px rgba(99,102,241,.35);
+  }
+
+  /* Stats */
+  .stats{
+    display:grid; gap:10px; grid-template-columns: repeat(3, 1fr);
+  }
+  @media (max-width: 640px){
+    .stats{ grid-template-columns: 1fr; }
+  }
+  .stat{
+    text-align:center; padding:18px; border-radius:16px;
+    background: linear-gradient(180deg, rgba(99,102,241,.15), rgba(99,102,241,.04));
+    border:1px solid var(--border);
+  }
+  .stat .num{ font-size: clamp(24px,5vw,34px); font-weight: 800; letter-spacing:-0.02em; }
+  .stat .label{ color: var(--muted); }
+
+  /* FAQ */
+  details{
+    background: rgba(255,255,255,.02);
+    border:1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  summary{
+    cursor: pointer;
+    font-weight: 700;
+    outline: none;
+    list-style: none;
+  }
+  summary::-webkit-details-marker{ display:none; }
+  details p{ color: var(--muted); margin-top: 8px; }
+
+  /* CTA band */
+  .cta-band{
+    text-align:center; padding: 24px;
+    border-radius: 20px;
+    border:1px solid var(--border);
+    background:
+      radial-gradient(800px 240px at 100% -20%, rgba(237,0,60,.12), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+  }
+
+  /* Accessibility & small helpers */
+  .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+</style>
+
+<main class="about-page">
+  <section class="container hero">
+    <span class="badge"><span class="glow-dot"></span> Built for students</span>
+    <h1 class="title">
+      About <span class="accent">Internstart</span>
+    </h1>
+    <p class="subtitle">
+      We help students land internships and junior roles by making applications as simple as a swipe. 
+      Discover roles, send a tailored application, and keep momentum—fast.
+    </p>
+    <div class="cta">
+      <a class="btn btn--primary" href="{% url 'register' %}">
+        Get started
+        <small>It’s free to try</small>
+      </a>
+      <a class="btn btn--ghost" href="{% url 'swipe_view' %}">
+        Browse openings
+      </a>
+    </div>
+  </section>
+
+  <section class="container section">
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="icon">🎯</div>
+        <h3>Focused discovery</h3>
+        <p>See internships that match your skills and interests—without wading through clutter.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚡</div>
+        <h3>Swipe to apply</h3>
+        <p>Say goodbye to long forms. One swipe sends your application to the right inbox.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧭</div>
+        <h3>Stay on track</h3>
+        <p>Track swipes, saved roles, and progress. Upgrade anytime for higher daily limits.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section">
+    <h2 class="sr-only">How it works</h2>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>How it works</h3>
+        <div class="step"><span class="step-num">1</span><div><strong>Create your profile.</strong><br> Add education, skills, and your resume.</div></div>
+        <div class="step"><span class="step-num">2</span><div><strong>Swipe on roles.</strong><br> We surface internships that fit your path.</div></div>
+        <div class="step"><span class="step-num">3</span><div><strong>Apply instantly.</strong><br> One swipe sends a clean, professional application.</div></div>
+        <div class="step"><span class="step-num">4</span><div><strong>Keep momentum.</strong><br> Save roles, monitor progress, and keep moving.</div></div>
+      </div>
+      <div class="card">
+        <h3>Why students choose us</h3>
+        <ul style="margin:0; padding-left: 18px; color: var(--muted); line-height:1.7;">
+          <li>Fast, simple applications that don’t waste time</li>
+          <li>Clean design that works beautifully on phones</li>
+          <li>Clear daily limits with simple upgrades as you grow</li>
+          <li>Designed by a small, hands-on team focused on outcomes</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section">
+    <div class="stats">
+      <div class="stat">
+        <div class="num">Swipe → Apply</div>
+        <div class="label">From interest to application in seconds</div>
+      </div>
+      <div class="stat">
+        <div class="num">Made for mobile</div>
+        <div class="label">Smooth experience on any screen size</div>
+      </div>
+      <div class="stat">
+        <div class="num">Stay organized</div>
+        <div class="label">Save roles and track your progress</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Our mission</h3>
+        <p class="subtitle" style="margin-top:6px;">
+          Make early-career applications effortless so students can spend time building skills—not filling forms.
+        </p>
+      </div>
+      <div class="card">
+        <h3>What’s next</h3>
+        <p class="subtitle" style="margin-top:6px;">
+          Smarter matching, better company profiles, and tools that make every application count.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section">
+    <div class="cta-band">
+      <h3 style="margin-top:0; margin-bottom:10px;">Ready to swipe into your next opportunity?</h3>
+      <div class="cta" style="justify-content:center;">
+        <a class="btn btn--primary" href="{% url 'register' %}">Create free account</a>
+        <a class="btn btn--ghost" href="{% url 'swipe_view' %}">Start browsing</a>
+      </div>
+      <p style="color:var(--muted); margin-top:10px;">
+        By continuing you agree to our <a href="{% url 'terms_conditions' %}" style="color:var(--text); text-decoration:underline;">Terms</a> and <a href="{% url 'privacy_policy' %}" style="color:var(--text); text-decoration:underline;">Privacy Policy</a>.
+      </p>
+    </div>
+  </section>
+</main>
+{% endblock %}

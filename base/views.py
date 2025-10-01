@@ -1441,3 +1441,8 @@ def privacy_policy(request):
     """Render Privacy Policy page."""
     return render(request, 'base/privacy_policy.html')
     # or 'base/privacy_policy.html' if you keep it inside base/
+
+from django.shortcuts import render
+
+def about(request):
+    return render(request, "base/about.html")
