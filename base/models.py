@@ -139,10 +139,6 @@ class Room(models.Model):
         return f"{self.job_title} at {self.company_name}"
 
 class RoomFile(models.Model):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='files')
-    file = models.FileField(upload_to='room_files/')
-    
-class RoomFile(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="files")
     file = models.FileField(upload_to='room_files/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
