@@ -414,62 +414,40 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- Onboarding (REPLACED) -->
-<div id="onboarding-overlay"
-     style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; z-index:10000;">
-  <div class="onb" role="dialog" aria-modal="true" aria-labelledby="onb-title">
-    <!-- Left rail: steps -->
-    <aside class="onb__steps" aria-label="Onboarding steps">
-      <header class="onb__header">
-        <span class="onb__chip">Step <span id="onb-step">1</span> / <span id="onb-total">3</span></span>
-        <h3 class="onb__brand">
-          <img src="{% static 'images/logolog.png' %}" alt="Internstart" />
-          Internstart
-        </h3>
-      </header>
-
-      <ol id="onb-step-list" class="onb__list">
-        <!-- Populated by JS -->
-      </ol>
-
-      <footer class="onb__footer">
-        <button id="onb-prev" class="onb__btn onb__btn--ghost" type="button">Back</button>
-        <button id="onb-next" class="onb__btn onb__btn--primary" type="button">Continue</button>
-      </footer>
-    </aside>
-
-    <!-- Right: active panel -->
-    <section class="onb__panel">
-      <div class="onb__panel-inner">
-        <h2 id="onb-title" class="onb__title">Welcome!</h2>
-        <p id="onb-desc" class="onb__desc">Swipe right to apply.</p>
-
-        <!-- Configure email panel content (rendered only on that step) -->
-        <div id="onb-email" class="onb__email" hidden>
-          <!-- 🔴 Keep this EXACT link (id, href, styles OK to tweak) -->
-          <a id="onb-primary-link"
-             href="{% url 'start_gmail_auth' %}"
-             class="onb__cta">Configure email</a>
-
-          <details class="onb__guide" open>
-            <summary>Seeing “Unsafe app”? Here’s how to continue</summary>
-            <ol>
-              <li>Click <strong>Advanced</strong> at the bottom left of the warning screen.</li>
-              <li>Click <strong>Go to Internstart (unsafe)</strong>.</li>
-              <li>Choose your Google account.</li>
-              <li>Allow the requested permissions so your email can be connected.</li>
-            </ol>
-            <p class="onb__note">We’re in beta, so Google shows this warning. It’s safe to continue ✅</p>
-          </details>
+    <!-- Onboarding -->
+    <div id="onboarding-overlay" style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:10000; border-radius:19.9px;">
+      <div id="onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="onb-title" aria-describedby="onb-desc" style="position:relative; max-width:360px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:18px; border:1px solid rgba(148,163,184,.22); color:#e6eef8;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <div id="onb-badge" style="font-size:12px; color:#a6b3c6;">Step <span id="onb-step">1</span> of <span id="onb-total">3</span></div>
         </div>
-
-        <!-- Progress dots (mobile only) -->
-        <div class="onb__dots" aria-hidden="true" id="onb-dots"></div>
+        <h3 id="onb-title" style="margin:0 0 6px 0; font-size:18px; color:#fff; font-weight:700;">Welcome!</h3>
+        <p id="onb-desc" style="margin:0 0 14px 0; font-size:14px; color:#cbd5e1;">Swipe right to apply.</p>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button id="onb-prev" type="button" style="display:none; padding:8px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:8px;">Back</button>
+          <button id="onb-next" type="button" style="padding:8px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:8px;">Okay</button>
+          <a id="onb-primary-link" href="{% url 'start_gmail_auth' %}" 
+          style="padding:8px 12px; font-size:13px; background:#ed003c; color:#fff; border:0; border-radius:8px; text-decoration:none; font-weight:600 !important;">
+          Configure email
+       </a>
+       
+       <div style="margin-top:12px; padding:12px 14px; border:1px solid rgba(237,0,60,.25) !important; background:rgba(237,0,60,.08) !important; border-radius:10px !important; font-size:13px !important; line-height:1.45 !important; color:#e6eaf2 !important; max-width:420px !important;">
+         <strong style="display:block; margin-bottom:6px; font-size:14px !important; color:#fff !important;">Seeing “Unsafe app”?</strong>
+         <ol style="padding-left:18px; margin:0;">
+           <li>Click <strong>Advanced</strong> at the bottom of the warning screen.</li>
+           <li>Select <strong>Go to Internstart (unsafe)</strong>.</li>
+           <li>Choose your Google account.</li>
+           <li>Allow permissions so your email can connect.</li>
+         </ol>
+         <p style="margin-top:8px; font-size:12px !important; color:#cbd5e1 !important;">
+           We’re in beta, so Google shows this warning.<br> It’s safe to continue ✅
+         </p>
+       </div>
+               </div>
+        <div id="onb-arrow" style="position:absolute; width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:10px solid #0f1525; left:50%; transform:translateX(-50%); bottom:-10px; display:none;"></div>
       </div>
-    </section>
+      <div id="onb-spot" aria-hidden="true" style="position:fixed; border:3px solid #ed003c; border-radius:999px; box-shadow:0 0 0 8px rgba(237,0,60,.18); pointer-events:none; display:none; z-index:10001;"></div>
+    </div>
   </div>
-</div>
-
 
   <div id="savedList" style="display:none; width:min(440px, 92vw);"></div>
 
@@ -1652,161 +1630,6 @@ main.layout {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-
-.email-guide {
-  margin-top: 14px;
-  padding: 16px 18px;
-  border-radius: 12px;
-  background: rgba(237,0,60,.08);
-  border: 1px solid rgba(237,0,60,.25);
-  color: #f1f5f9;
-  font-family: 'Manrope', sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.email-guide h4 {
-  margin: 0 0 10px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.email-guide ol {
-  margin: 0 0 10px 20px;
-  padding: 0;
-}
-
-.email-guide ol li {
-  margin: 6px 0;
-}
-
-.email-guide .note {
-  font-size: 13px;
-  color: #cbd5e1;
-  margin-top: 8px;
-}
-
-.theme-light .email-guide {
-  background: #fff0f3;
-  border-color: #ed003c55;
-  color: #0e1320;
-}
-
-.theme-light .email-guide h4 { color: #0e1320; }
-.theme-light .email-guide .note { color: #444; }
-
-
-/* === Onboarding overrides (paste last) === */
-#onboarding-overlay{
-  position:fixed !important;
-  inset:0 !important;
-  display:grid !important;
-  place-items:center !important;
-  padding:clamp(8px,3vw,20px) !important;
-  background:rgba(2,6,23,.72) !important;
-  backdrop-filter:blur(6px) !important;
-  z-index:2147483647 !important; /* sit above everything */
-  isolation:isolate !important;
-}
-
-#onboarding-overlay *{
-  box-sizing:border-box !important;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif !important;
-}
-
-#onboarding-overlay .onb{
-  width:min(980px,96vw) !important;
-  max-height:min(88vh,920px) !important;
-  display:grid !important;
-  grid-template-columns:280px 1fr !important;
-  border-radius:18px !important;
-  overflow:hidden !important;
-  background:#0f1525 !important;
-  color:#e6eef8 !important;
-  border:1px solid rgba(148,163,184,.22) !important;
-  box-shadow:0 24px 70px rgba(2,6,23,.55) !important;
-}
-
-#onboarding-overlay .onb__steps{
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)) !important;
-  border-right:1px solid rgba(148,163,184,.22) !important;
-  display:flex !important;
-  flex-direction:column !important;
-  min-height:0 !important;
-}
-
-#onboarding-overlay .onb__header{ padding:16px 16px 8px !important; }
-#onboarding-overlay .onb__list{ overflow:auto !important; padding:0 8px !important; margin:8px 0 0 !important; }
-
-#onboarding-overlay .onb__footer{
-  margin-top:auto !important;
-  position:sticky !important;
-  bottom:0 !important;
-  padding:12px !important;
-  display:flex !important; gap:8px !important;
-  background:linear-gradient(180deg, rgba(15,21,37,.96), rgba(15,21,37,.98)) !important;
-  border-top:1px solid rgba(148,163,184,.12) !important;
-}
-
-#onboarding-overlay .onb__panel{ min-height:0 !important; }
-#onboarding-overlay .onb__panel-inner{
-  height:100% !important;
-  overflow:auto !important;
-  padding:22px clamp(18px,3.5vw,28px) !important;
-}
-
-#onboarding-overlay .onb__title{
-  margin:2px 0 6px !important;
-  font-weight:800 !important; font-size:22px !important; line-height:1.25 !important;
-}
-#onboarding-overlay .onb__desc{ margin:0 0 18px !important; color:#cbd5e1 !important; }
-
-#onboarding-overlay .onb__cta{
-  display:inline-block !important;
-  padding:12px 16px !important;
-  background:#ed003c !important; color:#fff !important;
-  border:0 !important; border-radius:12px !important;
-  font-weight:800 !important; text-decoration:none !important;
-}
-
-#onboarding-overlay .onb__guide{
-  margin-top:12px !important;
-  border:1px solid rgba(237,0,60,.25) !important;
-  background:rgba(237,0,60,.08) !important;
-  border-radius:12px !important;
-  padding:14px !important;
-}
-#onboarding-overlay .onb__guide > summary{
-  cursor:pointer !important;
-  list-style:none !important;
-  font-weight:800 !important; color:#fff !important;
-  margin:0 0 6px !important;
-}
-#onboarding-overlay .onb__guide ol{
-  margin:8px 0 8px 20px !important; padding:0 !important; color:#e8edf7 !important;
-}
-#onboarding-overlay .onb__guide p{ margin:10px 0 0 !important; color:#cfd7e6 !important; }
-
-#onboarding-overlay .onb__btn{
-  width:100% !important; padding:10px 12px !important;
-  border-radius:10px !important; font-weight:800 !important;
-  border:1px solid rgba(148,163,184,.22) !important;
-  background:rgba(255,255,255,.06) !important; color:#fff !important;
-}
-#onboarding-overlay .onb__btn--primary{ background:#ed003c !important; border-color:transparent !important; }
-
-/* Mobile */
-@media (max-width:760px){
-  #onboarding-overlay .onb{
-    grid-template-columns:1fr !important;
-    max-height:88vh !important;
-  }
-  #onboarding-overlay .onb__steps{
-    border-right:0 !important;
-    border-bottom:1px solid rgba(148,163,184,.22) !important;
-  }
-}
 
 
 
