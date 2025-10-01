@@ -405,7 +405,6 @@ from email import encoders
 import mimetypes
 
 
-<<<<<<< HEAD
 def discover(request):
     user = request.user
     qs = Room.objects.all()
@@ -418,12 +417,6 @@ def discover(request):
 
 from .models import SwipedJob
 
-=======
-from django.conf import settings
-
-def get_openai_client():
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
->>>>>>> origin/main
 
 @csrf_exempt
 @login_required
@@ -513,7 +506,6 @@ Description:
 
         print("[DEBUG] prompt first 500 chars:", full_prompt[:500])
 
-<<<<<<< HEAD
         coverletter = ""
         # Generate cover letter, but don't fail the swipe if GPT errors.
         try:
@@ -527,18 +519,6 @@ Description:
             coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
         except Exception as e:
             print("[GPT ERROR]", e)
-=======
-        client = get_openai_client()
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": full_prompt}],
-            temperature=0.1,
-        )
-
-        coverletter = (response.choices[0].message.content or "").strip()
-        coverletter = re.sub(r'\[[^\]]*\]', '', coverletter)
-        coverletter = re.sub(r'\n{3,}', '\n\n', coverletter).strip()
->>>>>>> origin/main
 
         # ✅ send via Gmail (multipart with attachment)
         user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
