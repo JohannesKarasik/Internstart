@@ -1072,16 +1072,16 @@
     .theme-light .badge--hot{ background:#fde9ea; color:#842a2a; border-color:#f3c8cb; }
   
     /* CTA buttons */
-    .card-cta{
-      margin-top:auto;
-      margin-bottom: 0px !important;
-      display:grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap:12px;
-      width:100%;
-      padding-top:20px;
-    }
-  
+    .card-cta {
+  margin-top: auto;
+  margin-bottom: 0 !important;
+  display: flex;
+  justify-content: space-between; /* pushes buttons to left and right */
+  align-items: center;
+  width: 100%;
+  padding-top: 20px;
+}
+
     .swipe-btn{
       height:60px; aspect-ratio:1/1; border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
