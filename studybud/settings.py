@@ -47,7 +47,9 @@ SECRET_KEY = 'django-insecure-3#av2c6nptlbbb6^muqkchu&fe3wv&n$t2+g$v!ir-f5%doocb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+<<<<<<< HEAD
 ALLOWED_HOSTS = [
     "internstart.com",
     "www.internstart.com",
@@ -55,6 +57,9 @@ ALLOWED_HOSTS = [
     "127.0.0.1",      # allow local dev
     "localhost",
 ]
+=======
+ALLOWED_HOSTS = ["*",]
+>>>>>>> origin/main
 
 SITE_URL = 'http://127.0.0.1:8000'  # dev
 
@@ -157,28 +162,16 @@ WSGI_APPLICATION = 'studybud.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql',
-#        'NAME': 'your_db_name',
-#        'USER': 'newuser',
-#        'PASSWORD': 'yourpassword',
-#        'HOST': 'localhost',
-#        'PORT': '5432',
-#    }
-#}
-
+# settings.py
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'newdb',
-        'USER': 'newuser',
-        'PASSWORD': 'newpassword',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
 
 
 
