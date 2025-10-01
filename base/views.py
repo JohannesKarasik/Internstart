@@ -1439,5 +1439,5 @@ from django.shortcuts import render
 
 def privacy_policy(request):
     """Render Privacy Policy page."""
-    return render(request, 'privacy_policy.html')
+    return render(request, 'base/privacy_policy.html')
     # or 'base/privacy_policy.html' if you keep it inside base/
