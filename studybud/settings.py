@@ -98,6 +98,13 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",  # allow local dev
 ]
 
+
+# Redirects
+LOGIN_URL = 'app_login'        # where @login_required should send users
+LOGOUT_REDIRECT_URL = 'app_login'  # where to go after logout
+LOGIN_REDIRECT_URL = 'swipe_view'  # where to go after successful login
+
+
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
