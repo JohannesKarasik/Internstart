@@ -113,7 +113,7 @@
         <span class="plan-dot" aria-hidden="true"></span>
         <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
       </div>
-      <button class="sidebar__upgrade" type="button" id="openPremium">Upgrade</button>
+      <button class="sidebar__upgrade" type="button" id="openPremium" style="display: none;">Upgrade</button>
     </div>
   </aside>
   <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
