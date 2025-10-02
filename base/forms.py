@@ -75,10 +75,7 @@ class EmployerPersonalForm(UserCreationForm):
             user.save()
         return user
 
-class StudentCreationForm(UserCreationForm):
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import get_user_model
+
 
 User = get_user_model()
 
