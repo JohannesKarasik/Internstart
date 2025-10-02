@@ -1132,19 +1132,12 @@ def deleteRoom(request, pk):
 def updateUser(request):
     user = request.user
 
-    # Auto-classify if user has resume but no category
-    if user.resume and not user.category:
-        classify_user_category(user)
-
     if request.method == 'POST':
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            user = form.save()  # make sure we use the saved user
-            # classify again after saving new resume
-            if user.resume and not user.category:
-                classify_user_category(user)
+            user = form.save()
             messages.success(request, "Profile updated!")
-            return redirect('update-user')  # stay on page
+            return redirect('update-user')  # stay on the same page
     else:
         form = UserForm(instance=user)
 
@@ -1153,9 +1146,10 @@ def updateUser(request):
         'base/update-user.html',
         {
             'form': form,
-            'user': user,  # still pass user so category can be displayed
+            'user': user,  # still pass user so the resume can be displayed
         },
     )
+
 
 @login_required(login_url='app_login')
 def topicsPage(request):
