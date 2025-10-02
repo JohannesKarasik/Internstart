@@ -76,20 +76,52 @@ class EmployerPersonalForm(UserCreationForm):
         return user
 
 class StudentCreationForm(UserCreationForm):
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class StudentCreationForm(UserCreationForm):
+    # Explicitly declare resume so we can enforce required + basic validation
+    resume = forms.FileField(
+        required=True,
+        help_text="Upload your resume as PDF or DOCX.",
+        widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
+    )
+
     class Meta:
         model = User
+        # keep the same fields you already render, just ensure resume is included
         fields = ['full_name', 'email', 'password1', 'password2', 'resume']
-        
+
     def __init__(self, *args, **kwargs):
-        super(StudentCreationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        # keep current behavior and simply enforce requireds
         self.fields['full_name'].required = True
+        self.fields['email'].required = True
+        self.fields['resume'].required = True
+
+    def clean_resume(self):
+        f = self.cleaned_data.get('resume')
+        if not f:
+            raise forms.ValidationError("You must upload a resume to continue.")
+        # Optional, lightweight checks (safe to keep or remove)
+        import os
+        ext = os.path.splitext(f.name)[1].lower()
+        if ext not in {'.pdf', '.doc', '.docx'}:
+            raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
+        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10 MB
+            raise forms.ValidationError("Resume file is too large (max 10MB).")
+        return f
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = 'student'  # Set role automatically
+        user.role = 'student'  # keep your current logic
         if commit:
             user.save()
         return user
+
 
 
 from django import forms
