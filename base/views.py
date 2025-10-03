@@ -926,19 +926,25 @@ def feed_view(request):
 from .models import DailySwipeQuota
 from django.utils import timezone
 
+from django.core.paginator import Paginator
+
 @login_required
 def swipe_view(request):
     q = request.GET.get('q') or ''
 
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
 
-    rooms = Room.objects.exclude(id__in=swiped_ids).filter(
+    rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
         Q(topic__name__icontains=q) |
         Q(description__icontains=q)
     )
 
+    # ✅ Only show first 5 jobs initially
+    paginator = Paginator(rooms_qs, 5)
+    rooms = paginator.get_page(1)  # always page 1 in the server-rendered view
+
     topics = Topic.objects.all()[:5]
-    room_count = rooms.count()
+    room_count = rooms_qs.count()
 
     today = timezone.localdate()
     quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
@@ -955,13 +961,13 @@ def swipe_view(request):
     context = {
         'swipes_left': swipes_left,
         'swipe_limit': quota.limit,
-        'rooms': rooms,
+        'rooms': rooms,               # ✅ only first 5 jobs
         'topics': topics,
-        'room_count': room_count,
+        'room_count': room_count,     # ✅ still total count of all jobs
         'user_profile': request.user,
         'first_login': first_login,
         'email_configured': getattr(request.user, 'email_configured', False),
-        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # ✅ added
+        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,
     }
     return render(request, "base/swipe_component.html", context)
 
