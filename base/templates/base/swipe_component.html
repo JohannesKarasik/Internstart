@@ -223,6 +223,13 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 
+<style>
+  /* Keep borders visible on hover & avoid clipping */
+  #noSwipesModal .modal__plans { overflow: visible !important; }
+  #noSwipesModal .plan-card { position: relative; z-index: 1; }
+  #noSwipesModal .plan-card:hover { z-index: 3; }
+</style>
+
 <div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="modal__backdrop"></div>
   <!-- Ensure room for 3 cards side-by-side -->
@@ -233,8 +240,6 @@
       <h2 id="noSwipesTitle">No more swipes</h2>
       <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
 
-      <p style="margin-top:0.5rem;font-weight:600;">All paid plans include <span style="white-space:nowrap;">Unlimited Skips</span>.</p>
-
       <!-- Plans -->
       <div class="modal__plans"
            style="
@@ -243,7 +248,6 @@
              align-items:stretch;
              justify-content:space-between; /* spread evenly */
              flex-wrap:nowrap;               /* single row */
-             overflow:hidden;                /* no scrollbars */
              margin:1rem 0;
            ">
         <!-- Starter -->
@@ -284,10 +288,6 @@
           </ul>
           <button class="btn-primary" id="subscribe-elite" aria-label="Subscribe to Elite (299 DKK per month)">Elite — 299 DKK/mo</button>
         </div>
-      </div>
-
-      <div class="modal__actions" style="display:flex; gap:.5rem; flex-wrap:wrap;">
-        <button class="btn-secondary" data-close>Maybe later</button>
       </div>
     </div>
   </div>
