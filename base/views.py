@@ -115,6 +115,9 @@ from django.http import JsonResponse
 from .models import SavedJob
 
 import re
+from django.core.paginator import Paginator
+
+
 
 def sanitize_letter(raw: str, company_name: str = "") -> str:
     if not raw:
@@ -961,6 +964,32 @@ def swipe_view(request):
         'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # ✅ added
     }
     return render(request, "base/swipe_component.html", context)
+
+
+
+
+@login_required
+def swipe_jobs_api(request):
+    page = int(request.GET.get("page", 1))
+    swiped_ids = SwipedJob.objects.filter(user=request.user).values_list("room_id", flat=True)
+
+    qs = Room.objects.exclude(id__in=swiped_ids).order_by("id")
+    paginator = Paginator(qs, 5)  # 5 per page
+    page_obj = paginator.get_page(page)
+
+    jobs = [
+        {
+            "id": room.id,
+            "title": room.job_title,
+            "company": room.company_name,
+            "location": room.location,
+            "logo": room.logo.url if room.logo else "",
+            "description": room.description[:150],  # short preview
+        }
+        for room in page_obj
+    ]
+
+    return JsonResponse({"jobs": jobs, "has_next": page_obj.has_next()})
 
 
 @login_required
