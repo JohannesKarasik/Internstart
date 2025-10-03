@@ -292,6 +292,35 @@
     </div>
   </div>
 </div>
+
+
+<style>
+  /* Keep borders visible on hover & avoid clipping */
+  #noSwipesModal .modal__plans { overflow: visible !important; }
+  #noSwipesModal .plan-card { position: relative; z-index: 1; }
+  #noSwipesModal .plan-card:hover { z-index: 3; }
+
+  #noSwipesModal,
+  #noSwipesModal h2,
+  #noSwipesModal p,
+  #noSwipesModal button {
+    font-family: 'Manrope', sans-serif !important;
+  }
+
+  /* 📱 Mobile only: stack plans vertically */
+  @media (max-width: 768px) {
+    #noSwipesModal .modal__plans {
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      align-items: stretch !important;
+    }
+    #noSwipesModal .plan-card {
+      width: 100% !important;
+      flex: none !important;
+    }
+  }
+</style>
+
 <!-- Stripe.js -->
 <script src="https://js.stripe.com/v3/"></script>
 <script>
