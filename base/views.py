@@ -432,7 +432,7 @@ def apply_swipe_job(request):
     today = timezone.localdate()
     quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
 
-    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "enterprise": 40}
+    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "elite": 40}
     tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
     limit = SWIPE_LIMITS.get(tier, 5)
 
@@ -960,7 +960,7 @@ def debug_set_tier(request):
 
     data = json.loads(request.body or "{}")
     tier = (data.get("tier") or "free").lower()
-    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "enterprise": 40}
+    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "elite": 40}
 
     if tier not in SWIPE_LIMITS:
         return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
@@ -982,6 +982,101 @@ def debug_set_tier(request):
     left = max(0, quota.limit - quota.count)
 
     return JsonResponse({"tier": tier, "limit": quota.limit, "left": left})
+
+
+import stripe
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, JsonResponse
+from django.conf import settings
+from django.utils.timezone import make_aware
+import datetime
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except (ValueError, stripe.error.SignatureVerificationError):
+        return HttpResponse(status=400)
+
+    # ✅ Subscription completed at checkout
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+
+        customer_email = session.get("customer_email")
+        customer_id = session.get("customer")
+        subscription_id = session.get("subscription")
+
+        if customer_email:
+            try:
+                user = User.objects.get(email=customer_email)
+                user.stripe_customer_id = customer_id
+                user.subscription_status = "active"
+                user.save()
+            except User.DoesNotExist:
+                pass
+
+    # ✅ Subscription updated (renewal, cancellation, etc.)
+    if event["type"] == "customer.subscription.updated":
+        subscription = event["data"]["object"]
+        customer_id = subscription["customer"]
+
+        try:
+            user = User.objects.get(stripe_customer_id=customer_id)
+            user.subscription_status = subscription["status"]  # e.g. active, past_due, canceled
+            # Convert Unix timestamp to datetime
+            period_end = datetime.datetime.fromtimestamp(
+                subscription["current_period_end"]
+            )
+            user.subscription_current_period_end = make_aware(period_end)
+            user.save()
+        except User.DoesNotExist:
+            pass
+
+    # ✅ Subscription canceled
+    if event["type"] == "customer.subscription.deleted":
+        subscription = event["data"]["object"]
+        customer_id = subscription["customer"]
+
+        try:
+            user = User.objects.get(stripe_customer_id=customer_id)
+            user.subscription_status = "canceled"
+            user.subscription_tier = "free"  # downgrade automatically
+            user.save()
+        except User.DoesNotExist:
+            pass
+
+    return HttpResponse(status=200)
+
+
+@login_required
+def create_checkout_session(request, tier):
+    prices = {
+        "starter": "price_1SCS7R5jX4qg2WmwERXVXOME",  # Stripe price IDs
+        "pro": "price_1SCS7k5jX4qg2WmwWxcikjx9",
+        "elite": "price_1SCS815jX4qg2Wmwf4oaUyrN",
+    }
+    if tier not in prices:
+        return JsonResponse({"error": "Invalid tier"}, status=400)
+
+    session = stripe.checkout.Session.create(
+        customer_email=request.user.email,
+        payment_method_types=["card"],
+        mode="subscription",
+        line_items=[{"price": prices[tier], "quantity": 1}],
+        success_url=_absolute(request, "billing_success"),
+        cancel_url=_absolute(request, "billing_cancel"),
+    )
+    return JsonResponse({"id": session.id})
 
 
 

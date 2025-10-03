@@ -30,6 +30,11 @@ urlpatterns = [
     path('billing/cancel/', views.billing_cancel, name='billing_cancel'),
     path('save-job/', views.save_job, name='save_job'),
     path('saved-jobs/json/', views.saved_jobs_json, name='saved_jobs_json'),
+    path("stripe/webhook/", views.stripe_webhook, name="stripe_webhook"),
+    path("stripe/webhook/", views.stripe_webhook, name="stripe_webhook"),
+    path("billing/checkout/<str:tier>/", views.create_checkout_session, name="create_checkout_session"),
+    path("billing/success/", views.billing_success, name="billing_success"),
+    path("billing/cancel/", views.billing_cancel, name="billing_cancel"),
 
         path(
         'activate/<uidb64>/<token>/',

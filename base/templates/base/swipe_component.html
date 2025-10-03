@@ -229,13 +229,42 @@
     <button class="modal__close" aria-label="Close">&times;</button>
     <div class="modal__content">
       <h2>No more swipes</h2>
-      <p>You’ve used all your free swipes today. Come back tomorrow to keep swiping 🚀</p>
+      <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
+      
       <div class="modal__actions">
-        <button class="btn-secondary" data-close>Okay</button>
+        <button class="btn-primary" id="subscribe-starter">Starter – $X/mo</button>
+        <button class="btn-primary" id="subscribe-pro">Pro – $Y/mo</button>
+        <button class="btn-primary" id="subscribe-elite">Elite – $Z/mo</button>
+        <button class="btn-secondary" data-close>Maybe later</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django will inject your publishable key
+
+  function startCheckout(tier) {
+    fetch(`/billing/checkout/${tier}/`, {
+      method: "POST",
+      headers: { "X-CSRFToken": "{{ csrf_token }}" } // only needed if CSRF is enforced
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.id) {
+        stripe.redirectToCheckout({ sessionId: data.id });
+      } else {
+        alert("Error creating checkout session: " + (data.error || "Unknown"));
+      }
+    });
+  }
+
+  document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
+  document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
+  document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
+</script>
 
 <style>
   #noSwipesModal,
