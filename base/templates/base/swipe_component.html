@@ -223,158 +223,76 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 
-<!-- SIMPLE, INLINE-STYLED AI/SAAS MODAL (brand accent: #FF2F5A) -->
-<div id="noSwipesModal"
-     class="modal"
-     aria-hidden="true"
-     role="dialog"
-     aria-modal="true"
-     style="
-       position:fixed; inset:0; display:none;            /* shown via JS */
-       align-items:center; justify-content:center;
-       z-index:1000; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-       color:#E9EEF7;
-     ">
-  <!-- Backdrop -->
-  <div class="modal__backdrop"
-       style="
-         position:absolute; inset:0;
-         background:
-           radial-gradient(900px 600px at 80% -10%, rgba(255,47,90,.12), transparent 60%),
-           radial-gradient(900px 600px at 10% 110%, rgba(255,47,90,.10), transparent 60%),
-           rgba(7,10,16,.78);
-         backdrop-filter: blur(4px);
-       "></div>
+<div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal__backdrop"></div>
+  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle">
+    <button class="modal__close" aria-label="Close">&times;</button>
+    <div class="modal__content">
+      <h2 id="noSwipesTitle">No more swipes</h2>
+      <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
 
-  <!-- Dialog -->
-  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle"
-       style="
-         position:relative; width:min(95vw,980px);
-         margin:0 auto;
-       ">
-
-    <!-- Close -->
-    <button class="modal__close" aria-label="Close"
-            style="
-              position:absolute; top:10px; right:12px;
-              width:36px; height:36px; border-radius:10px;
-              border:1px solid #233042; background:transparent; color:#E9EEF7;
-              font-size:20px; line-height:0; cursor:pointer; z-index:2;
-            "
-            onclick="closeNoSwipesModal()">&times;</button>
-
-    <!-- Card -->
-    <div class="modal__content"
-         style="
-           position:relative; background:#0f1622;
-           border:1px solid #233042; border-radius:16px;
-           padding:28px; box-shadow:0 14px 40px rgba(0,0,0,.45);
-         ">
-      <h2 id="noSwipesTitle"
-          style="margin:0 0 .4rem 0; font-size:1.55rem; font-weight:800;">
-        No more swipes
-      </h2>
-      <p style="margin:.2rem 0 1.1rem 0; color:#9aa6b2;">
-        You’ve used all your free swipes today. Upgrade to keep swiping 🚀
-      </p>
+      <p style="margin-top:0.5rem;font-weight:600;">All paid plans include <span style="white-space:nowrap;">Unlimited Skips</span>.</p>
 
       <!-- Plans -->
-      <div class="modal__plans"
-           style="
-             display:flex; gap:1.1rem; align-items:stretch; justify-content:space-between;
-             flex-wrap:nowrap; margin:1rem 0; overflow:visible;
-           ">
-
+      <div
+        class="modal__plans"
+        style="
+          display:flex;
+          gap:1rem;
+          align-items:stretch;
+          justify-content:center;
+          flex-wrap:nowrap;            /* force a single horizontal row */
+          overflow-x:auto;              /* allow horizontal scroll on small screens */
+          -webkit-overflow-scrolling:touch;
+          margin:1rem 0;
+          padding-bottom:.25rem;        /* a little room for scrollbar */
+        "
+      >
         <!-- Starter -->
-        <div class="plan-card"
-             style="
-               flex:1 1 0; min-width:0; box-sizing:border-box;
-               background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-               border:1px solid #233042; border-radius:12px; padding:16px;
-               box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
-             ">
-          <h3 style="margin:0 0 .35rem 0; font-weight:800;">Starter</h3>
-          <div style="font-size:1.25rem; font-weight:800;">99 DKK
-            <span style="font-weight:500; font-size:.95rem; color:#9aa6b2;">/mo</span>
-          </div>
-          <ul style="margin:.55rem 0 1rem 0; padding:0; list-style:none; line-height:1.5; color:#d6deed;">
+        <div
+          class="plan-card"
+          style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem; flex:0 0 260px; width:260px;"
+        >
+          <h3 style="margin:0 0 .25rem 0;">Starter</h3>
+          <div style="font-size:1.25rem; font-weight:700;">99 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
+          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
             <li>10 daily swipes</li>
             <li>Unlimited Skips</li>
           </ul>
-          <button id="subscribe-starter"
-                  aria-label="Subscribe to Starter (99 DKK per month)"
-                  style="
-                    width:100%; cursor:pointer; border-radius:10px;
-                    padding:12px 14px; font-weight:800;
-                    border:1px solid rgba(255,255,255,.1);
-                    color:#0b0f1a; background:#FF2F5A;
-                    box-shadow:0 8px 18px rgba(255,47,90,.25), inset 0 1px 0 rgba(255,255,255,.35);
-                  ">
-            Starter — 99 DKK/mo
-          </button>
+          <button class="btn-primary" id="subscribe-starter" aria-label="Subscribe to Starter (99 DKK per month)">Starter — 99 DKK/mo</button>
         </div>
 
         <!-- Pro -->
-        <div class="plan-card"
-             style="
-               flex:1 1 0; min-width:0; box-sizing:border-box;
-               background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-               border:1px solid #233042; border-radius:12px; padding:16px;
-               box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
-             ">
-          <h3 style="margin:0 0 .35rem 0; font-weight:800;">Pro</h3>
-          <div style="font-size:1.25rem; font-weight:800;">199 DKK
-            <span style="font-weight:500; font-size:.95rem; color:#9aa6b2;">/mo</span>
-          </div>
-          <ul style="margin:.55rem 0 1rem 0; padding:0; list-style:none; line-height:1.5; color:#d6deed;">
+        <div
+          class="plan-card"
+          style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem; flex:0 0 260px; width:260px;"
+        >
+          <h3 style="margin:0 0 .25rem 0;">Pro</h3>
+          <div style="font-size:1.25rem; font-weight:700;">199 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
+          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
             <li>25 daily swipes</li>
             <li>Unlimited Skips</li>
           </ul>
-          <button id="subscribe-pro"
-                  aria-label="Subscribe to Pro (199 DKK per month)"
-                  style="
-                    width:100%; cursor:pointer; border-radius:10px;
-                    padding:12px 14px; font-weight:800;
-                    border:1px solid rgba(255,255,255,.1);
-                    color:#0b0f1a; background:#FF2F5A;
-                    box-shadow:0 8px 18px rgba(255,47,90,.25), inset 0 1px 0 rgba(255,255,255,.35);
-                  ">
-            Pro — 199 DKK/mo
-          </button>
+          <button class="btn-primary" id="subscribe-pro" aria-label="Subscribe to Pro (199 DKK per month)">Pro — 199 DKK/mo</button>
         </div>
 
         <!-- Elite -->
-        <div class="plan-card"
-             style="
-               flex:1 1 0; min-width:0; box-sizing:border-box;
-               background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-               border:1px solid #233042; border-radius:12px; padding:16px;
-               box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
-             ">
-          <h3 style="margin:0 0 .35rem 0; font-weight:800;">Elite</h3>
-          <div style="font-size:1.25rem; font-weight:800;">299 DKK
-            <span style="font-weight:500; font-size:.95rem; color:#9aa6b2;">/mo</span>
-          </div>
-          <ul style="margin:.55rem 0 1rem 0; padding:0; list-style:none; line-height:1.5; color:#d6deed;">
+        <div
+          class="plan-card"
+          style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem; flex:0 0 260px; width:260px;"
+        >
+          <h3 style="margin:0 0 .25rem 0;">Elite</h3>
+          <div style="font-size:1.25rem; font-weight:700;">299 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
+          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
             <li>40 daily swipes</li>
             <li>Unlimited Skips</li>
           </ul>
-          <button id="subscribe-elite"
-                  aria-label="Subscribe to Elite (299 DKK per month)"
-                  style="
-                    width:100%; cursor:pointer; border-radius:10px;
-                    padding:12px 14px; font-weight:800;
-                    border:1px solid rgba(255,255,255,.1);
-                    color:#0b0f1a; background:#FF2F5A;
-                    box-shadow:0 8px 18px rgba(255,47,90,.25), inset 0 1px 0 rgba(255,255,255,.35);
-                  ">
-            Elite — 299 DKK/mo
-          </button>
+          <button class="btn-primary" id="subscribe-elite" aria-label="Subscribe to Elite (299 DKK per month)">Elite — 299 DKK/mo</button>
         </div>
       </div>
 
-      <div style="text-align:center; color:#9aa6b2; font-size:.85rem; margin-top:.4rem;">
-        Cancel anytime • Secure checkout with Stripe
+      <div class="modal__actions" style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        <button class="btn-secondary" data-close>Maybe later</button>
       </div>
     </div>
   </div>
@@ -383,57 +301,33 @@
 <!-- Stripe.js -->
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-  // --- Minimal open/close helpers so the modal reliably shows/hides ---
-  function openNoSwipesModal(){
-    const m = document.getElementById('noSwipesModal');
-    m.style.display = 'flex';
-    m.setAttribute('aria-hidden', 'false');
-  }
-  function closeNoSwipesModal(){
-    const m = document.getElementById('noSwipesModal');
-    m.style.display = 'none';
-    m.setAttribute('aria-hidden', 'true');
-  }
-
-  // Call openNoSwipesModal() when you want to show it, e.g. after quota check.
-  // openNoSwipesModal();
-
-  // --- Stripe checkout wiring (kept simple) ---
-  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django injects your publishable key
+  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django will inject your publishable key
 
   function startCheckout(tier) {
     fetch(`/billing/checkout/${tier}/`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
       body: "{}"
     })
     .then(res => res.json())
     .then(data => {
-      if (data.id) return stripe.redirectToCheckout({ sessionId: data.id });
-      alert("Error creating checkout session: " + (data.error || "Unknown"));
+      if (data.id) {
+        stripe.redirectToCheckout({ sessionId: data.id });
+      } else {
+        alert("Error creating checkout session: " + (data.error || "Unknown"));
+      }
     })
     .catch(err => console.error("Checkout error:", err));
   }
 
-  // Ensure buttons exist before attaching (in case this file loads in <head>)
-  document.addEventListener('DOMContentLoaded', () => {
-    const s = document.getElementById("subscribe-starter");
-    const p = document.getElementById("subscribe-pro");
-    const e = document.getElementById("subscribe-elite");
-    s && s.addEventListener("click", () => startCheckout("starter"));
-    p && p.addEventListener("click", () => startCheckout("pro"));
-    e && e.addEventListener("click", () => startCheckout("elite"));
-  });
-
-  // Optional: close on ESC & backdrop click
-  document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape') closeNoSwipesModal();
-  });
-  document.getElementById('noSwipesModal').addEventListener('click', (ev) => {
-    if (ev.target.id === 'noSwipesModal') closeNoSwipesModal();
-  });
+  // Attach event listeners (IDs kept the same)
+  document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
+  document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
+  document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
 </script>
-
 
 
 <style>
