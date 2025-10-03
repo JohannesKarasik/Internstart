@@ -249,7 +249,11 @@
   function startCheckout(tier) {
     fetch(`/billing/checkout/${tier}/`, {
       method: "POST",
-      headers: { "X-CSRFToken": "{{ csrf_token }}" } // only needed if CSRF is enforced
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: "{}"
     })
     .then(res => res.json())
     .then(data => {
@@ -258,8 +262,15 @@
       } else {
         alert("Error creating checkout session: " + (data.error || "Unknown"));
       }
-    });
+    })
+    .catch(err => console.error("Checkout error:", err));
   }
+
+  // Attach event listeners
+  document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
+  document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
+  document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
+</script>
 
   document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
   document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
