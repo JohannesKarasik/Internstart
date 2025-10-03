@@ -432,7 +432,7 @@ def apply_swipe_job(request):
     today = timezone.localdate()
     quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
 
-    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "elite": 40}
+    SWIPE_LIMITS = {"free": 5, "starter": 15, "pro": 30, "elite": 45}
     tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
     limit = SWIPE_LIMITS.get(tier, 5)
 
@@ -971,7 +971,7 @@ def debug_set_tier(request):
 
     data = json.loads(request.body or "{}")
     tier = (data.get("tier") or "free").lower()
-    SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "elite": 40}
+    SWIPE_LIMITS = {"free": 5, "starter": 15, "pro": 30, "elite": 45}
 
     if tier not in SWIPE_LIMITS:
         return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
@@ -1037,7 +1037,7 @@ def stripe_webhook(request):
                 user.save()
 
                 # ✅ also update today’s swipe quota
-                SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "elite": 40}
+                SWIPE_LIMITS = {"free": 5, "starter": 15, "pro": 30, "elite": 45}
                 today = timezone.localdate()
                 quota, _ = DailySwipeQuota.objects.get_or_create(user=user, date=today)
                 quota.limit = SWIPE_LIMITS.get(tier, 5)
@@ -1082,9 +1082,9 @@ def stripe_webhook(request):
 @login_required
 def create_checkout_session(request, tier):
     prices = {
-        "starter": "price_1SCS7R5jX4qg2WmwERXVXOME",  # Stripe price IDs
-        "pro": "price_1SCS7k5jX4qg2WmwWxcikjx9",
-        "elite": "price_1SCS815jX4qg2Wmwf4oaUyrN",
+        "starter": "price_1SDxgh6IJebVII3FaIOLhBkn",  # Stripe price IDs
+        "pro": "price_1SCRta6IJebVII3Feda7JGJf",
+        "elite": "price_1SDxhc6IJebVII3F87lwDxEC",
     }
     if tier not in prices:
         return JsonResponse({"error": "Invalid tier"}, status=400)
