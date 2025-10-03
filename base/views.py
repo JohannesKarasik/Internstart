@@ -807,12 +807,20 @@ def loginPage(request):
 
         messages.error(request, "Username or password is incorrect.")
 
-    return render(request, 'base/login_register.html', {'page': page})
+    from django.conf import settings
+    return render(
+        request,
+        'base/login_register.html',
+        {
+            'page': page,
+            'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # ✅ pulled from Gunicorn env
+        }
+    )
+
 
 def logoutUser(request):
     logout(request)
     return redirect('home')
-
 
 
 def registerPage(request):
