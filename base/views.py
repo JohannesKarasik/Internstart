@@ -947,6 +947,8 @@ def swipe_view(request):
         request.user.onboarding_shown = True
         request.user.save()
 
+    from django.conf import settings
+
     context = {
         'swipes_left': swipes_left,
         'swipe_limit': quota.limit,
@@ -956,6 +958,7 @@ def swipe_view(request):
         'user_profile': request.user,
         'first_login': first_login,
         'email_configured': getattr(request.user, 'email_configured', False),
+        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # ✅ added
     }
     return render(request, "base/swipe_component.html", context)
 
