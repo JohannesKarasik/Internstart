@@ -2460,7 +2460,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      newCards.forEach(card => deck.appendChild(card));
+      newCards.forEach(card => {
+        card.style.display = "none";   // prevent flicker
+        deck.appendChild(card);
+      });
+
+      // reapply deck styling logic
+      if (typeof styleStack === "function") styleStack();
+      if (typeof updateDeckHUD === "function") updateDeckHUD();
+
     } catch(err) {
       console.error("Error loading more cards", err);
     }
