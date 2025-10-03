@@ -72,7 +72,7 @@ class User(AbstractUser):
         ('free', 'Free'),
         ('starter', 'Starter'),
         ('pro', 'Pro'),
-        ('enterprise', 'Enterprise'),
+        ('elite', 'Enterprise'),
     ]
     subscription_tier = models.CharField(
         max_length=20,
@@ -80,13 +80,16 @@ class User(AbstractUser):
         default='free'
     )
 
+    # 🔹 Stripe integration fields
+    stripe_customer_id = models.CharField(max_length=100, null=True, blank=True)
+    subscription_status = models.CharField(max_length=50, null=True, blank=True)  
+    subscription_current_period_end = models.DateTimeField(null=True, blank=True)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
-    
-
 
 
 

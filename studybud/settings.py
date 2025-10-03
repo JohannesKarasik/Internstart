@@ -99,6 +99,9 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
 # Redirects
 LOGIN_URL = 'app_login'        # where @login_required should send users
 LOGOUT_REDIRECT_URL = 'app_login'  # where to go after logout
@@ -118,6 +121,8 @@ else:
 # Sometimes needed if you're using Nginx as reverse proxy
 CSRF_COOKIE_SAMESITE = None
 
+
+SITE_URL = "https://internstart.com/"
 
 AUTH_USER_MODEL = 'base.User'
 
