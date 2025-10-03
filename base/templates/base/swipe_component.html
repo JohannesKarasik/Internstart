@@ -47,7 +47,7 @@
         </svg>
 
         <span class="logo-chip">
-          <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart">
+          <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
         </span>
       </div>
 
@@ -450,7 +450,7 @@
 
 
   <!-- ===== Deck / Cards ===== -->
-  <div class="swipe-container">
+  <div class="swipe-container" id="swipeDeck">
     {% for room in rooms %}
     <div class="swipe-card {% cycle 'card-color-pink' 'card-color-blue' 'card-color-yellow' %}"
          data-room-id="{{ room.id }}"
@@ -463,11 +463,11 @@
         <div class="card-front">
           {% if room.logo %}
             <div class="logo-frame">
-              <img src="{{ room.logo.url }}" alt="{{ room.company_name }}" class="company-logo">
+              <img src="{{ room.logo.url }}" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
             </div>
           {% else %}
             <div class="logo-frame">
-              <img src="/static/images/fallback-logo.png" alt="{{ room.company_name }}" class="company-logo">
+              <img src="/static/images/fallback-logo.png" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
             </div>
           {% endif %}
 
@@ -522,6 +522,7 @@
       </div>
     </div>
     {% endfor %}
+    <div id="loadMoreSentinel" style="height:1px;"></div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -2434,6 +2435,45 @@ setInterval(updateMobileHUD, 1500); // cheap polling, or call inside your existi
 
 
 
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  let page = 1; // already loaded page 1 from server-render
+  const deck = document.getElementById("swipeDeck");
+  const sentinel = document.getElementById("loadMoreSentinel");
+
+  async function loadMore() {
+    try {
+      page++;
+      const res = await fetch(`/swipe/?page=${page}`);
+      if (!res.ok) return;
+      const html = await res.text();
+
+      // parse response HTML and extract swipe-cards
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const newCards = doc.querySelectorAll(".swipe-card");
+
+      if (!newCards.length) {
+        observer.disconnect(); // no more jobs
+        return;
+      }
+
+      newCards.forEach(card => deck.appendChild(card));
+    } catch(err) {
+      console.error("Error loading more cards", err);
+    }
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      loadMore();
+    }
+  }, { rootMargin: "200px" });
+
+  observer.observe(sentinel);
+});
 </script>
 
 {% endblock content %}
