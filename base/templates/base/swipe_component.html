@@ -225,7 +225,9 @@
 
 <div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="modal__backdrop"></div>
-  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle">
+  <!-- Ensure room for 3 cards side-by-side -->
+  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle"
+       style="max-width: 980px; width: min(95vw, 980px);">
     <button class="modal__close" aria-label="Close">&times;</button>
     <div class="modal__content">
       <h2 id="noSwipesTitle">No more swipes</h2>
@@ -234,25 +236,20 @@
       <p style="margin-top:0.5rem;font-weight:600;">All paid plans include <span style="white-space:nowrap;">Unlimited Skips</span>.</p>
 
       <!-- Plans -->
-      <div
-        class="modal__plans"
-        style="
-          display:flex;
-          gap:1rem;
-          align-items:stretch;
-          justify-content:center;
-          flex-wrap:nowrap;            /* force a single horizontal row */
-          overflow-x:auto;              /* allow horizontal scroll on small screens */
-          -webkit-overflow-scrolling:touch;
-          margin:1rem 0;
-          padding-bottom:.25rem;        /* a little room for scrollbar */
-        "
-      >
+      <div class="modal__plans"
+           style="
+             display:flex;
+             gap:1rem;
+             align-items:stretch;
+             justify-content:space-between; /* spread evenly */
+             flex-wrap:nowrap;               /* single row */
+             overflow:hidden;                /* no scrollbars */
+             margin:1rem 0;
+           ">
         <!-- Starter -->
-        <div
-          class="plan-card"
-          style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem; flex:0 0 260px; width:260px;"
-        >
+        <div class="plan-card"
+             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
+                    box-sizing:border-box; flex:1 1 0; min-width:0;">
           <h3 style="margin:0 0 .25rem 0;">Starter</h3>
           <div style="font-size:1.25rem; font-weight:700;">99 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
           <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
@@ -263,10 +260,9 @@
         </div>
 
         <!-- Pro -->
-        <div
-          class="plan-card"
-          style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem; flex:0 0 260px; width:260px;"
-        >
+        <div class="plan-card"
+             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
+                    box-sizing:border-box; flex:1 1 0; min-width:0;">
           <h3 style="margin:0 0 .25rem 0;">Pro</h3>
           <div style="font-size:1.25rem; font-weight:700;">199 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
           <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
@@ -277,10 +273,9 @@
         </div>
 
         <!-- Elite -->
-        <div
-          class="plan-card"
-          style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem; flex:0 0 260px; width:260px;"
-        >
+        <div class="plan-card"
+             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
+                    box-sizing:border-box; flex:1 1 0; min-width:0;">
           <h3 style="margin:0 0 .25rem 0;">Elite</h3>
           <div style="font-size:1.25rem; font-weight:700;">299 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
           <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
