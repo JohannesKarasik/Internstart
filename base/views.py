@@ -1084,8 +1084,8 @@ def create_checkout_session(request, tier):
         payment_method_types=["card"],
         mode="subscription",
         line_items=[{"price": prices[tier], "quantity": 1}],
-        success_url=_absolute(request, "billing_success"),
-        cancel_url=_absolute(request, "billing_cancel"),
+        success_url=_absolute(request, "swipe_view") + "?session_id={CHECKOUT_SESSION_ID}",  # ✅ redirect to swipe
+        cancel_url=_absolute(request, "swipe_view"),  # ✅ also go back to swipe on cancel
     )
     return JsonResponse({"id": session.id})
 
