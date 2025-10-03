@@ -224,71 +224,277 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
+  :root{
+    --bg:#0b0f1a;
+    --panel:#0e1624;
+    --muted:#9aa6b2;
+    --text:#e6eefc;
+    --accent1:#ff1f6d;
+    --accent2:#6b8cff;
+    --accent3:#24e1b9;
+    --border:#223047;
+    --ring: rgba(108,145,255,.55);
+  }
+
+  /* ===== Modal Base ===== */
+  #noSwipesModal{
+    position: fixed; inset: 0; display:none;
+  }
+  #noSwipesModal[aria-hidden="false"]{ display:block; }
+  #noSwipesModal .modal__backdrop{
+    position:absolute; inset:0;
+    background: radial-gradient(1200px 700px at 70% -10%, rgba(255,31,109,.15), transparent 60%),
+                radial-gradient(900px 600px at 10% 110%, rgba(36,225,185,.12), transparent 60%),
+                rgba(4,8,16,.75);
+    backdrop-filter: blur(6px);
+  }
+
+  #noSwipesModal .modal__dialog{
+    position:relative; margin: 6vh auto; width:min(96vw,1000px);
+  }
+
+  #noSwipesModal .modal__content{
+    position:relative;
+    border-radius: 18px;
+    padding: 28px 24px 26px;
+    color:var(--text);
+    overflow: visible; /* so glows can extend */
+    background:
+      radial-gradient(1200px 500px at -30% 0%, rgba(107,140,255,.06), transparent 60%) ,
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border: 1px solid var(--border);
+    box-shadow:
+      0 10px 45px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.05);
+    isolation: isolate; /* so z-index inside is contained */
+  }
+
+  /* Animated grid backdrop for "AI" vibe */
+  #noSwipesModal .modal__content::before{
+    content:"";
+    position:absolute; inset:0; border-radius: 18px;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px) 0 0 / 22px 22px,
+      linear-gradient(0deg , rgba(255,255,255,.06) 1px, transparent 1px) 0 0 / 22px 22px;
+    mask: radial-gradient(400px 180px at 50% -10%, rgba(0,0,0,.6), transparent 70%);
+    pointer-events:none; z-index:0;
+    animation: gridFloat 16s linear infinite;
+    opacity:.35;
+  }
+  @keyframes gridFloat{
+    from{ transform: translateY(0); }
+    to  { transform: translateY(-22px); }
+  }
+
+  /* Header */
+  #noSwipesModal .modal__title{
+    display:flex; align-items:center; gap:.75rem; margin:0;
+    font-size: clamp(1.15rem, 1.4vw + .6rem, 1.6rem);
+    line-height:1.1;
+    background: linear-gradient(90deg, #fff, #c9d4ff 40%, #9ae9d7 80%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  #noSwipesModal .modal__subtitle{
+    margin:.4rem 0 1.2rem 0; color:var(--muted); font-size:.975rem;
+  }
+
+  /* Close */
+  #noSwipesModal .modal__close{
+    position:absolute; top:10px; right:12px;
+    width:36px; height:36px; border-radius:9px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.02); color:var(--text);
+    cursor:pointer; font-size:20px; line-height:0;
+  }
+  #noSwipesModal .modal__close:hover{
+    background: rgba(255,255,255,.06);
+  }
+
+  /* ===== Plans row ===== */
+  #noSwipesModal .modal__plans{
+    display:flex; gap:1rem; align-items:stretch; justify-content:space-between;
+    flex-wrap:nowrap; overflow: visible !important; /* keep borders visible */
+  }
+
   /* Keep borders visible on hover & avoid clipping */
-  #noSwipesModal .modal__plans { overflow: visible !important; }
   #noSwipesModal .plan-card { position: relative; z-index: 1; }
   #noSwipesModal .plan-card:hover { z-index: 3; }
+
+  /* ===== Plan card ===== */
+  #noSwipesModal .plan-card{
+    flex:1 1 0; min-width:0;
+    border-radius: 16px;
+    padding: 18px 16px 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border: 1px solid var(--border);
+    box-shadow:
+      0 10px 25px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.05);
+    transform: translateZ(0);
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  }
+
+  /* Neon gradient border ring */
+  #noSwipesModal .plan-card::before{
+    content:"";
+    position:absolute; inset:-1px; border-radius:16px; z-index:-1;
+    background: conic-gradient(from 0deg,
+      rgba(255,31,109,.55), rgba(107,140,255,.5), rgba(36,225,185,.55), rgba(255,31,109,.55));
+    filter: blur(10px);
+    opacity:.0; transition: opacity .25s ease, transform .25s ease;
+  }
+  #noSwipesModal .plan-card:hover{
+    transform: translateY(-6px);
+    border-color: rgba(107,140,255,.6);
+    box-shadow:
+      0 16px 45px rgba(32,54,109,.45),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  #noSwipesModal .plan-card:hover::before{ opacity:.55; }
+
+  /* Featured (Pro) */
+  #noSwipesModal .plan-card.is-featured{
+    background:
+      radial-gradient(600px 120px at 50% -5%, rgba(107,140,255,.12), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+    border-color: rgba(107,140,255,.7);
+  }
+  #noSwipesModal .badge-popular{
+    position:absolute; top:-12px; left:14px;
+    font-size:.72rem; letter-spacing:.3px; text-transform:uppercase;
+    color:#0b1323; background: linear-gradient(90deg, #7aa2ff, #35ecc4);
+    padding:4px 8px; border-radius:999px; font-weight:700;
+    box-shadow: 0 6px 18px rgba(58,128,255,.45);
+  }
+
+  /* Orbiting ring around featured card – subtle */
+  #noSwipesModal .plan-card.is-featured::after{
+    content:"";
+    position:absolute; inset:-14px; border-radius:22px; pointer-events:none;
+    background:
+      radial-gradient(18px 18px at 10% 50%, var(--ring), transparent 60%),
+      radial-gradient(14px 14px at 90% 40%, var(--ring), transparent 60%),
+      radial-gradient(10px 10px at 60% 100%, var(--ring), transparent 60%);
+    opacity:.45; filter: blur(12px);
+    animation: orbit 8s linear infinite;
+  }
+  @keyframes orbit{
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Text blocks */
+  #noSwipesModal .plan-title{ margin:0 0 .25rem 0; font-weight:800; }
+  #noSwipesModal .price { font-weight:800; font-size:1.35rem; display:flex; gap:.25rem; align-items:baseline;}
+  #noSwipesModal .price small{ font-size:.9rem; font-weight:500; color:var(--muted); }
+
+  #noSwipesModal .features{ list-style:none; margin:.8rem 0 1.1rem 0; padding:0; }
+  #noSwipesModal .features li{
+    display:flex; align-items:center; gap:.55rem; line-height:1.45; color:#d3ddf0;
+    margin:.25rem 0;
+  }
+  #noSwipesModal .features svg{ opacity:.9; }
+
+  /* CTA button */
+  #noSwipesModal .btn-primary{
+    width:100%; cursor:pointer;
+    border-radius: 12px; padding:12px 14px; font-weight:800;
+    border:1px solid rgba(255,255,255,.12);
+    color:#08111f;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    box-shadow: 0 12px 28px rgba(255,31,109,.25), inset 0 1px 0 rgba(255,255,255,.3);
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  #noSwipesModal .btn-primary:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px rgba(107,140,255,.30), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+
+  /* Small footer note */
+  #noSwipesModal .fine{
+    margin-top: .25rem; color:var(--muted); font-size:.8rem; text-align:center;
+  }
+
+  /* Mobile */
+  @media (max-width:900px){
+    #noSwipesModal .modal__plans{ flex-wrap:wrap; }
+    #noSwipesModal .plan-card{ flex: 1 1 100%; }
+    #noSwipesModal .badge-popular{ left:12px; }
+  }
 </style>
 
-<div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+<div id="noSwipesModal" class="modal" aria-hidden="false" role="dialog" aria-modal="true" aria-labelledby="noSwipesTitle" aria-describedby="noSwipesDesc">
   <div class="modal__backdrop"></div>
-  <!-- Ensure room for 3 cards side-by-side -->
-  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle"
-       style="max-width: 980px; width: min(95vw, 980px);">
-    <button class="modal__close" aria-label="Close">&times;</button>
+
+  <div class="modal__dialog" role="document">
+    <button class="modal__close" aria-label="Close" onclick="document.getElementById('noSwipesModal').setAttribute('aria-hidden','true')">&times;</button>
+
     <div class="modal__content">
-      <h2 id="noSwipesTitle">No more swipes</h2>
-      <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
+      <h2 id="noSwipesTitle" class="modal__title">
+        <!-- Spark icon -->
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" fill="currentColor" opacity=".9"/></svg>
+        No more swipes
+      </h2>
+      <p id="noSwipesDesc" class="modal__subtitle">
+        You’ve used all your free swipes today. Upgrade to keep swiping 🚀
+      </p>
 
       <!-- Plans -->
-      <div class="modal__plans"
-           style="
-             display:flex;
-             gap:1rem;
-             align-items:stretch;
-             justify-content:space-between; /* spread evenly */
-             flex-wrap:nowrap;               /* single row */
-             margin:1rem 0;
-           ">
+      <div class="modal__plans">
         <!-- Starter -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Starter</h3>
-          <div style="font-size:1.25rem; font-weight:700;">99 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>10 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <div class="plan-card" role="group" aria-labelledby="starterTitle">
+          <h3 id="starterTitle" class="plan-title">Starter</h3>
+          <div class="price">99 DKK<small>/mo</small></div>
+          <ul class="features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              10 daily swipes
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Unlimited Skips
+            </li>
           </ul>
           <button class="btn-primary" id="subscribe-starter" aria-label="Subscribe to Starter (99 DKK per month)">Starter — 99 DKK/mo</button>
         </div>
 
-        <!-- Pro -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Pro</h3>
-          <div style="font-size:1.25rem; font-weight:700;">199 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>25 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <!-- Pro (featured) -->
+        <div class="plan-card is-featured" role="group" aria-labelledby="proTitle">
+          <span class="badge-popular" aria-hidden="true">Most popular</span>
+          <h3 id="proTitle" class="plan-title">Pro</h3>
+          <div class="price">199 DKK<small>/mo</small></div>
+          <ul class="features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              25 daily swipes
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Unlimited Skips
+            </li>
           </ul>
           <button class="btn-primary" id="subscribe-pro" aria-label="Subscribe to Pro (199 DKK per month)">Pro — 199 DKK/mo</button>
         </div>
 
         <!-- Elite -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Elite</h3>
-          <div style="font-size:1.25rem; font-weight:700;">299 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>40 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <div class="plan-card" role="group" aria-labelledby="eliteTitle">
+          <h3 id="eliteTitle" class="plan-title">Elite</h3>
+          <div class="price">299 DKK<small>/mo</small></div>
+          <ul class="features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              40 daily swipes
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Unlimited Skips
+            </li>
           </ul>
           <button class="btn-primary" id="subscribe-elite" aria-label="Subscribe to Elite (299 DKK per month)">Elite — 299 DKK/mo</button>
         </div>
       </div>
+
+      <div class="fine">Cancel anytime • Secure checkout with Stripe</div>
     </div>
   </div>
 </div>
@@ -296,7 +502,7 @@
 <!-- Stripe.js -->
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django will inject your publishable key
+  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django injects your publishable key
 
   function startCheckout(tier) {
     fetch(`/billing/checkout/${tier}/`, {
@@ -322,7 +528,13 @@
   document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
   document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
   document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
+
+  // Optional: close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') document.getElementById('noSwipesModal').setAttribute('aria-hidden','true');
+  });
 </script>
+
 
 
 <style>
