@@ -1026,13 +1026,23 @@ def stripe_webhook(request):
         customer_email = session.get("customer_email")
         customer_id = session.get("customer")
         subscription_id = session.get("subscription")
+        tier = session["metadata"].get("tier") if session.get("metadata") else "free"  # ✅ read tier from metadata
 
         if customer_email:
             try:
                 user = User.objects.get(email=customer_email)
                 user.stripe_customer_id = customer_id
                 user.subscription_status = "active"
+                user.subscription_tier = tier  # ✅ set subscription tier
                 user.save()
+
+                # ✅ also update today’s swipe quota
+                SWIPE_LIMITS = {"free": 5, "starter": 10, "pro": 25, "elite": 40}
+                today = timezone.localdate()
+                quota, _ = DailySwipeQuota.objects.get_or_create(user=user, date=today)
+                quota.limit = SWIPE_LIMITS.get(tier, 5)
+                quota.save()
+
             except User.DoesNotExist:
                 pass
 
@@ -1084,8 +1094,9 @@ def create_checkout_session(request, tier):
         payment_method_types=["card"],
         mode="subscription",
         line_items=[{"price": prices[tier], "quantity": 1}],
-        success_url=_absolute(request, "swipe_view") + "?session_id={CHECKOUT_SESSION_ID}",  # ✅ redirect to swipe
-        cancel_url=_absolute(request, "swipe_view"),  # ✅ also go back to swipe on cancel
+        success_url=_absolute(request, "swipe_view") + "?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url=_absolute(request, "swipe_view"),
+        metadata={"tier": tier},  # ✅ store tier in Stripe
     )
     return JsonResponse({"id": session.id})
 
