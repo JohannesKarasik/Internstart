@@ -971,8 +971,10 @@ def swipe_view(request):
 
     # ✅ Return only card HTML when loading more (AJAX)
     if partial:
-        html = render_to_string("base/swipe_cards.html", context)
+        context["rooms"] = rooms.object_list  # ✅ Only the 5 new items
+        html = render_to_string("base/swipe_cards.html", context, request=request)
         return HttpResponse(html)
+
 
 
     # ✅ Otherwise return full template
