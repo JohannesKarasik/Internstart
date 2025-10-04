@@ -1802,14 +1802,20 @@ main.layout {
   }
 }
 
+/* === Ensure company logos display properly on mobile === */
 @media (max-width: 768px) {
-  /* Keep layout minimal and static on mobile */
-  * {
+  /* Disable performance-heavy visuals */
+  *,
+  *::before,
+  *::after {
     box-shadow: none !important;
     backdrop-filter: none !important;
+    filter: none !important;
+    transition: none !important;
+    animation: none !important;
   }
 
-  /* Remove all background visual effects */
+  /* Hide background FX layers */
   .bgFX,
   .bgFX__beam,
   .bgFX__orb,
@@ -1817,31 +1823,37 @@ main.layout {
     display: none !important;
   }
 
-  /* Disable 3D card effects */
+  /* Remove 3D transforms from cards */
   .swipe-container {
     perspective: none !important;
   }
+
   .card-inner {
     transform: none !important;
-    transition: none !important;
   }
 
-  /* Keep logos visible and crisp */
+  /* Keep logo visible, responsive, and centered */
   .logo-frame {
-    animation: none !important;
-    box-shadow: none !important;
+    all: unset;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
   }
 
   .company-logo {
-    filter: brightness(1) contrast(1);
-    image-rendering: auto;
-    transform: none !important;
+    display: block !important;
+    max-width: 80%;
+    max-height: 180px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    background: none !important;
+    border: none !important;
+    filter: none !important;
   }
-
-  /* Disable floating keyframes */
-  @keyframes floatY {}
-  @keyframes drift {}
 }
+
 </style>
   
 
