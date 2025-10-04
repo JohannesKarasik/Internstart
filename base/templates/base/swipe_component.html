@@ -1802,26 +1802,49 @@ main.layout {
   }
 }
 
-/* Disable heavy animations on mobile to improve performance */
 @media (max-width: 768px) {
+  /* Disable all blurs and shadows (massive performance hit on mobile) */
   * {
-    animation: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  /* Remove background effects */
+  .bgFX,
+  .bgFX__beam,
+  .bgFX__orb,
+  .bgFX__grid {
+    display: none !important;
+  }
+
+  /* Disable 3D transforms and perspective */
+  .swipe-container {
+    perspective: none !important;
+  }
+  .card-inner {
+    transform: none !important;
     transition: none !important;
   }
 
-  /* Optional: keep smooth hover transitions on buttons if you want */
-  button, a, .swipe-btn {
-    transition: background 0.15s ease, transform 0.15s ease !important;
+  /* No glow or animated borders */
+  .logo-frame {
+    background: none !important;
+    animation: none !important;
+    box-shadow: none !important;
   }
+
+  /* Disable floating animations entirely */
+  @keyframes floatY {}
+  @keyframes drift {}
 }
 
-@media (max-width: 768px) {
-  .bgFX {
-    display: none !important;
-  }
+
+img, .company-logo {
+  image-rendering: auto;
+  will-change: auto;
+  transform: none !important;
 }
-
-
 
   </style>
   
@@ -2629,8 +2652,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+
 </script>
 
+<script>
+  // On mobile, simplify interactivity
+  const isMobile = matchMedia('(max-width: 768px)').matches;
+  if (isMobile) {
+    document.removeEventListener('mousemove', () => {});
+    document.querySelector('.swipe-container')?.removeEventListener('mousemove', () => {});
+    window.confettiBurst = () => {};
+  }
+</script>
 
 {% endif %}
 {% endblock %}
