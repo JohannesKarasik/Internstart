@@ -971,8 +971,9 @@ def swipe_view(request):
 
     # ✅ Return only card HTML when loading more (AJAX)
     if partial:
-        html = render_to_string("base/swipe_component.html", context)
+        html = render_to_string("base/swipe_cards.html", context)
         return HttpResponse(html)
+
 
     # ✅ Otherwise return full template
     return render(request, "base/swipe_component.html", context)
