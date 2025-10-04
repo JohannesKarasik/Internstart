@@ -1802,6 +1802,25 @@ main.layout {
   }
 }
 
+/* Disable heavy animations on mobile to improve performance */
+@media (max-width: 768px) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Optional: keep smooth hover transitions on buttons if you want */
+  button, a, .swipe-btn {
+    transition: background 0.15s ease, transform 0.15s ease !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .bgFX {
+    display: none !important;
+  }
+}
+
 
 
   </style>
