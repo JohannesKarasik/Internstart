@@ -124,10 +124,15 @@
   <header class="custom-header">
     <div class="header-left">
       <!-- Theme switch -->
-      <button id="themeToggle" class="theme-toggle" aria-label="Toggle light mode" aria-pressed="false" title="Toggle light / dark">
+      <button id="themeToggle" class="theme-toggle desktop-only" aria-label="Toggle light mode" aria-pressed="false" title="Toggle light / dark">
         <span class="tt-knob"></span>
-        <svg class="tt-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1.2a1 1 0 1 1 2 0V21a1 1 0 0 1-1 1Zm0-19a1 1 0 0 1 1 1v1.2a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm10 9a1 1 0 0 1-1 1h-1.2a1 1 0 1 1 0-2H21a1 1 0 0 1 1 1ZM4.2 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h1.2a1 1 0 0 1 1 1Zm13.96 6.04a1 1 0 0 1-1.41 0l-.85-.85a1 1 0 1 1 1.41-1.41l.85.85a1 1 0 0 1 0 1.41ZM8.1 7.22a1 1 0 0 1-1.41 0l-.85-.85A1 1 0 0 1 7.25 4.9l.85.85a1 1 0 0 1 0 1.41Zm9.46-2.9 0 0ZM7.24 18.1a1 1 0 0 1-1.41 0l-.85-.85a1 1 0 1 1 1.41-1.41l.85.85a1 1 0 0 1 0 1.41Zm11.32-11.32a1 1 0 0 1 0-1.41l .85-.85a1 1 0 1 1 1.41 1.41l-.85.85a1 1 0 0 1-1.41 0Z"/></svg>
+        <svg class="tt-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/></svg>
         <svg class="tt-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
+      </button>
+    
+      <!-- Mobile: Get more swipes -->
+      <button class="mobile-premium-btn mobile-only" id="openPremiumMobile">
+        Get more swipes
       </button>
     </div>
 
@@ -1865,6 +1870,25 @@ main.layout {
     transform: translateX(-50%);
   }
 }
+
+/* Hide or show elements based on screen size */
+.desktop-only {
+  display: inline-flex !important;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: inline-flex !important;
+  }
+}
+
 
 </style>
   
