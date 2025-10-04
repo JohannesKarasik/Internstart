@@ -131,6 +131,22 @@
       </button>
     </div>
 
+    <span class="tt-knob"></span>
+    <svg class="tt-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/></svg>
+    <svg class="tt-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
+  </button>
+
+  <!-- 🌟 Mobile-only button -->
+  <button class="mobile-premium-btn" type="button" id="openPremiumMobile">Get more swipes</button>
+</div>
+
+<a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+  </svg>
+</a>
+
 <a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
     <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -516,8 +532,7 @@
     
               <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
               <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
-              <button type="button" class="btn-get-more" id="cardGetMore">Get more swipes</button>
-
+              
             </div>
     
             <!-- BACK -->
@@ -1334,27 +1349,6 @@
   background: linear-gradient(180deg, #10192b 0%, #0c1324 100%);
   border-color:#243049;
 }
-
-.btn-get-more {
-  margin-top: 14px;
-  background: linear-gradient(135deg, #ed003c, #ff4f7a);
-  border: none;
-  color: #fff;
-  font-weight: 700;
-  padding: 10px 18px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.btn-get-more:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(237, 0, 60, 0.35);
-}
-.theme-light .btn-get-more {
-  background: linear-gradient(135deg, #ed003c, #ff4f7a);
-  color: #fff;
-}
-
 
 /* Light theme */
 .theme-light .card-front{
