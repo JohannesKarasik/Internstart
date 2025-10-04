@@ -2122,6 +2122,7 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 
   
   function throwCard(direction = 'right', { doFetch = false, save = false } = {}) {
+  // ✅ Prevent swipe if user ran out of swipes
   if (direction === 'right' && doFetch) {
     const left = parseInt(swipesLeftEl?.textContent || '0', 10);
     if (left <= 0) {
@@ -2131,6 +2132,46 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
       return;
     }
   }
+
+  // ✅ Only swipe the visible top card
+  const topCard = document.querySelector('.swipe-card.is-top');
+  if (!topCard) return;
+  const current = topCard;
+
+  // Determine swipe direction and animation
+  const offsetX = direction === 'left' ? -window.innerWidth : window.innerWidth;
+  const rotation = direction === 'left' ? -30 : 30;
+
+  current.style.transition = 'transform 0.4s ease-out, opacity 0.3s ease';
+  current.style.transform = `translate(${offsetX}px, -100px) rotate(${rotation}deg)`;
+  current.style.opacity = '0';
+
+  // Once animation ends, remove card and restyle
+  setTimeout(() => {
+    current.remove();
+    styleStack();
+
+    // ✅ Trigger backend logic (save, swipe limit, etc.)
+    if (doFetch) {
+      const roomId = current.dataset.roomId;
+      fetch(`/apply-swipe-job/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ room_id: roomId }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.left !== undefined && swipesLeftEl) {
+            swipesLeftEl.textContent = data.left;
+          }
+        })
+        .catch(err => console.error('Swipe job error:', err));
+    }
+  }, 350);
+}
 
 
 
