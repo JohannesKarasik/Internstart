@@ -6,13 +6,14 @@ from django.http import JsonResponse
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('base.urls')),
+        path('', lambda request: redirect('swipe_view'), name='home'),  # 👈 redirect homepage to /swipe/
     path('api/', include('base.api.urls')),
 
 ]
