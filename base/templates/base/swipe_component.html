@@ -535,7 +535,6 @@
 
     {% endif %}
     
-    <div id="loadMoreSentinel" style="height:1px;"></div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -2457,35 +2456,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const sentinel = document.getElementById("loadMoreSentinel");
 
   async function loadMore() {
-    try {
-      page++;
-      const res = await fetch(`/swipe/?page=${page}`);
-      if (!res.ok) return;
-      const html = await res.text();
-
-      // parse response HTML and extract swipe-cards
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const newCards = doc.querySelectorAll(".swipe-card");
-
-      if (!newCards.length) {
-        observer.disconnect(); // no more jobs
-        return;
-      }
-
-      newCards.forEach(card => {
-        card.style.display = "none";   // prevent flicker
-        deck.appendChild(card);
-      });
-
-      // reapply deck styling logic
-      if (typeof styleStack === "function") styleStack();
-      if (typeof updateDeckHUD === "function") updateDeckHUD();
-
-    } catch(err) {
-      console.error("Error loading more cards", err);
+  try {
+    page++;
+    const res = await fetch(`/swipe/?page=${page}`, {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    if (!res.ok) return;
+    const data = await res.text();
+    if (!data.trim()) {
+      observer.disconnect();
+      return;
     }
+
+    deck.insertAdjacentHTML("beforeend", data);
+
+    if (typeof styleStack === "function") styleStack();
+    if (typeof updateDeckHUD === "function") updateDeckHUD();
+
+    // Reconnect observer to the new last card
+    observer.observe(sentinel);
+  } catch (err) {
+    console.error("Error loading more cards", err);
   }
+}
+
+
 
   const observer = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) {
