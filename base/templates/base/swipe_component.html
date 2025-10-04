@@ -516,6 +516,8 @@
     
               <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
               <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
+              <button type="button" class="btn-get-more" id="cardGetMore">Get more swipes</button>
+
             </div>
     
             <!-- BACK -->
@@ -1332,6 +1334,27 @@
   background: linear-gradient(180deg, #10192b 0%, #0c1324 100%);
   border-color:#243049;
 }
+
+.btn-get-more {
+  margin-top: 14px;
+  background: linear-gradient(135deg, #ed003c, #ff4f7a);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-get-more:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(237, 0, 60, 0.35);
+}
+.theme-light .btn-get-more {
+  background: linear-gradient(135deg, #ed003c, #ff4f7a);
+  color: #fff;
+}
+
 
 /* Light theme */
 .theme-light .card-front{
