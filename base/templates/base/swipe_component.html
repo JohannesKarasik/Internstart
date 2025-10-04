@@ -1876,20 +1876,31 @@ main.layout {
     display: inline-flex !important;
   }
 }
-
+/* ✅ Fix: ensure logos and front cards are visible on mobile */
 @media (max-width: 768px) {
+  .card-front,
   .logo-frame,
   .company-logo {
-    display: block !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
     opacity: 1 !important;
     visibility: visible !important;
+    backface-visibility: visible !important; /* <-- key fix for Safari/iOS */
+    transform: none !important;
   }
 
-  .logo-frame img,
+  .card-inner {
+    backface-visibility: visible !important;
+    transform: none !important;
+  }
+
   .company-logo {
     max-width: 80% !important;
     max-height: 180px !important;
     object-fit: contain !important;
+    border: none !important;
+    background: transparent !important;
   }
 }
 
