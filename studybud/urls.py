@@ -13,7 +13,7 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-        path('', lambda request: redirect('swipe_view'), name='home'),  # 👈 redirect homepage to /swipe/
+    path('', lambda request: redirect('swipe_view'), name='home'),  # ✅ homepage redirects to /swipe/
     path('api/', include('base.api.urls')),
 
 ]
