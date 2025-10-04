@@ -1803,14 +1803,13 @@ main.layout {
 }
 
 @media (max-width: 768px) {
-  /* Disable all blurs and shadows (massive performance hit on mobile) */
+  /* Keep layout minimal and static on mobile */
   * {
     box-shadow: none !important;
     backdrop-filter: none !important;
-    filter: none !important;
   }
 
-  /* Remove background effects */
+  /* Remove all background visual effects */
   .bgFX,
   .bgFX__beam,
   .bgFX__orb,
@@ -1818,7 +1817,7 @@ main.layout {
     display: none !important;
   }
 
-  /* Disable 3D transforms and perspective */
+  /* Disable 3D card effects */
   .swipe-container {
     perspective: none !important;
   }
@@ -1827,26 +1826,23 @@ main.layout {
     transition: none !important;
   }
 
-  /* No glow or animated borders */
+  /* Keep logos visible and crisp */
   .logo-frame {
     animation: none !important;
     box-shadow: none !important;
   }
 
-  /* Disable floating animations entirely */
+  .company-logo {
+    filter: brightness(1) contrast(1);
+    image-rendering: auto;
+    transform: none !important;
+  }
+
+  /* Disable floating keyframes */
   @keyframes floatY {}
   @keyframes drift {}
 }
-
-
-img, .company-logo {
-  image-rendering: auto;
-  will-change: auto;
-  transform: none !important;
-}
-
-  </style>
-  
+</style>
   
 
   <!-- ===== Core JS ===== -->
