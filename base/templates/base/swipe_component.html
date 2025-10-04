@@ -1885,6 +1885,22 @@ main.layout {
 }
 
 
+/* 📱 Allow scrolling inside the modal on mobile */
+@media (max-width: 768px) {
+  #noSwipesModal .modal__dialog {
+    max-height: 90dvh;      /* don’t overflow screen */
+    overflow-y: auto;       /* enable scrolling inside modal */
+    -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+    padding-bottom: 20px;   /* breathing room for bottom content */
+  }
+
+  /* keep plans spaced properly */
+  #noSwipesModal .modal__plans {
+    flex-direction: column !important;
+    gap: 1.2rem;
+  }
+}
+
 
 </style>
   
