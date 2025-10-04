@@ -931,8 +931,7 @@ from django.core.paginator import Paginator
 @login_required
 def swipe_view(request):
     q = request.GET.get('q') or ''
-    page = int(request.GET.get('page', 1))  # 👈 get current page number
-
+    page = int(request.GET.get('page', 1))
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
 
     rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
@@ -941,14 +940,12 @@ def swipe_view(request):
     ).order_by('id')
 
     paginator = Paginator(rooms_qs, 5)
-    rooms = paginator.get_page(page)  # 👈 use the correct page here
+    rooms = paginator.get_page(page)
 
-    # detect AJAX partial load
     partial = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     topics = Topic.objects.all()[:5]
     room_count = rooms_qs.count()
-
     today = timezone.localdate()
     quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
     swipes_left = max(0, quota.limit - quota.count)
@@ -958,8 +955,6 @@ def swipe_view(request):
         first_login = True
         request.user.onboarding_shown = True
         request.user.save()
-
-    from django.conf import settings
 
     context = {
         "swipes_left": swipes_left,
@@ -974,8 +969,13 @@ def swipe_view(request):
         "partial": partial,
     }
 
-    return render(request, "base/swipe_component.html", context)
+    # ✅ Return only card HTML when loading more (AJAX)
+    if partial:
+        html = render_to_string("base/swipe_component.html", context)
+        return HttpResponse(html)
 
+    # ✅ Otherwise return full template
+    return render(request, "base/swipe_component.html", context)
 
 
 
