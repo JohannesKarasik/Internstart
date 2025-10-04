@@ -931,17 +931,20 @@ from django.core.paginator import Paginator
 @login_required
 def swipe_view(request):
     q = request.GET.get('q') or ''
+    page = int(request.GET.get('page', 1))  # 👈 get current page number
 
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
 
     rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
         Q(topic__name__icontains=q) |
         Q(description__icontains=q)
-    )
+    ).order_by('id')
 
-    # ✅ Only show first 5 jobs initially
     paginator = Paginator(rooms_qs, 5)
-    rooms = paginator.get_page(1)  # always page 1 in the server-rendered view
+    rooms = paginator.get_page(page)  # 👈 use the correct page here
+
+    # detect AJAX partial load
+    partial = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     topics = Topic.objects.all()[:5]
     room_count = rooms_qs.count()
@@ -959,16 +962,18 @@ def swipe_view(request):
     from django.conf import settings
 
     context = {
-        'swipes_left': swipes_left,
-        'swipe_limit': quota.limit,
-        'rooms': rooms,               # ✅ only first 5 jobs
-        'topics': topics,
-        'room_count': room_count,     # ✅ still total count of all jobs
-        'user_profile': request.user,
-        'first_login': first_login,
-        'email_configured': getattr(request.user, 'email_configured', False),
-        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,
+        "swipes_left": swipes_left,
+        "swipe_limit": quota.limit,
+        "rooms": rooms,
+        "topics": topics,
+        "room_count": room_count,
+        "user_profile": request.user,
+        "first_login": first_login,
+        "email_configured": getattr(request.user, "email_configured", False),
+        "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+        "partial": partial,
     }
+
     return render(request, "base/swipe_component.html", context)
 
 
