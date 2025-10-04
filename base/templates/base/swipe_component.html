@@ -114,7 +114,7 @@
         <span class="plan-dot" aria-hidden="true"></span>
         <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
       </div>
-      <button class="sidebar__upgrade" type="button" id="openPremium" style="display: none;">Upgrade</button>
+      <button class="sidebar__upgrade" type="button" id="openPremium">Get more swipes</button>
     </div>
   </aside>
   <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
@@ -2546,6 +2546,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   mutationObserver.observe(deck, { childList: true });
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn = document.getElementById("openPremium");
+  const modal = document.getElementById("noSwipesModal");
+
+  if (openBtn && modal) {
+    openBtn.addEventListener("click", () => {
+      modal.classList.add("show");
+      document.documentElement.style.overflow = "hidden";
+    });
+  }
 });
 </script>
 
