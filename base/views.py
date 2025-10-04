@@ -978,20 +978,26 @@ def swipe_view(request):
 
 @login_required
 def swipe_jobs_api(request):
-    page = int(request.GET.get("page", 1))
+    page = int(request.GET.get("page", 1))   # current page number (1, 2, 3, ...)
     page_size = 5
-    offset = (page - 1) * page_size
+    offset = (page - 1) * page_size          # calculate offset for slicing
 
+    # Exclude swiped jobs
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list("room_id", flat=True)
-    rooms = Room.objects.exclude(id__in=swiped_ids).order_by("id")[offset:offset + page_size]
 
-    # 👇 Detect AJAX/fetch request and only send cards
+    # Select only the slice you want
+    rooms = (
+        Room.objects.exclude(id__in=swiped_ids)
+        .order_by("id")[offset:offset + page_size]
+    )
+
+    # When fetching dynamically (via JS)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        # Return *only* the card HTML (partial=True)
         return render(request, "base/swipe_component.html", {"rooms": rooms, "partial": True})
 
-    # 👇 First page load → return full template (partial=False)
+    # When rendering first load
     return render(request, "base/swipe_component.html", {"rooms": rooms, "partial": False})
+
 
 
 
