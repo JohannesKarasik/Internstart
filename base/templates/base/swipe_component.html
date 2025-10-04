@@ -1,6 +1,7 @@
 {% load static %}
-{% if not partial %}
+
 {% block content %}
+{% if not partial %}
 
 
 <main
@@ -585,7 +586,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 
-  {% endblock %}
+
 
   <style>
 
@@ -2493,4 +2494,8 @@ document.addEventListener("DOMContentLoaded", () => {
   observer.observe(sentinel);
 });
 </script>
+
+
+{% endif %}
+{% endblock %}
 
