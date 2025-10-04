@@ -1967,14 +1967,22 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 
 
   function styleStack() {
-    const list = cards();
-    list.forEach(c => { c.style.display = 'none'; c.classList.remove('is-top','is-next','is-third'); });
-    const top = list.slice(-3);
-    top.forEach((c, i) => { c.style.display='block'; c.style.zIndex = 10+i; });
-    if (top[0]) top[0].classList.add('is-third');
-    if (top[1]) top[1].classList.add('is-next');
-    if (top[2]) top[2].classList.add('is-top');
+  const list = cards();
+  // Hide all cards first
+  list.forEach(c => {
+    c.style.display = 'none';
+    c.classList.remove('is-top', 'is-next', 'is-third');
+  });
+
+  // Only show the top card
+  const top = list[list.length - 1];
+  if (top) {
+    top.style.display = 'block';
+    top.classList.add('is-top');
+    top.style.zIndex = 10;
   }
+}
+
   styleStack(); updateDeckHUD();
 
   const toastEl = $('#toast');
