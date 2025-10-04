@@ -2454,44 +2454,68 @@ setInterval(updateMobileHUD, 1500); // cheap polling, or call inside your existi
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  let page = 1; // already loaded page 1 from server-render
+  let page = 1;
+  let loading = false;
   const deck = document.getElementById("swipeDeck");
   const sentinel = document.getElementById("loadMoreSentinel");
 
   async function loadMore() {
-  try {
+    if (loading) return;
+    loading = true;
+
     page++;
-    const res = await fetch(`/swipe/?page=${page}`, {
-      headers: { "X-Requested-With": "XMLHttpRequest" }
-    });
-    if (!res.ok) return;
-    const data = await res.text();
-    if (!data.trim()) {
-      observer.disconnect();
-      return;
+    try {
+      const res = await fetch(`/swipe/?page=${page}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      if (!res.ok) return;
+      const data = await res.text();
+
+      // Stop observing if no new data
+      if (!data.trim()) {
+        observer.disconnect();
+        return;
+      }
+
+      // Append new cards
+      deck.insertAdjacentHTML("beforeend", data);
+
+      // Re-run card styling and HUD updates
+      if (typeof styleStack === "function") styleStack();
+      if (typeof updateDeckHUD === "function") updateDeckHUD();
+
+      // Reconnect observer to sentinel after DOM change
+      observer.observe(sentinel);
+    } catch (err) {
+      console.error("Error loading more cards:", err);
+    } finally {
+      loading = false;
     }
-
-    deck.insertAdjacentHTML("beforeend", data);
-
-    if (typeof styleStack === "function") styleStack();
-    if (typeof updateDeckHUD === "function") updateDeckHUD();
-
-    // Reconnect observer to the new last card
-    observer.observe(sentinel);
-  } catch (err) {
-    console.error("Error loading more cards", err);
   }
-}
 
-
-
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
-      loadMore();
-    }
-  }, { rootMargin: "200px" });
+  // Create the observer
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !loading) {
+        loadMore();
+      }
+    },
+    { rootMargin: "300px" }
+  );
 
   observer.observe(sentinel);
+
+  // 🧠 Ensure continuous load if few cards left after swiping
+  const container = document.querySelector(".swipe-container");
+  const mutationObserver = new MutationObserver(() => {
+    const visibleCards = container.querySelectorAll(".swipe-card").length;
+    if (visibleCards <= 3 && !loading) {
+      // preload next batch if we're about to run out
+      loadMore();
+    }
+  });
+
+  mutationObserver.observe(deck, { childList: true });
 });
 </script>
 
