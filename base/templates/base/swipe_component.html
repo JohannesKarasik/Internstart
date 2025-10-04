@@ -1806,6 +1806,78 @@ main.layout {
   }
 }
 
+@media (max-width: 768px) {
+  /* Disable only heavy visual effects (NOT layout/visibility) */
+  .bgFX,
+  .bgFX__beam,
+  .bgFX__orb,
+  .bgFX__grid {
+    display: none !important;
+  }
+
+  .swipe-container {
+    perspective: none !important;
+  }
+
+  .card-inner {
+    transform: none !important;
+  }
+
+  /* Ensure logo container still behaves as intended */
+  .logo-frame {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .company-logo {
+    display: block !important;
+    max-width: 80%;
+    max-height: 160px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .mobile-premium-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;         /* centers horizontally */
+    position: relative;     /* ensures it stays within header flow */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* Hide or show elements based on screen size */
+.desktop-only {
+  display: inline-flex !important;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: inline-flex !important;
+  }
+}
+
+
 
 
 </style>
