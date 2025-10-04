@@ -974,28 +974,25 @@ def swipe_view(request):
 
 
 
+
+
 @login_required
 def swipe_jobs_api(request):
     page = int(request.GET.get("page", 1))
+    page_size = 5
+    offset = (page - 1) * page_size
+
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list("room_id", flat=True)
+    rooms = Room.objects.exclude(id__in=swiped_ids).order_by("id")[offset:offset + page_size]
 
-    qs = Room.objects.exclude(id__in=swiped_ids).order_by("id")
-    paginator = Paginator(qs, 5)  # 5 per page
-    page_obj = paginator.get_page(page)
+    # 👇 Detect AJAX/fetch request and only send cards
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        # Return *only* the card HTML (partial=True)
+        return render(request, "base/swipe_component.html", {"rooms": rooms, "partial": True})
 
-    jobs = [
-        {
-            "id": room.id,
-            "title": room.job_title,
-            "company": room.company_name,
-            "location": room.location,
-            "logo": room.logo.url if room.logo else "",
-            "description": room.description[:150],  # short preview
-        }
-        for room in page_obj
-    ]
+    # 👇 First page load → return full template (partial=False)
+    return render(request, "base/swipe_component.html", {"rooms": rooms, "partial": False})
 
-    return JsonResponse({"jobs": jobs, "has_next": page_obj.has_next()})
 
 
 @login_required

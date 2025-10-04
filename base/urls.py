@@ -35,7 +35,7 @@ urlpatterns = [
     path("billing/checkout/<str:tier>/", views.create_checkout_session, name="create_checkout_session"),
     path("billing/success/", views.billing_success, name="billing_success"),
     path("billing/cancel/", views.billing_cancel, name="billing_cancel"),
-    path("api/swipe/jobs/", views.swipe_jobs_api, name="swipe_jobs_api"),
+    path("swipe/jobs/", views.swipe_jobs_api, name="swipe_jobs_api"),
 
         path(
         'activate/<uidb64>/<token>/',
