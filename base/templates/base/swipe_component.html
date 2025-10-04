@@ -1067,6 +1067,9 @@
     .theme-light .swipe-card{ --accent-soft:rgba(237,0,60,.07); --accent-glow:rgba(237,0,60,.09); }
     .theme-light .swipe-card.card-color-blue{ --accent-soft:rgba(46,167,255,.07); --accent-glow:rgba(46,167,255,.09); }
     .theme-light .swipe-card.card-color-yellow{ --accent-soft:rgba(255,178,30,.07); --accent-glow:rgba(255,178,30,.09); }
+    .swipe-card {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
   
     .card-inner{ width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .35s ease; border-radius:22px; }
     .card-front,.card-back{
@@ -1968,18 +1971,33 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 
   function styleStack() {
   const list = cards();
-  // Hide all cards first
+
+  // Hide all cards by default
   list.forEach(c => {
     c.style.display = 'none';
-    c.classList.remove('is-top', 'is-next', 'is-third');
+    c.style.zIndex = '';
+    c.classList.remove('is-top', 'is-next');
   });
 
-  // Only show the top card
+  // Top (current) card
   const top = list[list.length - 1];
+  // Next card underneath
+  const next = list[list.length - 2];
+
+  if (next) {
+    next.style.display = 'block';
+    next.style.zIndex = 5;
+    next.classList.add('is-next');
+    next.style.transform = 'scale(0.97) translateY(5px)'; // slightly smaller and lower
+    next.style.opacity = '0.9';
+  }
+
   if (top) {
     top.style.display = 'block';
-    top.classList.add('is-top');
     top.style.zIndex = 10;
+    top.classList.add('is-top');
+    top.style.transform = 'scale(1) translateY(0)';
+    top.style.opacity = '1';
   }
 }
 
