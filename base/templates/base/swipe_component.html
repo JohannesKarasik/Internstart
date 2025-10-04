@@ -1044,41 +1044,18 @@
     .theme-light .applied-widget{ background:rgba(2,6,23,.045); border-color:rgba(15,23,42,.12); }
   
     /* Responsive HUD layout */
-    @media (max-width: 768px) {
-  .custom-header {
-    display: flex;
-    align-items: center;
-    justify-content: center; /* centers middle item */
-    width: 100%;
-    padding: 0 12px;
-    position: relative;
-  }
-
-  /* Keep theme toggle and profile icon in place */
-  .custom-header .header-left {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .custom-header .header__account {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  /* Center button in header width */
-  .mobile-premium-btn {
-    position: relative;
-    left: auto;
-    transform: none;
-    margin: 0 auto;
-    z-index: 2;
-  }
-}
-
+    @media (max-width: 820px){
+      .custom-header{ width:min(var(--chrome-w), 96vw); padding:0 12px; }
+      .hud{
+        top:54px;
+        width:min(var(--chrome-w), 96vw);
+        padding:0 12px;
+        flex-wrap:wrap;
+        row-gap:10px;
+      }
+      .hud__left{ order:1; width:100%; justify-content:flex-start; }
+      .hud__right{ order:2; width:100%; justify-content:flex-end; gap:12px; }
+    }
   
     /* ===== Cards ===== */
     .swipe-container{
