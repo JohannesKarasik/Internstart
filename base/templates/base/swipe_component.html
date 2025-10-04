@@ -1785,6 +1785,34 @@ main.layout {
 }
 
 
+/* Hide desktop, show only on mobile */
+.mobile-premium-btn {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .mobile-premium-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ed003c, #ff4f7a);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    padding: 6px 12px;
+    margin-left: 8px;
+    font-size: 13px;
+    box-shadow: 0 3px 10px rgba(237, 0, 60, 0.3);
+    cursor: pointer;
+  }
+  .mobile-premium-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(237, 0, 60, 0.35);
+  }
+}
+
+
 
 
   </style>
@@ -2580,6 +2608,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn = document.getElementById("openPremiumMobile");
+  const modal = document.getElementById("noSwipesModal");
+  if (openBtn && modal) {
+    openBtn.addEventListener("click", () => {
+      modal.classList.add("show");
+      document.documentElement.style.overflow = "hidden";
+    });
+  }
+});
+</script>
+
 
 
 {% endif %}
