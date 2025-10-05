@@ -56,7 +56,6 @@ urlpatterns = [
 
     # Home and Profile URLs
 
-    path('swipe/', views.swipe_view, name='home'),   # alias "home" to swipe_view
 
     path('profile/<int:pk>/', views.userProfile, name='user-profile'),
     
