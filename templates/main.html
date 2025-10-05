@@ -33,7 +33,7 @@
           <button id="decline-cookies" class="btn btn-outline">Decline</button>
         </div>
       </div>
-
+      
       <style>
         .cookie-banner {
           position: fixed;
@@ -52,33 +52,40 @@
           text-align: center;
           font-family: system-ui, sans-serif;
         }
+      
         .cookie-banner a {
           color: #0073e6;
           text-decoration: none;
         }
+      
         .cookie-banner a:hover {
           text-decoration: underline;
         }
-        .cookie-buttons {
+      
+        .cookie-banner .cookie-buttons {
           margin-top: 12px;
         }
-        .cookie-buttons .btn {
+      
+        /* 👇 These styles now only apply to buttons inside the cookie banner */
+        .cookie-banner .cookie-buttons .btn {
           margin: 0 6px;
           padding: 6px 16px;
           border-radius: 6px;
           border: none;
           cursor: pointer;
         }
-        .btn {
+      
+        .cookie-banner .btn {
           background: #0073e6;
           color: white;
         }
-        .btn-outline {
+      
+        .cookie-banner .btn-outline {
           background: transparent;
           border: 1px solid #0073e6;
           color: #0073e6;
         }
-        </style>
+      </style>
 </body>
 
 <script>
