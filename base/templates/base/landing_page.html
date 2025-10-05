@@ -453,6 +453,20 @@
     .action { width: 40px; height: 40px; }
     .action svg { width: 18px; height: 18px; }
   }
+
+  @media (max-width: 600px) {
+  .hero__title {
+    color: #fff !important; /* non-span text white on mobile */
+  }
+
+  .hero__title .accent {
+    background-color: #FF2F5A;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent; /* keeps “Dream Career” pink */
+  }
+}
+
   </style>
   
 
