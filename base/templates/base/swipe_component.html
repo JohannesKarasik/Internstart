@@ -1799,12 +1799,17 @@ main.layout {
 
 /* Show only on mobile */
 @media (max-width: 768px) {
-  .mobile-premium-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .bgFX,
+  .bgFX__beam,
+  .bgFX__orb,
+  .bgFX__grid {
+    display: none !important;
+  }
+  main.layout {
+    background: linear-gradient(135deg, #0b0f1a 0%, #16203b 100%) !important;
   }
 }
+
 
 @media (max-width: 768px) {
   /* Disable only heavy visual effects (NOT layout/visibility) */
