@@ -23,9 +23,123 @@
 
 
 
-    
+    <div id="cookie-banner" class="cookie-banner">
+        <p>
+          We use cookies to improve your experience. 
+          <a href="{% url 'privacy_policy' %}">Learn more</a>
+        </p>
+        <div class="cookie-buttons">
+          <button id="accept-cookies" class="btn">Accept</button>
+          <button id="decline-cookies" class="btn btn-outline">Decline</button>
+        </div>
+      </div>
+      
+      <style>
+        .cookie-banner {
+          position: fixed;
+          bottom: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(135deg, #FF2F5A, #ff6b8a);
+          color: #fff;
+          border-radius: 16px;
+          box-shadow: 0 10px 30px rgba(255, 47, 90, 0.35);
+          padding: 20px 28px;
+          width: 90%;
+          max-width: 440px;
+          display: none;
+          z-index: 1000;
+          text-align: center;
+          font-family: "Inter", "Manrope", system-ui, sans-serif;
+          animation: fadeInUp 0.6s ease;
+        }
+      
+        .cookie-banner p {
+          margin: 0;
+          font-size: 15px;
+          line-height: 1.6;
+        }
+      
+        .cookie-banner a {
+          color: #fff;
+          font-weight: 600;
+          text-decoration: underline;
+        }
+      
+        .cookie-banner a:hover {
+          text-decoration: none;
+          opacity: 0.9;
+        }
+      
+        .cookie-banner .cookie-buttons {
+          margin-top: 16px;
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+        }
+      
+        .cookie-banner .cookie-buttons .btn {
+          padding: 8px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          font-size: 14px;
+        }
+      
+        /* ✅ Accept button */
+        .cookie-banner .btn {
+          background: #fff;
+          color: #FF2F5A;
+        }
+      
+        .cookie-banner .btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(255,255,255,0.3);
+        }
+      
+        /* ✅ Decline button */
+        .cookie-banner .btn-outline {
+          background: transparent;
+          border: 1.5px solid rgba(255,255,255,0.7);
+          color: #fff;
+        }
+      
+        .cookie-banner .btn-outline:hover {
+          background: rgba(255,255,255,0.1);
+        }
+      
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translate(-50%, 20px);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+      </style>
 </body>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!localStorage.getItem("cookieConsent")) {
+        document.getElementById("cookie-banner").style.display = "block";
+      }
+    
+      document.getElementById("accept-cookies").addEventListener("click", function () {
+        localStorage.setItem("cookieConsent", "accepted");
+        document.getElementById("cookie-banner").style.display = "none";
+      });
+    
+      document.getElementById("decline-cookies").addEventListener("click", function () {
+        localStorage.setItem("cookieConsent", "declined");
+        document.getElementById("cookie-banner").style.display = "none";
+      });
+    });
+    </script>
 
 
 <script>
