@@ -1565,15 +1565,9 @@ def activate_account(request, uidb64, token):
         messages.error(request, "Activation link is invalid or has expired.")
         return redirect('app_login')
     
-
-from django.shortcuts import render
-
 def terms_conditions(request):
-    """Render your Terms & Conditions page."""
-    return render(request, 'terms_conditions.html')
-    # or 'base/terms_conditions.html' if you saved it in base/templates/base
+    return render(request, 'terms_and_conditions.html')
 
-    
 
 from django.shortcuts import render
 
