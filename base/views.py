@@ -1566,7 +1566,7 @@ def activate_account(request, uidb64, token):
         return redirect('app_login')
     
 def terms_conditions(request):
-    return render(request, 'terms_and_conditions.html')
+    return render(request, 'base/terms_and_conditions.html')
 
 
 from django.shortcuts import render
