@@ -2,7 +2,7 @@ from django.db import models, IntegrityError
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser 
 
 
 
@@ -77,7 +77,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
-    
 
     COUNTRY_CHOICES = [
         ('DK', '🇩🇰 Denmark'),
@@ -99,8 +98,15 @@ class User(AbstractUser):
     ]
     student_industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
+    # 🔹 Job type choices
+    JOB_TYPE_CHOICES = [
+        ('internship', 'Internship'),
+        ('student_job', 'Student job'),
+        ('full_time', 'Full-time job'),
+    ]
+    job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, null=True, blank=True)
 
-
+    
 class UserGoogleCredential(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='google_credential'
