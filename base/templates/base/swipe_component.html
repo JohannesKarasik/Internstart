@@ -2044,8 +2044,11 @@ main.layout {
 .efs__progress{height:4px;background:var(--border-subtle,rgba(148,163,184,.12));border-radius:999px;overflow:hidden;margin:6px 0 16px}
 .efs__bar{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand,#ed003c),#ff4f7a);border-radius:inherit;transition:width .35s ease}
 
-.efs__stage{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}
+/* STEP 1 layout: ONLY THE CARD */
+.efs__stage{display:grid;grid-template-columns:1fr;gap:22px;align-items:center}
 @media (max-width:900px){.efs__stage{grid-template-columns:1fr;gap:16px}}
+/* hide phone until step 2 */
+.efs .efs-phone{opacity:0;transform:translateY(8px) scale(.98);pointer-events:none}
 
 .efs-card{position:relative;height:200px;border-radius:16px;background:linear-gradient(180deg,#0f1527,#0c1426);border:1px solid rgba(148,163,184,.18);box-shadow:0 18px 44px rgba(2,6,23,.45);overflow:hidden}
 .theme-light .efs-card{background:linear-gradient(180deg,#f6f8fc,#eef2f7);border-color:#d5dbe6}
@@ -2101,7 +2104,7 @@ main.layout {
 .theme-light .efs__btn--ghost{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12);color:#0e1320}
 .efs__btn--primary{background:var(--brand,#ed003c);color:#fff}
 
-/* ===== Animations (timeline driven by .play class) ===== */
+/* ===== Animations ===== */
 @keyframes efs-swipe{to{transform:translateX(140px) rotate(6deg);opacity:.15}}
 @keyframes efs-hand{to{transform:translateX(70px) translateY(-6px)}}
 @keyframes efs-typing{from{width:0} to{width:var(--ch)}}
@@ -2112,39 +2115,52 @@ main.layout {
 @keyframes efs-plane{to{transform:translateX(240px);opacity:1}}
 @keyframes efs-sent{to{opacity:1;transform:translateY(0)}}
 @keyframes efs-bar{to{width:100%}}
+@keyframes efs-showphone{to{opacity:1;transform:none}}
 
 .efs.play .efs__bar{animation:efs-bar 7.6s linear forwards}
 
-/* step 1: swipe right demo */
-.efs.play .efs-card{overflow:visible}
-.efs.play .efs-card{animation:efs-swipe 1.2s .2s cubic-bezier(.22,1,.36,1) forwards}
+/* --- STEP 1: swipe right demo (card only) --- */
+.efs.play .efs-card{overflow:visible;animation:efs-swipe 1.2s .2s cubic-bezier(.22,1,.36,1) forwards}
 .efs.play .efs-hand{animation:efs-hand 1s .25s ease forwards}
 
-/* step 2: typing lines (staggered) */
-.efs.play .efs-ai__chip .sparkle{position:absolute;right:-6px;top:-6px;width:10px;height:10px;background:radial-gradient(circle,#ffd6de 0,#ed003c 70%,transparent 72%);border-radius:999px;animation:efs-spark 1.4s 1.3s linear infinite}
-.efs.play .efs-typed .t{animation:
+/* Hold all STEP 2 animations until .step2 is added */
+.efs.play .efs-typed .t,
+.efs.play .efs-attach .chip,
+.efs.play .efs-sendrow .send,
+.efs.play .efs-plane,
+.efs.play .efs-sent{animation:none!important}
+
+/* --- STEP 2: reveal phone + run typing/attach/send --- */
+.efs.play.step2 .efs__stage{grid-template-columns:1fr 1fr}
+@media (max-width:900px){.efs.play.step2 .efs__stage{grid-template-columns:1fr}}
+.efs.play.step2 .efs-phone{animation:efs-showphone .45s ease forwards}
+
+/* typing (staggered) */
+.efs.play.step2 .efs-ai__chip .sparkle{position:absolute;right:-6px;top:-6px;width:10px;height:10px;background:radial-gradient(circle,#ffd6de 0,#ed003c 70%,transparent 72%);border-radius:999px;animation:efs-spark 1.4s .6s linear infinite}
+.efs.play.step2 .efs-typed .t{animation:
    efs-typing 1s steps(var(--ch)) var(--delay,0s) forwards,
    efs-caret .9s steps(1) infinite}
-.efs.play .efs-typed .t:nth-child(1){--delay:1.4s}
-.efs.play .efs-typed .t:nth-child(2){--delay:2.5s}
-.efs.play .efs-typed .t:nth-child(3){--delay:3.5s}
-.efs.play .efs-typed .t:nth-child(4){--delay:4.4s}
-.efs.play .efs-typed .t:nth-child(5){--delay:5.2s}
+.efs.play.step2 .efs-typed .t:nth-child(1){--delay:.6s}
+.efs.play.step2 .efs-typed .t:nth-child(2){--delay:1.6s}
+.efs.play.step2 .efs-typed .t:nth-child(3){--delay:2.6s}
+.efs.play.step2 .efs-typed .t:nth-child(4){--delay:3.5s}
+.efs.play.step2 .efs-typed .t:nth-child(5){--delay:4.3s}
 
-/* step 3: attach chip */
-.efs.play .efs-attach .chip{animation:efs-chip .45s 5.4s cubic-bezier(.22,1,.36,1) forwards}
+/* attach chip */
+.efs.play.step2 .efs-attach .chip{animation:efs-chip .45s 5.2s cubic-bezier(.22,1,.36,1) forwards}
+/* send pulse + plane fly + sent toast */
+.efs.play.step2 .efs-sendrow .send{animation:efs-pulse 1.2s 5.6s ease 2}
+.efs.play.step2 .efs-plane{animation:efs-plane .9s 5.9s cubic-bezier(.22,1,.36,1) forwards}
+.efs.play.step2 .efs-sent{animation:efs-sent .35s 6.7s ease forwards}
 
-/* step 4: send pulse + plane fly + sent toast */
-.efs.play .efs-sendrow .send{animation:efs-pulse 1.2s 5.8s ease 2}
-.efs.play .efs-plane{animation:efs-plane .9s 6.1s cubic-bezier(.22,1,.36,1) forwards}
-.efs.play .efs-sent{animation:efs-sent .35s 6.9s ease forwards}
-
-/* Reduced motion: keep it simple */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce){
   .efs__bar,.efs-card,.efs-hand,.efs-typed .t,.efs-attach .chip,.efs-plane,.efs-sent{animation:none!important;transition:none!important}
-  .efs.play .efs-typed .t{width:auto;border-right:0}
-  .efs.play .efs-attach .chip{opacity:1;transform:none}
-  .efs.play .efs-sent{opacity:1;transform:none}
+  .efs.play.step2 .efs-typed .t{width:auto;border-right:0}
+  .efs.play.step2 .efs-attach .chip{opacity:1;transform:none}
+  .efs.play.step2 .efs-sent{opacity:1;transform:none}
+  .efs .efs-phone{opacity:1;transform:none}
+  .efs__stage{grid-template-columns:1fr 1fr}
 }
 
 
