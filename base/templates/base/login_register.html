@@ -581,6 +581,16 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
   }
 }
 
+/* Make the form content align with the progress bar edges */
+.auth-form > form.auth-form {
+  /* match the header's side padding so edges line up */
+  padding-left:  clamp(20px, 4vw, 32px) !important;
+  padding-right: clamp(20px, 4vw, 32px) !important;
+
+  /* keep some space above, none needed below */
+  padding-top: 12px;
+  padding-bottom: 0;
+}
 
 
 
