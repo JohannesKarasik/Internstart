@@ -47,6 +47,9 @@
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="url(#sbG)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
 
+
+        <button id="showEFSNow" class="btn-secondary" style="position:fixed;bottom:14px;left:14px;z-index:9999;">Show demo</button>
+
         <span class="logo-chip">
           <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
         </span>
@@ -3018,6 +3021,83 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+<script>
+/* ---------- FORCE-OPEN / MANUAL TRIGGER ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('emailFlowShowcase');
+  if (!overlay) return;
+
+  const main = document.querySelector('main.layout');
+  const emailConfigured = (main?.dataset.emailConfigured === 'true');
+  const SEEN_KEY = 'if_email_flow_demo_shown';
+  const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
+
+  // 1) Manual trigger for debugging (add a button somewhere with id="showEFSNow")
+  function showEmailFlow() {
+    overlay.hidden = false;                // remove [hidden]
+    overlay.classList.add('show');         // display:grid
+    requestAnimationFrame(() => overlay.classList.add('play')); // start timeline
+  }
+  window.showEmailFlow = showEmailFlow;    // so you can call from console
+
+  document.getElementById('showEFSNow')?.addEventListener('click', () => {
+    localStorage.removeItem(SEEN_KEY);     // let it play again
+    showEmailFlow();
+  });
+
+  // 2) Robust auto-open logic:
+  //    - open if email is configured and we haven't shown it
+  //    - OR if you set data-efs-debug="true" on <main> (dev override)
+  const debugOverride = (main?.dataset.efsDebug === 'true');
+  const onboardingSeen = (localStorage.getItem('if_seen_onboarding') === '1');
+
+  function openAndRemember() {
+    showEmailFlow();
+    // mark as shown when it closes (your close handler already sets SEEN_KEY, but set now too)
+    try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
+  }
+
+  if ((emailConfigured && !alreadySeen) || debugOverride) {
+    if (!onboardingSeen) {
+      document.addEventListener('onboarding:finished', openAndRemember, { once: true });
+    } else {
+      // Wait one frame so styles apply before .play
+      requestAnimationFrame(openAndRemember);
+    }
+  }
+});
+</script>
+
+<script>
+/* ---------- POLYFILL: animate --aiAngle if @property/animations are unsupported ---------- */
+(function(){
+  // If CSS.registerProperty exists, we can assume modern animation of custom props is fine.
+  // We still polyfill if we detect the border isn't moving after a moment.
+  const frames = document.querySelectorAll('.logo-frame');
+  if (!frames.length) return;
+
+  let tickId, angle = 0, started = false;
+
+  function startPolyfill(){
+    if (started) return;
+    started = true;
+    function tick(){
+      angle = (angle + 0.6) % 360; // ~10s per rotation; adjust to taste
+      frames.forEach(el => el.style.setProperty('--aiAngle', angle + 'deg'));
+      tickId = requestAnimationFrame(tick);
+    }
+    tickId = requestAnimationFrame(tick);
+  }
+
+  // Heuristic: if user has reduced motion, skip polyfill.
+  const m = matchMedia('(prefers-reduced-motion: reduce)');
+  if (m.matches) return;
+
+  // Start the polyfill after first paint to avoid fighting native animation.
+  // If native animation works, this will simply keep the same effect in sync.
+  requestAnimationFrame(startPolyfill);
+})();
+</script>
 
 
 
