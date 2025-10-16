@@ -146,8 +146,8 @@
           </div>
           <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:33%"></span></div>
 
-        <form method="POST" enctype="multipart/form-data" class="auth-form" id="registerForm" novalidate>
-          {% csrf_token %}
+          <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
+            {% csrf_token %}
 
           <!-- ========== STEP 1: Account ========== -->
           <div class="form-step is-active" id="step-1" data-step="1" role="group" aria-labelledby="step1label">
@@ -583,7 +583,24 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
 
 
 
+/* Stop inheriting the big padding on the inner <form> */
+  .auth-form-body {
+  /* align fields with the header/progress bar edges */
+  padding: 12px clamp(20px, 4vw, 32px) 0;
+}
 
+/* Keep the centered max-width targeting the new class */
+@media (min-width: 981px) {
+  .auth-form__header,
+  .auth-form .auth-form-body,
+  .auth-form .wizard-actions,
+  .auth-form .auth-legal,
+  .auth-form .auth-alt {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 
 </style>
 
