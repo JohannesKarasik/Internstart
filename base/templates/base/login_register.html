@@ -266,6 +266,17 @@
     </div>
   </div>
 
+  <!-- Job Type -->
+<div class="form__group{% if student_form.job_type.errors %} form__group--error{% endif %}">
+  <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
+    {{ student_form.job_type.label|default:"What type of job are you looking for?" }}
+  </label>
+  {{ student_form.job_type|add_class:"form__control" }}
+  {% if student_form.job_type.errors %}
+    <small class="form__error">{{ student_form.job_type.errors|striptags }}</small>
+  {% endif %}
+</div>
+
   <div class="wizard-actions wizard-actions--split">
     <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
     <button type="button" class="btn btn--primary" id="toStep3">Continue</button>

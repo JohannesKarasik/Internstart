@@ -102,9 +102,19 @@ class StudentCreationForm(UserCreationForm):
         })
     )
 
+    # Job type dropdown
+    job_type = forms.ChoiceField(
+        choices=User.JOB_TYPE_CHOICES,
+        required=True,
+        label="What type of job are you looking for?",
+        widget=forms.Select(attrs={
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+        })
+    )
+
     class Meta:
         model = User
-        # 👇 Reordered so country & industry come last (below passwords)
+        # 👇 Reordered so country, industry, and job_type come last (below passwords)
         fields = [
             'full_name',
             'email',
@@ -113,6 +123,7 @@ class StudentCreationForm(UserCreationForm):
             'password2',
             'country',
             'student_industry',
+            'job_type',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -123,6 +134,7 @@ class StudentCreationForm(UserCreationForm):
         self.fields['resume'].required = True
         self.fields['country'].required = True
         self.fields['student_industry'].required = True
+        self.fields['job_type'].required = True
 
     def clean_resume(self):
         f = self.cleaned_data.get('resume')
@@ -144,10 +156,10 @@ class StudentCreationForm(UserCreationForm):
         user.role = 'student'
         user.country = self.cleaned_data['country']
         user.student_industry = self.cleaned_data['student_industry']
+        user.job_type = self.cleaned_data['job_type']
         if commit:
             user.save()
         return user
-
 
 
 from django import forms
