@@ -2973,56 +2973,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const main = document.querySelector('main.layout');
   const emailConfigured = (main?.dataset.emailConfigured === 'true');
-  const firstLogin = (main?.dataset.firstLogin === 'true');
   const SEEN_KEY = 'if_email_flow_demo_shown';
+  const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
+  const onboardingSeen = (localStorage.getItem('if_seen_onboarding') === '1');
 
   function openShowcase(){
     overlay.hidden = false;
     overlay.classList.add('show');
-    // kick the timeline on the next frame
-    requestAnimationFrame(()=> overlay.classList.add('play'));
-    document.documentElement.style.overflow = 'hidden';
-  }
-  function closeShowcase(){
-    overlay.classList.remove('play','show');
-    overlay.hidden = true;
-    document.documentElement.style.overflow = '';
-    try{ localStorage.setItem(SEEN_KEY, '1'); }catch(e){}
+    requestAnimationFrame(() => overlay.classList.add('play'));
+    // mark as shown when closed
+    const close = () => {
+      overlay.classList.remove('play','show');
+      overlay.hidden = true;
+      try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
+      overlay.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+    const onClick = (e) => { if (e.target.matches('[data-efs-close], .efs__backdrop')) close(); };
+    const onEsc = (e) => { if (e.key === 'Escape' && !overlay.hidden) close(); };
+    overlay.addEventListener('click', onClick);
+    document.addEventListener('keydown', onEsc);
   }
 
-  overlay.addEventListener('click', (e)=>{
-    if (e.target.matches('[data-efs-close], .efs__backdrop')) closeShowcase();
-  });
-  document.addEventListener('keydown', (e)=>{
-    if (e.key === 'Escape' && !overlay.hidden) closeShowcase();
-  });
-
-  // Auto-run once after email config is done.
-  const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
   // Show if email is configured and we haven't shown it yet.
-  if (emailConfigured && !alreadySeen && firstLogin) {
-  // Wait until onboarding says it's finished, then show once.
-  const once = () => {
-    openShowcase();
-    document.removeEventListener('onboarding:finished', once);
-  };
-  document.addEventListener('onboarding:finished', once);
-}
+  if (emailConfigured && !alreadySeen) {
+    // If onboarding hasn’t been completed in this session, wait for it.
+    if (!onboardingSeen) {
+      document.addEventListener('onboarding:finished', openShowcase, { once: true });
+    } else {
+      // Onboarding already done (or skipped) ⇒ show immediately.
+      requestAnimationFrame(openShowcase);
+    }
+  }
 
-  // Optional: also show it the first time the user successfully swipes right post-config
-  // Hook into your throwCard() only if present and not yet seen.
-  const hookSwipe = () => {
-    if (alreadySeen || !emailConfigured) return;
-    const container = document.getElementById('swipeDeck');
-    if (!container) return;
-    container.addEventListener('click', (e)=>{
-      const btn = e.target.closest('.swipe-right');
-      if (btn && (localStorage.getItem(SEEN_KEY) !== '1')) {
+  // Optional: first swipe-right after email config, if still not shown
+  if (emailConfigured && !alreadySeen) {
+    const deck = document.getElementById('swipeDeck');
+    deck?.addEventListener('click', (e) => {
+      if (e.target.closest('.swipe-right') && localStorage.getItem(SEEN_KEY) !== '1') {
         openShowcase();
       }
-    }, { once:true });
-  };
-  if (!alreadySeen) hookSwipe();
+    }, { once: true });
+  }
 })();
 </script>
 
