@@ -137,11 +137,14 @@
             </div>
             <div class="stepper__sep"></div>
             <div class="stepper__item" data-step-index="2">
+              <span class="stepper__dot"></span><span class="stepper__label">Preferences</span>
+            </div>
+            <div class="stepper__sep"></div>
+            <div class="stepper__item" data-step-index="3">
               <span class="stepper__dot"></span><span class="stepper__label">Resume</span>
             </div>
           </div>
-          <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:50%"></span></div>
-        </header>
+          <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:33%"></span></div>
 
         <form method="POST" enctype="multipart/form-data" class="auth-form" id="registerForm" novalidate>
           {% csrf_token %}
@@ -227,26 +230,6 @@
               </div>
             </div>
 
-            <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
-              <label class="form__label" for="{{ student_form.country.id_for_label }}">
-                {{ student_form.country.label|default:"Country" }}
-              </label>
-              {{ student_form.country|add_class:"form__control" }}
-              {% if student_form.country.errors %}
-                <small class="form__error">{{ student_form.country.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <!-- Industry -->
-            <div class="form__group{% if student_form.student_industry.errors %} form__group--error{% endif %}">
-              <label class="form__label" for="{{ student_form.student_industry.id_for_label }}">
-                {{ student_form.student_industry.label|default:"Industry" }}
-              </label>
-              {{ student_form.student_industry|add_class:"form__control" }}
-              {% if student_form.student_industry.errors %}
-                <small class="form__error">{{ student_form.student_industry.errors|striptags }}</small>
-              {% endif %}
-            </div>
 
             <div class="wizard-actions">
               <button type="button" class="btn btn--primary btn--block" id="toStep2">
@@ -255,8 +238,42 @@
             </div>
           </div>
 
+          <!-- ========== STEP 2: Preferences (Country & Industry) ========== -->
+<div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
+  <h2 id="step2label" class="sr-only">Preferences</h2>
+
+  <div class="form-grid form-grid--2">
+    <!-- Country -->
+    <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
+      <label class="form__label" for="{{ student_form.country.id_for_label }}">
+        {{ student_form.country.label|default:"Country" }}
+      </label>
+      {{ student_form.country|add_class:"form__control" }}
+      {% if student_form.country.errors %}
+        <small class="form__error">{{ student_form.country.errors|striptags }}</small>
+      {% endif %}
+    </div>
+
+    <!-- Industry -->
+    <div class="form__group{% if student_form.student_industry.errors %} form__group--error{% endif %}">
+      <label class="form__label" for="{{ student_form.student_industry.id_for_label }}">
+        {{ student_form.student_industry.label|default:"Industry" }}
+      </label>
+      {{ student_form.student_industry|add_class:"form__control" }}
+      {% if student_form.student_industry.errors %}
+        <small class="form__error">{{ student_form.student_industry.errors|striptags }}</small>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="wizard-actions wizard-actions--split">
+    <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
+    <button type="button" class="btn btn--primary" id="toStep3">Continue</button>
+  </div>
+</div>
+
           <!-- ========== STEP 2: Resume ========== -->
-          <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
+          <div class="form-step" id="step-3" data-step="2" role="group" aria-labelledby="step2label">
             <h2 id="step2label" class="sr-only">Upload resume</h2>
 
             <!-- Drag-drop styled wrapper -->
@@ -584,27 +601,48 @@ document.addEventListener('click', (e) => {
 
 /* Wizard logic (client-side 2-step) */
 /* Wizard logic (client-side 2-step) */
+/* Wizard logic (client-side 3-step) */
 (function(){
-  const form   = document.getElementById('registerForm');
-  const step1  = document.getElementById('step-1');
-  const step2  = document.getElementById('step-2');
-  const toStep2Btn = document.getElementById('toStep2');
-  const backBtn    = document.getElementById('backToStep1');
-  const stepper = document.querySelectorAll('.stepper__item');
-  const progress = document.getElementById('regProgress');
+  const form      = document.getElementById('registerForm');
+
+  const step1     = document.getElementById('step-1'); // Account
+  const step2     = document.getElementById('step-2'); // Preferences (Country/Industry)
+  const step3     = document.getElementById('step-3'); // Resume
+
+  const toStep2Btn     = document.getElementById('toStep2');
+  const toStep3Btn     = document.getElementById('toStep3');
+  const backToStep1Btn = document.getElementById('backToStep1');
+  const backToStep2Btn = document.getElementById('backToStep2');
+
+  const stepper   = document.querySelectorAll('.stepper__item');
+  const progress  = document.getElementById('regProgress');
   const stepInput = document.getElementById('regStep'); // <input name="step" id="regStep" value="1">
 
-  const goTo = (step) => {
-    step1.classList.toggle('is-active', step === 1);
-    step2.classList.toggle('is-active', step === 2);
-    stepper.forEach(el => el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step));
-    if (progress) progress.style.width = step === 1 ? '50%' : '100%';
-    if (stepInput) stepInput.value = String(step); // <-- keep hidden step in sync
-    const first = (step === 1 ? step1 : step2).querySelector('input,select,textarea,button');
+  const setProgress = (step) => {
+    if (!progress) return;
+    const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
+    progress.style.width = pct + '%';
+  };
+
+  const showStep = (step) => {
+    [step1, step2, step3].forEach((el, idx) => {
+      if (!el) return;
+      el.classList.toggle('is-active', idx + 1 === step);
+    });
+
+    stepper.forEach(el => {
+      el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
+    });
+
+    setProgress(step);
+    if (stepInput) stepInput.value = String(step);
+
+    const active = step === 1 ? step1 : step === 2 ? step2 : step3;
+    const first = active?.querySelector('input,select,textarea,button');
     if (first) setTimeout(() => first.focus({preventScroll:true}), 50);
   };
-  window.__authWizardGoTo = goTo;
 
+  // ---- Validators ----
   const step1Valid = () => {
     const controls = step1.querySelectorAll('input,select,textarea');
     for (const el of controls) {
@@ -621,29 +659,49 @@ document.addEventListener('click', (e) => {
     return true;
   };
 
-  // Make the "Continue" button switch to step 2 (no submit here)
+  const step2Valid = () => {
+    const country  = step2.querySelector('[name$="country"]');
+    const industry = step2.querySelector('[name$="student_industry"]');
+    if (!country?.value)  { country?.reportValidity?.();  return false; }
+    if (!industry?.value) { industry?.reportValidity?.(); return false; }
+    return true;
+  };
+
+  // ---- Next / Back ----
   toStep2Btn?.addEventListener('click', (e) => {
     e.preventDefault();
-    if (step1Valid()) goTo(2);
+    if (step1Valid()) showStep(2);
   });
 
-  // Back button
-  backBtn?.addEventListener('click', (e) => {
+  toStep3Btn?.addEventListener('click', (e) => {
     e.preventDefault();
-    goTo(1);
+    if (step2Valid()) showStep(3);
   });
 
-  // If user presses Enter on step 1, go to step 2 instead of submitting
+  backToStep1Btn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showStep(1);
+  });
+
+  backToStep2Btn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showStep(2);
+  });
+
+  // Enter to advance on steps 1 & 2
   form?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && step1.classList.contains('is-active')) {
-      e.preventDefault();
-      toStep2Btn?.click();
+    if (e.key !== 'Enter') return;
+    if (step1.classList.contains('is-active')) {
+      e.preventDefault(); toStep2Btn?.click();
+    } else if (step2.classList.contains('is-active')) {
+      e.preventDefault(); toStep3Btn?.click();
     }
   });
 
-  // If server wants to land on step 2 (e.g., errors)
-  const goToStep2 = "{{ show_step2|default:'False' }}" === "True";
-  if (goToStep2) goTo(2); else goTo(1);
+  // Initialize (optionally from server)
+  const serverStep = Number('{{ show_step|default:"1" }}');
+  const initial = [1,2,3].includes(serverStep) ? serverStep : 1;
+  showStep(initial);
 })();
 
 /* Resume dropzone filename preview + drag hover */
