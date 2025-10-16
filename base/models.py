@@ -106,7 +106,7 @@ class User(AbstractUser):
     ]
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, null=True, blank=True)
 
-    
+
 class UserGoogleCredential(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='google_credential'
@@ -137,6 +137,12 @@ class Topic(models.Model):
     def __str__(self):
         return self.name
 
+from django.db import models
+from django.conf import settings
+from .models import Topic  # if Topic is defined in the same app, you can omit this line
+User = settings.AUTH_USER_MODEL
+
+
 class Room(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
@@ -146,11 +152,41 @@ class Room(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # New field for company logo / photo
+    # Company logo
     logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
 
-    # New field for employer email (where applications should be sent)
+    # Employer contact email (for applications)
     email = models.EmailField(null=True, blank=True)
+
+    # Country field — matches user's preference
+    COUNTRY_CHOICES = [
+        ('DK', '🇩🇰 Denmark'),
+        ('US', '🇺🇸 United States'),
+        ('UK', '🇬🇧 United Kingdom'),
+        ('FRA', '🇫🇷 France'),
+        ('GER', '🇩🇪 Germany'),
+    ]
+    country = models.CharField(max_length=10, choices=COUNTRY_CHOICES, null=True, blank=True)
+
+    # Industry field — matches user's student_industry
+    INDUSTRY_CHOICES = [
+        ('tech', 'Technology'),
+        ('finance', 'Finance'),
+        ('marketing', 'Marketing'),
+        ('engineering', 'Engineering'),
+        ('design', 'Design'),
+        ('healthcare', 'Healthcare'),
+        ('other', 'Other'),
+    ]
+    industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
+
+    # Job type field — matches user's job_type
+    JOB_TYPE_CHOICES = [
+        ('internship', 'Internship'),
+        ('student_job', 'Student Job'),
+        ('full_time', 'Full Time Job'),
+    ]
+    job_type = models.CharField(max_length=20, choices=JOB_TYPE_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
