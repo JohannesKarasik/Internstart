@@ -1,15 +1,10 @@
-from django.forms import ModelForm
-from django.contrib.auth import get_user_model
-User = get_user_model()
-from django.contrib.auth.forms import UserCreationForm
-from .models import Room, User
-from django.forms import modelformset_factory
-from .models import Room, RoomFile
 from django import forms
-from .models import ListingType, JobListing
-from .models import Room, Topic
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import get_user_model
+from django.forms import modelformset_factory
+from .models import Room, RoomFile, Topic, ListingType, JobListing
 
-
+User = get_user_model()
 
 
 
