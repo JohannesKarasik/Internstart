@@ -949,6 +949,15 @@ def swipe_view(request):
         Q(description__icontains=q)
     ).order_by('id')
 
+    # ✅ Filter listings by student's profile preferences
+    user = request.user
+    if getattr(user, 'role', None) == 'student':
+        rooms_qs = rooms_qs.filter(
+            industry=user.student_industry,
+            country=user.country,
+            job_type=user.job_type
+        )
+
     paginator = Paginator(rooms_qs, 5)
     rooms = paginator.get_page(page)
 
@@ -985,12 +994,8 @@ def swipe_view(request):
         html = render_to_string("base/swipe_cards.html", context, request=request)
         return HttpResponse(html)
 
-
-
     # ✅ Otherwise return full template
     return render(request, "base/swipe_component.html", context)
-
-
 
 
 
