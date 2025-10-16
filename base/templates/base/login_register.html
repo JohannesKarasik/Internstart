@@ -582,6 +582,19 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
 }
 
 
+/* Align input columns to the progress bar edges */
+@media (min-width: 981px) {
+  /* The <form> also has class="auth-form" — normalize its padding to match the header */
+  .auth-form form.auth-form {
+    padding-inline: clamp(20px, 4vw, 32px);  /* same as .auth-form__header--card */
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  /* Make sure wrappers stretch fully inside the grid columns */
+  .auth-form .form__group,
+  .auth-form .form__controlWrap { width: 100%; }
+}
 
 
 </style>
