@@ -181,9 +181,46 @@ class RoomForm(forms.ModelForm):
         })
     )
 
+    country = forms.ChoiceField(
+        choices=Room.COUNTRY_CHOICES,
+        required=False,
+        label="Country",
+        widget=forms.Select(attrs={
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+        })
+    )
+
+    industry = forms.ChoiceField(
+        choices=Room.INDUSTRY_CHOICES,
+        required=False,
+        label="Industry",
+        widget=forms.Select(attrs={
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+        })
+    )
+
+    job_type = forms.ChoiceField(
+        choices=Room.JOB_TYPE_CHOICES,
+        required=False,
+        label="What type of job is this?",
+        widget=forms.Select(attrs={
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+        })
+    )
+
     class Meta:
         model = Room
-        fields = ['company_name', 'location', 'job_title', 'description', 'topic', 'logo']
+        fields = [
+            'company_name',
+            'location',
+            'job_title',
+            'description',
+            'topic',
+            'logo',
+            'country',
+            'industry',
+            'job_type',
+        ]
         widgets = {
             'company_name': forms.TextInput(attrs={'placeholder': 'Enter company name', 'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'}),
             'location': forms.TextInput(attrs={'placeholder': 'Enter company location', 'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'}),
