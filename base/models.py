@@ -3,6 +3,10 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser 
+from django.db import models
+from django.conf import settings
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 
@@ -137,10 +141,6 @@ class Topic(models.Model):
     def __str__(self):
         return self.name
 
-from django.db import models
-from django.conf import settings
-from .models import Topic  # if Topic is defined in the same app, you can omit this line
-User = settings.AUTH_USER_MODEL
 
 
 class Room(models.Model):
