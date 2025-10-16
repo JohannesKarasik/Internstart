@@ -79,14 +79,6 @@ class EmployerPersonalForm(UserCreationForm):
 
 User = get_user_model()
 
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import get_user_model
-from .models import Room, Topic
-
-User = get_user_model()
-
-
 class StudentCreationForm(UserCreationForm):
     # Resume upload
     resume = forms.FileField(
@@ -95,7 +87,7 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
-    # Country dropdown with flags
+    # Country dropdown with flag emojis
     country = forms.ChoiceField(
         choices=User.COUNTRY_CHOICES,
         required=True,
@@ -129,7 +121,6 @@ class StudentCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Mark key fields as required
         self.fields['full_name'].required = True
         self.fields['email'].required = True
         self.fields['resume'].required = True
@@ -140,15 +131,12 @@ class StudentCreationForm(UserCreationForm):
         f = self.cleaned_data.get('resume')
         if not f:
             raise forms.ValidationError("You must upload a resume to continue.")
-
         import os
         ext = os.path.splitext(f.name)[1].lower()
         if ext not in {'.pdf', '.doc', '.docx'}:
             raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
-
-        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10 MB
+        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10MB
             raise forms.ValidationError("Resume file is too large (max 10MB).")
-
         return f
 
     def save(self, commit=True):
@@ -159,6 +147,8 @@ class StudentCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
 
 from django import forms
 from .models import Room
