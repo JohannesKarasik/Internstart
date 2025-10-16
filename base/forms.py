@@ -82,7 +82,7 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
-    # Country dropdown with flag emojis
+    # Country dropdown with flags
     country = forms.ChoiceField(
         choices=User.COUNTRY_CHOICES,
         required=True,
@@ -104,18 +104,20 @@ class StudentCreationForm(UserCreationForm):
 
     class Meta:
         model = User
+        # 👇 Reordered so country & industry come last (below passwords)
         fields = [
             'full_name',
             'email',
+            'resume',
             'password1',
             'password2',
-            'resume',
             'country',
             'student_industry',
         ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Mark key fields as required
         self.fields['full_name'].required = True
         self.fields['email'].required = True
         self.fields['resume'].required = True
@@ -126,12 +128,15 @@ class StudentCreationForm(UserCreationForm):
         f = self.cleaned_data.get('resume')
         if not f:
             raise forms.ValidationError("You must upload a resume to continue.")
+
         import os
         ext = os.path.splitext(f.name)[1].lower()
         if ext not in {'.pdf', '.doc', '.docx'}:
             raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
-        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10MB
+
+        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10 MB
             raise forms.ValidationError("Resume file is too large (max 10MB).")
+
         return f
 
     def save(self, commit=True):
