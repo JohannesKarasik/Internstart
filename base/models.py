@@ -1,21 +1,8 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-from django.utils import timezone
 from django.db import models, IntegrityError
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.conf import settings  # Import settings for custom User model reference
-from django.db import models
-from django.utils import timezone
-from django.db import models
-from django.contrib.auth.models import User
-from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 
 
 
@@ -90,6 +77,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+
+    COUNTRY_CHOICES = [
+        ('DK', '🇩🇰 Denmark'),
+        ('US', '🇺🇸 United States'),
+        ('UK', '🇬🇧 United Kingdom'),
+        ('FRA', '🇫🇷 France'),
+        ('GER', '🇩🇪 Germany'),
+    ]
+    country = models.CharField(max_length=10, choices=COUNTRY_CHOICES, null=True, blank=True)
+
+    INDUSTRY_CHOICES = [
+        ('tech', 'Technology'),
+        ('finance', 'Finance'),
+        ('marketing', 'Marketing'),
+        ('engineering', 'Engineering'),
+        ('design', 'Design'),
+        ('healthcare', 'Healthcare'),
+        ('other', 'Other'),
+    ]
+    student_industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
 
 
