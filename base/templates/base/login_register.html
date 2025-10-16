@@ -146,8 +146,8 @@
           </div>
           <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:33%"></span></div>
 
-          <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
-            {% csrf_token %}
+        <form method="POST" enctype="multipart/form-data" class="auth-form" id="registerForm" novalidate>
+          {% csrf_token %}
 
           <!-- ========== STEP 1: Account ========== -->
           <div class="form-step is-active" id="step-1" data-step="1" role="group" aria-labelledby="step1label">
@@ -581,14 +581,6 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
   }
 }
 
-
-@media (min-width: 981px) {
-  .auth-form-body {
-    max-width: 560px;
-    margin-inline: auto;
-    padding-inline: clamp(20px, 4vw, 32px); /* aligns with header */
-  }
-}
 
 
 
