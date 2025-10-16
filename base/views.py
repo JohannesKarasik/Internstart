@@ -833,40 +833,50 @@ def registerPage(request):
         # Read which step we're on (default to '1' if missing)
         step = request.POST.get('step', '1')
 
+        # Debug info
+        print("🔹 REGISTER POST DETECTED")
+        print("STEP:", step)
+        print("POST DATA:", dict(request.POST))
+        print("FILES:", request.FILES)
+
         # Bind the full form so entered values stick on re-render
         form = StudentCreationForm(request.POST, request.FILES)
 
-        # === STEP 1 POST (or any non-final post) ===
-        # Just move to step 2; DO NOT create the user or send email.
-        if step != '2':
+        # === STEP 1 or STEP 2 POST (not final yet) ===
+        # Move user to the next step without creating the account
+        if step in ['1', '2']:
+            next_step = '2' if step == '1' else '3'
+            print(f"➡️ Moving from step {step} to {next_step}")
             context = {
                 'student_form': form,
                 'page': page,
-                'show_step2': True,   # show the resume step
+                'show_step': next_step,
             }
             return render(request, 'base/login_register.html', context)
 
-        # === STEP 2 POST (final submit) ===
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.role = 'student'
-            user.is_active = True         # ✅ activate immediately
-            user.save()
+        # === STEP 3 POST (final submit) ===
+        if step == '3':
+            print("✅ Final step detected, validating form...")
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.role = 'student'
+                user.is_active = True         # ✅ activate immediately
+                user.save()
 
-            login(request, user)          # ✅ log them in right away
-            messages.success(request, "Welcome to Internstart! Your account is ready.")
-            return redirect('swipe_view') # or 'start_gmail_auth' if you want OAuth first
+                login(request, user)          # ✅ log them in right away
+                messages.success(request, "Welcome to Internstart! Your account is ready.")
+                print("🎉 User created successfully:", user.email)
+                return redirect('swipe_view') # or 'start_gmail_auth' if you want OAuth first
 
-
-        # If the final form is invalid, stay on step 2 and show errors
-        messages.error(request, 'Please correct the errors below.')
-        context = {'student_form': form, 'page': page, 'show_step2': True}
-        return render(request, 'base/login_register.html', context)
+            # If form invalid
+            print("❌ FORM ERRORS:", form.errors)
+            messages.error(request, 'Please correct the errors below.')
+            context = {'student_form': form, 'page': page, 'show_step': '3'}
+            return render(request, 'base/login_register.html', context)
 
     # GET
     form = StudentCreationForm()
     return render(request, 'base/login_register.html', {'student_form': form, 'page': 'register'})
-
 
 @login_required(login_url='login')
 def home(request):
