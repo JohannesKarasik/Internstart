@@ -2826,11 +2826,13 @@ document.addEventListener('DOMContentLoaded', () => {
       step++;
       renderStep();
     } else {
-      // finished — hide overlay
-      overlay.style.display = 'none';
-      // optionally mark in localStorage so you don’t show again
-      try { localStorage.setItem('if_seen_onboarding', '1'); } catch(e){}
-    }
+  // finished — hide overlay
+  overlay.style.display = 'none';
+  // optionally mark in localStorage so you don’t show again
+  try { localStorage.setItem('if_seen_onboarding', '1'); } catch(e){}
+  // tell other features (like the showcase) that onboarding is done
+  document.dispatchEvent(new Event('onboarding:finished'));
+}
   });
 
   // don’t show if we already marked it
@@ -2998,11 +3000,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Auto-run once after email config is done.
   const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
   // Show if email is configured and we haven't shown it yet.
-  if (emailConfigured && !alreadySeen) {
-    // If you want it only in onboarding context, also gate on firstLogin:
-    // if (firstLogin) openShowcase();
+  if (emailConfigured && !alreadySeen && firstLogin) {
+  // Wait until onboarding says it's finished, then show once.
+  const once = () => {
     openShowcase();
-  }
+    document.removeEventListener('onboarding:finished', once);
+  };
+  document.addEventListener('onboarding:finished', once);
+}
 
   // Optional: also show it the first time the user successfully swipes right post-config
   // Hook into your throwCard() only if present and not yet seen.
