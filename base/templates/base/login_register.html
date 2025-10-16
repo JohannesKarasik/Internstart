@@ -151,26 +151,7 @@
             <h2 id="step1label" class="sr-only">Account details</h2>
             <div class="form-grid form-grid--2">
               <!-- Country -->
-            <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
-              <label class="form__label" for="{{ student_form.country.id_for_label }}">
-                {{ student_form.country.label|default:"Country" }}
-              </label>
-              {{ student_form.country|add_class:"form__control" }}
-              {% if student_form.country.errors %}
-                <small class="form__error">{{ student_form.country.errors|striptags }}</small>
-              {% endif %}
-            </div>
 
-            <!-- Industry -->
-            <div class="form__group{% if student_form.student_industry.errors %} form__group--error{% endif %}">
-              <label class="form__label" for="{{ student_form.student_industry.id_for_label }}">
-                {{ student_form.student_industry.label|default:"Industry" }}
-              </label>
-              {{ student_form.student_industry|add_class:"form__control" }}
-              {% if student_form.student_industry.errors %}
-                <small class="form__error">{{ student_form.student_industry.errors|striptags }}</small>
-              {% endif %}
-            </div>
 
               <!-- Full name (support both field names) -->
               {% if student_form.full_name %}
@@ -244,6 +225,27 @@
                   <small class="form__error">{{ student_form.password2.errors|striptags }}</small>
                 {% endif %}
               </div>
+            </div>
+
+            <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
+              <label class="form__label" for="{{ student_form.country.id_for_label }}">
+                {{ student_form.country.label|default:"Country" }}
+              </label>
+              {{ student_form.country|add_class:"form__control" }}
+              {% if student_form.country.errors %}
+                <small class="form__error">{{ student_form.country.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <!-- Industry -->
+            <div class="form__group{% if student_form.student_industry.errors %} form__group--error{% endif %}">
+              <label class="form__label" for="{{ student_form.student_industry.id_for_label }}">
+                {{ student_form.student_industry.label|default:"Industry" }}
+              </label>
+              {{ student_form.student_industry|add_class:"form__control" }}
+              {% if student_form.student_industry.errors %}
+                <small class="form__error">{{ student_form.student_industry.errors|striptags }}</small>
+              {% endif %}
             </div>
 
             <div class="wizard-actions">
