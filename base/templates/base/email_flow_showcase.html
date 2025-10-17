@@ -143,8 +143,16 @@
   .efs__progress{height:4px;background:var(--border-subtle,rgba(148,163,184,.12));border-radius:999px;overflow:hidden;margin:6px 0 16px}
   .efs__bar{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand,#ed003c),#ff4f7a);border-radius:inherit;transition:width .35s ease}
   
-  .efs__stage{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}
-  @media (max-width:900px){.efs__stage{grid-template-columns:1fr;gap:16px}}
+  .efs__stage{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+    align-items:center;        /* vertical centering */
+    justify-items:center;      /* horizontal centering */
+  }
+  @media (max-width:900px){
+    .efs__stage{grid-template-columns:1fr;gap:16px}
+  }
   
   /* Card stack ensures the two demo cards occupy the same visual slot */
   .efs-card-stack{
@@ -152,8 +160,10 @@
     width:clamp(300px,36vw,420px);
     height:clamp(460px,72vh,680px);
     justify-self:center;
+    display:grid;
+    place-items:center;        /* center cards inside the stack box */
   }
-  .efs-card-stack .efs-card{position:absolute;inset:0}
+  .efs-card-stack .efs-card{position:absolute;inset:0;margin:auto}
   
   /* Card look */
   .efs-card{
@@ -183,6 +193,7 @@
     position:relative;height:360px;border-radius:22px;border:1px solid rgba(148,163,184,.18);
     background:linear-gradient(180deg,#0f1527,#0c1426);box-shadow:0 20px 48px rgba(2,6,23,.45);padding:14px 14px 12px;overflow:hidden;
     opacity:0; transform:translateY(8px) scale(.98); pointer-events:none;
+    justify-self:center;       /* center the phone within its grid cell */
   }
   .theme-light .efs-phone{background:linear-gradient(180deg,#f6f8fc,#eef2f7);border-color:#d5dbe6}
   .efs-phone__top{display:flex;gap:6px;margin-bottom:10px}
@@ -203,6 +214,7 @@
   .efs-typed{margin-top:10px;font:600 12.5px/1.55 ui-monospace,Menlo,monospace;color:#e6eef8}
   .theme-light .efs-typed{color:#0e1320}
   .efs-typed .t{width:0ch;white-space:nowrap;overflow:hidden;border-right:2px solid rgba(255,255,255,.75);margin:3px 0}
+  .efs-typed .t + .t{margin-top:2px}
   .theme-light .efs-typed .t{border-right:2px solid rgba(15,23,42,.7)}
   
   .efs-attach{height:34px;display:flex;align-items:center}
@@ -225,14 +237,20 @@
   .efs__btn--primary{background:var(--brand,#ed003c);color:#fff}
   
   /* ===== Animations (timeline driven by .play class) ===== */
-  @keyframes efs-swipe-right{to{transform:translateX(320px) rotate(8deg);opacity:.15}}
-  @keyframes efs-swipe-left{to{transform:translateX(-320px) rotate(-8deg);opacity:.15}}
+  @keyframes efs-swipe-right{
+    0%{opacity:1;visibility:visible}
+    100%{transform:translateX(420px) rotate(8deg);opacity:0;visibility:hidden;pointer-events:none}
+  }
+  @keyframes efs-swipe-left{
+    0%{opacity:1;visibility:visible}
+    100%{transform:translateX(-420px) rotate(-8deg);opacity:0;visibility:hidden;pointer-events:none}
+  }
   @keyframes efs-card-in{from{opacity:0;transform:scale(.9) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
   @keyframes efs-hand-left{to{transform:translateX(-70px) translateY(-6px)}}
   @keyframes efs-hand-right{to{transform:translateX(70px) translateY(-6px)}}
   @keyframes efs-typing{from{width:0} to{width:var(--ch)}}
   @keyframes efs-caret{50%{border-right-color:transparent}}
-  @keyframes efs-spark{0%{transform:scale(.8) rotate(0);opacity:.4} 50%{transform:scale(1.12) rotate(180deg);opacity:1} 100%{transform:scale(.8) rotate(360deg);opacity:.4}}
+  @keyframes efs-spark{0%{transform:scale(.8) rotate(0);opacity:.4}50%{transform:scale(1.12) rotate(180deg);opacity:1}100%{transform:scale(.8) rotate(360deg);opacity:.4}}
   @keyframes efs-chip{to{opacity:1;transform:translateY(0) scale(1)}}
   @keyframes efs-pulse{0%,100%{box-shadow:0 0 0 0 rgba(237,0,60,.35)}50%{box-shadow:0 0 0 8px rgba(237,0,60,0)}}
   @keyframes efs-plane{to{transform:translateX(240px);opacity:1}}
@@ -245,13 +263,16 @@
   
   /* Sequence:
      0) Card #1 visible
-     1) Card #1 swipes LEFT
-     2) Card #2 appears, then swipes RIGHT
+     1) Card #1 swipes LEFT (and disappears)
+     2) Card #2 appears, then swipes RIGHT (and disappears)
      3) Phone shows, then typing/attach/send
   */
   
   /* Step 1: first card swipe left + hand hint */
-  .efs.play .efs-card--1{animation:efs-swipe-left 1s .2s cubic-bezier(.22,1,.36,1) forwards; overflow:visible}
+  .efs.play .efs-card--1{
+    animation:efs-swipe-left 1s .2s cubic-bezier(.22,1,.36,1) forwards;
+    overflow:visible
+  }
   .efs.play .efs-card--1 .efs-hand{animation:efs-hand-left .9s .25s ease forwards}
   
   /* Step 2: second card enters then swipes right + hand hint */
