@@ -362,11 +362,7 @@
       efs-typing 1.05s steps(var(--chars)) var(--delay,0s) forwards,
       efs-caret .9s steps(1) var(--delay,0s) infinite;
   }
-  .efs.play .efs-typed .t:nth-child(1){--delay:3.5s}
-  .efs.play .efs-typed .t:nth-child(2){--delay:4.5s}
-  .efs.play .efs-typed .t:nth-child(3){--delay:5.4s}
-  .efs.play .efs-typed .t:nth-child(4){--delay:6.2s}
-  .efs.play .efs-typed .t:nth-child(5){--delay:6.9s}
+
   
   /* Attach chip */
 /* Attach chip appears right after last line finishes typing */
@@ -493,5 +489,36 @@
         }
       });
     }
+
+    requestAnimationFrame(() => {
+        overlay.classList.add('play');
+
+        // Sequential typing logic: start each line only when the previous finishes
+        const lines = [...overlay.querySelectorAll('.efs-typed .t')];
+        let totalDelay = 0;
+        const typeDurationPerChar = 0.028; // typing speed per character (in seconds)
+
+        lines.forEach((line, i) => {
+          const charCount = parseInt(line.style.getPropertyValue('--chars')) || 30;
+          const duration = charCount * typeDurationPerChar;
+
+          // Assign dynamic delays so typing happens strictly in sequence
+          line.style.setProperty('--delay', `${3.4 + totalDelay}s`);
+          line.style.animation = `
+            efs-typing ${duration}s steps(${charCount}) ${3.4 + totalDelay}s forwards,
+            efs-caret .9s steps(1) ${3.4 + totalDelay}s infinite
+          `;
+          totalDelay += duration + 0.35; // include slight pause between lines
+        });
+
+        // Schedule resume chip after last line finishes
+        const lastLine = lines.at(-1);
+        const resumeChip = overlay.querySelector('.efs-attach .chip');
+        if (lastLine && resumeChip) {
+          const totalTypingTime = 3.4 + totalDelay;
+          resumeChip.style.animation = `efs-chip 0.45s ${totalTypingTime}s cubic-bezier(.22,1,.36,1) forwards`;
+        }
+      });
+
 
   </script>
