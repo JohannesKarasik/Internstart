@@ -1,25 +1,242 @@
-<div id="emailFlowShowcase" class="efs" role="dialog" aria-modal="true" aria-labelledby="efs-title" hidden>
+<!-- =========================
+     EMAIL FLOW SHOWCASE MODAL
+     ========================= -->
+     <div id="emailFlowShowcase"
+     class="efs"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="efs-title"
+     hidden>
+  <!-- Backdrop -->
   <div class="efs__backdrop" data-efs-close aria-hidden="true"></div>
 
+  <!-- Modal content -->
   <div class="efs__dialog" role="document">
+    <!-- Header -->
     <div class="efs__head">
       <h3 id="efs-title">How applying works</h3>
       <button class="efs__close" type="button" aria-label="Close" data-efs-close>×</button>
     </div>
 
+    <!-- Progress bar -->
     <div class="efs__progress" aria-hidden="true">
       <span class="efs__bar"></span>
     </div>
 
+    <!-- Stage (all animations inside here) -->
     <div class="efs__stage">
-      <!-- ✅ put both the cards and the email compose INSIDE this -->
       {% include "base/email_flow_cards.html" %}
       {% include "base/email_flow_compose.html" %}
     </div>
 
+    <!-- Footer actions -->
     <div class="efs__actions">
       <button class="efs__btn efs__btn--ghost" type="button" data-efs-close>Skip</button>
       <button class="efs__btn efs__btn--primary" type="button" data-efs-close>Start swiping</button>
     </div>
   </div>
 </div>
+
+<style>
+/* =========================
+   EMAIL FLOW SHOWCASE MODAL
+   ========================= */
+.efs {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  z-index: 10050;
+  font-family: 'Manrope', sans-serif;
+}
+.efs.show { display: grid; }
+
+.efs__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.65);
+  backdrop-filter: blur(8px);
+}
+
+.efs__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(760px, 92vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  padding: 22px 22px 16px;
+  background: var(--panel, #0f1525);
+  border: 1px solid var(--border, rgba(148,163,184,.22));
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+  color: var(--ink, #e6eef8);
+}
+.theme-light .efs__dialog {
+  background: #f6f8fb;
+  border-color: rgba(15,23,42,.12);
+  color: #0e1320;
+}
+
+.efs__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.efs__head h3 {
+  margin: 0;
+  font: 800 18px/1.3 Manrope;
+}
+.efs__close {
+  background: none;
+  border: 0;
+  color: inherit;
+  opacity: .7;
+  cursor: pointer;
+  font-size: 22px;
+}
+.efs__close:hover { opacity: 1; }
+
+.efs__progress {
+  height: 4px;
+  background: rgba(148,163,184,.12);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0 16px;
+}
+.efs__bar {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--brand,#ed003c), #ff4f7a);
+  border-radius: inherit;
+  transition: width .35s ease;
+}
+
+.efs__stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  overflow: auto;
+}
+@media (max-width:900px){
+  .efs__stage { gap: 16px; }
+}
+
+.efs__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  flex: 0 0 auto;
+}
+.efs__btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.efs__btn--ghost {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border, rgba(148,163,184,.22));
+  color: var(--ink, #e6eef8);
+}
+.theme-light .efs__btn--ghost {
+  background: rgba(2,6,23,.04);
+  border-color: rgba(15,23,42,.12);
+  color: #0e1320;
+}
+.efs__btn--primary {
+  background: var(--brand, #ed003c);
+  color: #fff;
+}
+
+/* Progress bar animation */
+@keyframes efs-bar { to { width: 100%; } }
+.efs.play .efs__bar {
+  animation: efs-bar 8.8s linear forwards;
+}
+</style>
+
+<script>
+/**
+ * email_flow_showcase.js
+ * Handles modal open/close + auto logic.
+ */
+(function(){
+  const overlay = document.getElementById('emailFlowShowcase');
+  if (!overlay) return;
+
+  const SEEN_KEY = 'if_email_flow_demo_shown';
+  const qs = (sel, root=document) => root.querySelector(sel);
+
+  function setupCaretCleanup(){
+    const lines = overlay.querySelectorAll('.efs-typed .t');
+    lines.forEach((line)=>{
+      line.addEventListener('animationend',(e)=>{
+        if(e.animationName==='efs-typing') line.classList.add('done');
+      });
+    });
+  }
+
+  function open(){
+    reset();
+    overlay.hidden = false;
+    overlay.classList.add('show');
+    setupCaretCleanup();
+    requestAnimationFrame(()=>{
+      overlay.classList.add('play');
+      if(window.EmailDemo) window.EmailDemo.runTypingAnimation();
+    });
+  }
+
+  function close(){
+    overlay.classList.remove('play','show');
+    overlay.hidden = true;
+    try{localStorage.setItem(SEEN_KEY,'1');}catch{}
+  }
+
+  function reset(){
+    overlay.classList.remove('play');
+    overlay.querySelectorAll('.efs-typed .t.done').forEach(el=>el.classList.remove('done'));
+    void overlay.offsetHeight;
+  }
+
+  overlay.addEventListener('click',(e)=>{
+    if(e.target.matches('[data-efs-close], .efs__backdrop, .efs__close')) close();
+  });
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape' && !overlay.hidden) close();
+  });
+
+  window.EFS={open,close,reset,shown:()=>localStorage.getItem(SEEN_KEY)==='1'};
+
+  document.getElementById('showEFSNow')?.addEventListener('click',()=>{
+    try{localStorage.removeItem(SEEN_KEY);}catch{}
+    open();
+  });
+
+  const main=qs('main.layout');
+  const emailConfigured=(main?.dataset.emailConfigured==='true');
+  const alreadySeen=(localStorage.getItem(SEEN_KEY)==='1');
+  const onboardingSeen=(localStorage.getItem('if_seen_onboarding')==='1');
+
+  function tryAutoOpen(){
+    if(emailConfigured && !alreadySeen) open();
+  }
+
+  if(emailConfigured && !alreadySeen){
+    if(!onboardingSeen){
+      document.addEventListener('onboarding:finished',tryAutoOpen,{once:true});
+    }else{
+      requestAnimationFrame(tryAutoOpen);
+    }
+  }
+})();
+</script>
