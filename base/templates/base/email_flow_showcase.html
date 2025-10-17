@@ -176,13 +176,16 @@
   .efs-phone{
     position:relative;
     width:min(420px,42vw);
-    height:460px;
-    border-radius:22px;
+    height:auto;
+    min-height:520px;
+    border-radius:24px;
     border:1px solid rgba(148,163,184,.18);
     background:linear-gradient(180deg,#0f1527,#0c1426);
     box-shadow:0 20px 48px rgba(2,6,23,.45);
-    padding:16px 16px 14px;
+    padding:18px;
     overflow:hidden;
+    display:flex;
+    flex-direction:column;
     opacity:0;
     transform:translateY(8px) scale(.98);
     pointer-events:none;
@@ -198,11 +201,12 @@
     background:rgba(255,255,255,.06);
     border:1px solid rgba(148,163,184,.18);
     border-radius:16px;
-    padding:20px; /* more breathing room on sides */
+    padding:20px 20px 34px; /* more breathing room + safe bottom spacing */
     display:flex;
     flex-direction:column;
-    gap:10px;
-    min-height:280px;
+    gap:12px;
+    min-height:320px;
+    box-sizing:border-box;
   }
   .theme-light .efs-compose{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12)}
   .efs-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
