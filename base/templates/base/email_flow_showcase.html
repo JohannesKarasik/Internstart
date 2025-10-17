@@ -1,0 +1,331 @@
+<!-- email_flow_showcase.html -->
+<div id="emailFlowShowcase" class="efs" role="dialog" aria-modal="true" aria-labelledby="efs-title" hidden>
+    <div class="efs__backdrop" data-efs-close aria-hidden="true"></div>
+  
+    <div class="efs__dialog" role="document">
+      <!-- Header -->
+      <div class="efs__head">
+        <h3 id="efs-title">How applying works</h3>
+        <button class="efs__close" type="button" aria-label="Close" data-efs-close>×</button>
+      </div>
+  
+      <!-- Timeline progress -->
+      <div class="efs__progress" aria-hidden="true">
+        <span class="efs__bar"></span>
+      </div>
+  
+      <!-- Stage -->
+      <div class="efs__stage">
+        <!-- Swipe demo card + hand -->
+        <div class="efs-card" aria-hidden="true">
+          <div class="efs-card__logo"></div>
+          <div class="efs-card__meta">
+            <div class="l l1"></div>
+            <div class="l l2"></div>
+          </div>
+          <div class="efs-hand">
+            <svg viewBox="0 0 64 64" width="54" height="54" aria-hidden="true">
+              <path fill="currentColor" d="M38 6a6 6 0 0 0-6 6v10h-1V9a5 5 0 0 0-10 0v16h-1V14a5 5 0 0 0-10 0v24c0 9 7 16 16 16h13c8 0 13-6 13-13V20a5 5 0 0 0-10 0v3h-1V12a6 6 0 0 0-6-6z"/>
+            </svg>
+          </div>
+          <div class="efs-swipe-arrow">→</div>
+        </div>
+  
+        <!-- Phone compose mock -->
+        <div class="efs-phone" aria-label="Email compose demo">
+          <div class="efs-phone__top">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          </div>
+  
+          <div class="efs-compose">
+            <div class="efs-row"><span class="k">To</span><span class="v">hiring@company.com</span></div>
+            <div class="efs-row"><span class="k">Subject</span>
+              <span class="v">Application: {{ request.user.first_name|default:"You" }}</span>
+            </div>
+  
+            <!-- AI drafting -->
+            <div class="efs-ai">
+              <div class="efs-ai__chip">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M12 2l3 4 5 1-3 4 .5 5-5-2-5 2 .5-5-3-4 5-1 3-4z" fill="currentColor" />
+                </svg>
+                <span>AI drafting…</span>
+                <span class="sparkle" aria-hidden="true"></span>
+              </div>
+              <div class="efs-typed">
+                <div class="t" style="--ch:38">Dear Hiring Team, I’m excited to apply for</div>
+                <div class="t" style="--ch:44">the {{ rooms.0.role|default:"role" }} at {{ rooms.0.company_name|default:"your company" }}.</div>
+                <div class="t" style="--ch:36">My background in {{ rooms.0.job_title|default:"the field" }}</div>
+                <div class="t" style="--ch:30">aligns with your needs. Please find</div>
+                <div class="t" style="--ch:25">my resume attached below.</div>
+              </div>
+            </div>
+  
+            <!-- attachment chip -->
+            <div class="efs-attach">
+              <div class="chip">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M21 12.5V7a5 5 0 1 0-10 0v9a3 3 0 1 0 6 0V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Resume.pdf</span>
+              </div>
+            </div>
+  
+            <!-- send button / plane -->
+            <div class="efs-sendrow">
+              <button class="send" type="button" aria-label="Send email" disabled>
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path d="M22 2 11 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  <path d="M22 2 15 22 11 13 2 9 22 2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                </svg>
+                <span>Send</span>
+              </button>
+              <div class="efs-plane" aria-hidden="true">
+                <svg viewBox="0 0 64 24" width="120" height="48">
+                  <path d="M4 12h30" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".35"/>
+                  <path d="M36 12l18-8-5 8 5 8-18-8z" fill="currentColor"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- “Sent” toast -->
+        <div class="efs-sent" role="status" aria-live="polite">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span>Application sent!</span>
+        </div>
+      </div>
+  
+      <!-- Actions -->
+      <div class="efs__actions">
+        <button class="efs__btn efs__btn--ghost" type="button" data-efs-close>Skip</button>
+        <button class="efs__btn efs__btn--primary" type="button" data-efs-close>Start swiping</button>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+  /* ===== AI Email Flow Showcase ===== */
+  .efs{position:fixed;inset:0;display:none;place-items:center;z-index:10050;font-family:'Manrope',sans-serif;}
+  .efs[aria-modal="true"]{outline:0}
+  .efs.show{display:grid}
+  .efs__backdrop{position:absolute;inset:0;background:rgba(2,6,23,.65);backdrop-filter:blur(8px)}
+  .efs__dialog{position:relative;z-index:1;width:min(940px,96vw);border-radius:20px;padding:22px 22px 16px;background:var(--panel,#0f1525);border:1px solid var(--border,rgba(148,163,184,.22));box-shadow:0 40px 80px rgba(0,0,0,.5);color:var(--ink,#e6eef8)}
+  .theme-light .efs__dialog{background:#f6f8fb;border-color:rgba(15,23,42,.12);color:#0e1320}
+  
+  .efs__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .efs__head h3{margin:0;font:800 18px/1.3 Manrope}
+  .efs__close{background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:22px}
+  .efs__close:hover{opacity:1}
+  
+  .efs__progress{height:4px;background:var(--border-subtle,rgba(148,163,184,.12));border-radius:999px;overflow:hidden;margin:6px 0 16px}
+  .efs__bar{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand,#ed003c),#ff4f7a);border-radius:inherit;transition:width .35s ease}
+  
+  .efs__stage{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}
+  @media (max-width:900px){.efs__stage{grid-template-columns:1fr;gap:16px}}
+  
+  .efs-card{
+    position:relative;
+    width:clamp(300px,36vw,420px);
+    height:clamp(460px,72vh,680px);
+    border-radius:26px;
+    background:linear-gradient(180deg,#0f1527,#0c1426);
+    border:1px solid rgba(148,163,184,.18);
+    box-shadow:0 24px 64px rgba(2,6,23,.6);
+    overflow:hidden;
+    justify-self:center;
+  }
+  .theme-light .efs-card{background:linear-gradient(180deg,#f6f8fc,#eef2f7);border-color:#d5dbe6;box-shadow:0 18px 40px rgba(15,23,42,.14)}
+  .efs-card__logo{width:68px;height:68px;border-radius:14px;background:#fff;box-shadow:0 6px 14px rgba(0,0,0,.12);position:absolute;left:18px;top:18px}
+  .efs-card__meta{position:absolute;left:18px;bottom:18px;right:18px}
+  .efs-card__meta .l{height:10px;border-radius:8px;background:rgba(255,255,255,.14);margin:8px 0}
+  .theme-light .efs-card__meta .l{background:rgba(15,23,42,.10)}
+  .efs-card__meta .l1{width:70%}.efs-card__meta .l2{width:46%}
+  .efs-hand{position:absolute;right:12px;bottom:10px;color:#ffd6de;opacity:.85;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35))}
+  .theme-light .efs-hand{color:#ed003c}
+  .efs-swipe-arrow{position:absolute;right:16px;top:14px;font-weight:800;letter-spacing:.12em;color:#ffd6de;opacity:.9}
+  .theme-light .efs-swipe-arrow{color:#ed003c}
+  
+  /* phone mock */
+  .efs-phone{
+    position:relative;height:360px;border-radius:22px;border:1px solid rgba(148,163,184,.18);
+    background:linear-gradient(180deg,#0f1527,#0c1426);box-shadow:0 20px 48px rgba(2,6,23,.45);padding:14px 14px 12px;overflow:hidden;
+    opacity:0; transform:translateY(8px) scale(.98); pointer-events:none;
+  }
+  .theme-light .efs-phone{background:linear-gradient(180deg,#f6f8fc,#eef2f7);border-color:#d5dbe6}
+  .efs-phone__top{display:flex;gap:6px;margin-bottom:10px}
+  .efs-phone__top .dot{width:8px;height:8px;border-radius:999px;background:#e2e8f5;opacity:.6}
+  .theme-light .efs-phone__top .dot{background:#8da0ba}
+  
+  .efs-compose{background:rgba(255,255,255,.06);border:1px solid rgba(148,163,184,.18);border-radius:16px;padding:10px}
+  .theme-light .efs-compose{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12)}
+  .efs-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .efs-row .k{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#cbd5e1}
+  .theme-light .efs-row .k{color:#51607a}
+  .efs-row .v{font-weight:700}
+  
+  .efs-ai__chip{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(237,0,60,.16),rgba(237,0,60,.10));border:1px solid rgba(237,0,60,.32);color:#ffd6de;border-radius:999px;padding:6px 10px;font-weight:800;font-size:12px;position:relative}
+  .theme-light .efs-ai__chip{color:#0e1320;background:linear-gradient(135deg,rgba(237,0,60,.10),rgba(237,0,60,.06));border-color:rgba(237,0,60,.25)}
+  .efs-ai__chip svg{color:var(--brand,#ed003c)}
+  .efs-ai{margin-bottom:8px}
+  .efs-typed{margin-top:10px;font:600 12.5px/1.55 ui-monospace,Menlo,monospace;color:#e6eef8}
+  .theme-light .efs-typed{color:#0e1320}
+  .efs-typed .t{width:0ch;white-space:nowrap;overflow:hidden;border-right:2px solid rgba(255,255,255,.75);margin:3px 0}
+  .theme-light .efs-typed .t{border-right:2px solid rgba(15,23,42,.7)}
+  
+  .efs-attach{height:34px;display:flex;align-items:center}
+  .efs-attach .chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(148,163,184,.2);color:#e6eef8;border-radius:10px;padding:6px 10px;font-weight:700;opacity:0;transform:translateY(16px) scale(.96)}
+  .theme-light .efs-attach .chip{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12);color:#0e1320}
+  
+  .efs-sendrow{margin-top:8px;display:flex;align-items:center;justify-content:flex-start;gap:10px;position:relative;min-height:40px}
+  .efs-sendrow .send{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border,rgba(148,163,184,.22));background:linear-gradient(180deg,#10192b,#0c1324);color:#fff;padding:8px 12px;border-radius:12px;cursor:default;opacity:.9}
+  .theme-light .efs-sendrow .send{background:#0e1320;color:#fff;border-color:rgba(15,23,42,.2)}
+  .efs-plane{position:absolute;left:8px;top:-2px;color:#ffd6de;opacity:0;transform:translateX(0)}
+  .theme-light .efs-plane{color:#ed003c}
+  
+  .efs-sent{position:absolute;inset:auto 22px 18px auto;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,#0b1220,#0e1729);color:#fff;border:1px solid var(--border,rgba(148,163,184,.22));padding:8px 12px;border-radius:12px;box-shadow:0 14px 36px rgba(2,6,23,.36);opacity:0;transform:translateY(8px)}
+  .theme-light .efs-sent{background:#0e1320;color:#fff;border-color:rgba(15,23,42,.25)}
+  
+  .efs__actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+  .efs__btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
+  .efs__btn--ghost{background:rgba(255,255,255,.06);border:1px solid var(--border,rgba(148,163,184,.22));color:var(--ink,#e6eef8)}
+  .theme-light .efs__btn--ghost{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12);color:#0e1320}
+  .efs__btn--primary{background:var(--brand,#ed003c);color:#fff}
+  
+  /* ===== Animations (timeline driven by .play class) ===== */
+  @keyframes efs-swipe{to{transform:translateX(320px) rotate(8deg);opacity:.15}}
+  @keyframes efs-hand{to{transform:translateX(70px) translateY(-6px)}}
+  @keyframes efs-typing{from{width:0} to{width:var(--ch)}}
+  @keyframes efs-caret{50%{border-right-color:transparent}}
+  @keyframes efs-spark{0%{transform:scale(.8) rotate(0);opacity:.4} 50%{transform:scale(1.12) rotate(180deg);opacity:1} 100%{transform:scale(.8) rotate(360deg);opacity:.4}}
+  @keyframes efs-chip{to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes efs-pulse{0%,100%{box-shadow:0 0 0 0 rgba(237,0,60,.35)}50%{box-shadow:0 0 0 8px rgba(237,0,60,.0)}}
+  @keyframes efs-plane{to{transform:translateX(240px);opacity:1}}
+  @keyframes efs-sent{to{opacity:1;transform:translateY(0)}}
+  @keyframes efs-bar{to{width:100%}}
+  @keyframes efs-showphone{to{opacity:1;transform:none}}
+  
+  .efs.play .efs__bar{animation:efs-bar 7.6s linear forwards}
+  
+  /* step 1: swipe right demo */
+  .efs.play .efs-card{overflow:visible}
+  .efs.play .efs-card{animation:efs-swipe 1.2s .2s cubic-bezier(.22,1,.36,1) forwards}
+  .efs.play .efs-hand{animation:efs-hand 1s .25s ease forwards}
+  
+  /* show phone after the card leaves, then typing continues */
+  .efs.play .efs-phone{animation:efs-showphone .45s 1.3s ease forwards; pointer-events:auto}
+  
+  /* step 2: typing lines (staggered) */
+  .efs.play .efs-ai__chip .sparkle{position:absolute;right:-6px;top:-6px;width:10px;height:10px;background:radial-gradient(circle,#ffd6de 0,#ed003c 70%,transparent 72%);border-radius:999px;animation:efs-spark 1.4s 1.3s linear infinite}
+  .efs.play .efs-typed .t{animation:
+     efs-typing 1s steps(var(--ch)) var(--delay,0s) forwards,
+     efs-caret .9s steps(1) infinite}
+  .efs.play .efs-typed .t:nth-child(1){--delay:1.4s}
+  .efs.play .efs-typed .t:nth-child(2){--delay:2.5s}
+  .efs.play .efs-typed .t:nth-child(3){--delay:3.5s}
+  .efs.play .efs-typed .t:nth-child(4){--delay:4.4s}
+  .efs.play .efs-typed .t:nth-child(5){--delay:5.2s}
+  
+  /* step 3: attach chip */
+  .efs.play .efs-attach .chip{animation:efs-chip .45s 5.4s cubic-bezier(.22,1,.36,1) forwards}
+  
+  /* step 4: send pulse + plane fly + sent toast */
+  .efs.play .efs-sendrow .send{animation:efs-pulse 1.2s 5.8s ease 2}
+  .efs.play .efs-plane{animation:efs-plane .9s 6.1s cubic-bezier(.22,1,.36,1) forwards}
+  .efs.play .efs-sent{animation:efs-sent .35s 6.9s ease forwards}
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .efs__bar,.efs-card,.efs-hand,.efs-typed .t,.efs-attach .chip,.efs-plane,.efs-sent{animation:none!important;transition:none!important}
+    .efs.play .efs-typed .t{width:auto;border-right:0}
+    .efs.play .efs-attach .chip{opacity:1;transform:none}
+    .efs.play .efs-sent{opacity:1;transform:none}
+    .efs-phone{opacity:1;transform:none;pointer-events:auto}
+  }
+  </style>
+  
+  <script>
+  /**
+   * Email Flow Showcase controller
+   * Exposes window.EFS.open()/close()/reset()
+   * Auto-opens after onboarding if email is configured (reads from <main data-email-configured="true">).
+   */
+  (function () {
+    const overlay = document.getElementById('emailFlowShowcase');
+    if (!overlay) return;
+  
+    const SEEN_KEY = 'if_email_flow_demo_shown';
+    const qs = (sel, root = document) => root.querySelector(sel);
+  
+    function open() {
+      // restart the timeline each time we open
+      reset();
+      overlay.hidden = false;
+      overlay.classList.add('show');
+      // kick the animation one frame later so CSS sees .show already applied
+      requestAnimationFrame(() => overlay.classList.add('play'));
+    }
+  
+    function close() {
+      overlay.classList.remove('play', 'show');
+      overlay.hidden = true;
+      try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
+    }
+  
+    function reset() {
+      // remove play to reset animated elements (progress bar, typing, etc.)
+      overlay.classList.remove('play');
+      // force reflow to clear animations
+      void overlay.offsetHeight;
+    }
+  
+    // Close handlers (backdrop, X button, footer buttons)
+    overlay.addEventListener('click', (e) => {
+      if (e.target.matches('[data-efs-close], .efs__backdrop, .efs__close')) {
+        close();
+      }
+    });
+  
+    // Esc key closes
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !overlay.hidden) close();
+    });
+  
+    // Public API (handy for debugging or manual triggers)
+    window.EFS = {
+      open, close, reset,
+      shown: () => localStorage.getItem(SEEN_KEY) === '1'
+    };
+  
+    // Optional manual trigger if a debug button exists
+    document.getElementById('showEFSNow')?.addEventListener('click', () => {
+      try { localStorage.removeItem(SEEN_KEY); } catch {}
+      open();
+    });
+  
+    // Auto-open logic:
+    // - Only if email is configured AND not shown before.
+    // - If onboarding is in progress, wait for custom event 'onboarding:finished'.
+    const main = qs('main.layout');
+    const emailConfigured = (main?.dataset.emailConfigured === 'true');
+    const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
+    const onboardingSeen = (localStorage.getItem('if_seen_onboarding') === '1');
+  
+    function tryAutoOpen() {
+      if (emailConfigured && !alreadySeen) open();
+    }
+  
+    if (emailConfigured && !alreadySeen) {
+      if (!onboardingSeen) {
+        // wait for onboarding overlay to finish (your app should dispatch this event)
+        document.addEventListener('onboarding:finished', tryAutoOpen, { once: true });
+      } else {
+        // open immediately on first paint
+        requestAnimationFrame(tryAutoOpen);
+      }
+    }
+  })();
+  </script>
