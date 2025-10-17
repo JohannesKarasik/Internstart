@@ -116,7 +116,19 @@
   .efs[aria-modal="true"]{outline:0}
   .efs.show{display:grid}
   .efs__backdrop{position:absolute;inset:0;background:rgba(2,6,23,.65);backdrop-filter:blur(8px)}
-.efs__dialog{position:relative;z-index:1;width:min(760px,92vw);border-radius:20px;padding:22px 22px 16px;background:var(--panel,#0f1525);border:1px solid var(--border,rgba(148,163,184,.22));box-shadow:0 40px 80px rgba(0,0,0,.5);color:var(--ink,#e6eef8)}
+.efs__dialog{
+  position:relative;z-index:1;
+  width:min(760px,92vw);
+  max-height:92vh;              /* keep dialog inside viewport */
+  display:flex;                 /* allow the stage to center vertically */
+  flex-direction:column;
+  border-radius:20px;
+  padding:22px 22px 16px;
+  background:var(--panel,#0f1525);
+  border:1px solid var(--border,rgba(148,163,184,.22));
+  box-shadow:0 40px 80px rgba(0,0,0,.5);
+  color:var(--ink,#e6eef8)
+}
   .theme-light .efs__dialog{background:#f6f8fb;border-color:rgba(15,23,42,.12);color:#0e1320}
   
   .efs__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -128,11 +140,14 @@
   .efs__bar{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand,#ed003c),#ff4f7a);border-radius:inherit;transition:width .35s ease}
   
 .efs__stage{
-  display:grid;
-  grid-template-columns:1fr;    /* single centered column */
+  flex:1 1 auto;            /* take remaining height in the dialog */
+  min-height:0;             /* allow shrinking below content height */
+  display:flex;
+  flex-direction:column;    /* single column stack */
+  align-items:center;       /* horizontal centering */
+  justify-content:center;   /* vertical centering */
   gap:22px;
-  place-items:center;           /* center horizontally & vertically */
-  min-height:60vh;              /* vertical room to center */
+  overflow:auto;            /* if content gets taller, allow scroll instead of clipping */
 }
   @media (max-width:900px){
     .efs__stage{grid-template-columns:1fr;gap:16px}
@@ -142,7 +157,7 @@
 .efs-card-stack{
   position:relative;
   width:clamp(300px,36vw,420px);
-  height:clamp(460px,72vh,680px);
+  height:clamp(420px,56vh,620px);
   justify-self:center;
   display:grid;
   place-items:center;        /* center cards inside the stack box */
@@ -178,7 +193,8 @@
   position:relative;
   width:min(420px,42vw);
   height:auto;
-  min-height:520px;
+  min-height:460px;                 /* a bit shorter so it fits */
+  max-height:70vh;                  /* never exceed the visible area */
   border-radius:24px;
   border:1px solid rgba(148,163,184,.18);
   background:linear-gradient(180deg,#0f1527,#0c1426);
@@ -259,7 +275,7 @@
   .efs-sent{position:absolute;inset:auto 22px 18px auto;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,#0b1220,#0e1729);color:#fff;border:1px solid var(--border,rgba(148,163,184,.22));padding:8px 12px;border-radius:12px;box-shadow:0 14px 36px rgba(2,6,23,.36);opacity:0;transform:translateY(8px)}
   .theme-light .efs-sent{background:#0e1320;color:#fff;border-color:rgba(15,23,42,.25)}
   
-  .efs__actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+.efs__actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex:0 0 auto}
   .efs__btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
   .efs__btn--ghost{background:rgba(255,255,255,.06);border:1px solid var(--border,rgba(148,163,184,.22));color:var(--ink,#e6eef8)}
   .theme-light .efs__btn--ghost{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12);color:#0e1320}
