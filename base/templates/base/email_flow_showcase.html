@@ -489,12 +489,12 @@
       });
     }
 
-requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
   overlay.classList.add('play');
 
   const lines = [...overlay.querySelectorAll('.efs-typed .t')];
   const resumeChip = overlay.querySelector('.efs-attach .chip');
-  const baseStart = 3.4; // start typing after phone appears
+  const baseStart = 3.4; // start typing after phone shows
   const typeSpeed = 0.035; // seconds per character
   const pauseBetween = 0.35; // pause between lines
 
@@ -502,27 +502,22 @@ requestAnimationFrame(() => {
 
   lines.forEach((line, i) => {
     const chars = parseInt(line.style.getPropertyValue('--chars')) || line.textContent.length || 30;
-    const duration = chars * typeSpeed;
+    const duration = chars * (typeSpeed + (Math.random() * 0.01 - 0.005)); // small natural variation
 
-    // assign fresh sequential animations
+    // assign dynamic sequential typing
     line.style.animation = `
       efs-typing ${duration}s steps(${chars}) ${currentDelay}s forwards,
       efs-caret .9s steps(1) ${currentDelay}s infinite
     `;
 
-    // next line starts after this one finishes + small pause
     currentDelay += duration + pauseBetween;
   });
 
-  // Resume chip animation after last line completes
-  const totalTypingTime = currentDelay;
+  // show Resume.pdf chip after last line
   if (resumeChip) {
-    resumeChip.style.animation = `efs-chip 0.45s ${totalTypingTime}s cubic-bezier(.22,1,.36,1) forwards`;
+    resumeChip.style.animation = `efs-chip 0.45s ${currentDelay}s cubic-bezier(.22,1,.36,1) forwards`;
   }
 });
-
-const duration = chars * (typeSpeed + (Math.random() * 0.01 - 0.005));
-
 
 
   </script>
