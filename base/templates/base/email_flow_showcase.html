@@ -1,4 +1,29 @@
-<div class="efs__stage">
-  {% include 'base/email_flow_cards.html' %}
-  {% include 'base/email_flow_compose.html' %}
+<!-- email_flow_showcase.html -->
+<div id="emailFlowShowcase" class="efs" role="dialog" aria-modal="true" aria-labelledby="efs-title" hidden>
+  <div class="efs__backdrop" data-efs-close aria-hidden="true"></div>
+
+  <div class="efs__dialog" role="document">
+    <!-- Header -->
+    <div class="efs__head">
+      <h3 id="efs-title">How applying works</h3>
+      <button class="efs__close" type="button" aria-label="Close" data-efs-close>×</button>
+    </div>
+
+    <!-- Timeline progress -->
+    <div class="efs__progress" aria-hidden="true">
+      <span class="efs__bar"></span>
+    </div>
+
+    <!-- Stage (where the partials go) -->
+    <div class="efs__stage">
+      {% include 'base/email_flow_cards.html' %}
+      {% include 'base/email_flow_compose.html' %}
+    </div>
+
+    <!-- Footer actions -->
+    <div class="efs__actions">
+      <button class="efs__btn efs__btn--ghost" type="button" data-efs-close>Skip</button>
+      <button class="efs__btn efs__btn--primary" type="button" data-efs-close>Start swiping</button>
+    </div>
+  </div>
 </div>
