@@ -131,8 +131,10 @@
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:22px;
-    align-items:center;        /* vertical centering */
-    justify-items:center;      /* horizontal centering */
+    align-items:center;       /* center items inside their grid cells */
+    justify-items:center;     /* center items horizontally in cells */
+    place-content:center;     /* center the two columns within extra space */
+    min-height:60vh;          /* give the stage vertical room to center */
   }
   @media (max-width:900px){
     .efs__stage{grid-template-columns:1fr;gap:16px}
