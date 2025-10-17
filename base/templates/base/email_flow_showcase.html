@@ -71,12 +71,12 @@
                 <span>AI drafting…</span>
                 <span class="sparkle" aria-hidden="true"></span>
               </div>
-              <div class="efs-typed">
-                <div class="t" style="--ch:38">Dear Hiring Team, I’m excited to apply for</div>
-                <div class="t" style="--ch:44">the {{ rooms.0.role|default:"role" }} at {{ rooms.0.company_name|default:"your company" }}.</div>
-                <div class="t" style="--ch:36">My background in {{ rooms.0.job_title|default:"the field" }}</div>
-                <div class="t" style="--ch:30">aligns with your needs. Please find</div>
-                <div class="t" style="--ch:25">my resume attached below.</div>
+              <div class="efs-typed" aria-live="polite">
+                <div class="t" style="--chars:38">Dear Hiring Team, I’m excited to apply for</div>
+                <div class="t" style="--chars:44">the {{ rooms.0.role|default:"role" }} at {{ rooms.0.company_name|default:"your company" }}.</div>
+                <div class="t" style="--chars:36">My background in {{ rooms.0.job_title|default:"the field" }}</div>
+                <div class="t" style="--chars:30">aligns with your needs. Please find</div>
+                <div class="t" style="--chars:25">my resume attached below.</div>
               </div>
             </div>
   
@@ -190,17 +190,36 @@
   
   /* phone mock */
   .efs-phone{
-    position:relative;height:360px;border-radius:22px;border:1px solid rgba(148,163,184,.18);
-    background:linear-gradient(180deg,#0f1527,#0c1426);box-shadow:0 20px 48px rgba(2,6,23,.45);padding:14px 14px 12px;overflow:hidden;
-    opacity:0; transform:translateY(8px) scale(.98); pointer-events:none;
-    justify-self:center;       /* center the phone within its grid cell */
+    position:relative;
+    width:min(420px,42vw);
+    height:460px;
+    border-radius:22px;
+    border:1px solid rgba(148,163,184,.18);
+    background:linear-gradient(180deg,#0f1527,#0c1426);
+    box-shadow:0 20px 48px rgba(2,6,23,.45);
+    padding:16px 16px 14px;
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(8px) scale(.98);
+    pointer-events:none;
+    justify-self:center;
+    margin-inline:auto;
   }
   .theme-light .efs-phone{background:linear-gradient(180deg,#f6f8fc,#eef2f7);border-color:#d5dbe6}
   .efs-phone__top{display:flex;gap:6px;margin-bottom:10px}
   .efs-phone__top .dot{width:8px;height:8px;border-radius:999px;background:#e2e8f5;opacity:.6}
   .theme-light .efs-phone__top .dot{background:#8da0ba}
   
-  .efs-compose{background:rgba(255,255,255,.06);border:1px solid rgba(148,163,184,.18);border-radius:16px;padding:10px}
+  .efs-compose{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:16px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-height:280px;
+  }
   .theme-light .efs-compose{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12)}
   .efs-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   .efs-row .k{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#cbd5e1}
@@ -211,9 +230,24 @@
   .theme-light .efs-ai__chip{color:#0e1320;background:linear-gradient(135deg,rgba(237,0,60,.10),rgba(237,0,60,.06));border-color:rgba(237,0,60,.25)}
   .efs-ai__chip svg{color:var(--brand,#ed003c)}
   .efs-ai{margin-bottom:8px}
-  .efs-typed{margin-top:10px;font:600 12.5px/1.55 ui-monospace,Menlo,monospace;color:#e6eef8}
+  .efs-typed{
+    margin-top:12px;
+    font:600 15px/1.6 ui-monospace,Menlo,monospace;
+    color:#e6eef8;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  
   .theme-light .efs-typed{color:#0e1320}
-  .efs-typed .t{width:0ch;white-space:nowrap;overflow:hidden;border-right:2px solid rgba(255,255,255,.75);margin:3px 0}
+  .efs-typed .t{
+    width:0ch;
+    white-space:nowrap;
+    overflow:hidden;
+    border-right:2px solid rgba(255,255,255,.75);
+    margin:3px 0;
+  }
+  
   .efs-typed .t + .t{margin-top:2px}
   .theme-light .efs-typed .t{border-right:2px solid rgba(15,23,42,.7)}
   
@@ -248,7 +282,7 @@
   @keyframes efs-card-in{from{opacity:0;transform:scale(.9) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
   @keyframes efs-hand-left{to{transform:translateX(-70px) translateY(-6px)}}
   @keyframes efs-hand-right{to{transform:translateX(70px) translateY(-6px)}}
-  @keyframes efs-typing{from{width:0} to{width:var(--ch)}}
+  @keyframes efs-typing{from{width:0ch} to{width:calc(var(--chars) * 1ch)}}
   @keyframes efs-caret{50%{border-right-color:transparent}}
   @keyframes efs-spark{0%{transform:scale(.8) rotate(0);opacity:.4}50%{transform:scale(1.12) rotate(180deg);opacity:1}100%{transform:scale(.8) rotate(360deg);opacity:.4}}
   @keyframes efs-chip{to{opacity:1;transform:translateY(0) scale(1)}}
@@ -295,8 +329,8 @@
   }
   .efs.play .efs-typed .t{
     animation:
-      efs-typing 1s steps(var(--ch)) var(--delay,0s) forwards,
-      efs-caret .9s steps(1) infinite
+    efs-typing 1.05s steps(var(--chars)) var(--delay,0s) forwards,
+    efs-caret .9s steps(1) infinite
   }
   .efs.play .efs-typed .t:nth-child(1){--delay:3.5s}
   .efs.play .efs-typed .t:nth-child(2){--delay:4.5s}
