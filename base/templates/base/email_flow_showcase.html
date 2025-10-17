@@ -262,6 +262,17 @@
   animation: efs-email-in var(--efs-email-in) var(--efs-email-delay) ease forwards;
 }
 
+/* === keep content inside the card (safe override) === */
+.efs-card__content{
+  position: relative !important;   /* was absolute */
+  inset: auto !important;          /* cancel absolute offsets */
+}
+
+/* give the card the interior space the content expects */
+.efs-card{
+  padding: 200px 36px 96px;        /* room for logo + tags/meta */
+  box-sizing: border-box;
+}
 
 </style>
 

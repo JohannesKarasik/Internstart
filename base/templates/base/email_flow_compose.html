@@ -272,6 +272,19 @@
 .efs.play .efs-sent {
   animation: efs-sent .35s 8.5s ease forwards;
 }
+
+
+/* === keep content inside the card (safe override) === */
+.efs-card__content{
+  position: relative !important;   /* was absolute */
+  inset: auto !important;          /* cancel absolute offsets */
+}
+
+/* give the card the interior space the content expects */
+.efs-card{
+  padding: 200px 36px 96px;        /* room for logo + tags/meta */
+  box-sizing: border-box;
+}
   </style>
 
 

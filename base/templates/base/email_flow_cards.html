@@ -265,5 +265,17 @@
   .efs-title{ font-size: clamp(26px, 8vw, 42px); }
 }
 
+/* === keep content inside the card (safe override) === */
+.efs-card__content{
+  position: relative !important;   /* was absolute */
+  inset: auto !important;          /* cancel absolute offsets */
+}
+
+/* give the card the interior space the content expects */
+.efs-card{
+  padding: 200px 36px 96px;        /* room for logo + tags/meta */
+  box-sizing: border-box;
+}
+
 
 </style>
