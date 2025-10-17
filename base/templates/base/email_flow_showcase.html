@@ -369,7 +369,8 @@
   .efs.play .efs-typed .t:nth-child(5){--delay:6.9s}
   
   /* Attach chip */
-  .efs.play .efs-attach .chip{animation:efs-chip .45s 7.1s cubic-bezier(.22,1,.36,1) forwards}
+/* Attach chip appears right after last line finishes typing */
+.efs.play .efs-attach .chip{animation:efs-chip .45s 7.9s cubic-bezier(.22,1,.36,1) forwards}
   
   /* Sent toast */
   .efs.play .efs-sent{animation:efs-sent .35s 8.5s ease forwards}
@@ -479,4 +480,18 @@
       }
     }
   })();
+
+
+      // --- Ensure resume chip appears after last line is done typing ---
+      const lastLine = overlay.querySelector('.efs-typed .t:last-child');
+    const resumeChip = overlay.querySelector('.efs-attach .chip');
+
+    if (lastLine && resumeChip) {
+      lastLine.addEventListener('animationend', (e) => {
+        if (e.animationName === 'efs-typing') {
+          resumeChip.style.animation = 'efs-chip 0.45s cubic-bezier(.22,1,.36,1) forwards';
+        }
+      });
+    }
+
   </script>
