@@ -271,10 +271,15 @@
 }
 
 /* give the card the interior space the content expects */
-.efs-card{
-  padding: 200px 36px 96px;        /* room for logo + tags/meta */
-  box-sizing: border-box;
-}
+  .efs-card {
+    padding: 200px 36px 200px !important;
+    height: 95% !important;
+    box-sizing: border-box;
+  }
+
+  .efs-card-stack {
+    height: clamp(700px, 85vh, 1100px) !important;
+  }
 
 
 
