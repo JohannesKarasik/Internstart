@@ -17,7 +17,6 @@
     <div class="efs-hand" aria-hidden="true">…svg…</div>
     <div class="efs-swipe-arrow" aria-hidden="true">←</div>
   </article>
-</div>
 
   <!-- Card 2 -->
   <article class="efs-card efs-card--2" aria-hidden="true">
@@ -36,7 +35,6 @@
     <div class="efs-hand" aria-hidden="true">…svg…</div>
     <div class="efs-swipe-arrow" aria-hidden="true">→</div>
   </article>
-</div>
 </div>
 
 
@@ -271,6 +269,52 @@
   padding: 200px 36px 96px;        /* room for logo + tags/meta */
   box-sizing: border-box;
 }
+
+/* === FORCE CONTENT INSIDE CARD — ALL IMPORTANT === */
+
+/* Give the card internal padding and a flow context */
+.efs-card{
+  box-sizing: border-box !important;
+  padding: 200px 36px 96px !important;   /* room for logo + tags/meta */
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* Content participates in the card layout (no absolute positioning) */
+.efs-card__content{
+  position: static !important;           /* was absolute */
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  min-height: 0 !important;
+  padding: 0 !important;                  /* padding now lives on .efs-card */
+  color: inherit !important;
+}
+
+/* Keep the logo pinned over the padded content area */
+.efs-card__logo{
+  position: absolute !important;
+  left: 32px !important;
+  top: 32px !important;
+  width: 128px !important;
+  height: 128px !important;
+  border-radius: 24px !important;
+}
+
+/* Typographic safety so long titles never push outside */
+.efs-title{
+  margin: 0 !important;
+  word-break: break-word !important;
+  hyphens: auto !important;
+}
+
+/* Optional: a touch more vertical room if needed */
+.efs-card-stack{
+  height: calc(var(--efs-h-base) * 2) !important; /* uses your existing var */
+}
+
 
 
 </style>
