@@ -223,18 +223,15 @@
     align-items:flex-start;
     width:100%;
     max-width:100%;
+    overflow:hidden; /* prevent any overshoot during typing */
   }
   
   .theme-light .efs-typed{color:#0e1320}
   .efs-typed .t{
     width:0ch;
-    max-width:100%;
     display:block;
-    white-space:normal;            /* allow wrapping so text stays inside */
-    overflow:hidden;
-    word-break:break-word;
-    overflow-wrap:anywhere;
-    text-wrap:pretty;
+    white-space:nowrap;           /* keep one line during typing */
+    overflow:hidden;              /* clip during typing (no horizontal scroll) */
     border-right:2px solid rgba(255,255,255,.75);
     border-right-color:transparent; /* hide caret until typing starts */
     margin:6px 0 0 0;
@@ -243,6 +240,7 @@
     border-right:0;
     animation:none!important; /* stop caret */
     width:auto !important;    /* preserve text width once typed */
+    white-space:normal;        /* allow wrapping after the line has finished */
   }
   
   .efs-typed .t + .t{margin-top:2px}
@@ -274,7 +272,10 @@
   @keyframes efs-card-in{from{opacity:0;transform:scale(.9) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
   @keyframes efs-hand-left{to{transform:translateX(-70px) translateY(-6px)}}
   @keyframes efs-hand-right{to{transform:translateX(70px) translateY(-6px)}}
-  @keyframes efs-typing{from{width:0ch} to{width:min(100%, calc(var(--chars) * 1ch))}}
+  @keyframes efs-typing{
+    from{width:0ch}
+    to{width:calc(var(--chars) * 1ch)}
+  }
   @keyframes efs-caret{50%{border-right-color:transparent}}
   @keyframes efs-spark{0%{transform:scale(.8) rotate(0);opacity:.4}50%{transform:scale(1.12) rotate(180deg);opacity:1}100%{transform:scale(.8) rotate(360deg);opacity:.4}}
   @keyframes efs-chip{to{opacity:1;transform:translateY(0) scale(1)}}
