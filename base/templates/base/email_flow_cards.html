@@ -16,6 +16,21 @@
 
     <div class="efs-hand" aria-hidden="true">…svg…</div>
     <div class="efs-swipe-arrow" aria-hidden="true">←</div>
+    <div class="swipe-actions">
+      <button class="swipe-btn swipe-left" aria-label="Reject job" title="Reject">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 2L11 13"></path>
+          <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+        </svg>
+      </button>
+    </div>
   </article>
 
   <!-- Card 2 -->
@@ -34,6 +49,21 @@
 
     <div class="efs-hand" aria-hidden="true">…svg…</div>
     <div class="efs-swipe-arrow" aria-hidden="true">→</div>
+    <div class="swipe-actions">
+      <button class="swipe-btn swipe-left" aria-label="Reject job" title="Reject">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 2L11 13"></path>
+          <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+        </svg>
+      </button>
+    </div>
   </article>
 </div>
 
@@ -403,4 +433,49 @@
   opacity: .78 !important;
 }
 
+  /* Swipe buttons container */
+  .swipe-actions {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 80px;
+    z-index: 5;
+  }
+
+  .swipe-btn {
+    height: 60px;
+    aspect-ratio: 1/1;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: radial-gradient(120% 140% at 50% 0%, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.06));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 26px rgba(2, 6, 23, 0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+    color: #e7eefc;
+  }
+
+  .swipe-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 14px 34px rgba(2, 6, 23, 0.44), 0 0 0 8px var(--accent-soft);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .theme-light .swipe-btn {
+    background: radial-gradient(120% 140% at 50% 0%, rgba(0, 0, 0, 0.018), rgba(0, 0, 0, 0.012));
+    border-color: rgba(15, 23, 42, 0.12);
+    color: #0e1320;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.03), 0 10px 20px rgba(2, 6, 23, 0.07);
+  }
+
+
 </style>
+
