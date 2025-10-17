@@ -158,4 +158,55 @@
 }
 
 
+/* === SINGLE SOURCE OF TRUTH TIMELINE — place LAST === */
+:root{
+  /* Card #1 timing */
+  --c1-pre: 1.8s;    /* wait before swipe left starts */
+  --c1-dur: 1.8s;    /* swipe duration */
+
+  /* Card #2 timing */
+  --c2-in-dur: .8s;                              /* fade/scale in */
+  --c2-in-delay: calc(var(--c1-pre) + .9s);      /* appear after #1 begins */
+  --c2-pre: 5.2s;                                /* wait before swipe right */
+  --c2-dur: 1.8s;                                /* swipe duration */
+
+  /* Email timing: only after #2 has COMPLETELY swiped away */
+  --email-delay: calc(var(--c2-pre) + var(--c2-dur) + .2s);
+  --email-in: .65s;
+
+  /* Progress bar matches full sequence */
+  --efs-total: calc(var(--email-delay) + var(--email-in) + .2s);
+}
+
+/* Progress bar matches */
+.efs.play .efs__bar{ animation-duration: var(--efs-total) !important; }
+
+/* Force our card timings (override older ones) */
+.efs.play .efs-card-stack .efs-card--1{
+  animation: efs-swipe-left var(--c1-dur) var(--c1-pre)
+             cubic-bezier(.22,1,.36,1) forwards !important;
+  overflow: visible;
+}
+.efs.play .efs-card-stack .efs-card--1 .efs-hand{
+  animation: efs-hand-left 1.1s calc(var(--c1-pre) + .05s) ease forwards !important;
+}
+
+.efs.play .efs-card-stack .efs-card--2{
+  animation:
+    efs-card-in var(--c2-in-dur) var(--c2-in-delay) ease forwards,
+    efs-swipe-right var(--c2-dur) var(--c2-pre)
+      cubic-bezier(.22,1,.36,1) forwards !important;
+  pointer-events: auto;
+}
+.efs.play .efs-card-stack .efs-card--2 .efs-hand{
+  animation: efs-hand-right 1.1s calc(var(--c2-pre) + .05s) ease forwards !important;
+}
+
+/* Email pane appears ONLY after card #2 is gone */
+.efs.play .efs-phone{
+  animation: efs-showphone var(--email-in) var(--email-delay) ease forwards !important;
+  pointer-events: auto;
+}
+
+
 </style>
