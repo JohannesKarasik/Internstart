@@ -153,26 +153,29 @@
     .efs__stage{grid-template-columns:1fr;gap:16px}
   }
   
-  /* Card stack ensures the two demo cards occupy the same visual slot */
+/* Card stack — bigger/taller like Tinder cards */
 .efs-card-stack{
   position:relative;
-  width:clamp(300px,36vw,420px);
-  height:clamp(420px,56vh,620px);
+  /* wider + notably taller */
+  width:clamp(360px, 56vw, 580px);
+  height:clamp(580px, 74vh, 840px);
   justify-self:center;
   display:grid;
-  place-items:center;        /* center cards inside the stack box */
+  place-items:center;
   margin-inline:auto;
 }
-  .efs-card-stack .efs-card{position:absolute;inset:0;margin:auto}
-  
-  /* Card look */
-  .efs-card{
-    border-radius:26px;
-    background:linear-gradient(180deg,#0f1527,#0c1426);
-    border:1px solid rgba(148,163,184,.18);
-    box-shadow:0 24px 64px rgba(2,6,23,.6);
-    overflow:hidden;
-  }
+.efs-card-stack .efs-card{position:absolute; inset:0; margin:auto}
+
+/* Card look */
+.efs-card{
+  border-radius:28px;
+  background:linear-gradient(180deg,#0f1527,#0c1426);
+  border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 24px 64px rgba(2,6,23,.6);
+  overflow:hidden;
+}
+
+
   .theme-light .efs-card{background:linear-gradient(180deg,#f6f8fc,#eef2f7);border-color:#d5dbe6;box-shadow:0 18px 40px rgba(15,23,42,.14)}
   .efs-card__logo{width:68px;height:68px;border-radius:14px;background:#fff;box-shadow:0 6px 14px rgba(0,0,0,.12);position:absolute;left:18px;top:18px}
   .efs-card__meta{position:absolute;left:18px;bottom:18px;right:18px}
@@ -283,13 +286,14 @@
   
   /* ===== Animations (timeline driven by .play class) ===== */
   @keyframes efs-swipe-right{
-    0%{opacity:1;visibility:visible}
-    100%{transform:translateX(420px) rotate(8deg);opacity:0;visibility:hidden;pointer-events:none}
-  }
-  @keyframes efs-swipe-left{
-    0%{opacity:1;visibility:visible}
-    100%{transform:translateX(-420px) rotate(-8deg);opacity:0;visibility:hidden;pointer-events:none}
-  }
+  0%{opacity:1;visibility:visible}
+  100%{transform:translateX(640px) rotate(10deg);opacity:0;visibility:hidden;pointer-events:none}
+}
+@keyframes efs-swipe-left{
+  0%{opacity:1;visibility:visible}
+  100%{transform:translateX(-640px) rotate(-10deg);opacity:0;visibility:hidden;pointer-events:none}
+}
+
   @keyframes efs-card-in{from{opacity:0;transform:scale(.9) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
   @keyframes efs-hand-left{to{transform:translateX(-70px) translateY(-6px)}}
   @keyframes efs-hand-right{to{transform:translateX(70px) translateY(-6px)}}
