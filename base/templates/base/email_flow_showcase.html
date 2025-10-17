@@ -164,6 +164,51 @@
 .efs.play .efs__bar {
   animation: efs-bar 8.8s linear forwards;
 }
+
+
+/* =========================
+   SLOWER SWIPE TIMELINE (overrides)
+   Put this AFTER your existing CSS
+   ========================= */
+   :root{
+  /* easy knobs */
+  --efs-pre-1: 1.8s;   /* wait before card #1 starts swiping */
+  --efs-pre-2: 5.2s;   /* wait before card #2 starts swiping */
+  --efs-swipe: 1.8s;   /* swipe animation length for each card */
+  --efs-card-in: 0.8s; /* how long the back card fades/scales in */
+  --efs-hand: 1.1s;    /* little hand nudge length */
+
+  /* progress bar should cover full timeline (optional) */
+  --efs-total: 12.5s;
+}
+
+/* Progress bar matches the new total time */
+.efs.play .efs__bar{
+  animation-duration: var(--efs-total);
+}
+
+/* Card #1 — waits longer, then swipes */
+.efs.play .efs-card--1{
+  animation: efs-swipe-left var(--efs-swipe) var(--efs-pre-1) cubic-bezier(.22,1,.36,1) forwards;
+  overflow: visible;
+}
+.efs.play .efs-card--1 .efs-hand{
+  animation: efs-hand-left var(--efs-hand) calc(var(--efs-pre-1) + .05s) ease forwards;
+}
+
+/* Card #2 — appears, lingers, then swipes away later */
+.efs.play .efs-card--2{
+  /* fades/scales in shortly after card #1 begins moving */
+  animation:
+    efs-card-in var(--efs-card-in) calc(var(--efs-pre-1) + .9s) ease forwards,
+    /* swipes much later so it stays on screen */
+    efs-swipe-right var(--efs-swipe) var(--efs-pre-2) cubic-bezier(.22,1,.36,1) forwards;
+  pointer-events: auto;
+}
+.efs.play .efs-card--2 .efs-hand{
+  animation: efs-hand-right var(--efs-hand) calc(var(--efs-pre-2) + .05s) ease forwards;
+}
+
 </style>
 
 <script>
