@@ -382,142 +382,140 @@
   </style>
   
   <script>
-  /**
-   * Email Flow Showcase controller
-   * Exposes window.EFS.open()/close()/reset()
-   * Auto-opens after onboarding if email is configured (reads from <main data-email-configured="true">).
-   */
-  (function () {
-    const overlay = document.getElementById('emailFlowShowcase');
-    if (!overlay) return;
-
-    const SEEN_KEY = 'if_email_flow_demo_shown';
-    const qs = (sel, root = document) => root.querySelector(sel);
-
-    function setupCaretCleanup(){
-      const lines = overlay.querySelectorAll('.efs-typed .t');
-      lines.forEach((line)=>{
-        line.addEventListener('animationend', (e)=>{
-          if (e.animationName === 'efs-typing') {
-            line.classList.add('done');
+    /**
+     * Email Flow Showcase controller
+     * Exposes window.EFS.open()/close()/reset()
+     * Auto-opens after onboarding if email is configured (reads from <main data-email-configured="true">).
+     */
+    (function () {
+      const overlay = document.getElementById('emailFlowShowcase');
+      if (!overlay) return;
+    
+      const SEEN_KEY = 'if_email_flow_demo_shown';
+      const qs = (sel, root = document) => root.querySelector(sel);
+    
+      /** Add caret cleanup after each line finishes typing */
+      function setupCaretCleanup() {
+        const lines = overlay.querySelectorAll('.efs-typed .t');
+        lines.forEach((line) => {
+          line.addEventListener('animationend', (e) => {
+            if (e.animationName === 'efs-typing') {
+              line.classList.add('done');
+            }
+          });
+        });
+      }
+    
+      /** Open overlay + run typing animation sequence */
+      function open() {
+        // restart the timeline each time we open
+        reset();
+        overlay.hidden = false;
+        overlay.classList.add('show');
+        setupCaretCleanup();
+    
+        // start animation once overlay is visible
+        requestAnimationFrame(() => {
+          overlay.classList.add('play');
+    
+          // === Sequential typing logic ===
+          const lines = [...overlay.querySelectorAll('.efs-typed .t')];
+          const resumeChip = overlay.querySelector('.efs-attach .chip');
+          const baseStart = 3.4; // start typing after phone appears
+          const typeSpeed = 0.035; // seconds per character
+          const pauseBetween = 0.35; // pause between lines
+    
+          let currentDelay = baseStart;
+    
+          lines.forEach((line, i) => {
+            const chars =
+              parseInt(line.style.getPropertyValue('--chars')) ||
+              line.textContent.length ||
+              30;
+            const duration =
+              chars * (typeSpeed + (Math.random() * 0.01 - 0.005)); // small natural variation
+    
+            // assign dynamic typing + caret animation per line
+            line.style.animation = `
+              efs-typing ${duration}s steps(${chars}) ${currentDelay}s forwards,
+              efs-caret .9s steps(1) ${currentDelay}s infinite
+            `;
+    
+            currentDelay += duration + pauseBetween;
+          });
+    
+          // show Resume.pdf chip after last line finishes typing
+          if (resumeChip) {
+            resumeChip.style.animation = `efs-chip 0.45s ${currentDelay}s cubic-bezier(.22,1,.36,1) forwards`;
           }
         });
-      });
-    }
-
-    function open() {
-      // restart the timeline each time we open
-      reset();
-      overlay.hidden = false;
-      overlay.classList.add('show');
-      setupCaretCleanup();
-      // kick the animation one frame later so CSS sees .show already applied
-      requestAnimationFrame(() => overlay.classList.add('play'));
-    }
-
-    function close() {
-      overlay.classList.remove('play', 'show');
-      overlay.hidden = true;
-      try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
-    }
-
-    function reset() {
-      // remove play to reset animated elements (progress bar, typing, etc.)
-      overlay.classList.remove('play');
-      overlay.querySelectorAll('.efs-typed .t.done').forEach(el=>el.classList.remove('done'));
-      // force reflow to clear animations
-      void overlay.offsetHeight;
-    }
-
-    // Close handlers (backdrop, X button, footer buttons)
-    overlay.addEventListener('click', (e) => {
-      if (e.target.matches('[data-efs-close], .efs__backdrop, .efs__close')) {
-        close();
       }
-    });
-
-    // Esc key closes
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !overlay.hidden) close();
-    });
-
-    // Public API (handy for debugging or manual triggers)
-    window.EFS = {
-      open, close, reset,
-      shown: () => localStorage.getItem(SEEN_KEY) === '1'
-    };
-
-    // Optional manual trigger if a debug button exists
-    document.getElementById('showEFSNow')?.addEventListener('click', () => {
-      try { localStorage.removeItem(SEEN_KEY); } catch {}
-      open();
-    });
-
-    // Auto-open logic:
-    // - Only if email is configured AND not shown before.
-    // - If onboarding is in progress, wait for custom event 'onboarding:finished'.
-    const main = qs('main.layout');
-    const emailConfigured = (main?.dataset.emailConfigured === 'true');
-    const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
-    const onboardingSeen = (localStorage.getItem('if_seen_onboarding') === '1');
-
-    function tryAutoOpen() {
-      if (emailConfigured && !alreadySeen) open();
-    }
-
-    if (emailConfigured && !alreadySeen) {
-      if (!onboardingSeen) {
-        // wait for onboarding overlay to finish (your app should dispatch this event)
-        document.addEventListener('onboarding:finished', tryAutoOpen, { once: true });
-      } else {
-        // open immediately on first paint
-        requestAnimationFrame(tryAutoOpen);
+    
+      /** Close overlay */
+      function close() {
+        overlay.classList.remove('play', 'show');
+        overlay.hidden = true;
+        try {
+          localStorage.setItem(SEEN_KEY, '1');
+        } catch {}
       }
-    }
-  })();
-
-
-      // --- Ensure resume chip appears after last line is done typing ---
-      const lastLine = overlay.querySelector('.efs-typed .t:last-child');
-    const resumeChip = overlay.querySelector('.efs-attach .chip');
-
-    if (lastLine && resumeChip) {
-      lastLine.addEventListener('animationend', (e) => {
-        if (e.animationName === 'efs-typing') {
-          resumeChip.style.animation = 'efs-chip 0.45s cubic-bezier(.22,1,.36,1) forwards';
+    
+      /** Reset animations */
+      function reset() {
+        overlay.classList.remove('play');
+        overlay
+          .querySelectorAll('.efs-typed .t.done')
+          .forEach((el) => el.classList.remove('done'));
+        void overlay.offsetHeight; // force reflow
+      }
+    
+      // === Close handlers ===
+      overlay.addEventListener('click', (e) => {
+        if (e.target.matches('[data-efs-close], .efs__backdrop, .efs__close')) {
+          close();
         }
       });
-    }
-
-    requestAnimationFrame(() => {
-  overlay.classList.add('play');
-
-  const lines = [...overlay.querySelectorAll('.efs-typed .t')];
-  const resumeChip = overlay.querySelector('.efs-attach .chip');
-  const baseStart = 3.4; // start typing after phone shows
-  const typeSpeed = 0.035; // seconds per character
-  const pauseBetween = 0.35; // pause between lines
-
-  let currentDelay = baseStart;
-
-  lines.forEach((line, i) => {
-    const chars = parseInt(line.style.getPropertyValue('--chars')) || line.textContent.length || 30;
-    const duration = chars * (typeSpeed + (Math.random() * 0.01 - 0.005)); // small natural variation
-
-    // assign dynamic sequential typing
-    line.style.animation = `
-      efs-typing ${duration}s steps(${chars}) ${currentDelay}s forwards,
-      efs-caret .9s steps(1) ${currentDelay}s infinite
-    `;
-
-    currentDelay += duration + pauseBetween;
-  });
-
-  // show Resume.pdf chip after last line
-  if (resumeChip) {
-    resumeChip.style.animation = `efs-chip 0.45s ${currentDelay}s cubic-bezier(.22,1,.36,1) forwards`;
-  }
-});
-
-
-  </script>
+    
+      // Esc key closes
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.hidden) close();
+      });
+    
+      // Public API
+      window.EFS = {
+        open,
+        close,
+        reset,
+        shown: () => localStorage.getItem(SEEN_KEY) === '1',
+      };
+    
+      // Debug manual trigger
+      document.getElementById('showEFSNow')?.addEventListener('click', () => {
+        try {
+          localStorage.removeItem(SEEN_KEY);
+        } catch {}
+        open();
+      });
+    
+      // === Auto-open logic ===
+      const main = qs('main.layout');
+      const emailConfigured = main?.dataset.emailConfigured === 'true';
+      const alreadySeen = localStorage.getItem(SEEN_KEY) === '1';
+      const onboardingSeen = localStorage.getItem('if_seen_onboarding') === '1';
+    
+      function tryAutoOpen() {
+        if (emailConfigured && !alreadySeen) open();
+      }
+    
+      if (emailConfigured && !alreadySeen) {
+        if (!onboardingSeen) {
+          document.addEventListener('onboarding:finished', tryAutoOpen, {
+            once: true,
+          });
+        } else {
+          requestAnimationFrame(tryAutoOpen);
+        }
+      }
+    })();
+    </script>
+    
