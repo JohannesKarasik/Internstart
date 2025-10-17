@@ -221,13 +221,15 @@
     background:rgba(255,255,255,.06);
     border:1px solid rgba(148,163,184,.18);
     border-radius:16px;
-    padding:20px 20px 34px; /* more breathing room + safe bottom spacing */
+    padding:24px 24px 54px; /* increased bottom padding so attachment fits inside */
     display:flex;
     flex-direction:column;
-    gap:12px;
-    min-height:320px;
+    gap:14px;
+    min-height:380px; /* slightly taller overall to keep proportions */
     box-sizing:border-box;
-  }
+    position:relative;
+}
+
   .theme-light .efs-compose{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12)}
   .efs-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   .efs-row .k{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#cbd5e1}
@@ -270,7 +272,12 @@
   .efs-typed .t + .t{margin-top:2px}
   .theme-light .efs-typed .t{border-right:2px solid rgba(15,23,42,.7)}
   
-  .efs-attach{height:34px;display:flex;align-items:center}
+  .efs-attach{
+    height:40px;
+    display:flex;
+    align-items:center;
+    margin-top:auto; /* pushes attachment to bottom neatly */
+}
   .efs-attach .chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(148,163,184,.2);color:#e6eef8;border-radius:10px;padding:6px 10px;font-weight:700;opacity:0;transform:translateY(16px) scale(.96)}
   .theme-light .efs-attach .chip{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12);color:#0e1320}
   
