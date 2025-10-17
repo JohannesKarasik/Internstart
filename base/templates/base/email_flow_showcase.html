@@ -30,6 +30,22 @@
           </div>
           <div class="efs-swipe-arrow">→</div>
         </div>
+
+
+        <!-- Swipe demo card #2 -->
+        <div class="efs-card efs-card--2" aria-hidden="true">
+            <div class="efs-card__logo"></div>
+            <div class="efs-card__meta">
+            <div class="l l1"></div>
+            <div class="l l2"></div>
+            </div>
+            <div class="efs-hand">
+            <svg viewBox="0 0 64 64" width="54" height="54" aria-hidden="true">
+                <path fill="currentColor" d="M38 6a6 6 0 0 0-6 6v10h-1V9a5 5 0 0 0-10 0v16h-1V14a5 5 0 0 0-10 0v24c0 9 7 16 16 16h13c8 0 13-6 13-13V20a5 5 0 0 0-10 0v3h-1V12a6 6 0 0 0-6-6z"/>
+            </svg>
+            </div>
+            <div class="efs-swipe-arrow">←</div>
+        </div>
   
         <!-- Phone compose mock -->
         <div class="efs-phone" aria-label="Email compose demo">
@@ -245,6 +261,47 @@
     .efs.play .efs-sent{opacity:1;transform:none}
     .efs-phone{opacity:1;transform:none;pointer-events:auto}
   }
+
+
+  @keyframes efs-swipe-left {
+  to { transform: translateX(-320px) rotate(-8deg); opacity: .15; }
+}
+@keyframes efs-card-in {
+  from { opacity: 0; transform: scale(.9) translateY(30px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
+/* step 0: first card swipes left */
+.efs.play .efs-card {
+  animation: efs-swipe-left 1.0s .1s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+/* step 1: second card enters, then swipes right */
+.efs.play .efs-card--2 {
+  animation:
+    efs-card-in .6s 1.1s ease forwards,
+    efs-swipe 1.1s 1.9s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+/* step 2: show phone after both swipes */
+.efs.play .efs-phone {
+  animation: efs-showphone .45s 3.1s ease forwards;
+  pointer-events:auto;
+}
+
+/* then typing/attachments/send will all start after 3.1s */
+.efs.play .efs-typed .t:nth-child(1){--delay:3.5s}
+.efs.play .efs-typed .t:nth-child(2){--delay:4.5s}
+.efs.play .efs-typed .t:nth-child(3){--delay:5.5s}
+.efs.play .efs-typed .t:nth-child(4){--delay:6.3s}
+.efs.play .efs-typed .t:nth-child(5){--delay:7.0s}
+.efs.play .efs-attach .chip{animation:efs-chip .45s 7.2s cubic-bezier(.22,1,.36,1) forwards}
+.efs.play .efs-sendrow .send{animation:efs-pulse 1.2s 7.6s ease 2}
+.efs.play .efs-plane{animation:efs-plane .9s 7.9s cubic-bezier(.22,1,.36,1) forwards}
+.efs.play .efs-sent{animation:efs-sent .35s 8.6s ease forwards}
+.efs.play .efs__bar{animation:efs-bar 9s linear forwards}
+
   </style>
   
   <script>
