@@ -401,17 +401,17 @@
 /* ======= EXTRA ADJUSTMENTS (smaller type + even taller card) ======= */
 /* Keep everything above as-is; these just refine size/fit */
 
-  .efs__dialog{
-    height: min(98vh, 1600px) !important;           /* allow taller cards */
-  }
+.efs__dialog{
+  height: min(98vh, 1700px) !important;           /* allow even taller cards */
+}
 
-  .efs-card-stack{
-    height: clamp(1100px, 95vh, 1600px) !important; /* more vertical room */
-  }
+.efs-card-stack{
+  height: clamp(1200px, 95vh, 1700px) !important; /* more vertical room */
+}
 
-  .efs-card{
-    padding-bottom: 260px !important;               /* extra space for tags/meta and buttons */
-  }
+.efs-card{
+  padding-bottom: 340px !important;               /* extra space for tags/meta and buttons */
+}
 
 .efs-eyebrow{
   font-size: 0.8rem !important;
@@ -433,18 +433,18 @@
   opacity: .78 !important;
 }
 
-  /* Swipe buttons container */
-  .swipe-actions {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 80px;
-    z-index: 5;
-  }
+/* Swipe buttons container */
+.swipe-actions {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 80px;
+  z-index: 5;
+}
 
   .swipe-btn {
     height: 60px;
