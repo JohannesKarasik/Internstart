@@ -1931,7 +1931,6 @@ main.layout {
 
 </style>
 
-{% include "base/email_flow_showcase.html" with rooms=rooms request=request %}
 
   
 
@@ -2886,6 +2885,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 </main>
+{% include "base/email_flow_showcase.html" %}
+
 {% endif %}
 {% endblock %}
 
