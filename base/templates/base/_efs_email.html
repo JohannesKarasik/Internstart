@@ -1,0 +1,325 @@
+<!-- Email compose mock -->
+<div class="efs-phone" aria-label="Email compose demo">
+    <div class="efs-phone__top">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  
+    <div class="efs-compose">
+      <div class="efs-row"><span class="k">To</span><span class="v">hiring@company.com</span></div>
+      <div class="efs-row">
+        <span class="k">Subject</span>
+        <span class="v">Application: {{ request.user.first_name|default:"You" }}</span>
+      </div>
+  
+      <!-- AI drafting -->
+      <div class="efs-ai">
+        <div class="efs-ai__chip">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M12 2l3 4 5 1-3 4 .5 5-5-2-5 2 .5-5-3-4 5-1 3-4z" fill="currentColor" />
+          </svg>
+          <span>AI drafting…</span>
+          <span class="sparkle" aria-hidden="true"></span>
+        </div>
+        <div class="efs-typed" aria-live="polite">
+          <div class="t" style="--chars:38">Dear Hiring Team, I’m excited to apply for</div>
+          <div class="t" style="--chars:44">the {{ rooms.0.role|default:"role" }} at {{ rooms.0.company_name|default:"your company" }}.</div>
+          <div class="t" style="--chars:36">My background in {{ rooms.0.job_title|default:"the field" }}</div>
+          <div class="t" style="--chars:30">aligns with your needs. Please find</div>
+          <div class="t" style="--chars:25">my resume attached below.</div>
+        </div>
+      </div>
+  
+      <!-- Attachment chip -->
+      <div class="efs-attach">
+        <div class="chip">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M21 12.5V7a5 5 0 1 0-10 0v9a3 3 0 1 0 6 0V8"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Resume.pdf</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- “Sent” toast -->
+  <div class="efs-sent" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5"
+            stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </svg>
+    <span>Application sent!</span>
+  </div>
+
+  <style>
+    /* ===== Email Compose Section ===== */
+
+/* Phone mock */
+.efs-phone {
+  position: relative;
+  width: min(560px, 80vw);
+  min-height: 520px;
+  max-height: 75vh;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, #0f1527, #0c1426);
+  box-shadow: 0 20px 48px rgba(2, 6, 23, 0.45);
+  padding: 22px 24px 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  pointer-events: none;
+  justify-self: center;
+  margin-inline: auto;
+  z-index: 3;
+}
+.theme-light .efs-phone {
+  background: linear-gradient(180deg, #f6f8fc, #eef2f7);
+  border-color: #d5dbe6;
+}
+
+/* Top dots */
+.efs-phone__top {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.efs-phone__top .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f5;
+  opacity: 0.6;
+}
+.theme-light .efs-phone__top .dot { background: #8da0ba; }
+
+/* Compose area */
+.efs-compose {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  padding: 26px 28px 34px;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.theme-light .efs-compose {
+  background: rgba(2, 6, 23, 0.04);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+/* Header rows */
+.efs-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.efs-row .k {
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #cbd5e1;
+}
+.theme-light .efs-row .k { color: #51607a; }
+.efs-row .v { font-weight: 700; }
+
+/* AI drafting */
+.efs-ai { margin-bottom: 8px; }
+.efs-ai__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(237,0,60,.16), rgba(237,0,60,.10));
+  border: 1px solid rgba(237,0,60,.32);
+  color: #ffd6de;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 800;
+  font-size: 12px;
+  position: relative;
+}
+.theme-light .efs-ai__chip {
+  color: #0e1320;
+  background: linear-gradient(135deg, rgba(237,0,60,.10), rgba(237,0,60,.06));
+  border-color: rgba(237,0,60,.25);
+}
+.efs-ai__chip svg { color: var(--brand,#ed003c); }
+
+/* Typing text */
+.efs-typed {
+  margin-top: 8px;
+  font: 600 15px/1.6 ui-monospace,Menlo,monospace;
+  color: #e6eef8;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  overflow: hidden;
+}
+.theme-light .efs-typed { color: #0e1320; }
+
+.efs-typed .t {
+  width: 0ch;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid rgba(255,255,255,.75);
+  border-right-color: transparent;
+  margin-top: 6px;
+}
+.efs-typed .t.done {
+  border-right: 0;
+  animation: none !important;
+  width: auto !important;
+  white-space: normal;
+}
+.theme-light .efs-typed .t { border-right: 2px solid rgba(15,23,42,.7); }
+
+/* Attachment chip */
+.efs-attach {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 16px;
+}
+.efs-attach .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(148,163,184,.2);
+  color: #e6eef8;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(16px) scale(.96);
+}
+.theme-light .efs-attach .chip {
+  background: rgba(2,6,23,.04);
+  border-color: rgba(15,23,42,.12);
+  color: #0e1320;
+}
+
+/* Sent toast */
+.efs-sent {
+  position: absolute;
+  inset: auto 22px 18px auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg,#0b1220,#0e1729);
+  color: #fff;
+  border: 1px solid var(--border,rgba(148,163,184,.22));
+  padding: 8px 12px;
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(2,6,23,.36);
+  opacity: 0;
+  transform: translateY(8px);
+}
+.theme-light .efs-sent {
+  background: #0e1320;
+  color: #fff;
+  border-color: rgba(15,23,42,.25);
+}
+
+/* ===== Animations ===== */
+@keyframes efs-typing {
+  from { width: 0ch; }
+  to { width: calc(var(--chars) * 1ch); }
+}
+@keyframes efs-caret { 50% { border-right-color: transparent; } }
+@keyframes efs-spark {
+  0% { transform: scale(.8) rotate(0); opacity: .4; }
+  50% { transform: scale(1.12) rotate(180deg); opacity: 1; }
+  100% { transform: scale(.8) rotate(360deg); opacity: .4; }
+}
+@keyframes efs-chip { to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes efs-sent { to { opacity: 1; transform: translateY(0); } }
+@keyframes efs-showphone { to { opacity: 1; transform: none; } }
+
+/* Sequence triggers */
+.efs.play .efs-phone {
+  animation: efs-showphone .45s 3.1s ease forwards;
+  pointer-events: auto;
+}
+.efs.play .efs-ai__chip .sparkle {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle,#ffd6de 0,#ed003c 70%,transparent 72%);
+  border-radius: 999px;
+  animation: efs-spark 1.4s 3.1s linear infinite;
+}
+.efs.play .efs-typed .t { animation: none; }
+.efs.play .efs-attach .chip {
+  animation: efs-chip .45s 7.9s cubic-bezier(.22,1,.36,1) forwards;
+}
+.efs.play .efs-sent {
+  animation: efs-sent .35s 8.5s ease forwards;
+}
+  </style>
+
+
+
+<script>
+    // email_flow_compose.js
+(function() {
+  const overlay = document.getElementById('emailFlowShowcase');
+  if (!overlay) return;
+
+  /** Typing caret cleanup */
+  function setupCaretCleanup() {
+    const lines = overlay.querySelectorAll('.efs-typed .t');
+    lines.forEach((line) => {
+      line.addEventListener('animationend', (e) => {
+        if (e.animationName === 'efs-typing') {
+          line.classList.add('done');
+        }
+      });
+    });
+  }
+
+  /** Run typing and attachment sequence */
+  function runTypingAnimation() {
+    setupCaretCleanup();
+    const lines = [...overlay.querySelectorAll('.efs-typed .t')];
+    const resumeChip = overlay.querySelector('.efs-attach .chip');
+    const baseStart = 3.4;   // starts after phone appears
+    const typeSpeed = 0.035; // seconds per character
+    const pauseBetween = 0.35;
+    let currentDelay = baseStart;
+
+    lines.forEach((line) => {
+      const chars = parseInt(line.style.getPropertyValue('--chars')) || line.textContent.length;
+      const duration = chars * (typeSpeed + (Math.random() * 0.01 - 0.005));
+      line.style.animation = `
+        efs-typing ${duration}s steps(${chars}) ${currentDelay}s forwards,
+        efs-caret .9s steps(1) ${currentDelay}s infinite
+      `;
+      currentDelay += duration + pauseBetween;
+    });
+
+    if (resumeChip) {
+      resumeChip.style.animation = `efs-chip 0.45s ${currentDelay}s cubic-bezier(.22,1,.36,1) forwards`;
+    }
+  }
+
+  // Expose to main overlay logic
+  window.EmailDemo = { runTypingAnimation };
+})();
+</script>
