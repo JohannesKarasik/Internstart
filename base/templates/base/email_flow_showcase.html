@@ -229,11 +229,13 @@
     white-space:nowrap;
     overflow:hidden;
     border-right:2px solid rgba(255,255,255,.75);
+    border-right-color:transparent; /* hide caret until typing starts */
     margin:6px 0 0 0;
   }
   .efs-typed .t.done{
     border-right:0;
-    animation:none!important;
+    animation:none!important; /* stop caret */
+    width:auto !important;    /* preserve text width once typed */
   }
   
   .efs-typed .t + .t{margin-top:2px}
@@ -312,8 +314,8 @@
   }
   .efs.play .efs-typed .t{
     animation:
-    efs-typing 1.05s steps(var(--chars)) var(--delay,0s) forwards,
-    efs-caret .9s steps(1) infinite
+      efs-typing 1.05s steps(var(--chars)) var(--delay,0s) forwards,
+      efs-caret .9s steps(1) var(--delay,0s) infinite;
   }
   .efs.play .efs-typed .t:nth-child(1){--delay:3.5s}
   .efs.play .efs-typed .t:nth-child(2){--delay:4.5s}
