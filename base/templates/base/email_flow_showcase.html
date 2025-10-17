@@ -221,14 +221,17 @@
     background:rgba(255,255,255,.06);
     border:1px solid rgba(148,163,184,.18);
     border-radius:16px;
-    padding:24px 24px 54px; /* increased bottom padding so attachment fits inside */
+    padding:20px 22px 28px; /* balanced padding */
     display:flex;
     flex-direction:column;
-    gap:14px;
-    min-height:380px; /* slightly taller overall to keep proportions */
+    justify-content:flex-start;
+    gap:10px;
+    min-height:360px;
     box-sizing:border-box;
     position:relative;
+    overflow:hidden; /* keeps all content neatly inside */
 }
+
 
   .theme-light .efs-compose{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12)}
   .efs-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
@@ -241,16 +244,17 @@
   .efs-ai__chip svg{color:var(--brand,#ed003c)}
   .efs-ai{margin-bottom:8px}
   .efs-typed{
-    margin-top:12px;
-    font:600 18px/1.7 ui-monospace,Menlo,monospace;
+    margin-top:8px;
+    font:600 15px/1.6 ui-monospace,Menlo,monospace; /* smaller, denser text */
     color:#e6eef8;
     display:flex;
     flex-direction:column;
     align-items:flex-start;
     width:100%;
     max-width:100%;
-    overflow:hidden; /* prevent any overshoot during typing */
-  }
+    overflow:hidden;
+}
+
   
   .theme-light .efs-typed{color:#0e1320}
   .efs-typed .t{
@@ -273,11 +277,12 @@
   .theme-light .efs-typed .t{border-right:2px solid rgba(15,23,42,.7)}
   
   .efs-attach{
-    height:40px;
     display:flex;
     align-items:center;
-    margin-top:auto; /* pushes attachment to bottom neatly */
+    justify-content:flex-start;
+    margin-top:16px; /* adds separation from text */
 }
+
   .efs-attach .chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(148,163,184,.2);color:#e6eef8;border-radius:10px;padding:6px 10px;font-weight:700;opacity:0;transform:translateY(16px) scale(.96)}
   .theme-light .efs-attach .chip{background:rgba(2,6,23,.04);border-color:rgba(15,23,42,.12);color:#0e1320}
   
