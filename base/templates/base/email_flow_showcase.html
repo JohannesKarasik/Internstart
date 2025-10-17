@@ -274,56 +274,6 @@
   box-sizing: border-box;
 }
 
-/* ===== Make the modal and cards taller (final overrides) ===== */
-
-/* 1) Raise the modal's height cap so cards can actually grow */
-.efs__dialog{
-  height: min(98vh, 1200px) !important;   /* was min(94vh, 900px) */
-}
-
-/* 2) Give the card stack a larger, responsive height */
-.efs-card-stack{
-  height: clamp(900px, 84vh, 1200px) !important;
-  width: clamp(360px, 36vw, 560px) !important;   /* optional: a bit wider */
-}
-
-/* 3) Ensure the card itself fills the stack and has bottom room for meta/tags */
-.efs-card{
-  height: 100% !important;
-  min-height: 100% !important;
-  padding: 200px 36px 140px !important;   /* more bottom padding for all info */
-  box-sizing: border-box !important;
-}
-
-/* 4) Keep content flowing inside the card (from your earlier fix) */
-.efs-card__content{
-  position: static !important;
-  inset: auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 16px !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-}
-
-/* 5) Logo stays pinned */
-.efs-card__logo{
-  position: absolute !important;
-  left: 32px !important;
-  top: 32px !important;
-  width: 128px !important;
-  height: 128px !important;
-}
-
-/* 6) Long titles won't break layout */
-.efs-title{
-  margin: 0 !important;
-  word-break: break-word !important;
-  hyphens: auto !important;
-}
-
-/* Optional: ensure the stage doesn't clip */
-.efs__stage{ overflow: visible !important; }
 
 
 </style>

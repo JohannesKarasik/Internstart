@@ -40,6 +40,7 @@
 
 
 <style>
+
 /* ------- sizing: double the old height ------- */
 :root {
   --efs-w: clamp(320px, 32vw, 420px);      /* card width */
@@ -367,4 +368,40 @@
 /* Optional: ensure the stage doesn't clip */
 .efs__stage{ overflow: visible !important; }
 
+/* ======= EXTRA ADJUSTMENTS (smaller type + even taller card) ======= */
+/* Keep everything above as-is; these just refine size/fit */
+
+.efs__dialog{
+  height: min(98vh, 1300px) !important;           /* allow taller cards */
+}
+
+.efs-card-stack{
+  height: clamp(1000px, 88vh, 1400px) !important; /* more vertical room */
+}
+
+.efs-card{
+  padding-bottom: 180px !important;               /* extra space for tags/meta */
+}
+
+.efs-eyebrow{
+  font-size: 0.8rem !important;
+  letter-spacing: .14em !important;
+}
+
+.efs-title{
+  font-size: clamp(22px, 2.8vw, 40px) !important; /* smaller, balanced */
+  line-height: 1.08 !important;
+}
+
+.efs-tags .tag{
+  font-size: 0.8rem !important;
+  padding: 8px 12px !important;
+}
+
+.efs-meta{
+  font-size: 0.95rem !important;
+  opacity: .78 !important;
+}
+
 </style>
+
