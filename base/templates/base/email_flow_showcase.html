@@ -1,5 +1,5 @@
 <!-- =========================
-     EMAIL FLOW SHOWCASE MODAL
+     EMAIL FLOW SHOWCASE MODAL (FIXED)
      ========================= -->
      <div id="emailFlowShowcase"
      class="efs"
@@ -62,7 +62,7 @@
   position: relative;
   z-index: 1;
   width: min(1200px, 96vw);
-  max-height: 92vh;
+  height: min(94vh, 900px);
   display: flex;
   flex-direction: column;
   border-radius: 20px;
@@ -71,16 +71,7 @@
   border: 1px solid var(--border, rgba(148,163,184,.22));
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
   color: var(--ink, #e6eef8);
-  max-height: 94vh;
-
 }
-
-
-.efs__stage {
-  width: 100%;
-  height: 100%;
-}
-
 
 .theme-light .efs__dialog {
   background: #f6f8fb;
@@ -93,6 +84,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
+  flex: 0 0 auto;
 }
 .efs__head h3 {
   margin: 0;
@@ -114,6 +106,7 @@
   border-radius: 999px;
   overflow: hidden;
   margin: 6px 0 16px;
+  flex: 0 0 auto;
 }
 .efs__bar {
   display: block;
@@ -124,18 +117,17 @@
   transition: width .35s ease;
 }
 
+/* Make the stage stretch fully between header/footer */
 .efs__stage {
   flex: 1 1 auto;
-  min-height: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 22px;
-  overflow: auto;
-}
-@media (max-width:900px){
-  .efs__stage { gap: 16px; }
+  align-items: center;
+  overflow: visible;
+  gap: 24px;
 }
 
 .efs__actions {
@@ -176,8 +168,7 @@
 
 <script>
 /**
- * email_flow_showcase.js
- * Handles modal open/close + auto logic.
+ * email_flow_showcase.js — modal open/close logic
  */
 (function(){
   const overlay = document.getElementById('emailFlowShowcase');
