@@ -24,16 +24,19 @@ SEARCH_PHRASES = [
 # --- SCRAPER FUNCTIONS ---
 
 def get_bing_results(query, max_results=20):
-    """Fetch search results from Bing (plain HTML)."""
+    """Fetch search results from Bing (works with multiple HTML layouts)."""
     url = f"https://www.bing.com/search?q={query.replace(' ', '+')}"
     r = requests.get(url, headers=HEADERS, timeout=10)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    links = []
-    for a in soup.select("li.b_algo h2 a[href]"):
+    links = set()
+    # Standard results
+    for a in soup.select("li.b_algo h2 a[href], h2 a[href], a.tilk[href], a[role='heading'][href]"):
         href = a["href"]
         if href.startswith("http"):
-            links.append(href)
+            links.add(href)
+    links = list(links)
+    print(f"🔗 Debug: found {len(links)} raw links from Bing HTML (length={len(r.text)})")
     return links[:max_results]
 
 
