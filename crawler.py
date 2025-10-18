@@ -1,65 +1,57 @@
-import requests
-from bs4 import BeautifulSoup
-import re
 import json
+import re
 import time
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
+from playwright.sync_api import sync_playwright
 
 EMAIL_REGEX = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
-def search_indeed(query="software intern", location="denmark", pages=1):
-    """Collect listing URLs from Indeed search results."""
+def crawl_indeed_for_emails(query="software intern", location="denmark", pages=1):
+    """Search Indeed for job listings and extract any emails from postings."""
     results = []
-    base = "https://dk.indeed.com/jobs"
-    for page in range(pages):
-        params = {"q": query, "l": location, "start": page * 10}
-        r = requests.get(base, headers=HEADERS, params=params, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for link in soup.select("a[data-jk]"):
-            jk = link.get("data-jk")
-            if jk:
-                job_url = f"https://dk.indeed.com/viewjob?jk={jk}"
-                results.append(job_url)
-        time.sleep(1)
-    return list(set(results))
 
+    with sync_playwright() as p:
+        browser = p.firefox.launch(headless=True)
+        page = browser.new_page()
 
-def extract_email_from_job(url):
-    """Open a job page and extract email addresses."""
-    try:
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        if r.status_code != 200:
-            return []
-        soup = BeautifulSoup(r.text, "html.parser")
-        text = soup.get_text(" ", strip=True)
-        emails = re.findall(EMAIL_REGEX, text)
-        return list(set(emails))
-    except Exception as e:
-        print(f"⚠️ Error {url}: {e}")
-        return []
+        for page_num in range(pages):
+            url = f"https://dk.indeed.com/jobs?q={query}&l={location}&start={page_num*10}"
+            print(f"🔍 Searching: {url}")
+            page.goto(url, timeout=30000)
+            page.wait_for_timeout(3000)  # wait for dynamic content to load
 
+            job_links = [
+                a.get_attribute("href")
+                for a in page.query_selector_all("a[data-jk]")
+            ]
+            job_links = [f"https://dk.indeed.com{l}" if l.startswith("/") else l for l in job_links]
+            job_links = list(set(job_links))
+            print(f"➡️ Found {len(job_links)} job links on page {page_num+1}")
 
-def crawl_indeed_for_emails(query="intern", location="denmark", pages=1):
-    job_links = search_indeed(query, location, pages)
-    print(f"🔍 Found {len(job_links)} job listings")
+            for job_url in job_links:
+                try:
+                    page.goto(job_url, timeout=30000)
+                    page.wait_for_timeout(2000)
+                    text = page.content()
+                    emails = re.findall(EMAIL_REGEX, text)
+                    # Filter only relevant job emails
+                    emails = [
+                        e for e in emails
+                        if any(keyword in e for keyword in ["hr", "career", "jobs", "apply", "recruit", "talent"])
+                    ]
+                    if emails:
+                        print(f"✅ {job_url} → {emails}")
+                        results.append({"url": job_url, "emails": emails})
+                except Exception as e:
+                    print(f"⚠️ Error with {job_url}: {e}")
+                time.sleep(1)
 
-    data = []
-    for job in job_links:
-        emails = extract_email_from_job(job)
-        if emails:
-            print(f"✅ {job} → {emails}")
-            data.append({"url": job, "emails": emails})
-        time.sleep(1)
-    return data
+        browser.close()
+
+    return results
 
 
 if __name__ == "__main__":
     results = crawl_indeed_for_emails(query="software intern", location="Denmark", pages=2)
-
     with open("indeed_emails.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
-
     print(f"\n✅ Done! Saved {len(results)} listings with email addresses to indeed_emails.json")
