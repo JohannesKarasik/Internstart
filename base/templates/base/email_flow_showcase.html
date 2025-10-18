@@ -506,29 +506,77 @@
 </style>
 
 <script>
-  (() => {
-    const stage = document.querySelector('.efs__stage');
-    if (!stage) return;
-  
-    stage.addEventListener('animationstart', (e) => {
-      const card = e.target.closest('.efs-card');
-      if (!card) return;
-      card.classList.remove('play-hand-left','play-hand-right');
-  
-      if (e.animationName === 'efs-swipe-left') {
-        requestAnimationFrame(() => card.classList.add('play-hand-left'));
-      } else if (e.animationName === 'efs-swipe-right') {
-        requestAnimationFrame(() => card.classList.add('play-hand-right'));
-      }
+(function(){
+  const overlay = document.getElementById('emailFlowShowcase');
+  if (!overlay) return;
+
+  const SEEN_KEY = 'if_email_flow_demo_shown';
+  const qs = (sel, root=document) => root.querySelector(sel);
+
+  function setupCaretCleanup(){
+    const lines = overlay.querySelectorAll('.efs-typed .t');
+    lines.forEach((line)=>{
+      line.addEventListener('animationend',(e)=>{
+        if(e.animationName==='efs-typing') line.classList.add('done');
+      });
     });
-  
-    stage.addEventListener('animationend', (e) => {
-      const card = e.target.closest('.efs-card');
-      if (!card) return;
-      if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
-        card.classList.remove('play-hand-left','play-hand-right');
-      }
+  }
+
+  function open(){
+    reset();
+    overlay.hidden = false;
+    overlay.classList.add('show');
+    setupCaretCleanup();
+    requestAnimationFrame(()=>{
+      overlay.classList.add('play');
+      if(window.EmailDemo) window.EmailDemo.runTypingAnimation();
     });
-  })();
-  </script>
-  
+  }
+
+  function close(){
+    overlay.classList.remove('play','show');
+    overlay.hidden = true;
+    try{localStorage.setItem(SEEN_KEY,'1');}catch{}
+  }
+
+  function reset(){
+    overlay.classList.remove('play');
+    overlay.querySelectorAll('.efs-typed .t.done').forEach(el=>el.classList.remove('done'));
+    void overlay.offsetHeight;
+  }
+
+  overlay.addEventListener('click',(e)=>{
+    if(e.target.matches('[data-efs-close], .efs__backdrop, .efs__close')) close();
+  });
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape' && !overlay.hidden) close();
+  });
+
+  window.EFS={open,close,reset,shown:()=>localStorage.getItem(SEEN_KEY)==='1'};
+
+  document.getElementById('showEFSNow')?.addEventListener('click',()=>{
+    try{localStorage.removeItem(SEEN_KEY);}catch{}
+    open();
+  });
+
+  const main=qs('main.layout');
+  const emailConfigured=(main?.dataset.emailConfigured==='true');
+  const alreadySeen=(localStorage.getItem(SEEN_KEY)==='1');
+  const onboardingSeen=(localStorage.getItem('if_seen_onboarding')==='1');
+
+  function tryAutoOpen(){
+    if(emailConfigured && !alreadySeen) open();
+  }
+
+  if(emailConfigured && !alreadySeen){
+    if(!onboardingSeen){
+      document.addEventListener('onboarding:finished',tryAutoOpen,{once:true});
+    }else{
+      requestAnimationFrame(tryAutoOpen);
+    }
+  }
+})();
+
+
+
+</script>
