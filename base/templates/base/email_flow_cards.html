@@ -405,27 +405,34 @@
   height: min(98vh, 1700px) !important;           /* allow even taller cards */
 }
 
-/* 4. Increase stack height for balance */
-.efs-card-stack{
-  height: clamp(900px, 90vh, 1100px) !important;
-  width: clamp(360px, 36vw, 560px) !important;   /* optional: a bit wider */
+/* 4. Card stack: perfectly sized and centered for the modal */
+.efs-card-stack {
+  position: relative;
+  width: clamp(360px, 42vw, 520px) !important;
+  height: clamp(640px, 78vh, 880px) !important; /* smaller and fits inside modal */
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  perspective: 1200px;
+  z-index: 2;
 }
 
-/* 1. Update .efs-card for taller, flexible layout and button space */
+/* 1. Update .efs-card for modal-fit, balanced spacing */
 .efs-card {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 800px !important;
-  height: auto !important;
-  padding: 200px 36px 180px !important; /* extra space for content and buttons */
+  min-height: 640px !important;
+  height: 100% !important;
+  padding: 180px 36px 150px !important; /* balanced spacing for logo, content, and buttons */
   box-sizing: border-box;
-  border-radius:28px;
-  background:linear-gradient(180deg,#0f1527,#0c1426);
-  border:1px solid rgba(148,163,184,.18);
-  box-shadow:0 40px 80px rgba(0,0,0,.65);
-  overflow:hidden;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #0f1527, #0c1426);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+  margin: auto;
 }
 .theme-light .efs-card{
   background:linear-gradient(180deg,#f6f8fc,#eef2f7);
@@ -479,9 +486,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 80px;
+  padding: 0 60px;
   z-index: 3;
-  pointer-events: auto;
 }
 
   .swipe-btn {
