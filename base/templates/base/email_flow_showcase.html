@@ -241,6 +241,57 @@
 }
 
 
+/* === Pack cards + email at the very top of the modal === */
+
+/* Make the stage a "packed" grid (no leftover space above/between) */
+.efs__stage{
+  display: grid !important;
+  grid-auto-flow: row !important;
+  grid-auto-rows: max-content !important;  /* each child is only as tall as it needs */
+  align-content: start !important;         /* pack to the top */
+  justify-items: center !important;        /* center each child horizontally */
+  gap: 12px !important;                    /* small space between cards and email */
+  height: auto !important;
+  padding-top: 6px !important;
+}
+
+/* Kill vertical margins any child might add */
+.efs__stage > *{
+  margin: 0 !important;
+}
+
+/* Let the stack size itself to its content instead of reserving big space */
+.efs-card-stack{
+  height: auto !important;                 /* was a clamp(...) */
+}
+
+/* Cards still look the same but don’t inflate the stack */
+.efs-card{
+  height: auto !important;
+  min-height: 520px !important;            /* adjust to taste */
+  padding: 140px 32px 140px !important;    /* keep your interior spacing */
+  box-sizing: border-box !important;
+}
+
+/* Ensure email block doesn’t push itself down */
+.efs-phone{
+  margin: 0 !important;
+}
+
+/* If any sequencing rule was hiding the email, neutralize it */
+.efs__stage > :nth-child(2){
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+/* Keep the dialog scrollable if things get tall */
+.efs__dialog{
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+
 </style>
 
 <script>
