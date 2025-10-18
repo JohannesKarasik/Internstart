@@ -474,32 +474,7 @@
 
 
 /* ---- Clean slate: remove any timeline-set hand animation ---- */
-.efs.play .efs-card--1 .efs-hand,
-.efs.play .efs-card--2 .efs-hand,
-.efs.play .efs-card-stack .efs-card--1 .efs-hand,
-.efs.play .efs-card-stack .efs-card--2 .efs-hand {
-  animation: none !important;
-  /* leave opacity alone—animations will control it */
-}
 
-/* ---- Hand base (visible size) ---- */
-.efs-card .efs-hand{
-  position:absolute; right:32px; bottom:32px;
-  width:48px; height:48px;
-  color:#ffd6de; pointer-events:none; z-index:9;
-  opacity:0;                                  /* default hidden */
-  filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));
-}
-.efs-card .efs-hand svg{ width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:2; }
-
-/* ---- Our animations (must come AFTER the kill block) ---- */
-@keyframes efs-handSwipeLeft  { 0%{opacity:0;transform:translate(30px,-2px) rotate(2deg)}
-  10%{opacity:1;transform:translate(8px,-2px) rotate(0)} 100%{opacity:0;transform:translate(-160px,-14px) rotate(-10deg)} }
-@keyframes efs-handSwipeRight { 0%{opacity:0;transform:translate(-30px,-2px) rotate(-2deg)}
-  10%{opacity:1;transform:translate(-6px,-2px) rotate(0)} 100%{opacity:0;transform:translate(160px,-14px) rotate(10deg)} }
-
-.efs-card.play-hand-left  .efs-hand{ animation: efs-handSwipeLeft  .9s ease forwards !important; }
-.efs-card.play-hand-right .efs-hand{ animation: efs-handSwipeRight .9s ease forwards !important; }
 
 
 
