@@ -10,7 +10,7 @@ def crawl_indeed_for_emails(query="software intern", location="denmark", pages=1
     results = []
 
     with sync_playwright() as p:
-        browser = p.firefox.launch(headless=True)
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
         page = browser.new_page()
 
         for page_num in range(pages):
