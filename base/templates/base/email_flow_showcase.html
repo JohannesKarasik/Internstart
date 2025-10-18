@@ -61,17 +61,18 @@
 .efs__dialog {
   position: relative;
   z-index: 1;
-  width: min(1200px, 96vw);
-  height: min(98vh, 1250px) !important;
-  overflow-y: auto !important;
+  width: min(1100px, 94vw);
+  height: min(90vh, 900px) !important;
+  overflow: hidden !important;
   display: flex;
   flex-direction: column;
   border-radius: 20px;
-  padding: 22px 22px 16px;
+  padding: 30px 22px 10px;
   background: var(--panel, #0f1525);
   border: 1px solid var(--border, rgba(148,163,184,.22));
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
   color: var(--ink, #e6eef8);
+  justify-content: flex-start;
 }
 
 .theme-light .efs__dialog {
@@ -124,11 +125,11 @@
   height: auto !important;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start !important;
+  justify-content: flex-start;
   align-items: center;
   overflow: visible !important;
-  gap: 28px;
-  padding: 10px 0 40px;
+  gap: 20px;
+  padding-top: 40px;
 }
 
 .efs__actions {
