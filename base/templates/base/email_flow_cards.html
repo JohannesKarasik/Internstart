@@ -737,6 +737,38 @@
   }
   /* Just in case: make the card a positioning context */
   .efs-card{ position: relative !important; }
+
+/* === LOCK CARDS TO MIDDLE OF THE MODAL (final override) === */
+.efs__dialog { height: min(90vh, 900px) !important; } /* keep modal sizing */
+.efs__stage{
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: 1fr auto 1fr !important; /* spacer | cards | spacer */
+  align-content: stretch !important;
+  justify-items: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+
+.efs-card-stack{
+  grid-row: 2 !important;          /* live in the middle track */
+  margin: 0 !important;
+  height: auto !important;
+  transform: none !important;       /* kill translateY pushes */
+}
+
+.efs-phone{                          /* if you show the email mock below */
+  grid-row: 3 !important;
+}
+
+/* optional: if you want the cards slightly LOWER than exact center,
+   bump the top spacer a bit more than the bottom: */
+@media (min-width: 0){
+  .efs__stage{ grid-template-rows: 1.2fr auto 1fr !important; }
+}
+
+
+
 </style>
 
 <script>
