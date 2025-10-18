@@ -1,213 +1,282 @@
 {% extends 'main.html' %}
-
-{% block content %}
 {% load widget_tweaks %}
+{% block content %}
 
-<main class="account-page">
-  <section class="account-shell">
-    <div class="account-card">
+<main class="settings-page">
+  <section class="settings-shell">
+    <div class="settings-card">
+
       <!-- Header -->
       <header class="card-head">
         <a href="{% url 'home' %}" class="back-link" aria-label="Back to home">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           Back
         </a>
         <div class="head-main">
           <div>
-            <h1 class="title">Update your account</h1>
-            <p class="sub">Just the essentials — name, email, password, and resume.</p>
+            <h1 class="title">Settings</h1>
+            <p class="sub">Manage access & personal details.</p>
           </div>
-          {# moved Change password out of the header per request #}
         </div>
       </header>
 
-      <!-- Form -->
-      <form class="account-form" action="" method="POST" enctype="multipart/form-data" novalidate>
-        {% csrf_token %}
+      <!-- Tabs -->
+      <nav class="tabs" aria-label="Settings tabs">
+        <div role="tablist" aria-orientation="horizontal" class="tablist">
+          <button id="tab-access" role="tab" aria-selected="true" aria-controls="panel-access" class="tab is-active" data-tab="access">
+            Access
+          </button>
+          <button id="tab-personal" role="tab" aria-selected="false" aria-controls="panel-personal" class="tab" data-tab="personal">
+            Personal
+          </button>
+        </div>
+      </nav>
 
-        <!-- ========== Row 1: Name & Email ========== -->
-        <div class="grid grid--2">
-          {% if form.full_name %}
-            <div class="form__group">
-              <label class="form__label" for="{{ form.full_name.id_for_label }}">Full name</label>
-              {{ form.full_name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
-              {% if form.full_name.errors %}<small class="form__error">{{ form.full_name.errors|striptags }}</small>{% endif %}
-            </div>
-          {% elif form.name %}
-            <div class="form__group">
-              <label class="form__label" for="{{ form.name.id_for_label }}">Full name</label>
-              {{ form.name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
-              {% if form.name.errors %}<small class="form__error">{{ form.name.errors|striptags }}</small>{% endif %}
-            </div>
-          {% elif form.first_name and form.last_name %}
-            <div class="form__group">
-              <label class="form__label" for="{{ form.first_name.id_for_label }}">First name</label>
-              {{ form.first_name|add_class:"form__control"|attr:"autocomplete=given-name" }}
-              {% if form.first_name.errors %}<small class="form__error">{{ form.first_name.errors|striptags }}</small>{% endif %}
-            </div>
-            <div class="form__group">
-              <label class="form__label" for="{{ form.last_name.id_for_label }}">Last name</label>
-              {{ form.last_name|add_class:"form__control"|attr:"autocomplete=family-name" }}
-              {% if form.last_name.errors %}<small class="form__error">{{ form.last_name.errors|striptags }}</small>{% endif %}
-            </div>
-          {% endif %}
+      <!-- Panels -->
+      <section class="panels">
 
-          {% if form.email %}
+        <!-- ACCESS -->
+        <div id="panel-access" role="tabpanel" aria-labelledby="tab-access" class="panel is-active">
+          <div class="grid grid--2">
             <div class="form__group">
-              <label class="form__label" for="{{ form.email.id_for_label }}">Email</label>
-              {{ form.email|add_class:"form__control"|attr:"placeholder=you@school.edu"|attr:"autocomplete=email" }}
-              {% if form.email.errors %}<small class="form__error">{{ form.email.errors|striptags }}</small>{% endif %}
+              <label class="form__label">Subscription</label>
+              <p class="hint">Update your plan and billing details.</p>
+              <a href="{% url 'billing:change_subscription' %}" class="btn btn--primary btn--block" title="Change subscription">
+                Change subscription
+              </a>
             </div>
-          {% endif %}
+
+            <div class="form__group">
+              <label class="form__label">Google access</label>
+              <p class="hint">Connect or change your Google account permissions.</p>
+              {# Update the URL name below to your Google auth route #}
+              <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn--ghost btn--block" title="Change Google access">
+                Change Google access
+              </a>
+            </div>
+          </div>
         </div>
 
-        <!-- ========== Row 2: Change password & Change resume (side-by-side) ========== -->
-        <div class="grid grid--2 account-quick">
-          <!-- Change password block -->
-          <div class="form__group">
-            <label class="form__label">Password</label>
-            <p class="hint">Update your password on the next screen.</p>
-            <a href="/password/change/" class="btn btn--primary btn--block" title="Change password">Change password</a>
-            {# If your URL name is different, use: href="{% url 'password_change' %}" #}
-          </div>
+        <!-- PERSONAL -->
+        <div id="panel-personal" role="tabpanel" aria-labelledby="tab-personal" class="panel" hidden>
+          <form class="account-form" action="" method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
 
-          <!-- Resume block -->
-          <div class="form__group">
-            <label class="form__label" for="{{ form.resume.id_for_label }}">Resume</label>
+            <!-- Row 1: Name & Email -->
+            <div class="grid grid--2">
+              {% if form.full_name %}
+                <div class="form__group">
+                  <label class="form__label" for="{{ form.full_name.id_for_label }}">Full name</label>
+                  {{ form.full_name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
+                  {% if form.full_name.errors %}<small class="form__error">{{ form.full_name.errors|striptags }}</small>{% endif %}
+                </div>
+              {% elif form.name %}
+                <div class="form__group">
+                  <label class="form__label" for="{{ form.name.id_for_label }}">Full name</label>
+                  {{ form.name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
+                  {% if form.name.errors %}<small class="form__error">{{ form.name.errors|striptags }}</small>{% endif %}
+                </div>
+              {% elif form.first_name and form.last_name %}
+                <div class="form__group">
+                  <label class="form__label" for="{{ form.first_name.id_for_label }}">First name</label>
+                  {{ form.first_name|add_class:"form__control"|attr:"autocomplete=given-name" }}
+                  {% if form.first_name.errors %}<small class="form__error">{{ form.first_name.errors|striptags }}</small>{% endif %}
+                </div>
+                <div class="form__group">
+                  <label class="form__label" for="{{ form.last_name.id_for_label }}">Last name</label>
+                  {{ form.last_name|add_class:"form__control"|attr:"autocomplete=family-name" }}
+                  {% if form.last_name.errors %}<small class="form__error">{{ form.last_name.errors|striptags }}</small>{% endif %}
+                </div>
+              {% endif %}
 
-            {% if user.resume %}
-              <p class="current-resume">
-                Current: <a class="link" href="{{ user.resume.url }}" target="_blank" rel="noopener">Download</a>
-              </p>
-            {% else %}
-              <p class="current-resume">No resume uploaded yet.</p>
-            {% endif %}
+              {% if form.email %}
+                <div class="form__group">
+                  <label class="form__label" for="{{ form.email.id_for_label }}">Email</label>
+                  {{ form.email|add_class:"form__control"|attr:"placeholder=you@school.edu"|attr:"autocomplete=email" }}
+                  {% if form.email.errors %}<small class="form__error">{{ form.email.errors|striptags }}</small>{% endif %}
+                </div>
+              {% endif %}
+            </div>
 
-            <div id="resumeDrop" class="dropzone" role="button" tabindex="0" aria-label="Upload resume">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                <rect x="3" y="14" width="18" height="7" rx="2" stroke="currentColor" stroke-width="1.8"/>
-              </svg>
-              <div class="dropzone__copy">
-                <strong>Drag & drop</strong> your PDF here or <span class="link">browse</span>
+            <!-- Quick Actions: password & resume -->
+            <div class="grid grid--2 account-quick">
+              <div class="form__group">
+                <label class="form__label">Password</label>
+                <p class="hint">Update your password on the next screen.</p>
+                <a href="/password/change/" class="btn btn--primary btn--block" title="Change password">Change password</a>
               </div>
-              <div class="dropzone__meta" id="resumeMeta">PDF up to 5&nbsp;MB</div>
+
+              <div class="form__group">
+                {% if form.resume %}
+                  <label class="form__label" for="{{ form.resume.id_for_label }}">Resume</label>
+                  {% if user.resume %}
+                    <p class="current-resume">Current:
+                      <a class="link" href="{{ user.resume.url }}" target="_blank" rel="noopener">Download</a>
+                    </p>
+                  {% else %}
+                    <p class="current-resume">No resume uploaded yet.</p>
+                  {% endif %}
+
+                  <div id="resumeDrop" class="dropzone" role="button" tabindex="0" aria-label="Upload resume">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <rect x="3" y="14" width="18" height="7" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    <div class="dropzone__copy">
+                      <strong>Drag & drop</strong> your PDF here or <span class="link">browse</span>
+                    </div>
+                    <div class="dropzone__meta" id="resumeMeta">PDF up to 5&nbsp;MB</div>
+                  </div>
+
+                  {{ form.resume|add_class:"form__control sr-only"|attr:"accept=application/pdf" }}
+                  {% if form.resume.errors %}<small class="form__error">{{ form.resume.errors|striptags }}</small>{% endif %}
+                {% endif %}
+              </div>
             </div>
 
-            {{ form.resume|add_class:"form__control sr-only"|attr:"accept=application/pdf" }}
-            {% if form.resume.errors %}<small class="form__error">{{ form.resume.errors|striptags }}</small>{% endif %}
-          </div>
+            <!-- Actions -->
+            <div class="actions">
+              <a class="btn btn--ghost" href="{% url 'home' %}">Cancel</a>
+              <button class="btn btn--primary" type="submit">Save changes</button>
+            </div>
+          </form>
         </div>
 
-        <!-- Actions -->
-        <div class="actions">
-          <a class="btn btn--ghost" href="{% url 'home' %}">Cancel</a>
-          <button class="btn btn--primary" type="submit">Update profile</button>
-        </div>
-      </form>
+      </section>
     </div>
   </section>
 </main>
 
 <style>
 :root{
-  --brand:#FF2F5A; --brand-700:#e92650; --ink:#111; --muted:#667085;
-  --card:#fff; --ring:0 0 0 3px rgba(255,47,90,.25);
+  --brand:#2563eb; --brand-700:#1d4ed8; --ink:#111; --muted:#667085;
+  --card:#fff; --ring:0 0 0 3px rgba(37,99,235,.25);
   --shadow-lg:0 28px 64px rgba(16,24,40,.12);
   --font:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  --nav-h:72px; /* adjust if your navbar is taller/shorter */
 }
 *{box-sizing:border-box}
 body{font-family:var(--font); color:var(--ink)}
 
-.account-page {
-  min-height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 85% -10%, rgba(255,47,90,.06), transparent 60%),
-    radial-gradient(900px 460px at -10% 90%, rgba(59,130,246,.06), transparent 60%),
-    #fafafb;
-  /* add top padding equal to your desired spacing */
-  padding-top: 80px;  /* pushes content down but keeps background */
+.settings-page{min-height:100vh; background:#fafafb; padding-top:80px;}
+.settings-shell{max-width:1100px; margin:0 auto clamp(56px,8vh,96px); padding:0 28px;}
+.settings-card{background:var(--card); border-radius:24px; border:1px solid #f1f2f6; box-shadow:var(--shadow-lg); overflow:hidden;}
+
+.card-head{display:flex; align-items:center; gap:16px; padding:22px clamp(18px,4vw,32px); border-bottom:1px solid #f3f4f6;}
+.head-main{margin-left:auto; display:flex; align-items:center; gap:12px;}
+.back-link{display:inline-flex; align-items:center; gap:6px; color:#6b7280; text-decoration:none; font-weight:700; padding:8px 10px; border-radius:10px; border:1px solid #eceef2; background:#fff;}
+.back-link:hover{color:#111;}
+.title{margin:0; font-size:clamp(22px,3.2vw,28px); font-weight:800;}
+.sub{margin:2px 0 0; color:var(--muted);}
+
+/* Tabs */
+.tabs{border-bottom:1px solid #eef0f4; background:#fff;}
+.tablist{display:flex; gap:2px; padding:0 clamp(18px,4vw,32px);}
+.tab{
+  -webkit-appearance:none; appearance:none; background:none; border:0; cursor:pointer;
+  padding:14px 14px; margin:0 4px 0 0; font-weight:800; color:#475569; position:relative;
+  border-radius:10px; transition:background .15s ease,color .15s ease;
 }
-.account-shell {
-  max-width: 1100px;
-  margin: 0 auto clamp(56px,8vh,96px); /* no top margin now */
-  padding: 0 28px;
+.tab:hover{background:#f7f8fa; color:#111;}
+.tab.is-active{color:#111;}
+.tab.is-active::after{
+  content:""; position:absolute; left:10px; right:10px; bottom:-1px; height:3px; border-radius:3px; background:var(--brand);
 }
-.account-card{ background:var(--card); border-radius:24px; border:1px solid #f1f2f6; box-shadow:var(--shadow-lg); overflow:hidden; }
 
-.card-head{ display:flex; align-items:center; gap:16px; padding:22px clamp(18px,4vw,32px); border-bottom:1px solid #f3f4f6; }
-.head-main{ margin-left:auto; display:flex; align-items:center; gap:12px; }
-.back-link{ display:inline-flex; align-items:center; gap:6px; color:#6b7280; text-decoration:none; font-weight:700; padding:8px 10px; border-radius:10px; border:1px solid #eceef2; background:#fff; }
-.back-link:hover{ color:#111; }
-.title{ margin:0; font-size: clamp(22px,3.2vw,28px); font-weight:800; }
-.sub{ margin:2px 0 0; color:var(--muted); }
+/* Panels */
+.panels{padding: clamp(22px,4vw,36px);}
+.panel[hidden]{display:none;}
+.panel.is-active{display:block;}
 
-.account-form{ padding: clamp(22px,4vw,36px); }
-.grid{ display:grid; gap:18px; }
-.grid--2{ grid-template-columns: repeat(2,minmax(240px,1fr)); }
-@media (max-width:760px){ .grid--2{ grid-template-columns:1fr } }
+.grid{display:grid; gap:18px;}
+.grid--2{grid-template-columns:repeat(2,minmax(240px,1fr));}
+@media (max-width:760px){ .grid--2{grid-template-columns:1fr} }
 
-.form__group{ display:flex; flex-direction:column; gap:8px; }
-.form__label{ font-weight:800; font-size:13px; color:#2b2f36; }
+.form__group{display:flex; flex-direction:column; gap:8px;}
+.form__label{font-weight:800; font-size:13px; color:#2b2f36;}
 .form__control{
   width:100%; height:46px; padding:0 12px; border-radius:12px; border:1px solid #e5e7eb; background:#fff;
   font:500 15px/1.2 var(--font); color:var(--ink);
   transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
-.form__control:hover{ background:#f9fafb; }
-.form__control:focus{ outline:none; border-color:var(--brand); box-shadow: var(--ring); }
-textarea.form__control{ min-height:110px; padding:10px 12px; resize:vertical; }
+.form__control:hover{background:#f9fafb;}
+.form__control:focus{outline:none; border-color:var(--brand); box-shadow:var(--ring);}
+textarea.form__control{min-height:110px; padding:10px 12px; resize:vertical;}
 
-.form__controlWrap{ position:relative; }
-.form__controlWrap .form__control{ padding-right:44px; }
-
-/* Dropzone */
 .dropzone{
   display:flex; align-items:center; gap:12px; padding:16px;
   border:1.8px dashed #e5e7eb; border-radius:14px; background:#fcfcfd;
   transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
-.dropzone svg{ color:var(--brand); }
-.dropzone strong{ font-weight:800; }
-.dropzone .link{ color:var(--brand); font-weight:800; text-decoration:none; }
-.dropzone:focus{ outline:none; box-shadow: var(--ring); border-color:var(--brand); }
-.dropzone.is-dragover{ background:#fff7f9; border-color: var(--brand); }
-.dropzone__copy{ color:#2f3640; }
-.dropzone__meta{ color:#80889a; font-size:13px; }
+.dropzone svg{color:var(--brand);}
+.dropzone strong{font-weight:800;}
+.dropzone .link{color:var(--brand); font-weight:800; text-decoration:none;}
+.dropzone:focus{outline:none; box-shadow:var(--ring); border-color:var(--brand);}
+.dropzone.is-dragover{background:#f0f6ff; border-color:var(--brand);}
+.dropzone__copy{color:#2f3640;}
+.dropzone__meta{color:#80889a; font-size:13px;}
 
-/* Messages */
-.form__error{ color:#dc2626; font-size:13px; margin-top:-2px; }
-.hint{ color:#6b7280; font-size:13px; margin-top:4px; }
+.form__error{color:#dc2626; font-size:13px; margin-top:-2px;}
+.hint{color:#6b7280; font-size:13px; margin-top:4px;}
 
-/* Buttons */
 .btn{
   display:inline-flex; align-items:center; gap:8px; justify-content:center;
   height:48px; padding:0 18px; border-radius:12px; border:1px solid transparent;
   font-weight:800; cursor:pointer; text-decoration:none;
   transition:transform .12s ease, box-shadow .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
 }
-.btn--block{ width:100%; }
-.btn--sm{ height:40px; padding:0 14px; border-radius:10px; font-size:14px; }
-.btn--primary{ background:var(--brand); color:#fff; box-shadow:0 6px 12px rgba(255,47,90,.14); }
-.btn--primary:hover{ background:var(--brand-700); transform:translateY(-1px); box-shadow:0 10px 18px rgba(255,47,90,.18); }
-.btn--ghost{ background:#f5f5f5; color:#111; }
-.btn--ghost:hover{ background:#efefef; }
+.btn--block{width:100%;}
+.btn--primary{background:var(--brand); color:#fff; box-shadow:0 6px 12px rgba(37,99,235,.14);}
+.btn--primary:hover{background:var(--brand-700); transform:translateY(-1px); box-shadow:0 10px 18px rgba(37,99,235,.18);}
+.btn--ghost{background:#f5f5f5; color:#111;}
+.btn--ghost:hover{background:#efefef;}
 
-.actions{ margin-top:10px; display:flex; gap:12px; justify-content:flex-end; align-items:center; }
-
-/* Utility */
-.link{ color:var(--brand); font-weight:800; text-decoration:none; }
-.link:hover{ text-decoration:underline; }
-.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+.actions{margin-top:10px; display:flex; gap:12px; justify-content:flex-end; align-items:center;}
+.link{color:var(--brand); font-weight:800; text-decoration:none;}
+.link:hover{text-decoration:underline;}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0;}
 </style>
 
 <script>
-/* Ensure controls are styled even if widget_tweaks wasn't applied globally */
+/* Style safety for inputs if widget_tweaks isn't applied */
 document.querySelectorAll('.account-form :is(input,select,textarea):not(.form__control):not([type="file"])')
   .forEach(el => el.classList.add('form__control'));
+
+/* Tabs: click, keyboard, and hash routing */
+(function(){
+  const tabs = document.querySelectorAll('.tablist .tab');
+  const panels = document.querySelectorAll('.panel');
+
+  function activate(id){
+    tabs.forEach(t=>{
+      const on = t.dataset.tab === id;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    panels.forEach(p=>{
+      const on = p.id === `panel-${id}`;
+      p.classList.toggle('is-active', on);
+      p.hidden = !on;
+    });
+    // update hash (optional)
+    if(history.replaceState) history.replaceState(null, '', `#${id}`);
+  }
+
+  tabs.forEach(t=>{
+    t.addEventListener('click', ()=>activate(t.dataset.tab));
+    t.addEventListener('keydown', (e)=>{
+      const idx = [...tabs].indexOf(t);
+      if(e.key === 'ArrowRight') tabs[Math.min(idx+1, tabs.length-1)].focus();
+      if(e.key === 'ArrowLeft')  tabs[Math.max(idx-1, 0)].focus();
+      if(e.key === 'Enter' || e.key === ' ') activate(t.dataset.tab);
+    });
+  });
+
+  // open tab from URL hash
+  const hash = (location.hash || '').replace('#','');
+  if(hash && document.querySelector(`.tab[data-tab="${hash}"]`)) activate(hash);
+})();
 
 /* Resume dropzone */
 (function(){
@@ -239,4 +308,5 @@ document.querySelectorAll('.account-form :is(input,select,textarea):not(.form__c
   });
 })();
 </script>
+
 {% endblock %}
