@@ -1,7 +1,7 @@
 <!-- =========================
      EMAIL FLOW SHOWCASE MODAL (FIXED)
      ========================= -->
-     <div id="emailFlowShowcase"
+<div id="emailFlowShowcase"
      class="efs"
      role="dialog"
      aria-modal="true"
@@ -62,7 +62,7 @@
   position: relative;
   z-index: 1;
   width: min(1200px, 96vw);
-  height: min(98vh, 1250px) !important; /* allow more height inside modal */
+  height: min(98vh, 1250px) !important;
   overflow-y: auto !important;
   display: flex;
   flex-direction: column;
@@ -118,18 +118,17 @@
   transition: width .35s ease;
 }
 
-/* Make the stage stretch fully between header/footer */
 .efs__stage {
   flex: 1 1 auto;
   width: 100%;
   height: auto !important;
   display: flex;
   flex-direction: column;
-  justify-content: center !important; /* centers cards vertically */
+  justify-content: flex-start !important;
   align-items: center;
   overflow: visible !important;
   gap: 28px;
-  padding: 100px 0 100px; /* increased top and bottom padding to push cards down */
+  padding: 10px 0 40px;
 }
 
 .efs__actions {
@@ -167,133 +166,20 @@
   animation: efs-bar 8.8s linear forwards;
 }
 
-
-/* =========================
-   SLOWER SWIPE TIMELINE (overrides)
-   Put this AFTER your existing CSS
-   ========================= */
-   :root{
-  /* easy knobs */
-  --efs-pre-1: 1.8s;   /* wait before card #1 starts swiping */
-  --efs-pre-2: 5.2s;   /* wait before card #2 starts swiping */
-  --efs-swipe: 1.8s;   /* swipe animation length for each card */
-  --efs-card-in: 0.8s; /* how long the back card fades/scales in */
-  --efs-hand: 1.1s;    /* little hand nudge length */
-
-  /* progress bar should cover full timeline (optional) */
-  --efs-total: 12.5s;
+/* Adjusted card sizing */
+.efs-card {
+  padding: 180px 36px 340px !important;
+  height: auto !important;
+  min-height: 1000px;
+  box-sizing: border-box;
 }
 
-/* Progress bar matches the new total time */
-.efs.play .efs__bar{
-  animation-duration: var(--efs-total);
+.efs-card-stack {
+  height: clamp(1000px, 90vh, 1400px) !important;
 }
-
-/* Card #1 — waits longer, then swipes */
-.efs.play .efs-card--1{
-  animation: efs-swipe-left var(--efs-swipe) var(--efs-pre-1) cubic-bezier(.22,1,.36,1) forwards;
-  overflow: visible;
-}
-.efs.play .efs-card--1 .efs-hand{
-  animation: efs-hand-left var(--efs-hand) calc(var(--efs-pre-1) + .05s) ease forwards;
-}
-
-/* Card #2 — appears, lingers, then swipes away later */
-.efs.play .efs-card--2{
-  /* fades/scales in shortly after card #1 begins moving */
-  animation:
-    efs-card-in var(--efs-card-in) calc(var(--efs-pre-1) + .9s) ease forwards,
-    /* swipes much later so it stays on screen */
-    efs-swipe-right var(--efs-swipe) var(--efs-pre-2) cubic-bezier(.22,1,.36,1) forwards;
-  pointer-events: auto;
-}
-.efs.play .efs-card--2 .efs-hand{
-  animation: efs-hand-right var(--efs-hand) calc(var(--efs-pre-2) + .05s) ease forwards;
-}
-
-/* ===== Strict sequencing: cards first, then email ===== */
-:root{
-  /* your existing knobs */
-  --efs-pre-1: 1.8s;
-  --efs-pre-2: 5.2s;
-  --efs-swipe: 1.8s;
-  --efs-card-in: 0.8s;
-  --efs-hand: 1.1s;
-
-  /* email wait = when card #2 finishes + small buffer */
-  --efs-email-delay: calc(var(--efs-pre-2) + var(--efs-swipe) + .25s);
-  --efs-email-in: .65s; /* email fade duration */
-  --efs-total: calc(var(--efs-email-delay) + var(--efs-email-in) + .2s);
-}
-
-/* progress bar matches full sequence */
-.efs.play .efs__bar{ animation-duration: var(--efs-total); }
-
-/* keep: slower swipe you added */
-.efs.play .efs-card--1{
-  animation: efs-swipe-left var(--efs-swipe) var(--efs-pre-1) cubic-bezier(.22,1,.36,1) forwards;
-  overflow: visible;
-}
-.efs.play .efs-card--1 .efs-hand{
-  animation: efs-hand-left var(--efs-hand) calc(var(--efs-pre-1) + .05s) ease forwards;
-}
-
-/* card #2 appears after #1 moves, then swipes later */
-.efs.play .efs-card--2{
-  animation:
-    efs-card-in var(--efs-card-in) calc(var(--efs-pre-1) + .9s) ease forwards,
-    efs-swipe-right var(--efs-swipe) var(--efs-pre-2) cubic-bezier(.22,1,.36,1) forwards;
-  pointer-events:auto;
-}
-.efs.play .efs-card--2 .efs-hand{
-  animation: efs-hand-right var(--efs-hand) calc(var(--efs-pre-2) + .05s) ease forwards;
-}
-
-/* ---------- EMAIL PANE: show only after card #2 finishes ---------- */
-/* Target the email include. If it has its own class, use that.
-   Fallback: second child of the stage. */
-.efs__stage > :nth-child(2){
-  opacity: 0;
-  transform: translateY(10px) scale(.98);
-  pointer-events: none;
-}
-@keyframes efs-email-in{
-  to{ opacity:1; transform: translateY(0) scale(1); pointer-events:auto; }
-}
-.efs.play .efs__stage > :nth-child(2){
-  animation: efs-email-in var(--efs-email-in) var(--efs-email-delay) ease forwards;
-}
-
-/* === keep content inside the card (safe override) === */
-.efs-card__content{
-  position: relative !important;   /* was absolute */
-  inset: auto !important;          /* cancel absolute offsets */
-}
-
-/* give the card the interior space the content expects */
-  .efs-card {
-    padding: 140px 32px 160px !important;
-    height: auto !important;
-    min-height: 600px;
-    max-height: 720px; /* limit height to prevent stretching */
-    box-sizing: border-box;
-  }
-
-  .efs-card-stack {
-    height: clamp(600px, 75vh, 820px) !important; /* balanced size */
-    display: grid;
-    place-items: center;
-    margin: 40px auto 0 auto; /* slightly pushed down */
-  }
-
-
-
 </style>
 
 <script>
-/**
- * email_flow_showcase.js — modal open/close logic
- */
 (function(){
   const overlay = document.getElementById('emailFlowShowcase');
   if (!overlay) return;
