@@ -798,3 +798,62 @@
 })();
 </script>
 
+
+<script>
+  (() => {
+    const stage = document.querySelector('.efs__stage');
+    if (!stage) return;
+  
+    stage.addEventListener('animationstart', (e) => {
+      const card = e.target.closest('.efs-card');
+      if (!card) return;
+      card.classList.remove('play-hand-left','play-hand-right');
+  
+      if (e.animationName === 'efs-swipe-left') {
+        requestAnimationFrame(() => card.classList.add('play-hand-left'));
+      } else if (e.animationName === 'efs-swipe-right') {
+        requestAnimationFrame(() => card.classList.add('play-hand-right'));
+      }
+    });
+  
+    stage.addEventListener('animationend', (e) => {
+      const card = e.target.closest('.efs-card');
+      if (!card) return;
+      if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
+        card.classList.remove('play-hand-left','play-hand-right');
+      }
+    });
+  })();
+
+
+  (() => {
+  // Listen in CAPTURE phase so we catch animation events fired on the cards
+  const onStart = (e) => {
+    const card = e.target.closest('.efs-card');
+    if (!card) return;
+
+    card.classList.remove('play-hand-left','play-hand-right');
+
+    if (e.animationName === 'efs-swipe-left') {
+      requestAnimationFrame(() => card.classList.add('play-hand-left'));
+    } else if (e.animationName === 'efs-swipe-right') {
+      requestAnimationFrame(() => card.classList.add('play-hand-right'));
+    }
+  };
+
+  const onEnd = (e) => {
+    const card = e.target.closest('.efs-card');
+    if (!card) return;
+    if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
+      card.classList.remove('play-hand-left','play-hand-right');
+    }
+  };
+
+  // Attach to document (capture = true), or to .efs-card elements directly
+  document.addEventListener('animationstart', onStart, true); // << capture!
+  document.addEventListener('animationend',   onEnd,   true); // << capture!
+})();
+
+  </script>
+  
+  
