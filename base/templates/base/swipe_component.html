@@ -558,7 +558,6 @@
       style="position:relative; margin:auto; max-width:380px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:20px; border:1px solid rgba(148,163,184,.15); color:#e6eef8; font-family:'Manrope', sans-serif !important; left:0; right:0;">
       
    <!-- Step info -->
-   <div style="font-size:12px; color:#94a3b8; margin-bottom:6px;">Step <span id="onb-step">1</span> of <span id="onb-total">3</span></div>
    
    <!-- Title + desc -->
    <h3 id="onb-title" style="margin:0 0 8px; font-size:19px; color:#fff; font-weight:700;">Welcome!</h3>
@@ -566,24 +565,11 @@
      Let’s get started by connecting your email so applications can be sent directly.
    </p>
    
-   <!-- Guide box -->
-   <div style="padding:14px 16px; margin-bottom:14px; border-radius:10px; background:linear-gradient(145deg, rgba(45,55,72,.6), rgba(26,32,44,.9)); border:1px solid rgba(99,102,241,.25); font-size:13px; line-height:1.55; color:#e6eaf2; text-align:left;">
-     <div style="font-weight:600; color:#f8fafc; margin-bottom:6px; font-size:14px;">We’re in beta mode — if you see a warning:</div>
-     <ol style="padding-left:18px; margin:0;">
-       <li>Click <strong>Advanced</strong> at the bottom of the warning screen.</li>
-       <li>Select <strong>Go to Internstart</strong>.</li>
-       <li>Choose your Google account.</li>
-       <li>Allow access so your email can connect.</li>
-     </ol>
-     <p style="margin-top:10px; font-size:12px; color:#94a3b8;">
-       This is expected during beta and safe to continue.
-     </p>
-   </div>
+
 
    <!-- Action buttons -->
    <div style="display:flex; gap:8px; justify-content:flex-end;">
      <button id="onb-prev" type="button" style="display:none; padding:6px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:6px;">Back</button>
-     <button id="onb-next" type="button" style="padding:6px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:6px;">Okay</button>
      <a id="onb-primary-link" href="{% url 'start_gmail_auth' %}" 
         style="padding:6px 12px; font-size:13px; background:#ed003c; color:#fff; border-radius:6px; text-decoration:none; font-weight:600;">
         Configure email
