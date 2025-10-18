@@ -12,7 +12,7 @@ def crawl_jobs_from_page(url):
     return jobs
 
 if __name__ == "__main__":
-    test_url = "https://example.com/careers"
+    test_url = "https://boards.greenhouse.io/stripe"
     found_jobs = crawl_jobs_from_page(test_url)
     print(f"Found {len(found_jobs)} job links:")
     for job in found_jobs:
