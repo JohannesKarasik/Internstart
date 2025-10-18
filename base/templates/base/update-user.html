@@ -42,10 +42,18 @@
           <div class="grid grid--2">
             <div class="form__group">
               <label class="form__label">Subscription</label>
-              <p class="hint">Update your plan and billing details.</p>
-              <a href="{% url 'billing:change_subscription' %}" class="btn btn--primary btn--block" title="Change subscription">
-                Change subscription
+              <p class="hint">Cancel your current plan.</p>
+              
+              {# Try namespaced first, then non-namespaced, else # #}
+              {% url 'billing:cancel_subscription' as cancel_sub_url %}
+              {% if not cancel_sub_url %}{% url 'cancel_subscription' as cancel_sub_url %}{% endif %}
+              
+              <a href="{{ cancel_sub_url|default:'#' }}"
+                 class="btn btn--primary btn--block"
+                 title="Cancel subscription" aria-label="Cancel subscription">
+                Cancel subscription
               </a>
+              
             </div>
 
             <div class="form__group">
