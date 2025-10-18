@@ -198,7 +198,7 @@ DATABASES = {
 USE_TZ = True
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
+ 
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -233,13 +233,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 # Static files (CSS, JavaScript, etc.)
 
-# Existing static "images" setup (keep this intact)
-MEDIA_URL = '/images/'
-MEDIA_ROOT = BASE_DIR / 'static/images'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Static files (CSS, JS, app images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
+
 STATIC_ROOT = BASE_DIR/'static'
 # New media setup for user uploads (resumes, avatars, etc.)
 USER_MEDIA_URL = '/media/'                     # URL for user uploads
