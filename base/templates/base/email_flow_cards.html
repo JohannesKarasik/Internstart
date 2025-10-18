@@ -185,7 +185,6 @@
 @keyframes efs-hand-right{0%{transform:translate(0,0)}100%{transform:translate(100px,-12px)}}
 
 .efs.play .efs-card--1{ animation:efs-swipe-left 1.1s .2s cubic-bezier(.22,1,.36,1) forwards; overflow:visible; }
-.efs.play .efs-card--1 .efs-hand{ animation:efs-hand-left .9s .25s ease forwards;   animation: none !important; }
 .efs.play .efs-card--2{
   animation: efs-card-in .6s 1.4s ease forwards,
              efs-swipe-right 1.2s 2.3s cubic-bezier(.22,1,.36,1) forwards;
@@ -621,13 +620,7 @@
 
 
 /* 1) Kill any legacy/timeline animations on the hand */
-.efs.play .efs-card--1 .efs-hand,
-.efs.play .efs-card--2 .efs-hand,
-.efs.play .efs-card-stack .efs-card--1 .efs-hand,
-.efs.play .efs-card-stack .efs-card--2 .efs-hand {
-  animation: none !important;
-  opacity: 0 !important; /* start hidden, let our class animate it */
-}
+
 
 /* 2) Force the new hand animations to win */
 .efs-card.play-hand-left  .efs-hand  { animation: efs-handSwipeLeft  .9s ease forwards !important; }
@@ -644,13 +637,7 @@
 
 
 /* ---- Clean slate: remove any timeline-set hand animation ---- */
-.efs.play .efs-card--1 .efs-hand,
-.efs.play .efs-card--2 .efs-hand,
-.efs.play .efs-card-stack .efs-card--1 .efs-hand,
-.efs.play .efs-card-stack .efs-card--2 .efs-hand {
-  animation: none !important;
-  /* leave opacity alone—animations will control it */
-}
+
 
 /* ---- Hand base (visible size) ---- */
 .efs-card .efs-hand{
