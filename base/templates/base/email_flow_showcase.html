@@ -291,6 +291,52 @@
   overflow-x: hidden !important;
 }
 
+/* === Center the cards + email in the modal (both axes) === */
+
+.efs__stage{
+  /* make the stage fill the available space and use a 1-column grid */
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-auto-flow: row !important;
+  grid-auto-rows: max-content !important;
+
+  /* center the whole stack of rows (cards + email) vertically & horizontally */
+  place-content: center center !important;  /* shorthand for align-content & justify-content */
+  place-items: center center !important;    /* center each child item */
+
+  gap: 16px !important;
+  padding-top: 0 !important;                /* remove extra offset */
+}
+
+/* ensure each child centers within the grid cell */
+.efs-card-stack,
+.efs-phone{
+  justify-self: center !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
+
+/* let the stack size to its content so centering is exact */
+.efs-card-stack{
+  height: auto !important;
+}
+
+/* cards: size to content, keep your interior padding */
+.efs-card{
+  height: auto !important;
+  min-height: 520px !important;             /* tweak if you want more/less height */
+  padding: 140px 32px 140px !important;
+  box-sizing: border-box !important;
+}
+
+/* keep the dialog scrollable if content gets taller than the viewport */
+.efs__dialog{
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+
 
 </style>
 
