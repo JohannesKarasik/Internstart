@@ -18,25 +18,27 @@ SEARCH_PHRASES = [
     '"email your resume to" site:.com',
     '"send your CV to" site:.us',
     '"apply via email" site:.com',
-    '"email applications to" site:.com'
+    '"email applications to" site:.com',
+    '"send resume and cover letter" site:.com',
+    '"apply by email only" site:.com'
 ]
+
 
 # --- SCRAPER FUNCTIONS ---
 
-def get_bing_results(query, max_results=20):
-    """Fetch search results from Bing (works with multiple HTML layouts)."""
-    url = f"https://www.bing.com/search?q={query.replace(' ', '+')}"
+def get_duck_lite_results(query, max_results=25):
+    """Fetch search results from DuckDuckGo Lite HTML (no CAPTCHA, no JS)."""
+    url = f"https://lite.duckduckgo.com/lite/?q={query.replace(' ', '+')}"
     r = requests.get(url, headers=HEADERS, timeout=10)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    links = set()
-    # Standard results
-    for a in soup.select("li.b_algo h2 a[href], h2 a[href], a.tilk[href], a[role='heading'][href]"):
+    links = []
+    for a in soup.select("a[href]"):
         href = a["href"]
-        if href.startswith("http"):
-            links.add(href)
-    links = list(links)
-    print(f"🔗 Debug: found {len(links)} raw links from Bing HTML (length={len(r.text)})")
+        if href.startswith("http") and not any(bad in href for bad in ["duckduckgo", "ad.doubleclick"]):
+            links.append(href)
+
+    print(f"🔗 Debug: found {len(links)} raw links from DuckDuckGo Lite (len={len(r.text)})")
     return links[:max_results]
 
 
@@ -51,8 +53,8 @@ def extract_emails_from_url(url):
         # Filter out generic or irrelevant emails
         filtered = [
             e for e in emails
-            if not any(bad in e for bad in [
-                "noreply", "no-reply", "info@", "support@", "contact@", "sales@", "help@"
+            if not any(bad in e.lower() for bad in [
+                "noreply", "no-reply", "info@", "support@", "contact@", "sales@", "help@", "press@", "media@"
             ])
         ]
         return list(set(filtered))
@@ -66,7 +68,7 @@ def find_jobs_with_emails(pages_per_query=1):
     all_results = []
     for phrase in SEARCH_PHRASES:
         print(f"\n🔍 Searching for: {phrase}")
-        links = get_bing_results(phrase, max_results=15 * pages_per_query)
+        links = get_duck_lite_results(phrase, max_results=15 * pages_per_query)
         print(f"➡️ Found {len(links)} result links")
 
         for link in links:
