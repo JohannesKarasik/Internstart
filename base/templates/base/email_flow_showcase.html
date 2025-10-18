@@ -128,8 +128,8 @@
   justify-content: flex-start;
   align-items: center;
   overflow: visible !important;
-  gap: 20px;
-  padding-top: 40px;
+  gap: 18px;
+  padding-top: 10px; /* reduced top spacing */
 }
 
 .efs__actions {
@@ -169,14 +169,14 @@
 
 /* Adjusted card sizing */
 .efs-card {
-  padding: 180px 36px 340px !important;
+  padding: 140px 36px 260px !important;
   height: auto !important;
-  min-height: 1000px;
+  min-height: 760px; /* reduced height so email fits higher */
   box-sizing: border-box;
 }
 
 .efs-card-stack {
-  height: clamp(1000px, 90vh, 1400px) !important;
+  height: clamp(760px, 70vh, 960px) !important; /* fit better within modal */
 }
 </style>
 
