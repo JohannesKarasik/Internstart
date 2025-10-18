@@ -405,12 +405,32 @@
   height: min(98vh, 1700px) !important;           /* allow even taller cards */
 }
 
+/* 4. Increase stack height for balance */
 .efs-card-stack{
-  height: clamp(1200px, 95vh, 1700px) !important; /* more vertical room */
+  height: clamp(900px, 90vh, 1100px) !important;
+  width: clamp(360px, 36vw, 560px) !important;   /* optional: a bit wider */
 }
 
-.efs-card{
-  padding-bottom: 340px !important;               /* extra space for tags/meta and buttons */
+/* 1. Update .efs-card for taller, flexible layout and button space */
+.efs-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 800px !important;
+  height: auto !important;
+  padding: 200px 36px 180px !important; /* extra space for content and buttons */
+  box-sizing: border-box;
+  border-radius:28px;
+  background:linear-gradient(180deg,#0f1527,#0c1426);
+  border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 40px 80px rgba(0,0,0,.65);
+  overflow:hidden;
+}
+.theme-light .efs-card{
+  background:linear-gradient(180deg,#f6f8fc,#eef2f7);
+  border-color:#d5dbe6;
+  box-shadow:0 24px 50px rgba(15,23,42,.14);
 }
 
 .efs-eyebrow{
@@ -421,6 +441,9 @@
 .efs-title{
   font-size: clamp(22px, 2.8vw, 40px) !important; /* smaller, balanced */
   line-height: 1.08 !important;
+  margin: 0 !important;
+  word-break: break-word !important;
+  hyphens: auto !important;
 }
 
 .efs-tags .tag{
@@ -431,19 +454,34 @@
 .efs-meta{
   font-size: 0.95rem !important;
   opacity: .78 !important;
+  margin-top: auto;
 }
 
-/* Swipe buttons container */
+/* 2. Update .efs-card__content to flow above buttons */
+.efs-card__content {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 18px;
+  padding-bottom: 60px !important; /* ensures tags/meta sit above buttons */
+  color: inherit !important;
+  min-height: 0 !important;
+}
+
+/* 3. Update .swipe-actions so buttons are anchored inside card bottom, not overlapping */
 .swipe-actions {
   position: absolute;
-  bottom: 40px;
+  bottom: 24px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 80px;
-  z-index: 5;
+  z-index: 3;
+  pointer-events: auto;
 }
 
   .swipe-btn {
