@@ -558,7 +558,7 @@
       style="position:relative; margin:auto; max-width:380px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:20px; border:1px solid rgba(148,163,184,.15); color:#e6eef8; font-family:'Manrope', sans-serif !important; left:0; right:0;">
       
    <!-- Step info -->
-   <div style="font-size:12px; color:#94a3b8; margin-bottom:6px;">Step <span id="onb-step">1</span> of <span id="onb-total">3</span></div>
+   <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display: none;">Step <span id="onb-step" style="display: none;">1</span> of <span id="onb-total">3</span></div>
    
    <!-- Title + desc -->
    <h3 id="onb-title" style="margin:0 0 8px; font-size:19px; color:#fff; font-weight:700;">Welcome!</h3>
@@ -583,6 +583,7 @@
    <!-- Action buttons -->
    <div style="display:flex; gap:8px; justify-content:flex-end;">
      <button id="onb-prev" type="button" style="display:none; padding:6px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:6px;">Back</button>
+     <button id="onb-next" type="button" style="padding:6px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:6px; display: none;">Okay</button>
      <a id="onb-primary-link" href="{% url 'start_gmail_auth' %}" 
         style="padding:6px 12px; font-size:13px; background:#ed003c; color:#fff; border-radius:6px; text-decoration:none; font-weight:600;">
         Configure email
