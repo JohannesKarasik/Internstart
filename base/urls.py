@@ -65,7 +65,7 @@ urlpatterns = [
     path('update-room/<int:pk>/', views.updateRoom, name="update-room"),
     path('delete-room/<int:pk>/', views.deleteRoom, name='deleteRoom'),
     path('terms/', views.terms_conditions, name='terms_conditions'),
-    path("cancel-subscription/", views.cancel_subscription, name="cancel_subscription")
+    path("cancel-subscription/", views.cancel_subscription, name="cancel_subscription"),
 
 
 
