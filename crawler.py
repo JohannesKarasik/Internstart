@@ -112,6 +112,18 @@ def crawl_university(name, url):
     for link in links:
         if not any(x in link.lower() for x in ["job", "career", "position", "employment"]):
             continue
+        if link.startswith("mailto:"):
+            email = link.replace("mailto:", "").split("?")[0]
+            s, ctx = score_email(email, "")
+            if s > 1:
+                results.append({
+                    "source": name,
+                    "url": url,
+                    "email": email,
+                    "context": "Direct mailto link",
+                    "score": s,
+                })
+            continue  # skip normal fetch_html
         text = fetch_html(link)
         for email in extract_emails(text):
             s, ctx = score_email(email, text)
