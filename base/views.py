@@ -763,6 +763,53 @@ def landing_page(request):
     return render(request, 'base/landing_page.html')
 
 
+@login_required
+def revoke_google_access(request):
+    """
+    Fully revoke Gmail OAuth access for the logged-in user.
+    After this, the app can no longer send emails on their behalf.
+    """
+    user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
+
+    if not user_creds:
+        messages.info(request, "No connected Google account to revoke.")
+        return redirect('update-user')
+
+    # Attempt to revoke with Google API
+    try:
+        revoke_url = "https://oauth2.googleapis.com/revoke"
+        token_to_revoke = user_creds.token or user_creds.refresh_token
+
+        response = requests.post(
+            revoke_url,
+            params={'token': token_to_revoke},
+            headers={'content-type': 'application/x-www-form-urlencoded'},
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            messages.success(request, "Google access successfully revoked.")
+        elif response.status_code == 400:
+            # Already revoked or invalid token
+            messages.info(request, "Google access already revoked or invalid.")
+        else:
+            messages.warning(
+                request,
+                f"Google revocation returned unexpected status: {response.status_code}"
+            )
+
+    except Exception as e:
+        print(f"[GOOGLE REVOKE ERROR] {e}")
+        messages.error(request, "Failed to contact Google revoke endpoint.")
+
+    # 🔥 Remove local credentials regardless (for safety)
+    user_creds.delete()
+
+    # Optionally flag user as disconnected
+    request.user.email_configured = False
+    request.user.save()
+
+    return redirect('update-user')
 
 
 def loginPage(request):

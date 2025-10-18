@@ -66,6 +66,8 @@ urlpatterns = [
     path('delete-room/<int:pk>/', views.deleteRoom, name='deleteRoom'),
     path('terms/', views.terms_conditions, name='terms_conditions'),
     path("cancel-subscription/", views.cancel_subscription, name="cancel_subscription"),
+    path("revoke-google-access/", views.revoke_google_access, name="revoke_google_access"),
+
 
 
 
