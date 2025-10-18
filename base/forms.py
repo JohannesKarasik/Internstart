@@ -82,9 +82,9 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
-    # Country dropdown with flags
+    # Country dropdown
     country = forms.ChoiceField(
-        choices=User.COUNTRY_CHOICES,
+        choices=[('', 'Select country')] + User.COUNTRY_CHOICES,
         required=True,
         label="Country",
         widget=forms.Select(attrs={
@@ -94,7 +94,7 @@ class StudentCreationForm(UserCreationForm):
 
     # Industry dropdown
     student_industry = forms.ChoiceField(
-        choices=User.INDUSTRY_CHOICES,
+        choices=[('', 'Select industry')] + User.INDUSTRY_CHOICES,
         required=True,
         label="Industry",
         widget=forms.Select(attrs={
@@ -104,7 +104,7 @@ class StudentCreationForm(UserCreationForm):
 
     # Job type dropdown
     job_type = forms.ChoiceField(
-        choices=User.JOB_TYPE_CHOICES,
+        choices=[('', 'Select job type')] + User.JOB_TYPE_CHOICES,
         required=True,
         label="What type of job are you looking for?",
         widget=forms.Select(attrs={
