@@ -382,6 +382,50 @@
 }
 
 
+/* === FINAL POSITIONING OVERRIDES — put LAST === */
+:root{
+  /* Bigger top spacer pushes the group down inside the modal */
+  --efs-top-fr: 2.2fr;   /* try 2.4fr or 2.8fr if you want lower */
+  --efs-bottom-fr: 1fr;
+
+  /* Fine-tune nudge for the cards only (email stays put) */
+  --efs-cards-shift: 32px; /* increase to move further down */
+}
+
+.efs__stage{
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows:
+    minmax(0, var(--efs-top-fr))
+    max-content
+    max-content
+    minmax(0, var(--efs-bottom-fr)) !important;
+  justify-items: center !important;  /* center horizontally */
+  align-content: stretch !important; /* respect the spacer rows */
+  gap: 16px !important;
+  padding: 0 !important;
+}
+
+.efs-card-stack{
+  grid-row: 2 !important;
+  margin: 0 auto !important;                   /* kill earlier margins */
+  height: auto !important;                     /* let content decide */
+  transform: translateY(var(--efs-cards-shift)) !important; /* nudge down */
+}
+
+.efs-phone{
+  grid-row: 3 !important;                      /* email stays centered */
+}
+
+.efs-card{
+  height: auto !important;
+  min-height: 520px !important;
+  padding: 140px 32px 140px !important;
+  box-sizing: border-box !important;
+}
+
+
+
 </style>
 
 <script>
