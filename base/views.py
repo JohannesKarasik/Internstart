@@ -999,6 +999,9 @@ def swipe_view(request):
 
 
 
+
+
+
 @login_required
 def swipe_jobs_api(request):
     page = int(request.GET.get("page", 1))   # current page number (1, 2, 3, ...)
@@ -1369,7 +1372,19 @@ def ProfileInfo(request, pk):
 
 
 
+@login_required
+def cancel_subscription(request):
+    """
+    Allows a logged-in user to cancel their current subscription.
+    This version downgrades them to free immediately (you can expand it later).
+    """
+    user = request.user
+    user.subscription_status = "canceled"
+    user.subscription_tier = "free"
+    user.save()
 
+    messages.success(request, "Your subscription has been cancelled. You're now on the Free plan.")
+    return redirect('update-user')
 
 
 @login_required
