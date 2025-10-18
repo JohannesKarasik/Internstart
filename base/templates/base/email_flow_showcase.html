@@ -272,14 +272,18 @@
 
 /* give the card the interior space the content expects */
   .efs-card {
-    padding: 180px 36px 340px !important; /* extra bottom padding for buttons */
+    padding: 140px 32px 160px !important;
     height: auto !important;
-    min-height: 1000px;
+    min-height: 600px;
+    max-height: 720px; /* limit height to prevent stretching */
     box-sizing: border-box;
   }
 
   .efs-card-stack {
-    height: clamp(1000px, 90vh, 1400px) !important; /* taller stack so buttons fit below content */
+    height: clamp(600px, 75vh, 820px) !important; /* balanced size */
+    display: grid;
+    place-items: center;
+    margin: 40px auto 0 auto; /* slightly pushed down */
   }
 
 
