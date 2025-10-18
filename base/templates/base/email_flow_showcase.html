@@ -62,7 +62,7 @@
   position: relative;
   z-index: 1;
   width: min(1200px, 96vw);
-  height: min(96vh, 1050px) !important;
+  height: min(98vh, 1250px) !important; /* allow more height inside modal */
   overflow-y: auto !important;
   display: flex;
   flex-direction: column;
@@ -122,14 +122,14 @@
 .efs__stage {
   flex: 1 1 auto;
   width: 100%;
-  height: 100%;
+  height: auto !important;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center !important; /* centers cards vertically */
   align-items: center;
-  overflow: hidden;
+  overflow: visible !important;
   gap: 28px;
-  padding: 10px 0;
+  padding: 100px 0 100px; /* increased top and bottom padding to push cards down */
 }
 
 .efs__actions {
@@ -272,13 +272,14 @@
 
 /* give the card the interior space the content expects */
   .efs-card {
-    padding: 200px 36px 200px !important;
-    height: 95% !important;
+    padding: 180px 36px 340px !important; /* extra bottom padding for buttons */
+    height: auto !important;
+    min-height: 1000px;
     box-sizing: border-box;
   }
 
   .efs-card-stack {
-    height: clamp(700px, 85vh, 1100px) !important;
+    height: clamp(1000px, 90vh, 1400px) !important; /* taller stack so buttons fit below content */
   }
 
 
