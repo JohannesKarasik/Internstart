@@ -58,12 +58,19 @@
 
             <div class="form__group">
               <label class="form__label">Google access</label>
-              <p class="hint">Connect or change your Google account permissions.</p>
-              {# Update the URL name below to your Google auth route #}
-              <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn--ghost btn--block" title="Change Google access">
-                Change Google access
-              </a>
+              <p class="hint">Manage your connected Google account permissions.</p>
+            
+              {% if user.usergooglecredential_set.exists %}
+                <a href="{% url 'revoke_google_access' %}" class="btn btn--danger btn--block" title="Revoke Google access">
+                  Revoke Google access
+                </a>
+              {% else %}
+                <a href="{% url 'start_gmail_auth' %}" class="btn btn--ghost btn--block" title="Connect Google account">
+                  Connect Google account
+                </a>
+              {% endif %}
             </div>
+            
           </div>
         </div>
 
