@@ -439,6 +439,40 @@
 }
 
 
+/* === overlap cards + email in the exact same spot (center) === */
+
+/* make the stage the positioning context */
+.efs__stage{
+  position: relative !important;
+  display: block !important;      /* cancel grid/flex from earlier rules */
+  height: 100% !important;
+  padding: 0 !important;
+  place-content: normal !important;
+  place-items: normal !important;
+}
+
+/* center BOTH layers and overlap them */
+.efs-card-stack,
+.efs-phone{
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+}
+
+/* cards on top first; email comes above when the modal plays */
+.efs-card-stack{ z-index: 2 !important; }
+.efs-phone{ z-index: 1 !important; }
+.efs.play .efs-phone{ z-index: 3 !important; }  /* ensure email overlays when shown */
+
+/* remove any footprint/spacer you added for the absolute cards */
+.efs-card-stack::before{ content: none !important; }
+
+/* optional: if you still have any grid-row placement, neutralize it */
+.efs-card-stack, .efs-phone{ grid-row: auto !important; }
+
+
 
 
 </style>
