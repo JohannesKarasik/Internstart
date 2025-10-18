@@ -620,6 +620,27 @@
 .efs-card.play-hand-right .efs-hand{ animation: efs-handSwipeRight 0.9s ease forwards; }
 
 
+/* 1) Kill any legacy/timeline animations on the hand */
+.efs.play .efs-card--1 .efs-hand,
+.efs.play .efs-card--2 .efs-hand,
+.efs.play .efs-card-stack .efs-card--1 .efs-hand,
+.efs.play .efs-card-stack .efs-card--2 .efs-hand {
+  animation: none !important;
+  opacity: 0 !important; /* start hidden, let our class animate it */
+}
+
+/* 2) Force the new hand animations to win */
+.efs-card.play-hand-left  .efs-hand  { animation: efs-handSwipeLeft  .9s ease forwards !important; }
+.efs-card.play-hand-right .efs-hand  { animation: efs-handSwipeRight .9s ease forwards !important; }
+
+/* 3) Make sure the hand is visible above buttons etc. */
+.efs-hand { 
+  width: 48px; height: 48px; 
+  position: absolute; right: 32px; bottom: 32px;
+  color: #ffd6de; pointer-events: none; z-index: 9; 
+}
+.efs-hand svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2; }
+
 
 </style>
 
