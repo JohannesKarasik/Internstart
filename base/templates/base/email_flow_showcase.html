@@ -206,6 +206,41 @@
   pointer-events: auto !important;
 }
 
+/* === Pull the email up (place after your existing CSS) === */
+
+/* Make the stack shorter so the email appears higher */
+.efs-card-stack{
+  height: clamp(420px, 46vh, 620px) !important;  /* was ~520–960px */
+  margin: 0 !important;
+}
+
+/* Cards still fill the stack but with less bottom padding */
+.efs-card{
+  min-height: 460px !important;                  /* was 560–760px */
+  height: 100% !important;
+  padding: 140px 32px 120px !important;          /* reduce bottom space */
+  box-sizing: border-box !important;
+}
+
+/* Keep the stage tight and content starting at the top */
+.efs__stage{
+  justify-content: flex-start !important;
+  gap: 12px !important;                           /* smaller gap between cards & email */
+  padding-top: 6px !important;
+}
+
+/* Ensure the email block doesn’t add extra spacing */
+.efs-phone{
+  margin: 0 !important;                           /* no stray margins */
+}
+
+/* Keep scrolling available if needed (don’t clip) */
+.efs__dialog{
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+
 </style>
 
 <script>
