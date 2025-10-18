@@ -178,6 +178,34 @@
 .efs-card-stack {
   height: clamp(760px, 70vh, 960px) !important; /* fit better within modal */
 }
+
+
+/* Let the dialog scroll instead of clipping the email */
+.efs__dialog{
+  overflow-y: auto !important;   /* was overflow: hidden */
+  overflow-x: hidden !important;
+  height: min(96vh, 1050px) !important; /* you can keep your cap, just not smaller than the stack+email */
+}
+
+/* Make the card stack leave room for the email below */
+.efs-card-stack{
+  height: clamp(520px, 52vh, 740px) !important;  /* reduce a bit so both fit */
+}
+
+/* Cards still fill their stack, but don’t demand excessive height */
+.efs-card{
+  min-height: 560px !important;
+  height: 100% !important;
+  padding-bottom: 160px !important; /* enough room for tags/meta */
+}
+
+/* If you still have the sequencing hide rule somewhere, neutralize it */
+.efs__stage > :nth-child(2){
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
 </style>
 
 <script>
