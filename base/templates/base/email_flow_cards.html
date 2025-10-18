@@ -564,5 +564,69 @@
 }
 
 
+/* Hand: hidden by default; sits near the bottom-right of the card */
+.efs-hand{
+  position:absolute;
+  right:32px; bottom:32px;
+  color:#ffd6de;
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));
+  opacity:0;                 /* ← hidden until we animate */
+  pointer-events:none;
+  transform: translate(0,0) scale(1);
+  will-change: transform, opacity;
+}
+
+/* swipe-left: hand appears & moves left across the card */
+@keyframes efs-handSwipeLeft {
+  0%   { opacity:0; transform: translate(30px, -2px) rotate(2deg) scale(.98); }
+  10%  { opacity:1; transform: translate(8px, -2px) rotate(0deg)  scale(1); }
+  100% { opacity:0; transform: translate(-160px, -14px) rotate(-10deg) scale(.98); }
+}
+
+/* swipe-right: hand comes in from left & moves right */
+@keyframes efs-handSwipeRight {
+  0%   { opacity:0; transform: translate(-30px, -2px) rotate(-2deg) scale(.98); }
+  10%  { opacity:1; transform: translate(-6px, -2px) rotate(0deg)  scale(1); }
+  100% { opacity:0; transform: translate(160px, -14px)  rotate(10deg) scale(.98); }
+}
+
+/* Hook classes to play an animation once */
+.efs-card.play-hand-left  .efs-hand{ animation: efs-handSwipeLeft 0.9s ease forwards; }
+.efs-card.play-hand-right .efs-hand{ animation: efs-handSwipeRight 0.9s ease forwards; }
+
+
+
 </style>
 
+<script>
+  (function(){
+    const stage = document.querySelector('.efs__stage');
+  
+    // When a swipe animation begins on any card, play the matching hand animation
+    stage.addEventListener('animationstart', (e) => {
+      const card = e.target.closest('.efs-card');
+      if (!card) return;
+  
+      // clean previous flags
+      card.classList.remove('play-hand-left','play-hand-right');
+  
+      if (e.animationName === 'efs-swipe-left') {
+        // nudge the hand for a left swipe
+        requestAnimationFrame(()=> card.classList.add('play-hand-left'));
+      } else if (e.animationName === 'efs-swipe-right') {
+        // nudge the hand for a right swipe
+        requestAnimationFrame(()=> card.classList.add('play-hand-right'));
+      }
+    });
+  
+    // Clean up class after the hand finishes (so it can replay)
+    stage.addEventListener('animationend', (e) => {
+      const card = e.target.closest('.efs-card');
+      if (!card) return;
+      if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
+        card.classList.remove('play-hand-left','play-hand-right');
+      }
+    });
+  })();
+  </script>
+  
