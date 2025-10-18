@@ -1365,18 +1365,24 @@ def updateUser(request):
         if form.is_valid():
             user = form.save()
             messages.success(request, "Profile updated!")
-            return redirect('update-user')  # stay on the same page
+            return redirect('update-user')
     else:
         form = UserForm(instance=user)
+
+    # 🔹 Check if this user has Gmail OAuth connected
+    from .models import UserGoogleCredential
+    has_gmail_connected = UserGoogleCredential.objects.filter(user=user).exists()
 
     return render(
         request,
         'base/update-user.html',
         {
             'form': form,
-            'user': user,  # still pass user so the resume can be displayed
+            'user': user,
+            'has_gmail_connected': has_gmail_connected,  # ✅ new context variable
         },
     )
+
 
 
 @login_required(login_url='app_login')

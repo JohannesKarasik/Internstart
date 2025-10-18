@@ -60,16 +60,22 @@
               <label class="form__label">Google access</label>
               <p class="hint">Manage your connected Google account permissions.</p>
             
-              {% if user.usergooglecredential_set.exists %}
-                <a href="{% url 'revoke_google_access' %}" class="btn btn--danger btn--block" title="Revoke Google access">
-                  Revoke Google access
+              {% if has_gmail_connected %}
+                <a href="{% url 'revoke_google_access' %}"
+                   class="btn btn--danger btn--block"
+                   title="Revoke Google access"
+                   onclick="return confirm('Are you sure you want to revoke Gmail access? This will disconnect your Google account.');">
+                   Revoke Google access
                 </a>
               {% else %}
-                <a href="{% url 'start_gmail_auth' %}" class="btn btn--ghost btn--block" title="Connect Google account">
-                  Connect Google account
+                <a href="{% url 'start_gmail_auth' %}"
+                   class="btn btn--ghost btn--block"
+                   title="Connect Google account">
+                   Connect Google account
                 </a>
               {% endif %}
             </div>
+            
             
           </div>
         </div>
