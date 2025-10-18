@@ -1,57 +1,46 @@
-import json
+import requests
+from bs4 import BeautifulSoup
 import re
+import json
 import time
-from playwright.sync_api import sync_playwright
 
 EMAIL_REGEX = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
-def crawl_indeed_for_emails(query="software intern", location="denmark", pages=1):
-    """Search Indeed for job listings and extract any emails from postings."""
+def find_jobs_with_emails(query, pages=2):
     results = []
+    for page in range(pages):
+        start = page * 10
+        url = f"https://www.google.com/search?q={query}&start={start}"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(url, headers=headers)
+        soup = BeautifulSoup(r.text, "html.parser")
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-        page = browser.new_page()
-
-        for page_num in range(pages):
-            url = f"https://dk.indeed.com/jobs?q={query}&l={location}&start={page_num*10}"
-            print(f"🔍 Searching: {url}")
-            page.goto(url, timeout=30000)
-            page.wait_for_timeout(3000)  # wait for dynamic content to load
-
-            job_links = [
-                a.get_attribute("href")
-                for a in page.query_selector_all("a[data-jk]")
-            ]
-            job_links = [f"https://dk.indeed.com{l}" if l.startswith("/") else l for l in job_links]
-            job_links = list(set(job_links))
-            print(f"➡️ Found {len(job_links)} job links on page {page_num+1}")
-
-            for job_url in job_links:
+        # Extract all visible result links
+        for a in soup.select("a[href]"):
+            href = a["href"]
+            if href.startswith("/url?q="):
+                target_url = href.split("/url?q=")[1].split("&")[0]
+                # Visit the target page
                 try:
-                    page.goto(job_url, timeout=30000)
-                    page.wait_for_timeout(2000)
-                    text = page.content()
+                    page_r = requests.get(target_url, headers=headers, timeout=8)
+                    text = page_r.text
                     emails = re.findall(EMAIL_REGEX, text)
-                    # Filter only relevant job emails
-                    emails = [
+                    # Filter relevant emails
+                    relevant = [
                         e for e in emails
-                        if any(keyword in e for keyword in ["hr", "career", "jobs", "apply", "recruit", "talent"])
+                        if any(x in e for x in ["hr", "career", "jobs", "apply", "recruit", "work"])
                     ]
-                    if emails:
-                        print(f"✅ {job_url} → {emails}")
-                        results.append({"url": job_url, "emails": emails})
+                    if relevant:
+                        print(f"✅ {target_url} → {relevant}")
+                        results.append({"url": target_url, "emails": relevant})
                 except Exception as e:
-                    print(f"⚠️ Error with {job_url}: {e}")
+                    print(f"⚠️ Skipped {target_url}: {e}")
                 time.sleep(1)
-
-        browser.close()
 
     return results
 
-
 if __name__ == "__main__":
-    results = crawl_indeed_for_emails(query="software intern", location="Denmark", pages=2)
-    with open("indeed_emails.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
-    print(f"\n✅ Done! Saved {len(results)} listings with email addresses to indeed_emails.json")
+    data = find_jobs_with_emails('"send your CV to" site:.dk', pages=2)
+    with open("email_jobs.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    print(f"✅ Done! Saved {len(data)} listings with emails to email_jobs.json")
