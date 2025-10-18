@@ -337,6 +337,50 @@
 }
 
 
+/* === Vertically center cards + email as a group, then nudge down === */
+:root{
+  /* increase --efs-top-fr to push content further DOWN (e.g. 1.4, 1.6, 2) */
+  --efs-top-fr: 1.35;
+  --efs-bottom-fr: 1;
+}
+
+.efs__stage{
+  /* full height area to center within */
+  height: 100% !important;
+  min-height: 0 !important;
+
+  /* 4-row grid: [spacer][cards][email][spacer] */
+  display: grid !important;
+  grid-template-rows:
+    minmax(0, var(--efs-top-fr)fr)
+    max-content
+    max-content
+    minmax(0, var(--efs-bottom-fr)fr) !important;
+
+  /* center each child horizontally */
+  justify-items: center !important;
+
+  /* no extra offsets */
+  gap: 16px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* put the cards in row 2, email in row 3 */
+.efs-card-stack{ grid-row: 2 !important; }
+.efs-phone{ grid-row: 3 !important; }
+
+/* ensure the stack sizes to its content (so vertical math is precise) */
+.efs-card-stack{ height: auto !important; }
+
+/* cards still size to content */
+.efs-card{
+  height: auto !important;
+  min-height: 520px !important;
+  padding: 140px 32px 140px !important;
+  box-sizing: border-box !important;
+}
+
 
 </style>
 
