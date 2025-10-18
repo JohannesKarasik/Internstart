@@ -659,6 +659,36 @@
 .efs-card.play-hand-right .efs-hand{ animation: efs-handSwipeRight .9s ease forwards !important; }
 
 
+/* 1) Stop any legacy hand animations from running */
+.efs.play .efs-card--1 .efs-hand,
+.efs.play .efs-card--2 .efs-hand { animation: none !important; }
+
+/* 2) Solid base for the hand (visible size, but hidden by default) */
+.efs-card .efs-hand{
+  position:absolute; right:32px; bottom:32px;
+  width:48px; height:48px; z-index:9;
+  color:#ffd6de; pointer-events:none;
+  opacity:0; filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));
+}
+.efs-card .efs-hand svg{ width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* 3) Use keyframes that fade the hand IN and OUT */
+@keyframes efs-handSwipeLeft  {
+  0%{opacity:0;transform:translate(30px,-2px) rotate(2deg)}
+  10%{opacity:1;transform:translate(8px,-2px) rotate(0)}
+  100%{opacity:0;transform:translate(-160px,-14px) rotate(-10deg)}
+}
+@keyframes efs-handSwipeRight {
+  0%{opacity:0;transform:translate(-30px,-2px) rotate(-2deg)}
+  10%{opacity:1;transform:translate(-6px,-2px) rotate(0)}
+  100%{opacity:0;transform:translate(160px,-14px) rotate(10deg)}
+}
+
+/* When JS adds these classes, the hand plays and becomes visible */
+.efs-card.play-hand-left  .efs-hand { animation: efs-handSwipeLeft  .9s ease forwards !important; }
+.efs-card.play-hand-right .efs-hand { animation: efs-handSwipeRight .9s ease forwards !important; }
+
+
 </style>
 
 <script>
