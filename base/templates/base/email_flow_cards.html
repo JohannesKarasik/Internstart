@@ -715,61 +715,86 @@
 
 </style>
 
+<style>
+  /* FORCE the hand to be visible and above other UI */
+  .efs-card .efs-hand{
+    opacity: 1 !important;
+    display: block !important;
+    position: absolute !important;
+    right: 32px !important;
+    bottom: 32px !important;
+    width: 48px !important;
+    height: 48px !important;
+    z-index: 1000 !important;
+    color: #ffd6de !important;
+    pointer-events: none !important;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,.35)) !important;
+  }
+  .efs-card .efs-hand svg{
+    width: 100% !important; height: 100% !important;
+    stroke: currentColor !important; fill: none !important; stroke-width: 2 !important;
+    stroke-linecap: round !important; stroke-linejoin: round !important;
+  }
+  /* Just in case: make the card a positioning context */
+  .efs-card{ position: relative !important; }
+</style>
+
 <script>
-  (() => {
-    const stage = document.querySelector('.efs__stage');
-    if (!stage) return;
-  
-    stage.addEventListener('animationstart', (e) => {
-      const card = e.target.closest('.efs-card');
-      if (!card) return;
-      card.classList.remove('play-hand-left','play-hand-right');
-  
-      if (e.animationName === 'efs-swipe-left') {
-        requestAnimationFrame(() => card.classList.add('play-hand-left'));
-      } else if (e.animationName === 'efs-swipe-right') {
-        requestAnimationFrame(() => card.classList.add('play-hand-right'));
-      }
-    });
-  
-    stage.addEventListener('animationend', (e) => {
-      const card = e.target.closest('.efs-card');
-      if (!card) return;
-      if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
-        card.classList.remove('play-hand-left','play-hand-right');
-      }
-    });
-  })();
-
-
-  (() => {
-  // Listen in CAPTURE phase so we catch animation events fired on the cards
-  const onStart = (e) => {
-    const card = e.target.closest('.efs-card');
-    if (!card) return;
-
-    card.classList.remove('play-hand-left','play-hand-right');
-
-    if (e.animationName === 'efs-swipe-left') {
-      requestAnimationFrame(() => card.classList.add('play-hand-left'));
-    } else if (e.animationName === 'efs-swipe-right') {
-      requestAnimationFrame(() => card.classList.add('play-hand-right'));
+(() => {
+  function ensureHand(card){
+    let hand = card.querySelector('.efs-hand');
+    if (!hand) {
+      hand = document.createElement('div');
+      hand.className = 'efs-hand';
+      hand.setAttribute('aria-hidden','true');
+      hand.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 12v-2a2 2 0 1 1 4 0v2" />
+          <path d="M12 12v-4a2 2 0 1 1 4 0v6" />
+          <path d="M16 12v-2a2 2 0 1 1 4 0v5c0 2.5-2 4.5-4.5 4.5H11a6 6 0 0 1-6-6v-1a2 2 0 1 1 4 0" />
+        </svg>`;
+      card.appendChild(hand);
     }
-  };
+    // Nuke anything that might hide it
+    Object.assign(hand.style, {
+      opacity: '1',
+      display: 'block'
+    });
+    return hand;
+  }
 
-  const onEnd = (e) => {
-    const card = e.target.closest('.efs-card');
-    if (!card) return;
-    if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
-      card.classList.remove('play-hand-left','play-hand-right');
-    }
-  };
+  function forceShowAndAnimate(){
+    document.querySelectorAll('.efs-card').forEach((card, i) => {
+      const hand = ensureHand(card);
 
-  // Attach to document (capture = true), or to .efs-card elements directly
-  document.addEventListener('animationstart', onStart, true); // << capture!
-  document.addEventListener('animationend',   onEnd,   true); // << capture!
+      // Two simple Web Animations: left then right. No CSS classes needed.
+      const leftKF = [
+        { opacity: 0, transform: 'translate(30px,-2px) rotate(2deg)' },
+        { opacity: 1, transform: 'translate(8px,-2px) rotate(0deg)' },
+        { opacity: 0, transform: 'translate(-160px,-14px) rotate(-10deg)' }
+      ];
+      const rightKF = [
+        { opacity: 0, transform: 'translate(-30px,-2px) rotate(-2deg)' },
+        { opacity: 1, transform: 'translate(-6px,-2px) rotate(0deg)' },
+        { opacity: 0, transform: 'translate(160px,-14px) rotate(10deg)' }
+      ];
+
+      // Stagger a bit per card so you can see both
+      const baseDelay = i * 600;
+
+      // Play left swipe
+      hand.animate(leftKF, { duration: 900, easing: 'ease', delay: baseDelay + 200, fill: 'both' });
+      // Then right swipe
+      hand.animate(rightKF, { duration: 900, easing: 'ease', delay: baseDelay + 1800, fill: 'both' });
+    });
+  }
+
+  // Run once DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', forceShowAndAnimate);
+  } else {
+    forceShowAndAnimate();
+  }
 })();
+</script>
 
-  </script>
-  
-  
