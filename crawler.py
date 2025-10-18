@@ -1,90 +1,154 @@
-import requests
+import re, json, time, requests
 from bs4 import BeautifulSoup
-import re
-import json
-import time
+from urllib.parse import urljoin
 
-# --- CONFIG ---
-EMAIL_REGEX = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# -------------------------------- CONFIG -------------------------------- #
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
 }
+EMAIL_STD = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 
-# U.S.-focused search phrases
-SEARCH_PHRASES = [
-    '"send your resume to" site:.com',
-    '"apply by emailing" site:.com',
-    '"send application to" site:.com',
-    '"email your resume to" site:.com',
-    '"send your CV to" site:.us',
-    '"apply via email" site:.com',
-    '"email applications to" site:.com',
-    '"send resume and cover letter" site:.com',
-    '"apply by email only" site:.com'
+OBF_PAIRS = [
+    (r"\s*\[\s*at\s*\]|\s*\(\s*at\s*\)\s*|\s+at\s+", "@"),
+    (r"\s*\[\s*dot\s*\]|\s*\(\s*dot\s*\)\s*|\s+dot\s+", "."),
+    (r"\s*\{\s*at\s*\}\s*", "@"),
+    (r"\s*\{\s*dot\s*\}\s*", "."),
 ]
 
+POS = ("apply", "application", "email your resume", "send your resume",
+       "send cv", "cover letter", "job", "internship", "position")
+NEG = ("support@", "sales@", "press@", "media@", "privacy@", "legal@", "contact@", "info@")
 
-# --- SCRAPER FUNCTIONS ---
+SOURCES = {
+    # Minimal, high-yield public sources with emails allowed
+    "hn": "https://news.ycombinator.com/item?id=42389642",  # example "Who's Hiring" thread
+    "reddit": "https://www.reddit.com/r/forhire/",
+    "mit": "https://math.mit.edu/about/employment/",
+    "harvard": "https://academicpositions.harvard.edu/",
+}
 
-def get_duck_lite_results(query, max_results=25):
-    """Fetch search results from DuckDuckGo Lite HTML (no CAPTCHA, no JS)."""
-    url = f"https://lite.duckduckgo.com/lite/?q={query.replace(' ', '+')}"
-    r = requests.get(url, headers=HEADERS, timeout=10)
-    soup = BeautifulSoup(r.text, "html.parser")
-
-    links = []
-    for a in soup.select("a[href]"):
-        href = a["href"]
-        if href.startswith("http") and not any(bad in href for bad in ["duckduckgo", "ad.doubleclick"]):
-            links.append(href)
-
-    print(f"🔗 Debug: found {len(links)} raw links from DuckDuckGo Lite (len={len(r.text)})")
-    return links[:max_results]
-
-
-def extract_emails_from_url(url):
-    """Extract visible emails from a webpage."""
+# -------------------------------- UTILITIES -------------------------------- #
+def fetch_html(url):
     try:
-        r = requests.get(url, headers=HEADERS, timeout=8)
+        r = requests.get(url, headers=HEADERS, timeout=10)
         if "text/html" not in r.headers.get("Content-Type", ""):
-            return []
-        text = r.text
-        emails = re.findall(EMAIL_REGEX, text)
-        # Filter out generic or irrelevant emails
-        filtered = [
-            e for e in emails
-            if not any(bad in e.lower() for bad in [
-                "noreply", "no-reply", "info@", "support@", "contact@", "sales@", "help@", "press@", "media@"
-            ])
-        ]
-        return list(set(filtered))
+            return ""
+        return r.text
     except Exception as e:
-        print(f"⚠️ Failed {url}: {e}")
-        return []
+        print(f"⚠️  Failed to fetch {url}: {e}")
+        return ""
 
+def extract_emails(text):
+    std = set(EMAIL_STD.findall(text))
+    deob = text
+    for pat, repl in OBF_PAIRS:
+        deob = re.sub(pat, repl, deob, flags=re.I)
+    std |= set(EMAIL_STD.findall(deob))
+    return list(std)
 
-def find_jobs_with_emails(pages_per_query=1):
-    """Search the web for job pages containing email addresses."""
+def score_email(email, text, window=200):
+    """Higher = more likely to be application email"""
+    idx = text.lower().find(email.lower().split("@")[0])
+    if idx == -1: idx = text.lower().find(email.lower())
+    start = max(0, idx - window)
+    end = min(len(text), idx + window)
+    ctx = text[start:end].lower()
+    score = 0
+    score += sum(1 for w in POS if w in ctx) * 2
+    score -= sum(1 for w in NEG if w in email.lower() or w in ctx) * 2
+    return score, text[start:end].strip()
+
+# -------------------------------- CRAWLERS -------------------------------- #
+def crawl_hn():
+    """Parse Hacker News 'Who’s Hiring' thread for emails."""
+    html = fetch_html(SOURCES["hn"])
+    soup = BeautifulSoup(html, "html.parser")
+    posts = soup.find_all("span", class_="commtext")
+    results = []
+    for post in posts:
+        text = post.get_text(" ", strip=True)
+        for email in extract_emails(text):
+            s, ctx = score_email(email, text)
+            if s > 1:
+                results.append({
+                    "source": "HackerNews",
+                    "url": SOURCES["hn"],
+                    "email": email,
+                    "context": ctx,
+                    "score": s,
+                })
+    return results
+
+def crawl_reddit():
+    """Collect top r/forhire posts for visible emails."""
+    url = SOURCES["reddit"]
+    html = fetch_html(url)
+    soup = BeautifulSoup(html, "html.parser")
+    posts = [a["href"] for a in soup.select("a[href*='/r/forhire/comments/']")]
+    results = []
+    for p in posts[:10]:
+        full = urljoin(url, p)
+        text = fetch_html(full)
+        for email in extract_emails(text):
+            s, ctx = score_email(email, text)
+            if s > 1:
+                results.append({
+                    "source": "Reddit",
+                    "url": full,
+                    "email": email,
+                    "context": ctx,
+                    "score": s,
+                })
+        time.sleep(1)
+    return results
+
+def crawl_university(name, url):
+    """Generic small-site crawler for career pages."""
+    html = fetch_html(url)
+    soup = BeautifulSoup(html, "html.parser")
+    links = [urljoin(url, a["href"]) for a in soup.select("a[href]")]
+    results = []
+    for link in links:
+        if not any(x in link.lower() for x in ["job", "career", "position", "employment"]):
+            continue
+        text = fetch_html(link)
+        for email in extract_emails(text):
+            s, ctx = score_email(email, text)
+            if s > 1:
+                results.append({
+                    "source": name,
+                    "url": link,
+                    "email": email,
+                    "context": ctx,
+                    "score": s,
+                })
+        time.sleep(1)
+    return results
+
+# -------------------------------- MAIN -------------------------------- #
+def main():
+    print("🌎 Starting U.S. Email Job Crawler...\n")
+
     all_results = []
-    for phrase in SEARCH_PHRASES:
-        print(f"\n🔍 Searching for: {phrase}")
-        links = get_duck_lite_results(phrase, max_results=15 * pages_per_query)
-        print(f"➡️ Found {len(links)} result links")
+    all_results += crawl_hn()
+    all_results += crawl_reddit()
+    all_results += crawl_university("MIT", SOURCES["mit"])
+    all_results += crawl_university("Harvard", SOURCES["harvard"])
 
-        for link in links:
-            emails = extract_emails_from_url(link)
-            if emails:
-                print(f"✅ {link} → {emails}")
-                all_results.append({"url": link, "emails": emails})
-            time.sleep(1)  # polite crawling
-    return all_results
+    # Deduplicate
+    uniq = {}
+    for r in all_results:
+        key = (r["email"], r["url"])
+        if key not in uniq:
+            uniq[key] = r
+    data = list(uniq.values())
 
-
-# --- MAIN EXECUTION ---
-
-if __name__ == "__main__":
-    print("🌎 Starting U.S. Email Job Crawler...")
-    data = find_jobs_with_emails(pages_per_query=2)
     with open("email_jobs_us.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    print(f"\n✅ Done! Saved {len(data)} listings with emails to email_jobs_us.json")
+
+    print(f"\n✅ Done! Saved {len(data)} email-based job listings to email_jobs_us.json")
+
+# ---------------------------------------------------------------------- #
+if __name__ == "__main__":
+    main()
