@@ -425,6 +425,21 @@
 }
 
 
+/* Reserve vertical space for the absolute cards */
+:root { --efs-cards-h: 560px; } /* adjust to your card height */
+
+.efs-card-stack{
+  position: relative !important;
+}
+
+.efs-card-stack::before{
+  content: "" !important;
+  display: block !important;
+  height: var(--efs-cards-h) !important;  /* gives the stack a footprint */
+}
+
+
+
 
 </style>
 
