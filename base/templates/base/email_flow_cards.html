@@ -689,6 +689,30 @@
 .efs-card.play-hand-right .efs-hand { animation: efs-handSwipeRight .9s ease forwards !important; }
 
 
+.efs-card .efs-hand{
+  position:absolute; right:32px; bottom:32px;
+  width:48px; height:48px; z-index:9;
+  color:#ffd6de; pointer-events:none; opacity:0;
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));
+}
+.efs-card .efs-hand svg{ width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:2; }
+
+@keyframes efs-handSwipeLeft  {
+  0%{opacity:0;transform:translate(30px,-2px) rotate(2deg)}
+  10%{opacity:1;transform:translate(8px,-2px) rotate(0)}
+  100%{opacity:0;transform:translate(-160px,-14px) rotate(-10deg)}
+}
+@keyframes efs-handSwipeRight {
+  0%{opacity:0;transform:translate(-30px,-2px) rotate(-2deg)}
+  10%{opacity:1;transform:translate(-6px,-2px) rotate(0)}
+  100%{opacity:0;transform:translate(160px,-14px) rotate(10deg)}
+}
+
+.efs-card.play-hand-left  .efs-hand { animation: efs-handSwipeLeft  .9s ease forwards !important; }
+.efs-card.play-hand-right .efs-hand { animation: efs-handSwipeRight .9s ease forwards !important; }
+
+
+
 </style>
 
 <script>
@@ -716,6 +740,36 @@
       }
     });
   })();
+
+
+  (() => {
+  // Listen in CAPTURE phase so we catch animation events fired on the cards
+  const onStart = (e) => {
+    const card = e.target.closest('.efs-card');
+    if (!card) return;
+
+    card.classList.remove('play-hand-left','play-hand-right');
+
+    if (e.animationName === 'efs-swipe-left') {
+      requestAnimationFrame(() => card.classList.add('play-hand-left'));
+    } else if (e.animationName === 'efs-swipe-right') {
+      requestAnimationFrame(() => card.classList.add('play-hand-right'));
+    }
+  };
+
+  const onEnd = (e) => {
+    const card = e.target.closest('.efs-card');
+    if (!card) return;
+    if (e.animationName === 'efs-handSwipeLeft' || e.animationName === 'efs-handSwipeRight') {
+      card.classList.remove('play-hand-left','play-hand-right');
+    }
+  };
+
+  // Attach to document (capture = true), or to .efs-card elements directly
+  document.addEventListener('animationstart', onStart, true); // << capture!
+  document.addEventListener('animationend',   onEnd,   true); // << capture!
+})();
+
   </script>
   
   
