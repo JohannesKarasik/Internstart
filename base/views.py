@@ -764,11 +764,8 @@ def is_image(file_path):
 from django.shortcuts import render, redirect
 
 def landing_page(request):
-    """
-    Always renders the landing page — no redirects.
-    Even if the user is logged in, they stay here.
-    """
-    print("🧭 landing_page accessed by:", request.user if request.user.is_authenticated else "anonymous")
+    if request.user.is_authenticated and request.user.is_active:
+        return redirect('swipe_view')
     return render(request, 'base/landing_page.html')
 
 
