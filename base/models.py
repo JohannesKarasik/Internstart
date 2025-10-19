@@ -169,14 +169,14 @@ class Room(models.Model):
 
     # Industry field — matches user's student_industry
     INDUSTRY_CHOICES = [
-        ('tech', 'Technology'),
-        ('finance', 'Finance'),
-        ('marketing', 'Marketing'),
-        ('engineering', 'Engineering'),
-        ('design', 'Design'),
-        ('healthcare', 'Healthcare'),
+        ('business_finance', 'Business & Finance'),
+        ('marketing', 'Marketing & Communications'),
+        ('software_backend', 'Software Development (Backend)'),
+        ('software_frontend', 'Software Development (Frontend)'),
+        ('sales_customer', 'Sales & Customer Relations'),
         ('other', 'Other'),
     ]
+    
     industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
     # Job type field — matches user's job_type
