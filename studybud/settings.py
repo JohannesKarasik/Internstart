@@ -103,9 +103,9 @@ STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
 # Redirects
-LOGIN_URL = 'app_login'        # where @login_required should send users
-LOGOUT_REDIRECT_URL = 'app_login'  # where to go after logout
-LOGIN_REDIRECT_URL = 'swipe_view'  # where to go after successful login
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/swipe/'
+LOGOUT_REDIRECT_URL = '/'
 
 
 if not DEBUG:
