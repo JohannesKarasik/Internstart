@@ -772,7 +772,7 @@ def landing_page(request):
         return redirect('swipe_view')
 
     # otherwise render public landing page
-    return render(request, 'base/landing.html')
+    return render(request, 'base/landing_page.html')
 
 
 
