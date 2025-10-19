@@ -9,8 +9,10 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path("", views.landing_page, name="landing_page"),   # root URL → landing page
+    path('', views.landing_page, name='landing_page'),   # ✅ root
+    path('swipe/', views.swipe_view, name='swipe_view'),
     path('login/', views.loginPage, name="app_login"),
+    path('home/', views.landing_page, name='home'),
     path('logout/', views.logoutUser, name="app_logout"),
     path('register/', views.registerPage, name="register"),
     path('send-test-email/', views.send_test_email, name='send_test_email'),
@@ -21,7 +23,6 @@ urlpatterns = [
     path('send-application/', views.send_application, name='send_application'),
     path('company/<int:pk>/', views.company_profile, name='company-profile'),
      path("feed/", views.feed_view, name="feed"),         # feed now lives at /feed/
-    path("swipe/", views.swipe_view, name="swipe_view"), # swipe mode
     path('apply-swipe-job/', views.apply_swipe_job, name='apply_swipe_job'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('start-gmail-auth/', views.start_gmail_auth, name='start_gmail_auth'),

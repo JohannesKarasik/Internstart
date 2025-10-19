@@ -760,12 +760,24 @@ def is_image(file_path):
 
 
 
+# base/views.py
+from django.shortcuts import render, redirect
+
 def landing_page(request):
-    print("🧭 landing_page", request.user.is_authenticated)
+    """
+    Root landing page.
+    - Logged in users → go to swipe_view
+    - Logged out users → stay on this page (no redirect loop)
+    """
+    print("🧭 landing_page | authenticated:", request.user.is_authenticated)
+
     if request.user.is_authenticated:
         print("➡️ redirecting to swipe_view")
-        return redirect('swipe_view')  # ✅ not redirect('/')
-    return render(request, 'base/landing_page.html')
+        return redirect('swipe_view')   # Go straight to app
+    else:
+        print("🧭 showing landing_page.html")
+        return render(request, 'base/landing_page.html')
+
 
 
 
@@ -1003,7 +1015,7 @@ from django.utils import timezone
 
 from django.core.paginator import Paginator
 
-
+@login_required
 def swipe_view(request):
     # 👇 Added only for debugging the redirect loop
     print("🧭 swipe_view", request.user.is_authenticated)
