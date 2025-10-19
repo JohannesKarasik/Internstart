@@ -2936,20 +2936,17 @@ document.addEventListener('DOMContentLoaded', () => {
           i = Math.max(0, i - 1);
           render();
         }
-        if (e.target.id === 'ifOnbNext2') {
-          // When user reaches Apply step → trigger email onboarding
-          if (steps[i].title === 'Apply') {
-            // Trigger your email onboarding sequence
-            document.dispatchEvent(new Event('onboarding:email'));
-          }
-
-          if (i < steps.length - 1) {
-            i++;
-            render();
-          } else {
-            close();
-          }
+              if (e.target.id === 'ifOnbNext2') {
+        if (i < steps.length - 1) {
+          i++;
+          render();
+        } else {
+          // Close and mark onboarding as fully complete
+          close();
+          localStorage.setItem('if_full_onboarding_done', '1');
         }
+      }
+
       });
 
       // ---- Trigger order: Email onboarding → Coachmarks ----
@@ -2978,6 +2975,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   );
 });
+
+// prevent re-showing if user already completed both onboardings
+if (localStorage.getItem('if_full_onboarding_done') === '1') {
+  return;
+}
+
+
+
 </script>
 
 
