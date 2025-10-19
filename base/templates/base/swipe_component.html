@@ -630,7 +630,7 @@
     <div class="ifOnb__tipText"  id="ifOnbTipText">Swipe left or tap the X to skip and keep browsing.</div>
   </div>
 
-  <div class="ifOnb__tooltip" id="ifOnbTip"> … </div>
+
 <!-- add -->
 <div class="ifOnb__leader" id="ifOnbLeader" aria-hidden="true"></div>
 
@@ -2080,19 +2080,7 @@ main.layout {
 .ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; }
 .ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; }
 
-.ifOnb__tooltip{
-  max-width: 360px;             /* was 280px */
-  line-height: 1.55;            /* was tighter */
-  padding: 14px 16px;           /* a touch more breathing room */
-  hyphens: auto;
-  word-break: normal;
-  overflow-wrap: anywhere;
-}
-.ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; font-size:15px; }
-.ifOnb__tipText{ font-size:14px; margin:0; }
-@media (max-width: 600px){
-  .ifOnb__tooltip{ max-width: 88vw; }
-}
+
 
 /* Demo card used for fake animations (does not alter data) */
 .ifOnb__demoCard{
@@ -3086,9 +3074,11 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
   const $  = s => document.querySelector(s);
-  const onb   = $('#ifOnb');         // overlay wrapper (already in your HTML)
+
+  // ----- Elements -----
+  const onb   = $('#ifOnb');         // overlay wrapper (coach-marks)
   const spot  = $('#ifOnbSpot');     // spotlight ring
   const tip   = $('#ifOnbTip');      // tooltip shell
   const title = $('#ifOnbTipTitle');
@@ -3096,10 +3086,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const demo  = $('#ifOnbDemo');
   const demoStamp = $('#ifOnbDemoStamp');
   const leader = $('#ifOnbLeader');  // optional red “leader line”
-
   if (!onb || !spot || !tip || !title || !text || !demo || !demoStamp) return;
 
-  // Build tiny inline controls inside the tooltip
+  // ----- Build tiny inline controls inside the tooltip -----
   const ctl = document.createElement('div');
   ctl.style.marginTop = '8px';
   ctl.innerHTML = `
@@ -3111,7 +3100,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPrev = () => $('#ifOnbPrev2');
   const btnNext = () => $('#ifOnbNext2');
 
-  // Two simple steps: Dismiss → Apply
+  // ----- Steps (Dismiss → Apply) -----
   const steps = [
     {
       target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
@@ -3128,6 +3117,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   let i = 0;
 
+  // ----- UI helpers -----
   function clearUI(){
     spot.classList.remove('show');
     tip.classList.remove('show', 'is-above', 'is-below');
@@ -3142,7 +3132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function place(targetEl){
     if (!targetEl) { clearUI(); return; }
 
-    // --- Spotlight over target ---
+    // Spotlight over target
     const r = targetEl.getBoundingClientRect();
     const size = Math.max(r.width, r.height) + 28;
     spot.style.width = spot.style.height = size + 'px';
@@ -3150,11 +3140,10 @@ document.addEventListener('DOMContentLoaded', () => {
     spot.style.top   = (r.top  + r.height/2 - size/2) + 'px';
     spot.classList.add('show');
 
-    // --- Tooltip placement (clamped to viewport) ---
-    const PAD = 12; // viewport padding
-    const GAP = 10; // gap to target
+    // Tooltip placement (clamped)
+    const PAD = 12;
+    const GAP = 10;
 
-    // Measure tooltip (hidden-first technique)
     const prevVis = tip.style.visibility;
     tip.style.visibility = 'hidden';
     tip.style.left = '-9999px';
@@ -3177,7 +3166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tip.classList.add(needBelow ? 'is-below' : 'is-above');
     tip.classList.add('show');
 
-    // --- Leader line (optional) from target center to tooltip arrow edge ---
+    // Leader line (optional)
     if (leader) {
       const arrowX = clampedLeft + tb.width/2;
       const arrowY = needBelow ? (topY) : (topY + tb.height);
@@ -3195,6 +3184,109 @@ document.addEventListener('DOMContentLoaded', () => {
       leader.style.transform = `rotate(${ang}deg)`;
     }
   }
+
+  function playDemo(kind){
+    demo.style.display = 'flex';
+    demo.style.opacity = '1';
+    demo.style.transform = 'translate(0,0) rotate(0deg) scale(1)';
+    demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
+    demoStamp.classList.remove('show'); void demoStamp.offsetWidth; demoStamp.classList.add('show');
+
+    const dx = (kind === 'apply') ? window.innerWidth * 0.35 : -window.innerWidth * 0.35;
+    const rot = (kind === 'apply') ? 18 : -18;
+
+    requestAnimationFrame(() => {
+      demo.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), opacity .7s ease';
+      demo.style.transform  = `translate(${dx}px,-36px) rotate(${rot}deg)`;
+      demo.style.opacity    = '0.12';
+    });
+
+    setTimeout(stopDemo, 720);
+  }
+
+  function stopDemo(){
+    demo.style.display = 'none';
+    demo.style.transition = 'none';
+    demoStamp.classList.remove('show');
+  }
+
+  function render(){
+    const step = steps[i];
+    title.textContent = step.title;
+    text.textContent  = step.text;
+
+    if (btnPrev()) btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
+    if (btnNext()) btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
+
+    place(step.target());
+    playDemo(step.demo);
+  }
+
+  function open(){
+    onb.hidden = false;
+    render();
+  }
+
+  function close(){
+    onb.hidden = true;
+    clearUI();
+  }
+
+  // Controls (delegate inside tooltip)
+  tip.addEventListener('click', (e) => {
+    if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
+    if (e.target.id === 'ifOnbNext2') {
+      if (i < steps.length - 1) { i++; render(); }
+      else { close(); }
+    }
+  });
+
+  // Escape closes
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !onb.hidden) close();
+  });
+
+  // Manual triggers you already have
+  $('#showOnboarding')?.addEventListener('click', open);
+  $('#showOnboardingMobile')?.addEventListener('click', open);
+
+  // ======================  GATING LOGIC  ======================
+  // Show EMAIL onboarding first. Only after it finishes (or if it already
+  // finished and Gmail is connected) should we show these coach-marks.
+  const main = document.querySelector('main.layout');
+  const firstLogin      = main?.dataset.firstLogin === 'true';
+  const emailConfigured = main?.dataset.emailConfigured === 'true';
+
+  const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';     // set by your email overlay when finished
+  const COACH_SEEN_KEY     = 'if_onb_two_step_seen';   // show coach-marks once
+
+  function openCoachmarksOnce() {
+    if (!emailConfigured) return;                       // require Gmail connected
+    if (localStorage.getItem(COACH_SEEN_KEY) === '1') return;
+
+    // Avoid opening while the email overlay is visible
+    const emailOverlay = document.getElementById('onboarding-overlay');
+    const overlayVisible = emailOverlay && getComputedStyle(emailOverlay).display !== 'none';
+    if (overlayVisible) return;
+
+    requestAnimationFrame(() => {
+      open();
+      try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+    });
+  }
+
+  // If email onboarding is already done (e.g., user returns) and Gmail is connected,
+  // show coach-marks now; otherwise wait for the email-onboarding to finish event.
+  const emailOnboardingDone = localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1';
+
+  if (emailOnboardingDone && emailConfigured) {
+    openCoachmarksOnce();
+  } else {
+    // Only attach the listener if this is a first-login flow or the overlay may run
+    document.addEventListener('onboarding:finished', openCoachmarksOnce, { once: true });
+  }
+  // ==================== /GATING LOGIC  =======================
+});
 
   function playDemo(kind){
     demo.style.display = 'flex';
