@@ -2080,6 +2080,20 @@ main.layout {
 .ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; }
 .ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; }
 
+.ifOnb__tooltip{
+  max-width: 360px;             /* was 280px */
+  line-height: 1.55;            /* was tighter */
+  padding: 14px 16px;           /* a touch more breathing room */
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+.ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; font-size:15px; }
+.ifOnb__tipText{ font-size:14px; margin:0; }
+@media (max-width: 600px){
+  .ifOnb__tooltip{ max-width: 88vw; }
+}
+
 /* Demo card used for fake animations (does not alter data) */
 .ifOnb__demoCard{
   position:fixed; left:50%; top:56%; width:min(360px, 88vw); height:220px;
