@@ -2753,40 +2753,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const primaryLink = document.getElementById('onb-primary-link');
   const nextBtn = document.getElementById('onb-next');
 
-  // Function to open email onboarding
+  const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+  const PENDING_ONB_AFTER_OAUTH = 'pending_onb_after_oauth';
+
+  // ---- Helper: open / close ----
   function openEmailOnboarding() {
     if (!overlay) return;
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
 
-  // Function to close email onboarding
   function closeEmailOnboarding() {
     if (!overlay) return;
     overlay.style.display = 'none';
     document.body.style.overflow = '';
-    // mark onboarding as seen + trigger next onboarding
-    localStorage.setItem('if_seen_onboarding', '1');
+    localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
     document.dispatchEvent(new Event('onboarding:finished'));
   }
 
-  // Listen for "open email onboarding" event
+  // ---- Listen for onboarding trigger ----
   document.addEventListener('onboarding:email', openEmailOnboarding);
 
-  // Close when clicking “Okay” or after Gmail configured
+  // ---- When user clicks “Okay” ----
   nextBtn?.addEventListener('click', closeEmailOnboarding);
+
+  // ---- When user clicks “Configure email” (OAuth flow) ----
   primaryLink?.addEventListener('click', () => {
-    // let the Gmail auth start but still mark it finished
-    closeEmailOnboarding();
+    // Remember that we should show onboarding again after OAuth redirect
+    localStorage.setItem(PENDING_ONB_AFTER_OAUTH, '1');
   });
 
-  // Optional: automatically trigger for new users (if first_login=true)
+  // ---- Auto-trigger after first login ----
   const main = document.querySelector('main.layout');
   const firstLogin = main?.dataset.firstLogin === 'true';
-  if (firstLogin && !localStorage.getItem('if_seen_onboarding')) {
+  if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
     setTimeout(() => {
       document.dispatchEvent(new Event('onboarding:email'));
     }, 600);
+  }
+
+  // ---- If returning from OAuth, continue onboarding ----
+  if (localStorage.getItem(PENDING_ONB_AFTER_OAUTH) === '1') {
+    // Clean it up and show the button onboarding
+    localStorage.removeItem(PENDING_ONB_AFTER_OAUTH);
+    localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
+    document.dispatchEvent(new Event('onboarding:finished'));
   }
 });
 </script>
