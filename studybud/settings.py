@@ -109,6 +109,13 @@ LOGIN_REDIRECT_URL = '/swipe/'   # the actual URL path
 LOGOUT_REDIRECT_URL = '/'        # back to landing page
 
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+SECURE_SSL_REDIRECT = False
+
+
+
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
