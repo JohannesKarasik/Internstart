@@ -630,11 +630,18 @@
     <div class="ifOnb__tipText"  id="ifOnbTipText">Swipe left or tap the X to skip and keep browsing.</div>
   </div>
 
+  <div class="ifOnb__tooltip" id="ifOnbTip"> … </div>
+<!-- add -->
+<div class="ifOnb__leader" id="ifOnbLeader" aria-hidden="true"></div>
+
+
   <!-- Mini demo card (we animate this so we don’t touch real data) -->
   <div class="ifOnb__demoCard" id="ifOnbDemo" aria-hidden="true">
     <div class="ifOnb__demoStamp" id="ifOnbDemoStamp">SKIP</div>
   </div>
 </div>
+
+<!-- after -->
 
 
 
@@ -2024,16 +2031,54 @@ main.layout {
 }
 .ifOnb__spot.show{ transform:scale(1); opacity:1; }
 
-/* Tooltip */
+/* Tooltip arrow (auto flips) */
 .ifOnb__tooltip{
-  position:fixed; max-width:260px; background:linear-gradient(180deg,#0b1220,#0e1729);
-  color:#fff; border:1px solid var(--border); border-radius:12px; padding:10px 12px;
-  box-shadow:0 14px 36px rgba(2,6,23,.36); opacity:0; transform:translateY(6px); transition:.2s ease;
+  position:fixed;
+  max-width:280px;
+  background:linear-gradient(180deg,#0b1220,#0e1729);
+  color:#fff; border:1px solid var(--border);
+  border-radius:12px; padding:12px 14px;
+  box-shadow:0 14px 36px rgba(2,6,23,.36);
+  opacity:0; transform:translateY(6px);
+  transition:.18s ease;
 }
+
 .theme-light .ifOnb__tooltip{ background:#0e162a; color:#fff; }
 .ifOnb__tooltip.show{ opacity:1; transform:translateY(0); }
 .ifOnb__tipTitle{ font-weight:800; margin-bottom:4px; }
 .ifOnb__tipText{ color:#cbd5e1; font-weight:600; }
+
+
+.ifOnb__tooltip::after{
+  content:"";
+  position:absolute;
+  width:10px; height:10px; transform:rotate(45deg);
+  background:inherit; border:inherit; border-left:none; border-top:none;
+  box-shadow:inherit;
+}
+
+/* when tooltip is above the target */
+.ifOnb__tooltip.is-above::after{
+  bottom:-5px; left:calc(50% - 5px);
+}
+/* when tooltip is below the target */
+.ifOnb__tooltip.is-below::after{
+  top:-5px; left:calc(50% - 5px);
+}
+
+/* leader line from target → tooltip arrow */
+.ifOnb__leader{
+  position:fixed; height:2px; width:0;
+  background: linear-gradient(90deg, var(--brand), rgba(237,0,60,.0));
+  box-shadow: 0 0 8px rgba(237,0,60,.45);
+  border-radius:2px;
+  transform-origin: 0 50%;
+  pointer-events:none; opacity:.95;
+}
+
+/* little polish on the title spacing */
+.ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; }
+.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; }
 
 /* Demo card used for fake animations (does not alter data) */
 .ifOnb__demoCard{
@@ -3073,91 +3118,65 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function place(targetEl){
-    if (!targetEl) { clearUI(); return; }
-    const r = targetEl.getBoundingClientRect();
-    const size = Math.max(r.width, r.height) + 28;
-    spot.style.width = spot.style.height = size + 'px';
-    spot.style.left = (r.left + r.width/2 - size/2) + 'px';
-    spot.style.top  = (r.top  + r.height/2 - size/2) + 'px';
-    spot.classList.add('show');
+  const spot = document.getElementById('ifOnbSpot');
+  const tip  = document.getElementById('ifOnbTip');
+  const line = document.getElementById('ifOnbLeader');
+  if (!targetEl || !tip || !spot || !line) return;
 
-    // Tooltip near the control (prefer above, fall back below)
-    let tx = r.left + r.width/2 + 10;
-    let ty = r.top - 86;  // up a bit
-    if (ty < 8) ty = r.bottom + 10;
-    tip.style.left = tx + 'px';
-    tip.style.top  = ty + 'px';
-    tip.classList.add('show');
-  }
+  // --- spotlight sizing (unchanged but a bit tighter) ---
+  const r = targetEl.getBoundingClientRect();
+  const size = Math.max(r.width, r.height) + 28;
+  spot.style.width = spot.style.height = size + 'px';
+  spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
+  spot.style.top   = (r.top  + r.height/2 - size/2) + 'px';
+  spot.classList.add('show');
 
-  function playDemo(kind){
-    demo.style.display = 'flex';
-    demo.style.opacity = '1';
-    demo.style.transform = 'translate(0,0) rotate(0deg) scale(1)';
-    demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
-    demoStamp.classList.remove('show'); void demoStamp.offsetWidth; demoStamp.classList.add('show');
-    const dx = (kind === 'apply') ? window.innerWidth * 0.35 : -window.innerWidth * 0.35;
-    const rot = (kind === 'apply') ? 18 : -18;
-    requestAnimationFrame(() => {
-      demo.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), opacity .7s ease';
-      demo.style.transform = `translate(${dx}px,-36px) rotate(${rot}deg)`;
-      demo.style.opacity = '0.12';
-    });
-    setTimeout(stopDemo, 720);
-  }
-  function stopDemo(){
-    demo.style.display = 'none';
-    demo.style.transition = 'none';
-    demoStamp.classList.remove('show');
-  }
+  // --- measure tooltip (hidden), then place it nicely ---
+  const PAD = 12;            // viewport padding
+  const GAP = 10;            // space from target to tooltip
+  const centerX = r.left + r.width/2;
 
-  function render(){
-    // bounds + labels
-    const step = steps[i];
-    title.textContent = step.title;
-    text.textContent  = step.text;
-    btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
-    btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
+  // Temporarily move off-screen to measure
+  const prevVis = tip.style.visibility;
+  tip.style.visibility = 'hidden';
+  tip.style.left = '-9999px';
+  tip.style.top  = '-9999px';
+  tip.classList.remove('is-above','is-below');
+  const tb = tip.getBoundingClientRect();
+  tip.style.visibility = prevVis || '';
 
-    // point to real UI
-    place(step.target());
-    playDemo(step.demo);
-  }
+  // Prefer above; flip below if not enough space
+  const needBelow = (r.top - GAP - tb.height - PAD) < 0;
+  const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
 
-  function open(){
-    onb.hidden = false;
-    render();
-  }
-  function close(){
-    onb.hidden = true;
-    clearUI();
-  }
+  // Keep within viewport horizontally
+  const clampedLeft = Math.max(
+    PAD,
+    Math.min(centerX - tb.width/2, window.innerWidth - tb.width - PAD)
+  );
 
-  // Controls
-  tip.addEventListener('click', (e) => {
-    if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i-1); render(); }
-    if (e.target.id === 'ifOnbNext2') {
-      if (i < steps.length - 1) { i++; render(); }
-      else close();
-    }
-  });
+  tip.style.left = `${clampedLeft}px`;
+  tip.style.top  = `${topY}px`;
+  tip.classList.add(needBelow ? 'is-below' : 'is-above');
+  tip.classList.add('show');
 
-  // Escape closes
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !onb.hidden) close(); });
+  // --- draw the red leader from target center to tooltip arrow ---
+  const arrowX = (clampedLeft + tb.width/2);
+  const arrowY = needBelow ? (topY) : (topY + tb.height);
+  const startX = centerX;
+  const startY = needBelow ? (r.bottom) : (r.top);
 
-  // Open automatically the first time (or hook up your “Show onboarding” button)
-  try {
-    const SEEN_KEY = 'if_onb_two_step_seen';
-    if (!localStorage.getItem(SEEN_KEY)) {
-      setTimeout(open, 300);
-      localStorage.setItem(SEEN_KEY, '1');
-    }
-  } catch {}
+  const dx = (arrowX - startX);
+  const dy = (arrowY - startY);
+  const len = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx) * 180 / Math.PI;
 
-  // Keep your existing “Show onboarding” debug buttons working
-  $('#showOnboarding')?.addEventListener('click', open);
-  $('#showOnboardingMobile')?.addEventListener('click', open);
-});
+  line.style.left  = `${startX}px`;
+  line.style.top   = `${startY}px`;
+  line.style.width = `${len}px`;
+  line.style.transform = `rotate(${ang}deg)`;
+}
+
 </script>
 
 
