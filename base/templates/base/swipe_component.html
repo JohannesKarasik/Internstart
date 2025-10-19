@@ -2873,9 +2873,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailConfigured = main?.dataset.emailConfigured === 'true';
 
       function afterEmail(){
-        // make button(s) visible and functional
-        wireButtons(open);
-      }
+      // immediately open onboarding after email flow
+      open();
+      // (optional) also show button later for replay:
+      wireButtons(open);
+    }
+
 
       if (localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1' && emailConfigured) {
         afterEmail();
