@@ -2106,6 +2106,26 @@ main.layout {
 }
 
 
+/* --- Fix: prevent onboarding tooltip flash --- */
+#ifOnbTip,
+#ifOnbSpot,
+#ifOnbDemo,
+#ifOnbDemoStamp {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+
+#ifOnbTip.show,
+#ifOnbSpot.show,
+#ifOnbDemo.show,
+#ifOnbDemoStamp.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+
+
 </style>
 
 {% include "base/email_flow_showcase.html" %}
