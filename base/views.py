@@ -1003,7 +1003,7 @@ from django.utils import timezone
 
 from django.core.paginator import Paginator
 
-@login_required
+
 def swipe_view(request):
     # 👇 Added only for debugging the redirect loop
     print("🧭 swipe_view", request.user.is_authenticated)
