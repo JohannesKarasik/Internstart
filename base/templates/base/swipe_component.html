@@ -3118,65 +3118,91 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function place(targetEl){
-  const spot = document.getElementById('ifOnbSpot');
-  const tip  = document.getElementById('ifOnbTip');
-  const line = document.getElementById('ifOnbLeader');
-  if (!targetEl || !tip || !spot || !line) return;
+    if (!targetEl) { clearUI(); return; }
+    const r = targetEl.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) + 28;
+    spot.style.width = spot.style.height = size + 'px';
+    spot.style.left = (r.left + r.width/2 - size/2) + 'px';
+    spot.style.top  = (r.top  + r.height/2 - size/2) + 'px';
+    spot.classList.add('show');
 
-  // --- spotlight sizing (unchanged but a bit tighter) ---
-  const r = targetEl.getBoundingClientRect();
-  const size = Math.max(r.width, r.height) + 28;
-  spot.style.width = spot.style.height = size + 'px';
-  spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
-  spot.style.top   = (r.top  + r.height/2 - size/2) + 'px';
-  spot.classList.add('show');
+    // Tooltip near the control (prefer above, fall back below)
+    let tx = r.left + r.width/2 + 10;
+    let ty = r.top - 86;  // up a bit
+    if (ty < 8) ty = r.bottom + 10;
+    tip.style.left = tx + 'px';
+    tip.style.top  = ty + 'px';
+    tip.classList.add('show');
+  }
 
-  // --- measure tooltip (hidden), then place it nicely ---
-  const PAD = 12;            // viewport padding
-  const GAP = 10;            // space from target to tooltip
-  const centerX = r.left + r.width/2;
+  function playDemo(kind){
+    demo.style.display = 'flex';
+    demo.style.opacity = '1';
+    demo.style.transform = 'translate(0,0) rotate(0deg) scale(1)';
+    demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
+    demoStamp.classList.remove('show'); void demoStamp.offsetWidth; demoStamp.classList.add('show');
+    const dx = (kind === 'apply') ? window.innerWidth * 0.35 : -window.innerWidth * 0.35;
+    const rot = (kind === 'apply') ? 18 : -18;
+    requestAnimationFrame(() => {
+      demo.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), opacity .7s ease';
+      demo.style.transform = `translate(${dx}px,-36px) rotate(${rot}deg)`;
+      demo.style.opacity = '0.12';
+    });
+    setTimeout(stopDemo, 720);
+  }
+  function stopDemo(){
+    demo.style.display = 'none';
+    demo.style.transition = 'none';
+    demoStamp.classList.remove('show');
+  }
 
-  // Temporarily move off-screen to measure
-  const prevVis = tip.style.visibility;
-  tip.style.visibility = 'hidden';
-  tip.style.left = '-9999px';
-  tip.style.top  = '-9999px';
-  tip.classList.remove('is-above','is-below');
-  const tb = tip.getBoundingClientRect();
-  tip.style.visibility = prevVis || '';
+  function render(){
+    // bounds + labels
+    const step = steps[i];
+    title.textContent = step.title;
+    text.textContent  = step.text;
+    btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
+    btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
 
-  // Prefer above; flip below if not enough space
-  const needBelow = (r.top - GAP - tb.height - PAD) < 0;
-  const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
+    // point to real UI
+    place(step.target());
+    playDemo(step.demo);
+  }
 
-  // Keep within viewport horizontally
-  const clampedLeft = Math.max(
-    PAD,
-    Math.min(centerX - tb.width/2, window.innerWidth - tb.width - PAD)
-  );
+  function open(){
+    onb.hidden = false;
+    render();
+  }
+  function close(){
+    onb.hidden = true;
+    clearUI();
+  }
 
-  tip.style.left = `${clampedLeft}px`;
-  tip.style.top  = `${topY}px`;
-  tip.classList.add(needBelow ? 'is-below' : 'is-above');
-  tip.classList.add('show');
+  // Controls
+  tip.addEventListener('click', (e) => {
+    if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i-1); render(); }
+    if (e.target.id === 'ifOnbNext2') {
+      if (i < steps.length - 1) { i++; render(); }
+      else close();
+    }
+  });
 
-  // --- draw the red leader from target center to tooltip arrow ---
-  const arrowX = (clampedLeft + tb.width/2);
-  const arrowY = needBelow ? (topY) : (topY + tb.height);
-  const startX = centerX;
-  const startY = needBelow ? (r.bottom) : (r.top);
+  // Escape closes
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !onb.hidden) close(); });
 
-  const dx = (arrowX - startX);
-  const dy = (arrowY - startY);
-  const len = Math.hypot(dx, dy);
-  const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+  // Open automatically the first time (or hook up your “Show onboarding” button)
+  try {
+    const SEEN_KEY = 'if_onb_two_step_seen';
+    if (!localStorage.getItem(SEEN_KEY)) {
+      setTimeout(open, 300);
+      localStorage.setItem(SEEN_KEY, '1');
+    }
+  } catch {}
 
-  line.style.left  = `${startX}px`;
-  line.style.top   = `${startY}px`;
-  line.style.width = `${len}px`;
-  line.style.transform = `rotate(${ang}deg)`;
-}
-
+  // Keep your existing “Show onboarding” debug buttons working
+  $('#showOnboarding')?.addEventListener('click', open);
+  $('#showOnboardingMobile')?.addEventListener('click', open);
+});
 </script>
 
 
