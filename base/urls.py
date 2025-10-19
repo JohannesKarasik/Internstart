@@ -9,7 +9,7 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('welcome/', views.landing_page, name='landing_page'),
+    path("", views.landing_page, name="landing_page"),   # root URL → landing page
     path('login/', views.loginPage, name="app_login"),
     path('logout/', views.logoutUser, name="app_logout"),
     path('register/', views.registerPage, name="register"),
@@ -20,7 +20,8 @@ urlpatterns = [
     path('generate-coverletter/', views.generate_coverletter, name='generate_coverletter'),
     path('send-application/', views.send_application, name='send_application'),
     path('company/<int:pk>/', views.company_profile, name='company-profile'),
-    path("", views.feed_view, name="feed"),        # default feed mode
+     path("feed/", views.feed_view, name="feed"),         # feed now lives at /feed/
+    path("welcome/", views.landing_page),                # optional: keep for backward compatibility
     path("swipe/", views.swipe_view, name="swipe_view"), # swipe mode
     path('apply-swipe-job/', views.apply_swipe_job, name='apply_swipe_job'),
     path('accounts/', include('django.contrib.auth.urls')),
