@@ -767,9 +767,6 @@ def landing_page(request):
     """
     print("🧭 LANDING:", request.user.is_authenticated, request.get_host(), request.path)
 
-    # only redirect authenticated users
-    if request.user.is_authenticated:
-        return redirect('swipe_view')
 
     # otherwise render public landing page
     return render(request, 'base/landing_page.html')
