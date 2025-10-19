@@ -760,10 +760,13 @@ def is_image(file_path):
 
 
 def landing_page(request):
-    # Avoid loops — only redirect if definitely logged in
-    if request.user.is_authenticated and request.user.is_active:
+    # If logged in → go directly to swipe view
+    if request.user.is_authenticated:
         return redirect('swipe_view')
-    return render(request, 'base/landing_page.html')
+
+    # Otherwise → show public landing page
+    return render(request, 'base/landing.html')
+
 
 
 
