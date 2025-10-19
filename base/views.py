@@ -758,14 +758,12 @@ def is_image(file_path):
     mime = mimetypes.guess_type(file_path)[0]
     return mime and mime.startswith('image')
 
-
 def landing_page(request):
-    # If logged in → go directly to swipe view
-    if request.user.is_authenticated:
-        return redirect('swipe_view')
-
-    # Otherwise → show public landing page
+    # TEMP while debugging:
+    # if request.user.is_authenticated:
+    #     return redirect('swipe_view')
     return render(request, 'base/landing.html')
+
 
 
 
