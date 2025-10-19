@@ -602,6 +602,66 @@
 
 
 
+
+
+
+
+
+  <!-- In your header-left, after theme toggle -->
+<button id="showOnboarding" class="btn-secondary desktop-only" style="gap:8px">
+  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 20v-6m0-4V4M6 12h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  Show onboarding
+</button>
+
+<!-- Mobile trigger (optional) -->
+<button id="showOnboardingMobile" class="mobile-premium-btn mobile-only" style="margin-left:10px;">Onboarding</button>
+
+<!-- ===== Onboarding overlay ===== -->
+<div id="ifOnb" hidden>
+  <div class="ifOnb__backdrop" data-onb-close></div>
+
+  <section class="ifOnb__card" role="dialog" aria-modal="true" aria-labelledby="ifOnbTitle" aria-describedby="ifOnbDesc">
+    <header class="ifOnb__head">
+      <div class="ifOnb__chip">Internstart · Guide</div>
+      <button class="ifOnb__close" aria-label="Close" data-onb-close>&times;</button>
+    </header>
+
+    <h3 id="ifOnbTitle" class="ifOnb__title">Welcome aboard 👋</h3>
+    <p  id="ifOnbDesc"  class="ifOnb__desc">
+      Quick tour: learn how to <strong>dismiss to keep swiping</strong> and <strong>apply in one tap</strong>.
+    </p>
+
+    <!-- Progress -->
+    <div class="ifOnb__progress"><span id="ifOnbStep">1</span>/<span id="ifOnbTotal">3</span></div>
+
+    <!-- Dynamic body -->
+    <div class="ifOnb__stage" id="ifOnbStage">
+      <!-- Populated by JS -->
+    </div>
+
+    <footer class="ifOnb__actions">
+      <button class="btn-secondary" id="ifOnbBack" style="display:none;">Back</button>
+      <button class="btn-primary" id="ifOnbNext">Next</button>
+    </footer>
+  </section>
+
+  <!-- Floating “spotlight” & tooltip that point to real UI -->
+  <div class="ifOnb__spot" id="ifOnbSpot"></div>
+  <div class="ifOnb__tooltip" id="ifOnbTip">
+    <div class="ifOnb__tipTitle" id="ifOnbTipTitle">Dismiss</div>
+    <div class="ifOnb__tipText"  id="ifOnbTipText">Swipe left or tap the X to skip and keep browsing.</div>
+  </div>
+
+  <!-- Mini demo card (we animate this so we don’t touch real data) -->
+  <div class="ifOnb__demoCard" id="ifOnbDemo" aria-hidden="true">
+    <div class="ifOnb__demoStamp" id="ifOnbDemoStamp">SKIP</div>
+  </div>
+</div>
+
+
+
   <style>
 
 
@@ -1929,6 +1989,107 @@ main.layout {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== Onboarding base ===== */
+#ifOnb[hidden]{ display:none !important; }
+#ifOnb{
+  position:fixed; inset:0; z-index:10050; font-family:'Manrope',sans-serif !important;
+}
+.ifOnb__backdrop{
+  position:absolute; inset:0; background:rgba(2,6,23,.55); backdrop-filter:blur(8px);
+  animation: if-fade .25s ease both;
+}
+.ifOnb__card{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(520px, calc(100vw - 32px));
+  background:var(--panel); color:var(--ink);
+  border:1px solid var(--border); border-radius:18px; padding:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+  animation: if-pop .25s ease both;
+}
+.theme-light .ifOnb__card{ background:#f6f8fb; }
+
+.ifOnb__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.ifOnb__chip{
+  font:800 11px/1 Inter; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand-400));
+  padding:6px 10px; border-radius:999px; box-shadow:0 10px 22px rgba(237,0,60,.25);
+}
+.theme-light .ifOnb__chip{ color:#fff; }
+.ifOnb__close{ background:none; border:0; color:var(--ink); opacity:.6; font-size:22px; cursor:pointer; }
+.ifOnb__title{ margin:6px 0 6px; font:800 20px/1.3 Inter; color:var(--ink); }
+.ifOnb__desc{ margin:0 0 10px; color:var(--ink-500); }
+.ifOnb__progress{ margin:8px 0 14px; color:var(--ink-500); font-weight:700; }
+
+.ifOnb__actions{ display:flex; gap:10px; justify-content:flex-end; }
+.ifOnb__stage{ border:1px dashed var(--border-subtle); border-radius:12px; padding:12px; background:rgba(255,255,255,.04); }
+.theme-light .ifOnb__stage{ background:rgba(2,6,23,.035); }
+
+/* Spotlight ring that positions over real targets */
+.ifOnb__spot{
+  position:fixed; width:96px; height:96px; border-radius:999px; pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.35), 0 0 0 2px var(--brand);
+  transform:scale(.9); opacity:0; transition: .25s ease;
+}
+.ifOnb__spot.show{ transform:scale(1); opacity:1; }
+
+/* Tooltip */
+.ifOnb__tooltip{
+  position:fixed; max-width:260px; background:linear-gradient(180deg,#0b1220,#0e1729);
+  color:#fff; border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+  box-shadow:0 14px 36px rgba(2,6,23,.36); opacity:0; transform:translateY(6px); transition:.2s ease;
+}
+.theme-light .ifOnb__tooltip{ background:#0e162a; color:#fff; }
+.ifOnb__tooltip.show{ opacity:1; transform:translateY(0); }
+.ifOnb__tipTitle{ font-weight:800; margin-bottom:4px; }
+.ifOnb__tipText{ color:#cbd5e1; font-weight:600; }
+
+/* Demo card used for fake animations (does not alter data) */
+.ifOnb__demoCard{
+  position:fixed; left:50%; top:56%; width:min(360px, 88vw); height:220px;
+  border-radius:18px; border:1px solid rgba(148,163,184,.16);
+  background:linear-gradient(180deg,#0f1527,#0c1426);
+  box-shadow:var(--elev-2);
+  display:none; align-items:center; justify-content:center;
+}
+.theme-light .ifOnb__demoCard{ background:linear-gradient(180deg,#f6f8fc,#eef2f7); }
+.ifOnb__demoStamp{
+  position:absolute; top:12px; left:12px;
+  padding:6px 10px; border-radius:8px; font-weight:900; letter-spacing:.12em; font-size:10px;
+  color:#fecaca; background:#7f1d1d40; border:1px solid #fecaca33; opacity:0; transform:translateY(-6px) scale(.9);
+  transition:.25s ease;
+}
+.ifOnb__demoStamp.show{ opacity:1; transform:translateY(0) scale(1); }
+
+/* Brand buttons (reuse your tokens) */
+.btn-primary{ background:var(--brand); color:#fff; border:0; padding:10px 16px; border-radius:12px; font-weight:800; }
+.btn-secondary{ background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--ink); padding:10px 16px; border-radius:12px; font-weight:800; }
+
+@keyframes if-pop{ from{opacity:0; transform:translate(-50%,-44%) scale(.98)} to{opacity:1; transform:translate(-50%,-50%) scale(1)}}
+@keyframes if-fade{ from{opacity:0} to{opacity:1}}
+
+/* Small screens */
+@media (max-width:600px){
+  .ifOnb__card{ width:calc(100vw - 20px); padding:18px; }
+  .ifOnb__demoCard{ top:60%; height:200px; }
+}
+
+
 </style>
 
 {% include "base/email_flow_showcase.html" %}
@@ -2882,8 +3043,151 @@ document.addEventListener('DOMContentLoaded', () => {
   // If native animation works, this will simply keep the same effect in sync.
   requestAnimationFrame(startPolyfill);
 })();
+
+
+
+
+
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = s => document.querySelector(s);
+  const onb = $('#ifOnb');
+  const spot = $('#ifOnbSpot');
+  const tip  = $('#ifOnbTip');
+  const tipTitle = $('#ifOnbTipTitle');
+  const tipText  = $('#ifOnbTipText');
+  const stage = $('#ifOnbStage');
+  const stepEl = $('#ifOnbStep');
+  const totalEl = $('#ifOnbTotal');
+  const btnNext = $('#ifOnbNext');
+  const btnBack = $('#ifOnbBack');
+  const demo = $('#ifOnbDemo');
+  const demoStamp = $('#ifOnbDemoStamp');
+  const total = 3;
+  let step = 1;
+
+  totalEl.textContent = total;
+
+  // Helpers
+  const open = () => { onb.hidden = false; render(); };
+  const close = () => { onb.hidden = true; clearSpot(); stopDemo(); };
+  const clearSpot = () => { spot.classList.remove('show'); tip.classList.remove('show'); };
+  const placeSpot = (el, tipTextObj) => {
+    if (!el) return clearSpot();
+    const r = el.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) + 28;
+    spot.style.width = spot.style.height = size + 'px';
+    spot.style.left = (r.left + r.width/2 - size/2) + 'px';
+    spot.style.top  = (r.top + r.height/2 - size/2) + 'px';
+    spot.classList.add('show');
+
+    // Tooltip (try to place above; fallback below)
+    const tx = r.left + r.width/2 + 10;
+    let ty = r.top - 10 - 72;
+    if (ty < 8) ty = r.bottom + 10;
+    tip.style.left = tx + 'px';
+    tip.style.top  = ty + 'px';
+    tipTitle.textContent = tipTextObj.title;
+    tipText.textContent  = tipTextObj.text;
+    tip.classList.add('show');
+  };
+
+  // Mini demo “card throw” (no network / no swipe change)
+  let demoTimer;
+  function playDemo(type /* 'skip'|'apply' */){
+    demo.style.display = 'flex';
+    demo.style.opacity = '1';
+    demo.style.transform = 'translate(0,0) rotate(0deg) scale(1)';
+    demoStamp.textContent = (type === 'apply') ? 'APPLY' : 'SKIP';
+    demoStamp.classList.remove('show'); void demoStamp.offsetWidth; demoStamp.classList.add('show');
+
+    // animate out
+    const dx = (type === 'apply') ? window.innerWidth * 0.4 : -window.innerWidth * 0.4;
+    const rot = (type === 'apply') ? 18 : -18;
+    requestAnimationFrame(() => {
+      demo.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), opacity .7s ease';
+      demo.style.transform = `translate(${dx}px,-40px) rotate(${rot}deg) scale(1.02)`;
+      demo.style.opacity = '0.12';
+    });
+    clearTimeout(demoTimer);
+    demoTimer = setTimeout(() => stopDemo(), 740);
+  }
+  function stopDemo(){
+    demo.style.display = 'none';
+    demo.style.transition = 'none';
+    demoStamp.classList.remove('show');
+  }
+
+  // Step rendering
+  function render(){
+    stepEl.textContent = step;
+    btnBack.style.display = (step === 1) ? 'none' : 'inline-flex';
+    btnNext.textContent = (step === total) ? 'Finish' : 'Next';
+
+    if (step === 1) {
+      clearSpot(); stopDemo();
+      $('#ifOnbTitle').textContent = 'Welcome 👋';
+      $('#ifOnbDesc').innerHTML = 'Two taps to master Internstart: <strong>Dismiss</strong> to keep swiping, <strong>Apply</strong> to send your application.';
+      stage.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="badge">Keyboard</div>
+          <div>← Skip · → Apply</div>
+        </div>`;
+    }
+
+    if (step === 2) {
+      $('#ifOnbTitle').textContent = 'Dismiss to keep swiping';
+      $('#ifOnbDesc').textContent  = 'Hit the X (or swipe left). The card leaves; the next one slides up.';
+      stage.innerHTML = '<small style="color:var(--ink-500)">This is a safe demo—your deck & quota won’t change.</small>';
+
+      const topCard = document.querySelector('.swipe-card.is-top');
+      const leftBtn = topCard?.querySelector('.swipe-left');
+      placeSpot(leftBtn || document.querySelector('.swipe-left'), {
+        title:'Dismiss',
+        text:'Quickly skip roles that aren’t a match.'
+      });
+      playDemo('skip');
+    }
+
+    if (step === 3) {
+      $('#ifOnbTitle').textContent = 'Apply in one tap';
+      $('#ifOnbDesc').textContent  = 'Tap the paper-plane (or swipe right). We’ll send your application.';
+      stage.innerHTML = '<small style="color:var(--ink-500)">We’ll highlight the Apply button on the top card.</small>';
+
+      const topCard = document.querySelector('.swipe-card.is-top');
+      const rightBtn = topCard?.querySelector('.swipe-right');
+      placeSpot(rightBtn || document.querySelector('.swipe-right'), {
+        title:'Apply',
+        text:'One tap and your application is sent.'
+      });
+      playDemo('apply');
+    }
+  }
+
+  // Wire buttons
+  $('#showOnboarding')?.addEventListener('click', open);
+  $('#showOnboardingMobile')?.addEventListener('click', open);
+  onb.addEventListener('click', e => { if (e.target.matches('[data-onb-close]')) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !onb.hidden) close(); });
+
+  btnNext.addEventListener('click', () => {
+    if (step < total) { step++; render(); }
+    else close();
+  });
+  btnBack.addEventListener('click', () => { if (step > 1) { step--; render(); } });
+
+  // OPTIONAL: auto-open the first time (respect your existing flag if present)
+  try {
+    const SEEN = 'if_onb_seen_v1';
+    if (!localStorage.getItem(SEEN)) {
+      setTimeout(open, 300);
+      localStorage.setItem(SEEN,'1');
+    }
+  } catch {}
+});
+</script>
 
 
 </main>
