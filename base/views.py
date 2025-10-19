@@ -1006,11 +1006,26 @@ from django.utils import timezone
 
 from django.core.paginator import Paginator
 
-@login_required
 def swipe_view(request):
-    # 👇 Added only for debugging the redirect loop
+    # 👇 Debug info
     print("🧭 swipe_view", request.user.is_authenticated)
 
+    # If user not logged in — show a limited public view instead of redirecting
+    if not request.user.is_authenticated:
+        topics = Topic.objects.all()[:5]
+        rooms_qs = Room.objects.all().order_by('id')[:5]  # show a few random/first listings
+
+        context = {
+            "rooms": rooms_qs,
+            "topics": topics,
+            "room_count": rooms_qs.count(),
+            "guest_mode": True,  # so template can show "please log in" overlay
+            "STRIPE_PUBLIC_KEY": getattr(settings, "STRIPE_PUBLIC_KEY", None),
+        }
+
+        return render(request, "base/swipe_component.html", context)
+
+    # --- Normal behavior for logged-in users ---
     q = request.GET.get('q') or ''
     page = int(request.GET.get('page', 1))
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
@@ -1067,7 +1082,6 @@ def swipe_view(request):
 
     # ✅ Otherwise return full template
     return render(request, "base/swipe_component.html", context)
-
 
 
 
