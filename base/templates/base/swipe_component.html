@@ -2753,9 +2753,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const whenReady = (ids, cb) => {
     const ok = () => ids.every(id => document.getElementById(id));
     if (ok()) return cb();
-    const mo = new MutationObserver(() => {
-      if (ok()) { mo.disconnect(); cb(); }
-    });
+    const mo = new MutationObserver(() => { if (ok()) { mo.disconnect(); cb(); } });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
 
@@ -2790,7 +2788,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctl.innerHTML = `
         <div style="display:flex; gap:8px;">
           <button id="ifOnbPrev2" class="btn-secondary" style="padding:6px 10px;">Back</button>
-          <button id="ifOnbNext2" class="btn-primary" style="padding:6px 10px;">Next</button>
+          <button id="ifOnbNext2" class="btn-primary"  style="padding:6px 10px;">Next</button>
         </div>`;
       tip.appendChild(ctl);
       const btnPrev = () => $('#ifOnbPrev2');
@@ -2870,11 +2868,25 @@ document.addEventListener('DOMContentLoaded', () => {
       function close() { onb.hidden = true; clearUI(); }
       window.ifOnbOpen = open; // debug access
 
+      // ---- Control button behavior ----
       tip.addEventListener('click', e => {
-        if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
+        if (e.target.id === 'ifOnbPrev2') {
+          i = Math.max(0, i - 1);
+          render();
+        }
         if (e.target.id === 'ifOnbNext2') {
-          if (i < steps.length - 1) { i++; render(); }
-          else { close(); }
+          // When user reaches Apply step → trigger email onboarding
+          if (steps[i].title === 'Apply') {
+            // Trigger your email onboarding sequence
+            document.dispatchEvent(new Event('onboarding:email'));
+          }
+
+          if (i < steps.length - 1) {
+            i++;
+            render();
+          } else {
+            close();
+          }
         }
       });
 
@@ -2884,32 +2896,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailConfigured = main?.dataset.emailConfigured === 'true';
 
       function afterEmail() {
-        // show the second onboarding immediately
+        // show the button onboarding immediately
         open();
-        // keep button for replay (optional)
         wireButtons(open);
       }
 
-      // Auto-trigger when email onboarding completes
-      if (localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1' && emailConfigured) {
-        afterEmail();
-      } else {
-        document.addEventListener('onboarding:finished', afterEmail, { once:true });
-      }
+      // When email onboarding finishes
+      document.addEventListener('onboarding:finished', afterEmail, { once:true });
 
       // ---- NEW: Trigger email onboarding automatically for new users ----
       const firstLogin = main?.dataset.firstLogin === 'true';
       if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
-        // mark email onboarding as complete and fire event after short delay
+        // mark email onboarding as started and show it
         setTimeout(() => {
-          localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
-          document.dispatchEvent(new Event('onboarding:finished'));
-        }, 600); // short delay ensures DOM ready
+          document.dispatchEvent(new Event('onboarding:email')); // first email flow
+          // after email finishes it will fire onboarding:finished → open() runs
+        }, 800);
       }
     }
   );
 });
 </script>
+
 
 
 
