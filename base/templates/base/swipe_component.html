@@ -3052,67 +3052,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const $ = s => document.querySelector(s);
-  const onb = $('#ifOnb');
-  const spot = $('#ifOnbSpot');
-  const tip  = $('#ifOnbTip');
-  const tipTitle = $('#ifOnbTipTitle');
-  const tipText  = $('#ifOnbTipText');
-  const stage = $('#ifOnbStage');
-  const stepEl = $('#ifOnbStep');
-  const totalEl = $('#ifOnbTotal');
-  const btnNext = $('#ifOnbNext');
-  const btnBack = $('#ifOnbBack');
-  const demo = $('#ifOnbDemo');
+  const $  = s => document.querySelector(s);
+  const onb   = $('#ifOnb');        // overlay wrapper (already in your HTML)
+  const spot  = $('#ifOnbSpot');    // spotlight ring
+  const tip   = $('#ifOnbTip');     // tooltip shell
+  const title = $('#ifOnbTipTitle');
+  const text  = $('#ifOnbTipText');
+  const demo  = $('#ifOnbDemo');
   const demoStamp = $('#ifOnbDemoStamp');
-  const total = 3;
-  let step = 1;
 
-  totalEl.textContent = total;
+  // Build tiny inline controls inside the tooltip
+  const ctl = document.createElement('div');
+  ctl.style.marginTop = '8px';
+  ctl.innerHTML = `
+    <div style="display:flex; gap:8px;">
+      <button id="ifOnbPrev2" class="btn-secondary" style="padding:6px 10px;">Back</button>
+      <button id="ifOnbNext2" class="btn-primary"  style="padding:6px 10px;">Next</button>
+    </div>`;
+  tip.appendChild(ctl);
+  const btnPrev = () => $('#ifOnbPrev2');
+  const btnNext = () => $('#ifOnbNext2');
 
-  // Helpers
-  const open = () => { onb.hidden = false; render(); };
-  const close = () => { onb.hidden = true; clearSpot(); stopDemo(); };
-  const clearSpot = () => { spot.classList.remove('show'); tip.classList.remove('show'); };
-  const placeSpot = (el, tipTextObj) => {
-    if (!el) return clearSpot();
-    const r = el.getBoundingClientRect();
+  // Two simple steps: Dismiss → Apply
+  const steps = [
+    {
+      target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
+      title: 'Dismiss',
+      text : 'Quickly skip roles that aren’t a match.',
+      demo : 'skip'
+    },
+    {
+      target: () => document.querySelector('.swipe-card.is-top .swipe-right') || document.querySelector('.swipe-right'),
+      title: 'Apply',
+      text : 'One tap and your application is sent.',
+      demo : 'apply'
+    }
+  ];
+  let i = 0;
+
+  function clearUI(){
+    spot.classList.remove('show');
+    tip.classList.remove('show');
+    stopDemo();
+  }
+
+  function place(targetEl){
+    if (!targetEl) { clearUI(); return; }
+    const r = targetEl.getBoundingClientRect();
     const size = Math.max(r.width, r.height) + 28;
     spot.style.width = spot.style.height = size + 'px';
     spot.style.left = (r.left + r.width/2 - size/2) + 'px';
-    spot.style.top  = (r.top + r.height/2 - size/2) + 'px';
+    spot.style.top  = (r.top  + r.height/2 - size/2) + 'px';
     spot.classList.add('show');
 
-    // Tooltip (try to place above; fallback below)
-    const tx = r.left + r.width/2 + 10;
-    let ty = r.top - 10 - 72;
+    // Tooltip near the control (prefer above, fall back below)
+    let tx = r.left + r.width/2 + 10;
+    let ty = r.top - 86;  // up a bit
     if (ty < 8) ty = r.bottom + 10;
     tip.style.left = tx + 'px';
     tip.style.top  = ty + 'px';
-    tipTitle.textContent = tipTextObj.title;
-    tipText.textContent  = tipTextObj.text;
     tip.classList.add('show');
-  };
+  }
 
-  // Mini demo “card throw” (no network / no swipe change)
-  let demoTimer;
-  function playDemo(type /* 'skip'|'apply' */){
+  function playDemo(kind){
     demo.style.display = 'flex';
     demo.style.opacity = '1';
     demo.style.transform = 'translate(0,0) rotate(0deg) scale(1)';
-    demoStamp.textContent = (type === 'apply') ? 'APPLY' : 'SKIP';
+    demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
     demoStamp.classList.remove('show'); void demoStamp.offsetWidth; demoStamp.classList.add('show');
-
-    // animate out
-    const dx = (type === 'apply') ? window.innerWidth * 0.4 : -window.innerWidth * 0.4;
-    const rot = (type === 'apply') ? 18 : -18;
+    const dx = (kind === 'apply') ? window.innerWidth * 0.35 : -window.innerWidth * 0.35;
+    const rot = (kind === 'apply') ? 18 : -18;
     requestAnimationFrame(() => {
       demo.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), opacity .7s ease';
-      demo.style.transform = `translate(${dx}px,-40px) rotate(${rot}deg) scale(1.02)`;
+      demo.style.transform = `translate(${dx}px,-36px) rotate(${rot}deg)`;
       demo.style.opacity = '0.12';
     });
-    clearTimeout(demoTimer);
-    demoTimer = setTimeout(() => stopDemo(), 740);
+    setTimeout(stopDemo, 720);
   }
   function stopDemo(){
     demo.style.display = 'none';
@@ -3120,74 +3135,55 @@ document.addEventListener('DOMContentLoaded', () => {
     demoStamp.classList.remove('show');
   }
 
-  // Step rendering
   function render(){
-    stepEl.textContent = step;
-    btnBack.style.display = (step === 1) ? 'none' : 'inline-flex';
-    btnNext.textContent = (step === total) ? 'Finish' : 'Next';
+    // bounds + labels
+    const step = steps[i];
+    title.textContent = step.title;
+    text.textContent  = step.text;
+    btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
+    btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
 
-    if (step === 1) {
-      clearSpot(); stopDemo();
-      $('#ifOnbTitle').textContent = 'Welcome 👋';
-      $('#ifOnbDesc').innerHTML = 'Two taps to master Internstart: <strong>Dismiss</strong> to keep swiping, <strong>Apply</strong> to send your application.';
-      stage.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="badge">Keyboard</div>
-          <div>← Skip · → Apply</div>
-        </div>`;
-    }
-
-    if (step === 2) {
-      $('#ifOnbTitle').textContent = 'Dismiss to keep swiping';
-      $('#ifOnbDesc').textContent  = 'Hit the X (or swipe left). The card leaves; the next one slides up.';
-      stage.innerHTML = '<small style="color:var(--ink-500)">This is a safe demo—your deck & quota won’t change.</small>';
-
-      const topCard = document.querySelector('.swipe-card.is-top');
-      const leftBtn = topCard?.querySelector('.swipe-left');
-      placeSpot(leftBtn || document.querySelector('.swipe-left'), {
-        title:'Dismiss',
-        text:'Quickly skip roles that aren’t a match.'
-      });
-      playDemo('skip');
-    }
-
-    if (step === 3) {
-      $('#ifOnbTitle').textContent = 'Apply in one tap';
-      $('#ifOnbDesc').textContent  = 'Tap the paper-plane (or swipe right). We’ll send your application.';
-      stage.innerHTML = '<small style="color:var(--ink-500)">We’ll highlight the Apply button on the top card.</small>';
-
-      const topCard = document.querySelector('.swipe-card.is-top');
-      const rightBtn = topCard?.querySelector('.swipe-right');
-      placeSpot(rightBtn || document.querySelector('.swipe-right'), {
-        title:'Apply',
-        text:'One tap and your application is sent.'
-      });
-      playDemo('apply');
-    }
+    // point to real UI
+    place(step.target());
+    playDemo(step.demo);
   }
 
-  // Wire buttons
-  $('#showOnboarding')?.addEventListener('click', open);
-  $('#showOnboardingMobile')?.addEventListener('click', open);
-  onb.addEventListener('click', e => { if (e.target.matches('[data-onb-close]')) close(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !onb.hidden) close(); });
+  function open(){
+    onb.hidden = false;
+    render();
+  }
+  function close(){
+    onb.hidden = true;
+    clearUI();
+  }
 
-  btnNext.addEventListener('click', () => {
-    if (step < total) { step++; render(); }
-    else close();
+  // Controls
+  tip.addEventListener('click', (e) => {
+    if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i-1); render(); }
+    if (e.target.id === 'ifOnbNext2') {
+      if (i < steps.length - 1) { i++; render(); }
+      else close();
+    }
   });
-  btnBack.addEventListener('click', () => { if (step > 1) { step--; render(); } });
 
-  // OPTIONAL: auto-open the first time (respect your existing flag if present)
+  // Escape closes
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !onb.hidden) close(); });
+
+  // Open automatically the first time (or hook up your “Show onboarding” button)
   try {
-    const SEEN = 'if_onb_seen_v1';
-    if (!localStorage.getItem(SEEN)) {
+    const SEEN_KEY = 'if_onb_two_step_seen';
+    if (!localStorage.getItem(SEEN_KEY)) {
       setTimeout(open, 300);
-      localStorage.setItem(SEEN,'1');
+      localStorage.setItem(SEEN_KEY, '1');
     }
   } catch {}
+
+  // Keep your existing “Show onboarding” debug buttons working
+  $('#showOnboarding')?.addEventListener('click', open);
+  $('#showOnboardingMobile')?.addEventListener('click', open);
 });
 </script>
+
 
 
 </main>
