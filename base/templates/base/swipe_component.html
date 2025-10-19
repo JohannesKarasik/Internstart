@@ -2756,34 +2756,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
   const PENDING_ONB_AFTER_OAUTH = 'pending_onb_after_oauth';
 
-  // ---- Helper: open / close ----
   function openEmailOnboarding() {
-    if (!overlay) return;
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
 
   function closeEmailOnboarding() {
-    if (!overlay) return;
     overlay.style.display = 'none';
     document.body.style.overflow = '';
     localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
     document.dispatchEvent(new Event('onboarding:finished'));
   }
 
-  // ---- Listen for onboarding trigger ----
+  // listen for “start email onboarding”
   document.addEventListener('onboarding:email', openEmailOnboarding);
-
-  // ---- When user clicks “Okay” ----
   nextBtn?.addEventListener('click', closeEmailOnboarding);
 
-  // ---- When user clicks “Configure email” (OAuth flow) ----
+  // ---- When user clicks “Configure email” (starts OAuth) ----
   primaryLink?.addEventListener('click', () => {
-    // Remember that we should show onboarding again after OAuth redirect
     localStorage.setItem(PENDING_ONB_AFTER_OAUTH, '1');
   });
 
-  // ---- Auto-trigger after first login ----
+  // ---- Auto-trigger email onboarding for new users ----
   const main = document.querySelector('main.layout');
   const firstLogin = main?.dataset.firstLogin === 'true';
   if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
@@ -2792,15 +2786,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 600);
   }
 
-  // ---- If returning from OAuth, continue onboarding ----
+  // ---- If returning from OAuth ----
   if (localStorage.getItem(PENDING_ONB_AFTER_OAUTH) === '1') {
-    // Clean it up and show the button onboarding
-    localStorage.removeItem(PENDING_ONB_AFTER_OAUTH);
-    localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
-    document.dispatchEvent(new Event('onboarding:finished'));
+    // Wait until the onboarding overlay is loaded before triggering
+    const maxWait = 6000; // 6 seconds timeout
+    const start = Date.now();
+    const checkReady = setInterval(() => {
+      const onb = document.getElementById('ifOnb');
+      if (onb || Date.now() - start > maxWait) {
+        clearInterval(checkReady);
+        localStorage.removeItem(PENDING_ONB_AFTER_OAUTH);
+        localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
+        document.dispatchEvent(new Event('onboarding:finished'));
+      }
+    }, 400);
   }
 });
 </script>
+
 
 
 
