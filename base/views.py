@@ -767,10 +767,14 @@ def landing_page(request):
     """
     print("🧭 LANDING:", request.user.is_authenticated, request.get_host(), request.path)
 
+    # ✅ Prevent infinite redirect loops if session is invalid
+    if request.user.is_authenticated and request.user.is_active:
+        # Avoid looping if user gets redirected back here after failed auth
+        if request.path != reverse('swipe_view'):
+            return redirect('swipe_view')
 
-    # otherwise render public landing page
+    # Otherwise, render the public landing page
     return render(request, 'base/landing_page.html')
-
 
 
 
