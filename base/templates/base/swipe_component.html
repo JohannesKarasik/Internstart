@@ -1987,20 +1987,10 @@ main.layout {
 #ifOnb{
   position:fixed; inset:0; z-index:10050; font-family:'Manrope',sans-serif !important;
 }
-/* keep the page sharp */
 .ifOnb__backdrop{
-  background: transparent;           /* or rgba(2,6,23,.25) if you want a faint veil */
-  backdrop-filter: none !important;
+  position:absolute; inset:0; background: transparent; backdrop-filter:blur(8px);
+  animation: if-fade .25s ease both;
 }
-
-/* make the “spotlight ring” handle the darkening */
-.ifOnb__spot{
-  /* was: box-shadow:0 0 0 9999px rgba(0,0,0,.35), 0 0 0 2px var(--brand); */
-  box-shadow:
-    0 0 0 9999px rgba(2,6,23,.55),   /* dim everything except the hole */
-    0 0 0 2px var(--brand);
-}
-
 .ifOnb__card{
   position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
   width:min(520px, calc(100vw - 32px));
