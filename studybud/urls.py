@@ -14,10 +14,7 @@ def root_redirect(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # ✅ Only redirect logged-in users to swipe
-    path('', root_redirect, name='home'),
-
-    # ✅ Include all routes from the base app
+    # ✅ Include all routes from the base app (handles "/" correctly)
     path('', include('base.urls')),
 
     path('api/', include('base.api.urls')),
