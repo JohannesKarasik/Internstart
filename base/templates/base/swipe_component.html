@@ -2807,8 +2807,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-<script>
+
+  <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // 🧠 Prevent re-showing if user already completed both onboardings
+  if (localStorage.getItem('if_full_onboarding_done') === '1') {
+    return; // Stop everything else
+  }
+
   const $ = s => document.querySelector(s);
 
   // ---- Helper: wait until overlay DOM exists ----
@@ -2936,17 +2942,16 @@ document.addEventListener('DOMContentLoaded', () => {
           i = Math.max(0, i - 1);
           render();
         }
-              if (e.target.id === 'ifOnbNext2') {
-        if (i < steps.length - 1) {
-          i++;
-          render();
-        } else {
-          // Close and mark onboarding as fully complete
-          close();
-          localStorage.setItem('if_full_onboarding_done', '1');
+        if (e.target.id === 'ifOnbNext2') {
+          if (i < steps.length - 1) {
+            i++;
+            render();
+          } else {
+            // ✅ End of both onboardings
+            close();
+            localStorage.setItem('if_full_onboarding_done', '1');
+          }
         }
-      }
-
       });
 
       // ---- Trigger order: Email onboarding → Coachmarks ----
@@ -2955,31 +2960,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailConfigured = main?.dataset.emailConfigured === 'true';
 
       function afterEmail() {
-        // show the button onboarding immediately
         open();
         wireButtons(open);
       }
 
-      // When email onboarding finishes
       document.addEventListener('onboarding:finished', afterEmail, { once:true });
 
-      // ---- NEW: Trigger email onboarding automatically for new users ----
       const firstLogin = main?.dataset.firstLogin === 'true';
       if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
-        // mark email onboarding as started and show it
         setTimeout(() => {
-          document.dispatchEvent(new Event('onboarding:email')); // first email flow
-          // after email finishes it will fire onboarding:finished → open() runs
+          document.dispatchEvent(new Event('onboarding:email'));
         }, 800);
       }
     }
   );
 });
-
-// prevent re-showing if user already completed both onboardings
-if (localStorage.getItem('if_full_onboarding_done') === '1') {
-  return;
-}
 
 
 
