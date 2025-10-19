@@ -761,20 +761,9 @@ def is_image(file_path):
 
 
 def landing_page(request):
-    """
-    Public homepage for unauthenticated users.
-    Redirects logged-in users to swipe_view.
-    """
-    print("🧭 LANDING:", request.user.is_authenticated, request.get_host(), request.path)
+    print("🧭 landing_page | user.is_authenticated =", request.user.is_authenticated)
+    return render(request, 'base/landing.html')
 
-    # ✅ Prevent infinite redirect loops if session is invalid
-    if request.user.is_authenticated and request.user.is_active:
-        # Avoid looping if user gets redirected back here after failed auth
-        if request.path != reverse('swipe_view'):
-            return redirect('swipe_view')
-
-    # Otherwise, render the public landing page
-    return render(request, 'base/landing_page.html')
 
 
 
