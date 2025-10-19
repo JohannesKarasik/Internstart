@@ -761,8 +761,12 @@ def is_image(file_path):
 
 
 def landing_page(request):
-    print("🧭 landing_page | user.is_authenticated =", request.user.is_authenticated)
-    return render(request, 'base/landing.html')
+    print("🧭 landing_page", request.user.is_authenticated)
+    if request.user.is_authenticated:
+        print("➡️ redirecting to swipe_view")
+        return redirect('swipe_view')  # ✅ not redirect('/')
+    return render(request, 'base/landing_page.html')
+
 
 
 
