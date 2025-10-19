@@ -2747,175 +2747,146 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const $  = s => document.querySelector(s);
+  const $ = s => document.querySelector(s);
 
-  // ----- Elements -----
-  const onb   = $('#ifOnb');         // overlay wrapper (coach-marks)
-  const spot  = $('#ifOnbSpot');     // spotlight ring
-  const tip   = $('#ifOnbTip');      // tooltip shell
-  const title = $('#ifOnbTipTitle');
-  const text  = $('#ifOnbTipText');
-  const demo  = $('#ifOnbDemo');
-  const demoStamp = $('#ifOnbDemoStamp');
-  const leader = $('#ifOnbLeader');  // optional red “leader line”
-  if (!onb || !spot || !tip || !title || !text || !demo || !demoStamp) return;
+  // ---- helpers ----
+  const whenReady = (ids, cb) => {
+    const ok = () => ids.every(id => document.getElementById(id));
+    if (ok()) return cb();
+    const mo = new MutationObserver(() => { if (ok()) { mo.disconnect(); cb(); } });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  };
 
-  // ----- Build tiny inline controls inside the tooltip -----
-  const ctl = document.createElement('div');
-  ctl.style.marginTop = '8px';
-  ctl.innerHTML = `
-    <div style="display:flex; gap:8px;">
-      <button id="ifOnbPrev2" class="btn-secondary" style="padding:6px 10px;">Back</button>
-      <button id="ifOnbNext2" class="btn-primary"  style="padding:6px 10px;">Next</button>
-    </div>`;
-  tip.appendChild(ctl);
-  const btnPrev = () => $('#ifOnbPrev2');
-  const btnNext = () => $('#ifOnbNext2');
-
-  // ----- Steps (Dismiss → Apply) -----
-  const steps = [
-    {
-      target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
-      title: 'Dismiss',
-      text : 'Quickly skip roles that aren’t a match.',
-      demo : 'skip'
-    },
-    {
-      target: () => document.querySelector('.swipe-card.is-top .swipe-right') || document.querySelector('.swipe-right'),
-      title: 'Apply',
-      text: 'One tap and our AI model generates a personalized cover letter based on your resume, attaches your resume to the application, and sends it to the employer from your own email.',
-      demo: 'apply'
-    }
-  ];
-  let i = 0;
-
-  // ----- UI helpers -----
-  function clearUI(){
-    spot.classList.remove('show');
-    tip.classList.remove('show', 'is-above', 'is-below');
-    if (leader) {
-      leader.style.width = '0';
-      leader.style.left = leader.style.top = '';
-      leader.style.transform = '';
-    }
-    stopDemo();
-  }
-
-  function place(targetEl){
-    if (!targetEl) { clearUI(); return; }
-
-    // Spotlight over target
-    const r = targetEl.getBoundingClientRect();
-    const size = Math.max(r.width, r.height) + 28;
-    spot.style.width = spot.style.height = size + 'px';
-    spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
-    spot.style.top   = (r.top  + r.height/2 - size/2) + 'px';
-    spot.classList.add('show');
-
-    // Tooltip placement
-    const PAD = 12;
-    const GAP = 10;
-
-    const prevVis = tip.style.visibility;
-    tip.style.visibility = 'hidden';
-    tip.style.left = '-9999px';
-    tip.style.top  = '-9999px';
-    tip.classList.remove('is-above', 'is-below');
-    const tb = tip.getBoundingClientRect();
-    tip.style.visibility = prevVis || '';
-
-    const centerX = r.left + r.width/2;
-    const preferAboveY = r.top - GAP - tb.height;
-    const needBelow = (preferAboveY < PAD);
-    const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
-    const clampedLeft = Math.max(
-      PAD,
-      Math.min(centerX - tb.width/2, window.innerWidth - tb.width - PAD)
-    );
-
-    tip.style.left = `${clampedLeft}px`;
-    tip.style.top  = `${Math.max(PAD, Math.min(topY, window.innerHeight - tb.height - PAD))}px`;
-    tip.classList.add(needBelow ? 'is-below' : 'is-above');
-    tip.classList.add('show');
-  }
-
-  function stopDemo(){ demo.style.display='none'; demoStamp.classList.remove('show'); }
-  function playDemo(kind){
-    demo.style.display='flex';
-    demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
-    demoStamp.classList.add('show');
-    setTimeout(stopDemo, 600);
-  }
-
-  function render(){
-    const step = steps[i];
-    title.textContent = step.title;
-    text.textContent  = step.text;
-    place(step.target());
-    playDemo(step.demo);
-    btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
-    btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
-  }
-
-  function open(){ onb.hidden = false; render(); }
-  function close(){ onb.hidden = true; clearUI(); }
-
-  tip.addEventListener('click', (e) => {
-    if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
-    if (e.target.id === 'ifOnbNext2') {
-      if (i < steps.length - 1) { i++; render(); }
-      else { close(); }
-    }
-  });
-
-  // ========== GATING LOGIC (auto open, no buttons) ==========
-const main = document.querySelector('main.layout');
-const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';     // set by your email flow
-const COACH_SEEN_KEY     = 'if_onb_two_step_seen';    // we set this so it only shows once
-const emailConfigured    = main?.dataset.emailConfigured === 'true';
-
-/**
- * Wait until the overlay DOM is present, then open once.
- * (Prevents a race if markup is injected later in the template.)
- */
-function openCoachmarksOnceWhenReady() {
-  if (!emailConfigured) return;
-  if (localStorage.getItem(COACH_SEEN_KEY) === '1') return;
-
-  // Wait until required nodes exist
-  (function tryOpen(){
-    const onb  = document.getElementById('ifOnb');
-    const spot = document.getElementById('ifOnbSpot');
-    const tip  = document.getElementById('ifOnbTip');
-    if (!onb || !spot || !tip) {
-      requestAnimationFrame(tryOpen);
-      return;
-    }
-    // We have the DOM — open and mark as seen
-    requestAnimationFrame(() => {
-      open(); // your existing function
-      localStorage.setItem(COACH_SEEN_KEY, '1');
+  function wireButtons(openFn){
+    const btnDesktop = document.getElementById('showOnboarding');
+    const btnMobile  = document.getElementById('showOnboardingMobile');
+    [btnDesktop, btnMobile].forEach(btn => {
+      if (!btn) return;
+      btn.hidden = false;
+      btn.style.display = 'inline-flex';
+      btn.addEventListener('click', (e) => { e.preventDefault(); openFn(); });
     });
-  })();
-}
+  }
 
-const emailOnboardingDone = localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1';
+  // ---- build once the overlay DOM exists (no early return) ----
+  whenReady(
+    ['ifOnb','ifOnbSpot','ifOnbTip','ifOnbTipTitle','ifOnbTipText','ifOnbDemo','ifOnbDemoStamp'],
+    () => {
+      const onb   = $('#ifOnb');
+      const spot  = $('#ifOnbSpot');
+      const tip   = $('#ifOnbTip');
+      const title = $('#ifOnbTipTitle');
+      const text  = $('#ifOnbTipText');
+      const demo  = $('#ifOnbDemo');
+      const demoStamp = $('#ifOnbDemoStamp');
+      const leader = $('#ifOnbLeader');
 
-// If the email onboarding is already done on page load, open immediately
-if (emailOnboardingDone) {
-  openCoachmarksOnceWhenReady();
-} else {
-  // Otherwise, wait for the email onboarding to finish and then open
-  document.addEventListener('onboarding:finished', () => {
-    openCoachmarksOnceWhenReady();
-  }, { once: true });
-}
+      // tiny controls
+      const ctl = document.createElement('div');
+      ctl.style.marginTop = '8px';
+      ctl.innerHTML = `
+        <div style="display:flex; gap:8px;">
+          <button id="ifOnbPrev2" class="btn-secondary" style="padding:6px 10px;">Back</button>
+          <button id="ifOnbNext2" class="btn-primary"  style="padding:6px 10px;">Next</button>
+        </div>`;
+      tip.appendChild(ctl);
+      const btnPrev = () => $('#ifOnbPrev2');
+      const btnNext = () => $('#ifOnbNext2');
 
+      // steps
+      const steps = [
+        {
+          target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
+          title: 'Dismiss', text: 'Quickly skip roles that aren’t a match.', demo: 'skip'
+        },
+        {
+          target: () => document.querySelector('.swipe-card.is-top .swipe-right') || document.querySelector('.swipe-right'),
+          title: 'Apply',
+          text: 'One tap and our AI model generates a personalized cover letter and sends it.',
+          demo: 'apply'
+        }
+      ];
+      let i = 0;
 
+      // ui helpers
+      function clearUI(){
+        spot.classList.remove('show');
+        tip.classList.remove('show','is-above','is-below');
+        if (leader) { leader.style.width='0'; leader.style.left = leader.style.top = ''; leader.style.transform=''; }
+        stopDemo();
+      }
+      function place(targetEl){
+        if (!targetEl) { clearUI(); return; }
+        const r = targetEl.getBoundingClientRect();
+        const size = Math.max(r.width, r.height) + 28;
+        spot.style.width = spot.style.height = size + 'px';
+        spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
+        spot.style.top   = (r.top  + r.height/2 - size/2) + 'px';
+        spot.classList.add('show');
 
+        const PAD = 12, GAP = 10;
+        const prevVis = tip.style.visibility;
+        tip.style.visibility = 'hidden';
+        tip.style.left = '-9999px'; tip.style.top  = '-9999px';
+        tip.classList.remove('is-above','is-below');
+        const tb = tip.getBoundingClientRect();
+        tip.style.visibility = prevVis || '';
 
+        const centerX = r.left + r.width/2;
+        const preferAboveY = r.top - GAP - tb.height;
+        const needBelow = (preferAboveY < PAD);
+        const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
+        const clampedLeft = Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
 
+        tip.style.left = `${clampedLeft}px`;
+        tip.style.top  = `${Math.max(PAD, Math.min(topY, innerHeight - tb.height - PAD))}px`;
+        tip.classList.add(needBelow ? 'is-below' : 'is-above', 'show');
+      }
+      function stopDemo(){ demo.style.display='none'; demoStamp.classList.remove('show'); }
+      function playDemo(kind){
+        demo.style.display='flex';
+        demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
+        demoStamp.classList.add('show');
+        setTimeout(stopDemo, 600);
+      }
+      function render(){
+        const step = steps[i];
+        title.textContent = step.title;
+        text.textContent  = step.text;
+        place(step.target());
+        playDemo(step.demo);
+        btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
+        btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
+      }
+      function open(){ onb.hidden = false; render(); }
+      function close(){ onb.hidden = true; clearUI(); }
+      window.ifOnbOpen = open; // optional: for console debugging
+
+      tip.addEventListener('click', e => {
+        if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
+        if (e.target.id === 'ifOnbNext2') { if (i < steps.length - 1) { i++; render(); } else { close(); } }
+      });
+
+      // ---- show/wire the button AFTER email onboarding ----
+      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+      const main = document.querySelector('main.layout');
+      const emailConfigured = main?.dataset.emailConfigured === 'true';
+
+      function afterEmail(){
+        // make button(s) visible and functional
+        wireButtons(open);
+      }
+
+      if (localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1' && emailConfigured) {
+        afterEmail();
+      } else {
+        document.addEventListener('onboarding:finished', afterEmail, { once:true });
+      }
+    }
+  );
+});
 </script>
+
 
 
 
