@@ -12,7 +12,6 @@ urlpatterns = [
     path('', views.landing_page, name='landing_page'),   # ✅ root
     path('swipe/', views.swipe_view, name='swipe_view'),
     path('login/', views.loginPage, name="app_login"),
-    path('home/', views.landing_page, name='home'),
     path('logout/', views.logoutUser, name="app_logout"),
     path('register/', views.registerPage, name="register"),
     path('send-test-email/', views.send_test_email, name='send_test_email'),

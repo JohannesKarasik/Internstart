@@ -949,21 +949,6 @@ def registerPage(request):
     form = StudentCreationForm()
     return render(request, 'base/login_register.html', {'student_form': form, 'page': 'register'})
 
-@login_required(login_url='login')
-def home(request):
-    q = request.GET.get('q') if request.GET.get('q') != None else ''
-
-    rooms = Room.objects.filter(
-        Q(topic__name__icontains=q) |
-
-        Q(description__icontains=q)
-    )
-
-    topics = Topic.objects.all()[0:5]
-    room_count = rooms.count()
-    context = {'rooms': rooms, 'topics': topics,
-               'room_count': room_count}
-    return render(request, 'base/home.html', context)
 
 @login_required(login_url='app_login')
 def room(request, pk):
@@ -1416,29 +1401,7 @@ def topicsPage(request):
     topics = Topic.objects.filter(name__icontains=q)
     return render(request, 'base/topics.html', {'topics': topics})
 
-@login_required(login_url='app_login')
-def home(request):
-    q = request.GET.get('q') if request.GET.get('q') != None else ''
-
-    rooms = Room.objects.filter(
-        Q(topic__name__icontains=q) |
-
-        Q(description__icontains=q)
-    )
-
-    topics = Topic.objects.all()[0:5]
-    room_count = rooms.count()
-
-
-    user_profile = request.user  # Get the logged-in user's profile information
-
-    context = {
-        'rooms': rooms,
-        'topics': topics,
-        'room_count': room_count,
-        'user_profile': user_profile  # Pass the user profile data to the template
-    }
-    return render(request, 'base/home.html', context)
+@
 
 
 @login_required(login_url='app_login')
