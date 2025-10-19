@@ -763,20 +763,9 @@ def is_image(file_path):
 # base/views.py
 from django.shortcuts import render, redirect
 
-from django.urls import reverse
-
 def landing_page(request):
-    """
-    Public homepage for unauthenticated users.
-    Redirects logged-in users to swipe_view, but prevents redirect loops.
-    """
-    print("🧭 LANDING:", request.user.is_authenticated, request.path)
-
-    # Prevent infinite redirect loops
-    if request.user.is_authenticated and request.path != reverse('swipe_view'):
+    if request.user.is_authenticated and request.user.is_active:
         return redirect('swipe_view')
-
-    # If already on /swipe/ or not logged in, just render normally
     return render(request, 'base/landing_page.html')
 
 
@@ -1017,26 +1006,11 @@ from django.utils import timezone
 
 from django.core.paginator import Paginator
 
+@login_required
 def swipe_view(request):
-    # 👇 Debug info
+    # 👇 Added only for debugging the redirect loop
     print("🧭 swipe_view", request.user.is_authenticated)
 
-    # If user not logged in — show a limited public view instead of redirecting
-    if not request.user.is_authenticated:
-        topics = Topic.objects.all()[:5]
-        rooms_qs = Room.objects.all().order_by('id')[:5]  # show a few random/first listings
-
-        context = {
-            "rooms": rooms_qs,
-            "topics": topics,
-            "room_count": rooms_qs.count(),
-            "guest_mode": True,  # so template can show "please log in" overlay
-            "STRIPE_PUBLIC_KEY": getattr(settings, "STRIPE_PUBLIC_KEY", None),
-        }
-
-        return render(request, "base/swipe_component.html", context)
-
-    # --- Normal behavior for logged-in users ---
     q = request.GET.get('q') or ''
     page = int(request.GET.get('page', 1))
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
@@ -1093,6 +1067,7 @@ def swipe_view(request):
 
     # ✅ Otherwise return full template
     return render(request, "base/swipe_component.html", context)
+
 
 
 
@@ -1526,7 +1501,7 @@ def accept_connection_request(request, request_id):
             messages.error(request, "You are already connected to this user.")
     else:
         messages.error(request, "You cannot accept this request.")
-    return redirect('')
+    return redirect('home')
 
 # View Connections
 
