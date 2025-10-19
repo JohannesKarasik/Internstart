@@ -103,9 +103,11 @@ STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
 # Redirects
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/swipe/'
-LOGOUT_REDIRECT_URL = '/'
+# settings.py
+LOGIN_URL = 'app_login'          # matches name="app_login" in urls.py
+LOGIN_REDIRECT_URL = '/swipe_view/'   # where to go after successful login
+LOGOUT_REDIRECT_URL = '/'        # back to landing page
+
 
 
 if not DEBUG:

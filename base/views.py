@@ -758,11 +758,22 @@ def is_image(file_path):
     mime = mimetypes.guess_type(file_path)[0]
     return mime and mime.startswith('image')
 
+
+
 def landing_page(request):
-    # TEMP while debugging:
-    # if request.user.is_authenticated:
-    #     return redirect('swipe_view')
+    """
+    Public homepage for unauthenticated users.
+    Redirects logged-in users to swipe_view.
+    """
+    print("🧭 LANDING:", request.user.is_authenticated, request.get_host(), request.path)
+
+    # only redirect authenticated users
+    if request.user.is_authenticated:
+        return redirect('swipe_view')
+
+    # otherwise render public landing page
     return render(request, 'base/landing.html')
+
 
 
 
@@ -817,10 +828,12 @@ def revoke_google_access(request):
 
     return redirect('update-user')
 
-
 def loginPage(request):
     page = 'login'
-    if request.user.is_authenticated:
+
+    # ✅ Fix: Only redirect authenticated *and active* users
+    if request.user.is_authenticated and request.user.is_active:
+        print("🧭 LOGIN: already authenticated -> redirecting to swipe_view")
         return redirect('swipe_view')
 
     if request.method == 'POST':
@@ -847,8 +860,6 @@ def loginPage(request):
             except User.DoesNotExist:
                 lookup_user = None
 
-        # If the account exists but hasn't been activated yet
-
         # Authenticate
         if username_to_use:
             user = authenticate(request, username=username_to_use, password=password)
@@ -857,8 +868,10 @@ def loginPage(request):
         if user is None and '@' in raw_identifier:
             user = authenticate(request, email=raw_identifier.lower(), password=password)
 
-        if user is not None:
+        # ✅ Extra safety: ensure user is active before login
+        if user is not None and user.is_active:
             login(request, user)
+            print("🧭 LOGIN: success -> redirecting to swipe_view")
             return redirect('swipe_view')
 
         messages.error(request, "Username or password is incorrect.")
@@ -872,6 +885,7 @@ def loginPage(request):
             'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # ✅ pulled from Gunicorn env
         }
     )
+
 
 
 def logoutUser(request):
@@ -994,6 +1008,9 @@ from django.core.paginator import Paginator
 
 @login_required
 def swipe_view(request):
+    # 👇 Added only for debugging the redirect loop
+    print("🧭 SWIPE:", request.user.is_authenticated, request.get_host(), request.path)
+
     q = request.GET.get('q') or ''
     page = int(request.GET.get('page', 1))
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
@@ -1050,8 +1067,6 @@ def swipe_view(request):
 
     # ✅ Otherwise return full template
     return render(request, "base/swipe_component.html", context)
-
-
 
 
 
