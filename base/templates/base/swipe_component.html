@@ -607,13 +607,6 @@
 
 
 
-  <!-- In your header-left, after theme toggle -->
-<button id="showOnboarding" class="btn-secondary desktop-only">
-  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 20v-6m0-4V4M6 12h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  </svg>
-  Show onboarding
-</button>
 
 <!-- Mobile trigger (optional) -->
 <button id="showOnboardingMobile" class="mobile-premium-btn mobile-only" style="margin-left:10px;">Onboarding</button>
@@ -2875,29 +2868,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ========== GATING LOGIC ==========
-  const main = document.querySelector('main.layout');
-  const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
-  const COACH_SEEN_KEY     = 'if_onb_two_step_seen';
-  const emailConfigured    = main?.dataset.emailConfigured === 'true';
+  // ========== GATING LOGIC (auto open, no buttons) ==========
+const main = document.querySelector('main.layout');
+const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';     // set by your email flow
+const COACH_SEEN_KEY     = 'if_onb_two_step_seen';    // we set this so it only shows once
+const emailConfigured    = main?.dataset.emailConfigured === 'true';
 
-  function openCoachmarksOnce() {
-    if (!emailConfigured) return;
-    if (localStorage.getItem(COACH_SEEN_KEY) === '1') return;
+/**
+ * Wait until the overlay DOM is present, then open once.
+ * (Prevents a race if markup is injected later in the template.)
+ */
+function openCoachmarksOnceWhenReady() {
+  if (!emailConfigured) return;
+  if (localStorage.getItem(COACH_SEEN_KEY) === '1') return;
+
+  // Wait until required nodes exist
+  (function tryOpen(){
+    const onb  = document.getElementById('ifOnb');
+    const spot = document.getElementById('ifOnbSpot');
+    const tip  = document.getElementById('ifOnbTip');
+    if (!onb || !spot || !tip) {
+      requestAnimationFrame(tryOpen);
+      return;
+    }
+    // We have the DOM — open and mark as seen
     requestAnimationFrame(() => {
-      open();
+      open(); // your existing function
       localStorage.setItem(COACH_SEEN_KEY, '1');
     });
-  }
+  })();
+}
 
-  const emailOnboardingDone = localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1';
-  if (emailOnboardingDone && emailConfigured) {
-    openCoachmarksOnce();
-  } else {
-    document.addEventListener('onboarding:finished', openCoachmarksOnce, { once: true });
-  }
-});
+const emailOnboardingDone = localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1';
+
+// If the email onboarding is already done on page load, open immediately
+if (emailOnboardingDone) {
+  openCoachmarksOnceWhenReady();
+} else {
+  // Otherwise, wait for the email onboarding to finish and then open
+  document.addEventListener('onboarding:finished', () => {
+    openCoachmarksOnceWhenReady();
+  }, { once: true });
+}
+
+
+
+
+
 </script>
+
+
 
 </main>
 
