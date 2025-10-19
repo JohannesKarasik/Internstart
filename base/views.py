@@ -819,6 +819,7 @@ def revoke_google_access(request):
     return redirect('update-user')
 
 def loginPage(request):
+    print("🧭 loginPage", request.user.is_authenticated)
     page = 'login'
 
     # ✅ Fix: Only redirect authenticated *and active* users
@@ -879,6 +880,8 @@ def loginPage(request):
 
 
 def logoutUser(request):
+    print("🧭 landing_page", request.user.is_authenticated)
+
     logout(request)
     return redirect('landing_page')
 
@@ -999,7 +1002,7 @@ from django.core.paginator import Paginator
 @login_required
 def swipe_view(request):
     # 👇 Added only for debugging the redirect loop
-    print("🧭 SWIPE:", request.user.is_authenticated, request.get_host(), request.path)
+    print("🧭 swipe_view", request.user.is_authenticated)
 
     q = request.GET.get('q') or ''
     page = int(request.GET.get('page', 1))
