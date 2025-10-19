@@ -765,18 +765,12 @@ from django.shortcuts import render, redirect
 
 def landing_page(request):
     """
-    Root landing page.
-    - Logged in users → go to swipe_view
-    - Logged out users → stay on this page (no redirect loop)
+    Always renders the landing page — no redirects.
+    Even if the user is logged in, they stay here.
     """
-    print("🧭 landing_page | authenticated:", request.user.is_authenticated)
+    print("🧭 landing_page accessed by:", request.user if request.user.is_authenticated else "anonymous")
+    return render(request, 'base/landing_page.html')
 
-    if request.user.is_authenticated:
-        print("➡️ redirecting to swipe_view")
-        return redirect('swipe_view')   # Go straight to app
-    else:
-        print("🧭 showing landing_page.html")
-        return render(request, 'base/landing_page.html')
 
 
 
