@@ -763,9 +763,20 @@ def is_image(file_path):
 # base/views.py
 from django.shortcuts import render, redirect
 
+from django.urls import reverse
+
 def landing_page(request):
-    if request.user.is_authenticated and request.user.is_active:
+    """
+    Public homepage for unauthenticated users.
+    Redirects logged-in users to swipe_view, but prevents redirect loops.
+    """
+    print("🧭 LANDING:", request.user.is_authenticated, request.path)
+
+    # Prevent infinite redirect loops
+    if request.user.is_authenticated and request.path != reverse('swipe_view'):
         return redirect('swipe_view')
+
+    # If already on /swipe/ or not logged in, just render normally
     return render(request, 'base/landing_page.html')
 
 
