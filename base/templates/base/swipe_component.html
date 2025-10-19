@@ -2754,327 +2754,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // read the "first_login" flag from the <main> element
-  const main = document.querySelector('main.layout');
-  const firstLogin = main?.dataset.firstLogin === 'true';
-
-  if (!firstLogin) return; // nothing to do
-
-  const overlay = document.getElementById('onboarding-overlay');
-  const dialog  = document.getElementById('onboarding-dialog');
-  const title   = document.getElementById('onb-title');
-  const desc    = document.getElementById('onb-desc');
-  const stepEl  = document.getElementById('onb-step');
-  const totalEl = document.getElementById('onb-total');
-  const prevBtn = document.getElementById('onb-prev');
-  const nextBtn = document.getElementById('onb-next');
-
-  // your steps:
-  const steps = [
-    {title: 'Welcome!', desc: "Let's get started by connecting your email so applications can be sent directly."},
-    {title: 'Save jobs', desc: 'Tap the star to save a job for later.'},
-    {title: 'Undo / Skip', desc: 'Swipe left to skip, undo to bring back.'},
-  ];
-
-  let step = 0;
-
-  function renderStep() {
-    const s = steps[step];
-    title.textContent = s.title;
-    desc.textContent = s.desc;
-    stepEl.textContent = step + 1;
-    totalEl.textContent = steps.length;
-    prevBtn.style.display = step === 0 ? 'none' : 'inline-block';
-    nextBtn.textContent = step === steps.length - 1 ? 'Finish' : 'Okay';
-  }
-
-  prevBtn.addEventListener('click', () => {
-    if (step > 0) step--;
-    renderStep();
-  });
-
-  nextBtn.addEventListener('click', () => {
-    if (step < steps.length - 1) {
-      step++;
-      renderStep();
-    } else {
-  // finished — hide overlay
-  overlay.style.display = 'none';
-  // optionally mark in localStorage so you don’t show again
-  try { localStorage.setItem('if_seen_onboarding', '1'); } catch(e){}
-  // tell other features (like the showcase) that onboarding is done
-  document.dispatchEvent(new Event('onboarding:finished'));
-}
-  });
-
-  // don’t show if we already marked it
-  if (localStorage.getItem('if_seen_onboarding') === '1') return;
-
-  overlay.style.display = 'flex';
-  renderStep();
-});
-
-// Mirror counts into the mobile HUD
-function updateMobileHUD() {
-  const left = document.getElementById('swipesLeft')?.textContent;
-  const applied = document.getElementById('appliedCount')?.textContent;
-  if (left !== null) document.getElementById('swipesLeftMobile').textContent = left;
-  if (applied !== null) document.getElementById('appliedCountMobile').textContent = applied;
-}
-
-// call once and on any update
-updateMobileHUD();
-setInterval(updateMobileHUD, 1500); // cheap polling, or call inside your existing fetch.then()s
-
-
-
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  let page = 1;
-  let loading = false;
-  const deck = document.getElementById("swipeDeck");
-  const sentinel = document.getElementById("loadMoreSentinel");
-
-  async function loadMore() {
-    if (loading) return;
-    loading = true;
-
-    page++;
-    try {
-      const res = await fetch(`/swipe/?page=${page}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-      });
-      if (!res.ok) return;
-      const data = await res.text();
-
-      // Stop observing if no new data
-      if (!data.trim()) {
-        observer.disconnect();
-        return;
-      }
-
-      // Append new cards
-      deck.insertAdjacentHTML("beforeend", data);
-
-      // Re-run card styling and HUD updates
-      if (typeof styleStack === "function") styleStack();
-      if (typeof updateDeckHUD === "function") updateDeckHUD();
-
-      // Reconnect observer to sentinel after DOM change
-      observer.observe(sentinel);
-    } catch (err) {
-      console.error("Error loading more cards:", err);
-    } finally {
-      loading = false;
-    }
-  }
-
-  // Create the observer
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting && !loading) {
-        loadMore();
-      }
-    },
-    { rootMargin: "300px" }
-  );
-
-  observer.observe(sentinel);
-
-  // 🧠 Ensure continuous load if few cards left after swiping
-  const container = document.querySelector(".swipe-container");
-  const mutationObserver = new MutationObserver(() => {
-    const visibleCards = container.querySelectorAll(".swipe-card").length;
-    if (visibleCards <= 3 && !loading) {
-      // preload next batch if we're about to run out
-      loadMore();
-    }
-  });
-
-  mutationObserver.observe(deck, { childList: true });
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const openBtn = document.getElementById("openPremium");
-  const modal = document.getElementById("noSwipesModal");
-
-  if (openBtn && modal) {
-    openBtn.addEventListener("click", () => {
-      modal.classList.add("show");
-      document.documentElement.style.overflow = "hidden";
-    });
-  }
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  const openBtn = document.getElementById("openPremiumMobile");
-  const modal = document.getElementById("noSwipesModal");
-
-  if (openBtn && modal) {
-    openBtn.addEventListener("click", () => {
-      modal.classList.add("show");
-      document.documentElement.style.overflow = "hidden";
-    });
-  }
-});
-
-
-
-</script>
-
-<script>
-  // On mobile, simplify interactivity
-  const isMobile = matchMedia('(max-width: 768px)').matches;
-  if (isMobile) {
-    document.removeEventListener('mousemove', () => {});
-    document.querySelector('.swipe-container')?.removeEventListener('mousemove', () => {});
-    window.confettiBurst = () => {};
-  }
-</script>
-
-<script>
-(function(){
-  const overlay = document.getElementById('emailFlowShowcase');
-  if (!overlay) return;
-
-  const main = document.querySelector('main.layout');
-  const emailConfigured = (main?.dataset.emailConfigured === 'true');
-  const SEEN_KEY = 'if_email_flow_demo_shown';
-  const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
-  const onboardingSeen = (localStorage.getItem('if_seen_onboarding') === '1');
-
-  function openShowcase(){
-    overlay.hidden = false;
-    overlay.classList.add('show');
-    requestAnimationFrame(() => overlay.classList.add('play'));
-    // mark as shown when closed
-    const close = () => {
-      overlay.classList.remove('play','show');
-      overlay.hidden = true;
-      try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
-      overlay.removeEventListener('click', onClick);
-      document.removeEventListener('keydown', onEsc);
-    };
-    const onClick = (e) => { if (e.target.matches('[data-efs-close], .efs__backdrop')) close(); };
-    const onEsc = (e) => { if (e.key === 'Escape' && !overlay.hidden) close(); };
-    overlay.addEventListener('click', onClick);
-    document.addEventListener('keydown', onEsc);
-  }
-
-  // Show if email is configured and we haven't shown it yet.
-  if (emailConfigured && !alreadySeen) {
-    // If onboarding hasn’t been completed in this session, wait for it.
-    if (!onboardingSeen) {
-      document.addEventListener('onboarding:finished', openShowcase, { once: true });
-    } else {
-      // Onboarding already done (or skipped) ⇒ show immediately.
-      requestAnimationFrame(openShowcase);
-    }
-  }
-
-  // Optional: first swipe-right after email config, if still not shown
-  if (emailConfigured && !alreadySeen) {
-    const deck = document.getElementById('swipeDeck');
-    deck?.addEventListener('click', (e) => {
-      if (e.target.closest('.swipe-right') && localStorage.getItem(SEEN_KEY) !== '1') {
-        openShowcase();
-      }
-    }, { once: true });
-  }
-})();
-</script>
-
-<script>
-/* ---------- FORCE-OPEN / MANUAL TRIGGER ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  const overlay = document.getElementById('emailFlowShowcase');
-  if (!overlay) return;
-
-  const main = document.querySelector('main.layout');
-  const emailConfigured = (main?.dataset.emailConfigured === 'true');
-  const SEEN_KEY = 'if_email_flow_demo_shown';
-  const alreadySeen = (localStorage.getItem(SEEN_KEY) === '1');
-
-  // 1) Manual trigger for debugging (add a button somewhere with id="showEFSNow")
-  function showEmailFlow() {
-    overlay.hidden = false;                // remove [hidden]
-    overlay.classList.add('show');         // display:grid
-    requestAnimationFrame(() => overlay.classList.add('play')); // start timeline
-  }
-  window.showEmailFlow = showEmailFlow;    // so you can call from console
-
-  document.getElementById('showEFSNow')?.addEventListener('click', () => {
-    localStorage.removeItem(SEEN_KEY);     // let it play again
-    showEmailFlow();
-  });
-
-  // 2) Robust auto-open logic:
-  //    - open if email is configured and we haven't shown it
-  //    - OR if you set data-efs-debug="true" on <main> (dev override)
-  const debugOverride = (main?.dataset.efsDebug === 'true');
-  const onboardingSeen = (localStorage.getItem('if_seen_onboarding') === '1');
-
-  function openAndRemember() {
-    showEmailFlow();
-    // mark as shown when it closes (your close handler already sets SEEN_KEY, but set now too)
-    try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
-  }
-
-  if ((emailConfigured && !alreadySeen) || debugOverride) {
-    if (!onboardingSeen) {
-      document.addEventListener('onboarding:finished', openAndRemember, { once: true });
-    } else {
-      // Wait one frame so styles apply before .play
-      requestAnimationFrame(openAndRemember);
-    }
-  }
-});
-</script>
-
-<script>
-/* ---------- POLYFILL: animate --aiAngle if @property/animations are unsupported ---------- */
-(function(){
-  // If CSS.registerProperty exists, we can assume modern animation of custom props is fine.
-  // We still polyfill if we detect the border isn't moving after a moment.
-  const frames = document.querySelectorAll('.logo-frame');
-  if (!frames.length) return;
-
-  let tickId, angle = 0, started = false;
-
-  function startPolyfill(){
-    if (started) return;
-    started = true;
-    function tick(){
-      angle = (angle + 0.6) % 360; // ~10s per rotation; adjust to taste
-      frames.forEach(el => el.style.setProperty('--aiAngle', angle + 'deg'));
-      tickId = requestAnimationFrame(tick);
-    }
-    tickId = requestAnimationFrame(tick);
-  }
-
-  // Heuristic: if user has reduced motion, skip polyfill.
-  const m = matchMedia('(prefers-reduced-motion: reduce)');
-  if (m.matches) return;
-
-  // Start the polyfill after first paint to avoid fighting native animation.
-  // If native animation works, this will simply keep the same effect in sync.
-  requestAnimationFrame(startPolyfill);
-})();
-
-
-
-
-
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
   const $  = s => document.querySelector(s);
 
   // ----- Elements -----
@@ -3140,7 +2819,7 @@ document.addEventListener('DOMContentLoaded', () => {
     spot.style.top   = (r.top  + r.height/2 - size/2) + 'px';
     spot.classList.add('show');
 
-    // Tooltip placement (clamped)
+    // Tooltip placement
     const PAD = 12;
     const GAP = 10;
 
@@ -3165,26 +2844,59 @@ document.addEventListener('DOMContentLoaded', () => {
     tip.style.top  = `${Math.max(PAD, Math.min(topY, window.innerHeight - tb.height - PAD))}px`;
     tip.classList.add(needBelow ? 'is-below' : 'is-above');
     tip.classList.add('show');
-
-    // Leader line (optional)
-    if (leader) {
-      const arrowX = clampedLeft + tb.width/2;
-      const arrowY = needBelow ? (topY) : (topY + tb.height);
-      const startX = centerX;
-      const startY = needBelow ? r.bottom : r.top;
-
-      const dx = arrowX - startX;
-      const dy = arrowY - startY;
-      const len = Math.hypot(dx, dy);
-      const ang = Math.atan2(dy, dx) * 180 / Math.PI;
-
-      leader.style.left  = `${startX}px`;
-      leader.style.top   = `${startY}px`;
-      leader.style.width = `${len}px`;
-      leader.style.transform = `rotate(${ang}deg)`;
-    }
   }
 
+  function stopDemo(){ demo.style.display='none'; demoStamp.classList.remove('show'); }
+  function playDemo(kind){
+    demo.style.display='flex';
+    demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
+    demoStamp.classList.add('show');
+    setTimeout(stopDemo, 600);
+  }
+
+  function render(){
+    const step = steps[i];
+    title.textContent = step.title;
+    text.textContent  = step.text;
+    place(step.target());
+    playDemo(step.demo);
+    btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
+    btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
+  }
+
+  function open(){ onb.hidden = false; render(); }
+  function close(){ onb.hidden = true; clearUI(); }
+
+  tip.addEventListener('click', (e) => {
+    if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
+    if (e.target.id === 'ifOnbNext2') {
+      if (i < steps.length - 1) { i++; render(); }
+      else { close(); }
+    }
+  });
+
+  // ========== GATING LOGIC ==========
+  const main = document.querySelector('main.layout');
+  const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+  const COACH_SEEN_KEY     = 'if_onb_two_step_seen';
+  const emailConfigured    = main?.dataset.emailConfigured === 'true';
+
+  function openCoachmarksOnce() {
+    if (!emailConfigured) return;
+    if (localStorage.getItem(COACH_SEEN_KEY) === '1') return;
+    requestAnimationFrame(() => {
+      open();
+      localStorage.setItem(COACH_SEEN_KEY, '1');
+    });
+  }
+
+  const emailOnboardingDone = localStorage.getItem(EMAIL_ONB_SEEN_KEY) === '1';
+  if (emailOnboardingDone && emailConfigured) {
+    openCoachmarksOnce();
+  } else {
+    document.addEventListener('onboarding:finished', openCoachmarksOnce, { once: true });
+  }
+});
 </script>
 
 </main>
