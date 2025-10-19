@@ -1317,7 +1317,7 @@ def createRoom(request):
                 RoomFile.objects.create(room=room, file=file)
 
             messages.success(request, 'Job listing created successfully!')
-            return redirect('home')
+            return redirect('')
         else:
             messages.error(request, 'There was an error creating the listing. Please check the form for errors.')
     else:
@@ -1356,7 +1356,7 @@ def updateRoom(request, pk):
             RoomFile.objects.create(room=room, file=file)  # Save uploaded files
 
         # Redirect to the home page after successful update
-        return redirect('home')
+        return redirect('')
 
     # Pass the form and topics to the template for rendering
     context = {'form': form, 'topics': topics, 'room': room}
@@ -1372,7 +1372,7 @@ def deleteRoom(request, pk):
 
     if request.method == 'POST':
         room.delete()
-        return redirect('home')
+        return redirect("")
     return render(request, 'base/delete.html', {'obj': room})
 
 
@@ -1480,7 +1480,7 @@ def send_connection_request(request, user_id):
     else:
         messages.error(request, "You cannot send a connection request to yourself.")
     
-    return redirect('home')
+    return redirect('')
 
 # Accept Connection Request
 
@@ -1501,7 +1501,7 @@ def accept_connection_request(request, request_id):
             messages.error(request, "You are already connected to this user.")
     else:
         messages.error(request, "You cannot accept this request.")
-    return redirect('home')
+    return redirect('')
 
 # View Connections
 
