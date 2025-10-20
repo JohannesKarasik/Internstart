@@ -4,6 +4,8 @@ from django.urls import path, include
 from django.urls import path
 from .forms import EmployerCompanyForm, EmployerPersonalForm
 from django.urls import path, include
+from django.shortcuts import redirect
+
 
 
 
@@ -11,6 +13,7 @@ from django.urls import path, include
 urlpatterns = [
     path('', views.landing_page, name='landing_page'),   # ✅ root
     path('swipe/', views.swipe_view, name='swipe_view'),
+    path('', lambda request: redirect('swipe_view'), name='home'),
     path('login/', views.loginPage, name="app_login"),
     path('logout/', views.logoutUser, name="app_logout"),
     path('register/', views.registerPage, name="register"),
@@ -36,7 +39,6 @@ urlpatterns = [
     path("billing/success/", views.billing_success, name="billing_success"),
     path("billing/cancel/", views.billing_cancel, name="billing_cancel"),
     path("swipe/jobs/", views.swipe_jobs_api, name="swipe_jobs_api"),
-    path('', root_redirect, name='home'),
     path('welcome', views.landing_page, name=''),   # ✅ root
 
 
