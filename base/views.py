@@ -1113,34 +1113,29 @@ def debug_set_tier(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid method"}, status=405)
 
-    data = json.loads(request.body or "{}")
-    tier = (data.get("tier") or "free").lower()
-    SWIPE_LIMITS = {
-        'starter': 50,
-        'pro': 200,
-        'elite': 500,
-    }
+    try:
+        data = json.loads(request.body or "{}")
+        tier = (data.get("tier") or "free").lower()
 
-    if tier not in SWIPE_LIMITS:
-        return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
+        VALID_TIERS = {"free", "starter", "pro", "elite"}
+        if tier not in VALID_TIERS:
+            return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
 
-    request.user.subscription_tier = tier
-    request.user.save()
+        # ✅ Update user's subscription tier
+        request.user.subscription_tier = tier
+        request.user.save()
 
-    # update quota for today
-    quota, _ = DailySwipeQuota.objects.get_or_create(
-        user=request.user, date=timezone.localdate()
-    )
-    quota.limit = SWIPE_LIMITS[tier]
+        return JsonResponse({
+            "success": True,
+            "tier": tier,
+            "message": f"Subscription tier set to '{tier.capitalize()}'"
+        })
 
-    # if you want to reset usage on upgrade:
-    if quota.count >= quota.limit:
-        quota.count = 0  # reset used count on upgrade
-    quota.save()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"error": str(e)}, status=500)
 
-    left = max(0, quota.limit - quota.count)
-
-    return JsonResponse({"tier": tier, "limit": quota.limit, "left": left})
 
 
 import stripe
