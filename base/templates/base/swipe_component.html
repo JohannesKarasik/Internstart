@@ -1,5 +1,12 @@
 {% extends 'main.html' %}
-
+{% block extra_head %}
+<style>
+  /* Hide the top navbar for this page only */
+  .header.header--loggedIn {
+    display: none !important;
+  }
+</style>
+{% endblock %}
 {% load static %}
 
 {% block content %}
@@ -2159,11 +2166,7 @@ main.layout {
   letter-spacing: 0.02em;
 }
 
-header.navbar,
-  .navbar,
-  .main-header {
-    display: none !important;
-  }
+
 
 
 </style>
