@@ -1,12 +1,15 @@
 {% extends 'main.html' %}
-{% block extra_head %}
 <style>
-  /* Hide the top navbar for this page only */
-  .header.header--loggedIn {
+  /* Force-hide the top header for this page only */
+  header.header--loggedIn {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
   }
 </style>
-{% endblock %}
 {% load static %}
 
 {% block content %}
