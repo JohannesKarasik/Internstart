@@ -638,6 +638,26 @@
 
 <!-- after -->
 
+<div id="emailConnectedToast" 
+     style="
+       position: fixed;
+       top: 20px;
+       left: 50%;
+       transform: translateX(-50%);
+       background-color: #4CAF50;
+       color: white;
+       padding: 12px 24px;
+       border-radius: 8px;
+       font-size: 16px;
+       font-weight: 500;
+       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+       opacity: 0;
+       transition: opacity 0.4s ease, transform 0.4s ease;
+       z-index: 99999;
+     ">
+  Your email was connected
+</div>
+
 
 
   <style>
@@ -2996,9 +3016,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailConfigured = main?.dataset.emailConfigured === 'true';
 
       function afterEmail() {
-        open();
-        wireButtons(open);
-      }
+      // Show the "Email connected" message
+      showEmailConnectedToast();
+
+      // Then open the button onboarding
+      open();
+      wireButtons(open);
+    }
+
 
       document.addEventListener('onboarding:finished', afterEmail, { once:true });
 
@@ -3011,6 +3036,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   );
 });
+
+
+function showEmailConnectedToast() {
+  const toast = document.getElementById('emailConnectedToast');
+  if (!toast) return;
+
+  toast.style.opacity = '1';
+  toast.style.transform = 'translate(-50%, 0)';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, -10px)';
+  }, 2500);
+}
 
 
 
