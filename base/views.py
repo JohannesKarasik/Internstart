@@ -1227,9 +1227,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @login_required
 def create_checkout_session(request, tier):
     prices = {
-        "starter": "price_1SKRMg6IJebVII3Fw3XxREoq",
-        "pro": "price_1SKRNB6IJebVII3FoLCAkGnk",
-        "elite": "price_1SKRNX6IJebVII3F0VBJLXjd",
+        "starter": "price_1SDxgh6IJebVII3FaIOLhBkn",
+        "pro": "price_1SCRta6IJebVII3Feda7JGJf",
+        "elite": "price_1SDxhc6IJebVII3F87lwDxEC",
     }
 
     if tier not in prices:
