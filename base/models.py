@@ -44,6 +44,9 @@ class User(AbstractUser):
     username = models.CharField(max_length=150, unique=True, null=True, blank=True)
     onboarding_shown = models.BooleanField(default=False)
 
+    total_swipes_allowed = models.PositiveIntegerField(default=10)
+    total_swipes_used = models.PositiveIntegerField(default=0)
+
     # Resume upload
     resume = models.FileField(upload_to="resumes/", blank=True, null=True)
 
