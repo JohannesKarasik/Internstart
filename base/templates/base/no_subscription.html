@@ -281,7 +281,7 @@
     </style>
     
     <script src="https://js.stripe.com/v3/"></script>
-    
+
 <script>
 /* Monthly/Yearly toggle (no framework) */
 (function() {
@@ -313,6 +313,7 @@
 
 
 <script>
+    console.log("✅ Stripe checkout script loaded");
     document.addEventListener("DOMContentLoaded", () => {
       const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // ✅ from Django
     
