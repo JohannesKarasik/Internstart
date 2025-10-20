@@ -323,7 +323,7 @@
           const tier = btn.dataset.tier;
     
           try {
-            const res = await fetch(`/create-checkout-session/${tier}/`);
+            const res = await fetch(`/billing/checkout/${tier}/`);
             const data = await res.json();
             console.log("Stripe checkout response:", data); // ✅ Debug
     
