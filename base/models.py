@@ -91,14 +91,14 @@ class User(AbstractUser):
     country = models.CharField(max_length=10, choices=COUNTRY_CHOICES, null=True, blank=True)
 
     INDUSTRY_CHOICES = [
-        ('tech', 'Technology'),
-        ('finance', 'Finance'),
-        ('marketing', 'Marketing'),
-        ('engineering', 'Engineering'),
-        ('design', 'Design'),
-        ('healthcare', 'Healthcare'),
+        ('business_finance', 'Business & Finance'),
+        ('marketing', 'Marketing & Communications'),
+        ('software_backend', 'Software Development (Backend)'),
+        ('software_frontend', 'Software Development (Frontend)'),
+        ('sales_customer', 'Sales & Customer Relations'),
         ('other', 'Other'),
     ]
+    
     student_industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
     # 🔹 Job type choices
