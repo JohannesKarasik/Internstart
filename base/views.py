@@ -1242,7 +1242,7 @@ def create_checkout_session(request, tier):
             mode="subscription",
             line_items=[{"price": prices[tier], "quantity": 1}],
             success_url="https://internstart.com/billing/success/?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url="https://internstart.com/pricing/",
+            cancel_url="https://internstart.com/swipe/",
             metadata={"tier": tier},
         )
         return JsonResponse({"url": session.url})  # ✅ return URL, not just ID
