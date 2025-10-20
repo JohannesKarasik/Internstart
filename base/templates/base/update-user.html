@@ -54,10 +54,10 @@
                   Cancel Subscription
                 </a>
         
-              {% else %}
+                {% else %}
                 <p class="hint">Upgrade your plan to unlock AI-powered job applications.</p>
-        
-                {% url 'swipe' as swipe_url %}
+              
+                {% url 'swipe_view' as swipe_url %}
                 <a href="{{ swipe_url }}"
                    class="btn btn--primary btn--block"
                    title="Upgrade plan"
