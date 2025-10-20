@@ -13,6 +13,23 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv   # <-- this line is missing
+from django.utils.translation import gettext_lazy as _
+
+
+
+LANGUAGE_CODE = 'en'  # default language
+USE_I18N = True
+
+LANGUAGES = [
+    ('en', _('English')),
+    ('da', _('Danish')),
+    ('de', _('German')),
+    ('fr', _('French')),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 
 
@@ -141,12 +158,14 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware'
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'base.middleware.RedirectLoggerMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 
 ]
 
