@@ -72,6 +72,7 @@ class User(AbstractUser):
     )
 
     # ✅ New total swipe system
+    swipes_used = models.PositiveIntegerField(default=0)
 
 
     # 🔹 Stripe integration fields
