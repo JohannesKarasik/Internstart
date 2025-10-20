@@ -54,7 +54,6 @@ from django.http import JsonResponse
 from .forms import  StudentCreationForm
 from .forms import EmployerCompanyForm, EmployerPersonalForm
 from django.utils import timezone
-from .models import DailySwipeQuota
 
 import logging
 from docx import Document
@@ -431,6 +430,14 @@ def apply_swipe_job(request):
 
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request method"})
+    
+        # 🚫 Require active subscription
+    if request.user.subscription_status != "active":
+        return JsonResponse({
+            "success": False,
+            "error": "You need an active subscription to swipe. Please upgrade your plan."
+        })
+
 
     today = timezone.localdate()
     quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
@@ -1001,13 +1008,17 @@ def userProfile(request, pk):
 def feed_view(request):
     return render(request, "feed_component.html")
 
-from .models import DailySwipeQuota
 from django.utils import timezone
 
 from django.core.paginator import Paginator
 
 @login_required
 def swipe_view(request):
+    user = request.user
+
+    # 🚫 If user doesn't have an active subscription, show upgrade template
+    if user.subscription_status != "active":
+        return render(request, "base/no_subscription.html")
     # 👇 Added only for debugging the redirect loop
     print("🧭 swipe_view", request.user.is_authenticated)
 
@@ -1104,7 +1115,11 @@ def debug_set_tier(request):
 
     data = json.loads(request.body or "{}")
     tier = (data.get("tier") or "free").lower()
-    SWIPE_LIMITS = {"free": 3, "starter": 15, "pro": 30, "elite": 45}
+    SWIPE_LIMITS = {
+        'starter': 50,
+        'pro': 200,
+        'elite': 500,
+    }
 
     if tier not in SWIPE_LIMITS:
         return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
