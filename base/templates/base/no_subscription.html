@@ -32,7 +32,7 @@
       </ul>
       <p class="feature-note">Applications are sent directly to the employer when you swipe.</p>
       
-      <a href="#" class="cta">Get Starter</a>
+      <a href="#" class="cta checkout-btn" data-tier="starter">Get Starter</a>
     </article>
 
     <!-- Pro (featured) -->
@@ -53,7 +53,7 @@
       </ul>
       <p class="feature-note">Applications are sent directly to the employer when you swipe.</p>
       
-      <a href="#" class="cta cta-primary">Start Pro</a>
+      <a href="#" class="cta checkout-btn" data-tier="pro">Get Pro</a>
     </article>
 
     <!-- Elite -->
@@ -73,7 +73,7 @@
       </ul>
       <p class="feature-note">Applications are sent directly to the employer when you swipe.</p>
       
-      <a href="#" class="cta">Go Elite</a>
+      <a href="#" class="cta checkout-btn" data-tier="elite">Get Elite</a>
     </article>
   </section>
 
@@ -303,4 +303,34 @@
   setActive('monthly');
 })();
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // ✅ from your Django context
+    
+      document.querySelectorAll(".checkout-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const tier = btn.dataset.tier;
+    
+          try {
+            const res = await fetch(`/create-checkout-session/${tier}/`);
+            const data = await res.json();
+    
+            if (data.error) {
+              alert("Error: " + data.error);
+            } else {
+              stripe.redirectToCheckout({ sessionId: data.id });
+            }
+          } catch (err) {
+            console.error("Checkout error:", err);
+            alert("Something went wrong. Please try again later.");
+          }
+        });
+      });
+    });
+    </script>
+    
+
+
 {% endblock %}
