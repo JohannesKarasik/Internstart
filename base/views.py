@@ -439,7 +439,7 @@ def apply_swipe_job(request):
         })
 
     # ✅ Total swipe limits by tier
-    SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
+    SWIPE_TOTALS = {"starter": 50, "pro": 200, "elite": 400}
     tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
     total_limit = SWIPE_TOTALS.get(tier, 10)
 
@@ -644,7 +644,7 @@ def start_gmail_auth(request):
 @login_required
 def get_quota(request):
     # ✅ Define total swipe limits per tier
-    SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
+    SWIPE_TOTALS = {"starter": 50, "pro": 200, "elite": 400}
     tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
     limit = SWIPE_TOTALS.get(tier, 10)
 
@@ -1049,7 +1049,7 @@ def swipe_view(request):
     room_count = rooms_qs.count()
 
     # ✅ New total-swipe system (no daily quotas)
-    SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
+    SWIPE_TOTALS = {"starter": 50, "pro": 200, "elite": 400}
     tier = (getattr(user, "subscription_tier", "free") or "free").lower()
     limit = SWIPE_TOTALS.get(tier, 10)
     used = getattr(user, "total_swipes_used", 0)
@@ -1175,7 +1175,7 @@ def stripe_webhook(request):
         tier = session["metadata"].get("tier") if session.get("metadata") else "free"
 
         # ✅ Define total swipe limits per tier
-        SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
+        SWIPE_TOTALS = {"starter": 50, "pro": 200, "elite": 400}
 
         if customer_email:
             try:
@@ -1241,8 +1241,8 @@ def create_checkout_session(request, tier):
             payment_method_types=["card"],
             mode="subscription",
             line_items=[{"price": prices[tier], "quantity": 1}],
-            success_url="https://internstart.com/swipe/?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url="https://internstart.com/swipe/",
+            success_url="https://internstart.com/billing/success/?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url="https://internstart.com/pricing/",
             metadata={"tier": tier},
         )
         return JsonResponse({"url": session.url})  # ✅ return URL, not just ID
@@ -1297,9 +1297,65 @@ def _absolute(request, path_name, **kwargs):
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 
+# views.py
+import stripe
+from django.conf import settings
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+# Map your TEST (or LIVE) price IDs to tiers — keep this in sync with create_checkout_session
+PRICE_TO_TIER = {
+    "price_1SKRMg6IJebVII3Fw3XxREoq": "starter",
+    "price_1SKRNB6IJebVII3FoLCAkGnk": "pro",
+    "price_1SKRNX6IJebVII3F0VBJLXjd": "elite",
+}
+
+SWIPE_TOTALS = {
+    "starter": 50,
+    "pro": 200,
+    "elite": 400,
+}
+
 @login_required
 def billing_success(request):
-    return HttpResponse("Payment successful. You can close this tab.")
+    session_id = request.GET.get("session_id")
+    if not session_id:
+        return redirect("swipe_view")
+
+    try:
+        # 1) Get the Checkout Session
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        # 2) Prefer tier from metadata (we set this when creating the session)
+        tier = (session.get("metadata") or {}).get("tier")
+
+        # 3) If metadata is missing, derive from subscription's price id
+        if not tier and session.get("subscription"):
+            subscription = stripe.Subscription.retrieve(session["subscription"])
+            # First/only item’s price id
+            items = subscription.get("items", {}).get("data", [])
+            if items:
+                price_id = items[0]["price"]["id"]
+                tier = PRICE_TO_TIER.get(price_id)
+
+        # 4) If we successfully identified a tier, update the user
+        if tier in SWIPE_TOTALS:
+            user = request.user
+            user.subscription_tier = tier
+            user.subscription_status = "active"
+            user.total_swipes_allowed = SWIPE_TOTALS[tier]
+            user.total_swipes_used = 0  # reset at purchase/upgrade
+            user.save()
+            print(f"✅ {user.email} upgraded to {tier} ({SWIPE_TOTALS[tier]} swipes/month).")
+
+    except Exception as e:
+        print("⚠️ billing_success error:", e)
+
+    # 5) Drop them back into the app
+    return redirect("swipe_view")
+
 
 @login_required
 def billing_cancel(request):
