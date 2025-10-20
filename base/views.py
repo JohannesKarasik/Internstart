@@ -1241,7 +1241,7 @@ def create_checkout_session(request, tier):
         cancel_url=_absolute(request, "swipe_view"),
         metadata={"tier": tier},  # ✅ store tier in Stripe
     )
-    return JsonResponse({"id": session.id})
+    return JsonResponse({"url": session.url})
 
 
 
