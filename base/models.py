@@ -59,16 +59,18 @@ class User(AbstractUser):
 
     # 🔹 Subscription choices
     SUBSCRIPTION_CHOICES = [
-        ('free', 'Free'),
-        ('starter', 'Starter'),
-        ('pro', 'Pro'),
-        ('elite', 'Enterprise'),
+        ('starter', 'Starter – 50 Swipes'),
+        ('pro', 'Pro – 200 Swipes'),
+        ('elite', 'Elite – 500 Swipes'),
     ]
     subscription_tier = models.CharField(
         max_length=20,
         choices=SUBSCRIPTION_CHOICES,
-        default='free'
+        default='starter'  # default to starter instead of free
     )
+
+    swipes_used = models.PositiveIntegerField(default=0)
+
 
     # 🔹 Stripe integration fields
     stripe_customer_id = models.CharField(max_length=100, null=True, blank=True)
@@ -245,17 +247,7 @@ class Message(models.Model):
         return f"Message from {self.sender.full_name} to {self.recipient.full_name}"
     
 
-class DailySwipeQuota(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date = models.DateField()
-    count = models.PositiveIntegerField(default=0)
-    limit = models.PositiveIntegerField(default=5)  # 👈 NEW
 
-    class Meta:
-        unique_together = ('user', 'date')
-
-    def __str__(self):
-        return f"{self.user.email} – {self.count}/{self.limit} swipes on {self.date}"
     
 
 
