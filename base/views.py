@@ -1222,26 +1222,33 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 @login_required
 def create_checkout_session(request, tier):
     prices = {
-        "starter": "price_1SDxgh6IJebVII3FaIOLhBkn",  # Stripe price IDs
+        "starter": "price_1SDxgh6IJebVII3FaIOLhBkn",
         "pro": "price_1SCRta6IJebVII3Feda7JGJf",
         "elite": "price_1SDxhc6IJebVII3F87lwDxEC",
     }
-    if tier not in prices:
-        return JsonResponse({"error": "Invalid tier"}, status=400)
 
-    session = stripe.checkout.Session.create(
-        customer_email=request.user.email,
-        payment_method_types=["card"],
-        mode="subscription",
-        line_items=[{"price": prices[tier], "quantity": 1}],
-        success_url=_absolute(request, "swipe_view") + "?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url=_absolute(request, "swipe_view"),
-        metadata={"tier": tier},  # ✅ store tier in Stripe
-    )
-    return JsonResponse({"url": session.url})
+    if tier not in prices:
+        return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
+
+    try:
+        session = stripe.checkout.Session.create(
+            customer_email=request.user.email,
+            payment_method_types=["card"],
+            mode="subscription",
+            line_items=[{"price": prices[tier], "quantity": 1}],
+            success_url="https://internstart.com/swipe/?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url="https://internstart.com/swipe/",
+            metadata={"tier": tier},
+        )
+        return JsonResponse({"url": session.url})  # ✅ return URL, not just ID
+    except Exception as e:
+        print("❌ Stripe checkout error:", str(e))
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 
