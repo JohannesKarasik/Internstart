@@ -33,6 +33,8 @@ class JobListing(models.Model):
     description = models.TextField()
     files = models.FileField(upload_to="listing_files/", blank=True, null=True)
 
+
+
 class User(AbstractUser):
     full_name = models.CharField(max_length=200, null=True)
     email = models.EmailField(unique=True, null=False)
@@ -43,7 +45,6 @@ class User(AbstractUser):
     avatar = models.ImageField(null=True, default="avatar.svg")
     username = models.CharField(max_length=150, unique=True, null=True, blank=True)
     onboarding_shown = models.BooleanField(default=False)
-
 
     # Resume upload
     resume = models.FileField(upload_to="resumes/", blank=True, null=True)
@@ -70,12 +71,13 @@ class User(AbstractUser):
         default='starter'  # default to starter instead of free
     )
 
-    swipes_used = models.PositiveIntegerField(default=0)
-
+    # ✅ New total swipe system
+    total_swipes_allowed = models.PositiveIntegerField(default=10)
+    total_swipes_used = models.PositiveIntegerField(default=0)
 
     # 🔹 Stripe integration fields
     stripe_customer_id = models.CharField(max_length=100, null=True, blank=True)
-    subscription_status = models.CharField(max_length=50, null=True, blank=True)  
+    subscription_status = models.CharField(max_length=50, null=True, blank=True)
     subscription_current_period_end = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = 'email'
@@ -101,7 +103,6 @@ class User(AbstractUser):
         ('sales_customer', 'Sales & Customer Relations'),
         ('other', 'Other'),
     ]
-    
     student_industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
     # 🔹 Job type choices
@@ -111,6 +112,7 @@ class User(AbstractUser):
         ('full_time', 'Full-time job'),
     ]
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, null=True, blank=True)
+
 
 
 class UserGoogleCredential(models.Model):
