@@ -2,23 +2,380 @@
 {% load static %}
 
 {% block content %}
-<main class="no-subscription" style="display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; text-align:center;">
+<main class="pricing-page">
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-lock">
+      <img src="{% static 'images/lock.svg' %}" alt="" aria-hidden="true" />
+    </div>
+    <h1>Choose your plan</h1>
+    <p class="subtitle">Unlock AI-powered job matching, instant profile tailoring, and priority apply.</p>
 
-  <img src="{% static 'images/lock.svg' %}" alt="Subscription Required" style="width:80px; opacity:0.7; margin-bottom:20px;">
+    <!-- Billing Toggle -->
+    <div class="billing-toggle" role="group" aria-label="Billing period">
+      <button class="toggle-btn is-active" data-billing="monthly" aria-pressed="true">Monthly</button>
+      <button class="toggle-btn" data-billing="yearly" aria-pressed="false">
+        Yearly <span class="save-badge">Save 20%</span>
+      </button>
+    </div>
+  </header>
 
-  <h2 style="font-size:24px; margin-bottom:10px;">Subscription Required</h2>
-  <p style="max-width:400px; margin-bottom:25px; font-size:16px; line-height:1.5;">
-    You need an active subscription to start swiping and applying to jobs.
-  </p>
+  <!-- Pricing Grid -->
+  <section class="pricing-grid" aria-label="Plans">
+    <!-- Starter -->
+    <article class="card" data-plan="starter">
+      <div class="card-head">
+        <h2 class="plan-name">Starter</h2>
+        <p class="plan-tag">For exploring</p>
+        <p class="price">
+          <span class="price-amount" data-monthly="€12" data-yearly="€9">€12</span>
+          <span class="price-term">/mo</span>
+        </p>
+      </div>
+      <ul class="features">
+        <li>50 swipes / month</li>
+        <li>5 AI-tailored applications</li>
+        <li>Basic analytics</li>
+        <li>Email support</li>
+      </ul>
+      <a href="{% url 'subscribe' 'starter' %}" class="cta">Get Starter</a>
+    </article>
 
-  <div style="display:flex; gap:15px;">
-    <a href="{% url 'update-user' %}" class="btn btn-primary" style="background:#FF2F5A; color:white; padding:10px 20px; border-radius:8px; text-decoration:none;">
-      View Plans
-    </a>
-    <a href="{% url 'logout' %}" class="btn btn-secondary" style="border:1px solid #ccc; padding:10px 20px; border-radius:8px; text-decoration:none; color:#555;">
-      Log Out
-    </a>
-  </div>
+    <!-- Pro (featured) -->
+    <article class="card is-featured" data-plan="pro" aria-label="Most popular">
+      <div class="card-badge" aria-hidden="true">Most Popular</div>
+      <div class="card-head">
+        <h2 class="plan-name">Pro</h2>
+        <p class="plan-tag">For serious seekers</p>
+        <p class="price">
+          <span class="price-amount" data-monthly="€24" data-yearly="€19">€24</span>
+          <span class="price-term">/mo</span>
+        </p>
+      </div>
+      <ul class="features">
+        <li>Unlimited swipes</li>
+        <li>50 AI-tailored applications</li>
+        <li>Resume & cover letter rewrites</li>
+        <li>Priority apply & smart alerts</li>
+        <li>Chat support</li>
+      </ul>
+      <a href="{% url 'subscribe' 'pro' %}" class="cta cta-primary">Start Pro</a>
+    </article>
 
+    <!-- Elite -->
+    <article class="card" data-plan="elite">
+      <div class="card-head">
+        <h2 class="plan-name">Elite</h2>
+        <p class="plan-tag">For power users & teams</p>
+        <p class="price">
+          <span class="price-amount" data-monthly="€49" data-yearly="€39">€49</span>
+          <span class="price-term">/mo</span>
+        </p>
+      </div>
+      <ul class="features">
+        <li>Unlimited everything</li>
+        <li>1-click batch applications</li>
+        <li>Custom AI prompts & workflows</li>
+        <li>ATS insights & recruiter view</li>
+        <li>Priority support & SLA</li>
+      </ul>
+      <a href="{% url 'subscribe' 'elite' %}" class="cta">Go Elite</a>
+    </article>
+  </section>
+
+  <!-- Trust + Secondary actions -->
+  <section class="foot-notes">
+    <p class="guarantee">14-day money-back guarantee • Cancel anytime</p>
+    <div class="secondary-actions">
+      <a class="link-muted" href="{% url 'update-user' %}">Manage billing</a>
+      <span aria-hidden="true">•</span>
+      <a class="link-muted" href="{% url 'logout' %}">Log out</a>
+    </div>
+  </section>
 </main>
+
+<style>
+/* ---------- Theme ---------- */
+:root {
+  --bg: #0b0d12;
+  --bg-soft: #0f141b;
+  --card: rgba(255,255,255,0.06);
+  --card-stroke: rgba(255,255,255,0.12);
+  --txt: #e9eef5;
+  --txt-dim: #a9b3c2;
+  --brand: #7c5cff; /* AI-ish violet */
+  --brand-2: #1de9b6; /* Mint accent */
+  --accent: #ff2f5a;  /* Your legacy brand color */
+  --focus: 2px solid #1de9b6;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f9fc;
+    --bg-soft: #ffffff;
+    --card: rgba(0,0,0,0.04);
+    --card-stroke: rgba(0,0,0,0.08);
+    --txt: #0b0d12;
+    --txt-dim: #4e596a;
+    --shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+}
+
+/* ---------- Layout ---------- */
+.pricing-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,0.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(29,233,182,0.18), transparent 60%),
+    var(--bg);
+  color: var(--txt);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 28px;
+  padding: 48px 24px 40px;
+}
+
+.hero {
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.hero-lock img {
+  width: 64px;
+  height: 64px;
+  opacity: 0.9;
+  filter: drop-shadow(0 6px 18px rgba(124,92,255,0.35));
+  margin-bottom: 14px;
+}
+
+.hero h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  color: var(--txt-dim);
+  font-size: clamp(14px, 1.6vw, 18px);
+  margin: 0 auto 18px;
+}
+
+/* ---------- Toggle ---------- */
+.billing-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-soft);
+  border: 1px solid var(--card-stroke);
+  padding: 6px;
+  border-radius: 999px;
+  gap: 6px;
+}
+
+.toggle-btn {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--txt-dim);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease, transform .06s ease;
+}
+.toggle-btn:focus-visible { outline: var(--focus); outline-offset: 2px; }
+.toggle-btn.is-active {
+  background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(29,233,182,0.25));
+  color: var(--txt);
+}
+.toggle-btn:active { transform: translateY(1px); }
+
+.save-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-2);
+  margin-left: 6px;
+}
+
+/* ---------- Cards ---------- */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.card {
+  position: relative;
+  background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.02));
+  border: 1px solid var(--card-stroke);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(124,92,255,0.45);
+  box-shadow: 0 18px 40px rgba(124,92,255,0.18);
+}
+
+.card.is-featured {
+  border: 1.5px solid rgba(124,92,255,0.65);
+  box-shadow: 0 22px 60px rgba(124,92,255,0.22);
+}
+
+.card-badge {
+  position: absolute;
+  top: -12px;
+  left: 18px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #0b0d12;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(29,233,182,0.35);
+}
+
+.card-head {
+  margin-bottom: 12px;
+}
+
+.plan-name {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.plan-tag {
+  margin: 4px 0 10px;
+  color: var(--brand-2);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.price {
+  margin: 0 0 8px;
+  font-weight: 800;
+}
+.price-amount { font-size: 34px; }
+.price-term {
+  color: var(--txt-dim);
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.features {
+  list-style: none;
+  margin: 12px 0 20px;
+  padding: 0;
+  color: var(--txt-dim);
+  display: grid;
+  gap: 10px;
+}
+.features li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+.features li::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display: inline-block;
+  margin-top: 3px;
+  box-shadow: 0 6px 14px rgba(124,92,255,0.25);
+}
+
+.cta {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--card-stroke);
+  color: var(--txt);
+  font-weight: 700;
+  transition: background .2s ease, transform .06s ease, border .2s ease;
+}
+.cta:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.25); }
+.cta:active { transform: translateY(1px); }
+.cta:focus-visible { outline: var(--focus); outline-offset: 3px; }
+
+.cta-primary {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #0b0d12;
+  border: none;
+  box-shadow: 0 10px 24px rgba(124,92,255,0.25);
+}
+.cta-primary:hover { filter: saturate(1.1); }
+
+/* ---------- Footer notes ---------- */
+.foot-notes {
+  text-align: center;
+  color: var(--txt-dim);
+  display: grid;
+  gap: 8px;
+}
+.guarantee { margin: 0; }
+.secondary-actions {
+  display: inline-flex;
+  gap: 10px;
+}
+.link-muted {
+  color: var(--txt-dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-muted:hover { color: var(--txt); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 620px; }
+  .card { padding: 20px; }
+  .price-amount { font-size: 32px; }
+}
+</style>
+
+<script>
+/* Monthly/Yearly toggle (no framework) */
+(function() {
+  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  const amounts = document.querySelectorAll('.price-amount');
+
+  function setActive(period) {
+    toggleBtns.forEach(btn => {
+      const active = btn.dataset.billing === period;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
+    amounts.forEach(el => {
+      el.textContent = el.dataset[period];
+    });
+  }
+
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => setActive(btn.dataset.billing));
+  });
+
+  // default: monthly
+  setActive('monthly');
+})();
+</script>
 {% endblock %}
