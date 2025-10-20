@@ -430,30 +430,29 @@ def apply_swipe_job(request):
 
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request method"})
-    
-        # 🚫 Require active subscription
+
+    # 🚫 Require active subscription
     if request.user.subscription_status != "active":
         return JsonResponse({
             "success": False,
             "error": "You need an active subscription to swipe. Please upgrade your plan."
         })
 
-
-    today = timezone.localdate()
-    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
-
-    SWIPE_LIMITS = {"free": 3, "starter": 15, "pro": 30, "elite": 45}
+    # ✅ Total swipe limits by tier
+    SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
     tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
-    limit = SWIPE_LIMITS.get(tier, 5)
+    total_limit = SWIPE_TOTALS.get(tier, 10)
 
-    if quota.count >= limit:
+    # ✅ Check if user has reached their total swipe limit
+    if request.user.total_swipes_used >= total_limit:
         return JsonResponse({
             "success": False,
-            "error": f"Daily swipe limit ({limit}) reached for your {tier.capitalize()} plan."
+            "error": f"You’ve reached your {tier.capitalize()} plan limit of {total_limit} total swipes."
         })
 
-    quota.count += 1
-    quota.save()
+    # ✅ Increment total swipes used
+    request.user.total_swipes_used += 1
+    request.user.save()
 
     try:
         data = json.loads(request.body or "{}")
@@ -463,7 +462,7 @@ def apply_swipe_job(request):
 
         room = Room.objects.get(id=room_id)
 
-        # ✅ Ensure swipe is recorded immediately
+        # ✅ Record the swipe immediately
         SwipedJob.objects.get_or_create(user=request.user, room=room)
 
         company_name = room.company_name or ""
@@ -471,14 +470,12 @@ def apply_swipe_job(request):
         location     = getattr(room, "location", "") or ""
         job_desc     = getattr(room, "description", "") or ""
 
-        # ✅ resume text
+        # ✅ Get resume text for GPT prompt
         resume_text = get_user_resume_text(request.user) or ""
         print("[DEBUG] resume_text first 200 chars:", resume_text[:200])
 
         res_field = getattr(request.user, 'resume', None)
-        print("user.resume.name:", getattr(res_field, 'name', None))
         if res_field and getattr(res_field, 'name', ''):
-            # Some storage backends may not have .path (e.g., S3). Guard access.
             try:
                 print("user.resume.path:", res_field.path)
             except Exception:
@@ -486,7 +483,7 @@ def apply_swipe_job(request):
         else:
             print("user has no resume uploaded")
 
-        # GPT prompt (UNCHANGED)
+        # ✅ Build GPT prompt
         full_prompt = f"""
 Below is the full resume text of the applicant. Then the job description.
 
@@ -499,7 +496,7 @@ You MUST:
 - Use as many real details from the resume as possible; if something is not in the resume, do NOT mention it.
 - Keep it under 250 words.
 - If no named recipient, start with "Hello,".
-- End the letter with a short sentence telling the recipient that your resume is attached (e.g., “I have attached my resume below for your review.”).
+- End with a short sentence like “I have attached my resume below for your review.”
 - Return only the letter body (no subject line, no signature placeholders).
 - Make it sound like a natural cover letter you’d actually send.
 
@@ -514,10 +511,7 @@ Description:
 {job_desc or "not provided"}
 """
 
-        print("[DEBUG] prompt first 500 chars:", full_prompt[:500])
-
         coverletter = ""
-        # Generate cover letter, but don't fail the swipe if GPT errors.
         try:
             response = client.chat.completions.create(
                 model="gpt-4o",
@@ -530,10 +524,9 @@ Description:
         except Exception as e:
             print("[GPT ERROR]", e)
 
-        # ✅ send via Gmail (multipart with attachment)
+        # ✅ Send via Gmail if authorized
         user_creds = UserGoogleCredential.objects.filter(user=request.user).first()
         if not user_creds:
-            # Swipe is saved; return success so UI can move on, plus tell client to auth.
             return JsonResponse({
                 "success": True,
                 "message": "Swipe saved. Gmail OAuth required to send.",
@@ -558,23 +551,18 @@ Description:
 
             service = build("gmail", "v1", credentials=creds)
 
-            # Build a multipart message
             msg = MIMEMultipart()
             msg["to"] = room.email if room.email else "fallback@internstart.com"
             msg["subject"] = f"Application for {role_title or 'internship role'} at {company_name or 'your team'}"
 
-
-            # Part 1: cover letter body (fallback body if GPT failed)
             msg.attach(MIMEText(coverletter or "Hello,\n\nPlease find my resume attached.", _subtype='plain', _charset='utf-8'))
 
-            # Part 2: attach resume if available (guard .path)
             attached = False
             if res_field:
-                resume_path = None
                 try:
                     resume_path = res_field.path
                 except Exception:
-                    resume_path = None  # e.g., cloud storage without local path
+                    resume_path = None
                 if resume_path and os.path.exists(resume_path):
                     ctype, encoding = mimetypes.guess_type(resume_path)
                     if ctype is None or encoding is not None:
@@ -596,9 +584,9 @@ Description:
                 "message": "Cover letter sent successfully with resume attached" if attached else "Cover letter sent successfully",
                 "coverletter": coverletter
             })
+
         except Exception as e:
             print("[GMAIL ERROR]", e)
-            # Still success because the swipe is recorded.
             return JsonResponse({
                 "success": True,
                 "message": "Swipe saved. Failed to send email via Gmail.",
@@ -609,8 +597,8 @@ Description:
         return JsonResponse({"success": False, "error": "Room not found"})
     except Exception as e:
         traceback.print_exc()
-        # If we got here after recording the swipe, the swipe remains saved (autocommit).
         return JsonResponse({"success": True, "message": "Swipe saved, but an error occurred.", "error": str(e)})
+
 
 
 
@@ -653,12 +641,24 @@ def start_gmail_auth(request):
     return redirect(authorization_url)
 
 
+@login_required
 def get_quota(request):
-    today = timezone.localdate()
-    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
+    # ✅ Define total swipe limits per tier
+    SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
+    tier = (getattr(request.user, "subscription_tier", "free") or "free").lower()
+    limit = SWIPE_TOTALS.get(tier, 10)
 
-    left = max(0, quota.limit - quota.count)
-    return JsonResponse({'left': left, 'limit': quota.limit})
+    # ✅ Calculate remaining swipes
+    used = getattr(request.user, "total_swipes_used", 0)
+    left = max(0, limit - used)
+
+    return JsonResponse({
+        "left": left,
+        "limit": limit,
+        "tier": tier,
+        "used": used,
+    })
+
 
 @login_required
 def send_test_email(request):
@@ -1019,7 +1019,7 @@ def swipe_view(request):
     # 🚫 If user doesn't have an active subscription, show upgrade template
     if user.subscription_status != "active":
         return render(request, "base/no_subscription.html")
-    # 👇 Added only for debugging the redirect loop
+
     print("🧭 swipe_view", request.user.is_authenticated)
 
     q = request.GET.get('q') or ''
@@ -1047,9 +1047,13 @@ def swipe_view(request):
 
     topics = Topic.objects.all()[:5]
     room_count = rooms_qs.count()
-    today = timezone.localdate()
-    quota, _ = DailySwipeQuota.objects.get_or_create(user=request.user, date=today)
-    swipes_left = max(0, quota.limit - quota.count)
+
+    # ✅ New total-swipe system (no daily quotas)
+    SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
+    tier = (getattr(user, "subscription_tier", "free") or "free").lower()
+    limit = SWIPE_TOTALS.get(tier, 10)
+    used = getattr(user, "total_swipes_used", 0)
+    swipes_left = max(0, limit - used)
 
     first_login = False
     if not request.user.onboarding_shown:
@@ -1059,7 +1063,7 @@ def swipe_view(request):
 
     context = {
         "swipes_left": swipes_left,
-        "swipe_limit": quota.limit,
+        "swipe_limit": limit,
         "rooms": rooms,
         "topics": topics,
         "room_count": room_count,
@@ -1153,7 +1157,6 @@ User = get_user_model()
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    event = None
 
     try:
         event = stripe.Webhook.construct_event(
@@ -1169,35 +1172,31 @@ def stripe_webhook(request):
         customer_email = session.get("customer_email")
         customer_id = session.get("customer")
         subscription_id = session.get("subscription")
-        tier = session["metadata"].get("tier") if session.get("metadata") else "free"  # ✅ read tier from metadata
+        tier = session["metadata"].get("tier") if session.get("metadata") else "free"
+
+        # ✅ Define total swipe limits per tier
+        SWIPE_TOTALS = {"free": 10, "starter": 50, "pro": 200, "elite": 400}
 
         if customer_email:
             try:
                 user = User.objects.get(email=customer_email)
                 user.stripe_customer_id = customer_id
                 user.subscription_status = "active"
-                user.subscription_tier = tier  # ✅ set subscription tier
+                user.subscription_tier = tier
+                user.total_swipes_allowed = SWIPE_TOTALS.get(tier, 10)
+                user.total_swipes_used = 0  # reset when upgrading
                 user.save()
-
-                # ✅ also update today’s swipe quota
-                SWIPE_LIMITS = {"free": 3, "starter": 15, "pro": 30, "elite": 45}
-                today = timezone.localdate()
-                quota, _ = DailySwipeQuota.objects.get_or_create(user=user, date=today)
-                quota.limit = SWIPE_LIMITS.get(tier, 5)
-                quota.save()
-
             except User.DoesNotExist:
                 pass
 
     # ✅ Subscription updated (renewal, cancellation, etc.)
-    if event["type"] == "customer.subscription.updated":
+    elif event["type"] == "customer.subscription.updated":
         subscription = event["data"]["object"]
         customer_id = subscription["customer"]
 
         try:
             user = User.objects.get(stripe_customer_id=customer_id)
-            user.subscription_status = subscription["status"]  # e.g. active, past_due, canceled
-            # Convert Unix timestamp to datetime
+            user.subscription_status = subscription["status"]
             period_end = datetime.datetime.fromtimestamp(
                 subscription["current_period_end"]
             )
@@ -1207,14 +1206,15 @@ def stripe_webhook(request):
             pass
 
     # ✅ Subscription canceled
-    if event["type"] == "customer.subscription.deleted":
+    elif event["type"] == "customer.subscription.deleted":
         subscription = event["data"]["object"]
         customer_id = subscription["customer"]
 
         try:
             user = User.objects.get(stripe_customer_id=customer_id)
             user.subscription_status = "canceled"
-            user.subscription_tier = "free"  # downgrade automatically
+            user.subscription_tier = "free"
+            user.total_swipes_allowed = 10
             user.save()
         except User.DoesNotExist:
             pass
