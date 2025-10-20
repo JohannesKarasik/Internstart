@@ -36,6 +36,7 @@ urlpatterns = [
     path("billing/success/", views.billing_success, name="billing_success"),
     path("billing/cancel/", views.billing_cancel, name="billing_cancel"),
     path("swipe/jobs/", views.swipe_jobs_api, name="swipe_jobs_api"),
+    path('', root_redirect, name='home'),
     path('welcome', views.landing_page, name=''),   # ✅ root
 
 
