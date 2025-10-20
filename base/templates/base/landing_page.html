@@ -1,6 +1,6 @@
 {% extends 'main.html' %}
 {% load static %}
-
+{% load i18n %}
 {% block content %}
 
 <!-- Google Font -->
@@ -14,15 +14,16 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      Swipe Into Your <span class="accent">Dream Career</span> Today
+      {% blocktrans %}Swipe Into Your <span class="accent">Dream Career</span> Today{% endblocktrans %}
     </h1>
+  
     <p class="hero__subhead">
-      Discover internships at top companies, build your skills, and take the first step toward your future career.
+      {% trans "Discover internships at top companies, build your skills, and take the first step toward your future career." %}
     </p>
-
+  
     <div class="hero__ctas">
-      <a href="{% url 'register' %}" class="btn btn--primary">Start Your Journey</a>
-      <a href="{% url 'app_login' %}" class="btn btn--ghost">Login</a>
+      <a href="{% url 'register' %}" class="btn btn--primary">{% trans "Start Your Journey" %}</a>
+      <a href="{% url 'app_login' %}" class="btn btn--ghost">{% trans "Login" %}</a>
     </div>
   </div>
 
