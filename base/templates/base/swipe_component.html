@@ -491,8 +491,8 @@
               {% endif %}
     
               <div class="title-block">
-                <h4>{{ room.job_title|default:"this position" }}</h4>
-                <h3>{{ room.company_name }}</h3>
+                <h4>{{ room.company_name }}</h4>
+                <h3>{{ room.job_title|default:"this position" }}</h3>
                 <h2>{{ room.role }}</h2>
                 <p class="meta"><span class="dot"></span> {{ room.location }}</p>
               </div>
