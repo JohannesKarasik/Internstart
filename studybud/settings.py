@@ -16,6 +16,11 @@ from dotenv import load_dotenv   # <-- this line is missing
 from django.utils.translation import gettext_lazy as _
 
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / ".env")
 
 LANGUAGE_CODE = 'en'  # default language
 USE_I18N = True
@@ -33,11 +38,6 @@ LOCALE_PATHS = [
 
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Load environment variables from .env file
-load_dotenv(BASE_DIR / ".env")
 
 
 # === Stripe (TEST MODE FIRST) ===
