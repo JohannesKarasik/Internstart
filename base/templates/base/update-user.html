@@ -42,18 +42,29 @@
           <div class="grid grid--2">
             <div class="form__group">
               <label class="form__label">Subscription</label>
-              <p class="hint">Cancel your current plan.</p>
-              
-              {# Try namespaced first, then non-namespaced, else # #}
-              {% url 'billing:cancel_subscription' as cancel_sub_url %}
-              {% if not cancel_sub_url %}{% url 'cancel_subscription' as cancel_sub_url %}{% endif %}
-              
-              <a href="{{ cancel_sub_url|default:'#' }}"
-                 class="btn btn--primary btn--block"
-                 title="Cancel subscription" aria-label="Cancel subscription">
-                Cancel subscription
-              </a>
-              
+        
+              {% if request.user.subscription_status == "active" %}
+                <p class="hint">You’re currently on the <strong>{{ request.user.subscription_tier|capfirst }}</strong> plan.</p>
+        
+                {% url 'cancel_subscription' as cancel_sub_url %}
+                <a href="{{ cancel_sub_url }}"
+                   class="btn btn--primary btn--block"
+                   title="Cancel subscription"
+                   aria-label="Cancel subscription">
+                  Cancel Subscription
+                </a>
+        
+              {% else %}
+                <p class="hint">Upgrade your plan to unlock AI-powered job applications.</p>
+        
+                {% url 'pricing' as pricing_url %}
+                <a href="{{ pricing_url }}"
+                   class="btn btn--primary btn--block"
+                   title="Upgrade plan"
+                   aria-label="Upgrade plan">
+                  Upgrade
+                </a>
+              {% endif %}
             </div>
 
             <div class="form__group">
