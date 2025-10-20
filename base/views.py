@@ -1081,7 +1081,7 @@ def swipe_view(request):
         return HttpResponse(html)
 
     # ✅ Otherwise return full template
-    return render(request, "base/swipe_component.html", context)
+    return HttpResponse("Swipe view is working ✅")
 
 
 
