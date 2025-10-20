@@ -309,7 +309,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // ✅ from your Django context
+      const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // ✅ from Django
     
       document.querySelectorAll(".checkout-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
@@ -319,11 +319,18 @@
           try {
             const res = await fetch(`/create-checkout-session/${tier}/`);
             const data = await res.json();
+            console.log("Stripe checkout response:", data); // ✅ Debug
     
             if (data.error) {
               alert("Error: " + data.error);
-            } else {
-              stripe.redirectToCheckout({ sessionId: data.id });
+            } 
+            // ✅ your backend sends { "url": session.url }
+            else if (data.url) {
+              window.location.href = data.url; 
+            } 
+            else if (data.id) {
+              // fallback if your backend returns { id: session.id }
+              await stripe.redirectToCheckout({ sessionId: data.id });
             }
           } catch (err) {
             console.error("Checkout error:", err);
