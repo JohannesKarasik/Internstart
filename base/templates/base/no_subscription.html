@@ -90,7 +90,7 @@
     </div>
   </section>
 </main>
-
+{% endblock %}
 <style>
     /* ---------- Theme: Black ↔ White with #FF2F5A ---------- */
     :root{
@@ -280,6 +280,9 @@
 
     </style>
     
+
+    {% block scripts %}
+
     <script src="https://js.stripe.com/v3/"></script>
 
 <script>
@@ -346,7 +349,8 @@
       });
     });
     </script>
+{% endblock %}
     
 
 
-{% endblock %}
+
