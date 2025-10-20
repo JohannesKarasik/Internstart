@@ -5,9 +5,7 @@
 <main class="pricing-page">
   <!-- Hero -->
   <header class="hero">
-    <div class="hero-lock">
-      <img src="{% static 'images/lock.svg' %}" alt="" aria-hidden="true" />
-    </div>
+
     <h1>Choose your plan</h1>
     <p class="subtitle">Unlock AI-powered job matching, instant profile tailoring, and priority apply.</p>
 
@@ -95,40 +93,28 @@
 </main>
 
 <style>
-/* ---------- Theme ---------- */
+/* ---------- Theme (white as primary, brand #FF2F5A) ---------- */
 :root {
-  --bg: #0b0d12;
-  --bg-soft: #0f141b;
-  --card: rgba(255,255,255,0.06);
-  --card-stroke: rgba(255,255,255,0.12);
-  --txt: #e9eef5;
-  --txt-dim: #a9b3c2;
-  --brand: #7c5cff; /* AI-ish violet */
-  --brand-2: #1de9b6; /* Mint accent */
-  --accent: #ff2f5a;  /* Your legacy brand color */
-  --focus: 2px solid #1de9b6;
+  --bg: #ffffff;                /* main background is white */
+  --bg-soft: #ffffff;
+  --card: rgba(0,0,0,0.04);
+  --card-stroke: rgba(0,0,0,0.08);
+  --txt: #0b0d12;               /* dark text for contrast on white */
+  --txt-dim: #4e596a;
+  --brand: #FF2F5A;             /* your brand color */
+  --brand-2: #ffffff;           /* use white as gradient pair */
+  --accent: #FF2F5A;            /* keep accent in theme */
+  --focus: 2px solid #FF2F5A;
   --radius: 16px;
-  --shadow: 0 10px 30px rgba(0,0,0,0.35);
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f7f9fc;
-    --bg-soft: #ffffff;
-    --card: rgba(0,0,0,0.04);
-    --card-stroke: rgba(0,0,0,0.08);
-    --txt: #0b0d12;
-    --txt-dim: #4e596a;
-    --shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
+  --shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 
 /* ---------- Layout ---------- */
 .pricing-page {
   min-height: 100vh;
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,0.25), transparent 60%),
-    radial-gradient(900px 500px at -10% 20%, rgba(29,233,182,0.18), transparent 60%),
+    radial-gradient(1200px 600px at 80% -10%, rgba(255,47,90,0.20), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(255,47,90,0.12), transparent 60%),
     var(--bg);
   color: var(--txt);
   display: grid;
@@ -141,14 +127,6 @@
   text-align: center;
   max-width: 900px;
   margin: 0 auto;
-}
-
-.hero-lock img {
-  width: 64px;
-  height: 64px;
-  opacity: 0.9;
-  filter: drop-shadow(0 6px 18px rgba(124,92,255,0.35));
-  margin-bottom: 14px;
 }
 
 .hero h1 {
@@ -188,15 +166,16 @@
 }
 .toggle-btn:focus-visible { outline: var(--focus); outline-offset: 2px; }
 .toggle-btn.is-active {
-  background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(29,233,182,0.25));
+  background: linear-gradient(135deg, rgba(255,47,90,0.2), rgba(255,255,255,0.6));
   color: var(--txt);
+  border: 1px solid rgba(255,47,90,0.35);
 }
 .toggle-btn:active { transform: translateY(1px); }
 
 .save-badge {
   font-size: 12px;
   font-weight: 700;
-  color: var(--brand-2);
+  color: var(--brand);
   margin-left: 6px;
 }
 
@@ -211,7 +190,7 @@
 
 .card {
   position: relative;
-  background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.02));
+  background: linear-gradient(180deg, var(--card), rgba(0,0,0,0.02));
   border: 1px solid var(--card-stroke);
   border-radius: var(--radius);
   padding: 22px;
@@ -224,13 +203,13 @@
 }
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(124,92,255,0.45);
-  box-shadow: 0 18px 40px rgba(124,92,255,0.18);
+  border-color: rgba(255,47,90,0.45);
+  box-shadow: 0 18px 40px rgba(255,47,90,0.18);
 }
 
 .card.is-featured {
-  border: 1.5px solid rgba(124,92,255,0.65);
-  box-shadow: 0 22px 60px rgba(124,92,255,0.22);
+  border: 1.5px solid rgba(255,47,90,0.65);
+  box-shadow: 0 22px 60px rgba(255,47,90,0.22);
 }
 
 .card-badge {
@@ -243,12 +222,10 @@
   font-size: 12px;
   padding: 6px 10px;
   border-radius: 999px;
-  box-shadow: 0 10px 24px rgba(29,233,182,0.35);
+  box-shadow: 0 10px 24px rgba(255,47,90,0.25);
 }
 
-.card-head {
-  margin-bottom: 12px;
-}
+.card-head { margin-bottom: 12px; }
 
 .plan-name {
   margin: 0;
@@ -258,23 +235,16 @@
 
 .plan-tag {
   margin: 4px 0 10px;
-  color: var(--brand-2);
+  color: var(--brand);
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.price {
-  margin: 0 0 8px;
-  font-weight: 800;
-}
+.price { margin: 0 0 8px; font-weight: 800; }
 .price-amount { font-size: 34px; }
-.price-term {
-  color: var(--txt-dim);
-  margin-left: 4px;
-  font-weight: 600;
-}
+.price-term { color: var(--txt-dim); margin-left: 4px; font-weight: 600; }
 
 .features {
   list-style: none;
@@ -298,7 +268,7 @@
   background: linear-gradient(135deg, var(--brand), var(--brand-2));
   display: inline-block;
   margin-top: 3px;
-  box-shadow: 0 6px 14px rgba(124,92,255,0.25);
+  box-shadow: 0 6px 14px rgba(255,47,90,0.25);
 }
 
 .cta {
@@ -312,19 +282,19 @@
   border: 1px solid var(--card-stroke);
   color: var(--txt);
   font-weight: 700;
-  transition: background .2s ease, transform .06s ease, border .2s ease;
+  transition: background .2s ease, transform .06s ease, border .2s ease, box-shadow .2s ease;
 }
-.cta:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.25); }
+.cta:hover { background: rgba(255,47,90,0.06); border-color: rgba(255,47,90,0.25); box-shadow: 0 6px 16px rgba(255,47,90,0.12); }
 .cta:active { transform: translateY(1px); }
 .cta:focus-visible { outline: var(--focus); outline-offset: 3px; }
 
 .cta-primary {
   background: linear-gradient(135deg, var(--brand), var(--brand-2));
   color: #0b0d12;
-  border: none;
-  box-shadow: 0 10px 24px rgba(124,92,255,0.25);
+  border: 1px solid rgba(255,47,90,0.35);
+  box-shadow: 0 10px 24px rgba(255,47,90,0.20);
 }
-.cta-primary:hover { filter: saturate(1.1); }
+.cta-primary:hover { filter: saturate(1.05); }
 
 /* ---------- Footer notes ---------- */
 .foot-notes {
@@ -334,10 +304,7 @@
   gap: 8px;
 }
 .guarantee { margin: 0; }
-.secondary-actions {
-  display: inline-flex;
-  gap: 10px;
-}
+.secondary-actions { display: inline-flex; gap: 10px; }
 .link-muted {
   color: var(--txt-dim);
   text-decoration: underline;
