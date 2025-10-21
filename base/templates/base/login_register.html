@@ -174,7 +174,7 @@
                   </label>
 
 
-                  {{ student_form.full_name|add_class:"form__control"|attr:"placeholder:Your full name"|attr:"autocomplete:name" }}
+                  {{ student_form.full_name }}
                   {% if student_form.full_name.errors %}
                     <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
                   {% endif %}
