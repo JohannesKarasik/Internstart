@@ -35,8 +35,6 @@ msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
 
-msgid "Login"
-msgstr "Log ind"
 
 #: base/templates/base/landing_page.html:26
 msgid "Login"
