@@ -187,7 +187,7 @@
               <!-- Email -->
               <div class="form__group{% if student_form.email.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.email.id_for_label }}">{{ student_form.email.label }}</label>
-                {{ student_form.email|add_class:"form__control"|attr:"placeholder=you@school.edu"|attr:"autocomplete=email" }}
+                {{ student_form.email|add_class:"form__control"|attr:"placeholder=you@mail.com"|attr:"autocomplete=email" }}
                 {% if student_form.email.errors %}
                   <small class="form__error">{{ student_form.email.errors|striptags }}</small>
                 {% endif %}
