@@ -164,8 +164,10 @@
               <!-- Full name (support both field names) -->
               {% if student_form.full_name %}
                 <div class="form__group{% if student_form.full_name.errors %} form__group--error{% endif %}">
-                  <label class="form__label" for="{{ student_form.full_name.id_for_label }}">{{ student_form.full_name.label }}</label>
-                  {{ student_form.full_name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
+                  <label class="form__label" for="{{ student_form.full_name.id_for_label }}">
+                    {% trans "Full name" %}
+                  </label>
+                    {{ student_form.full_name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
                   {% if student_form.full_name.errors %}
                     <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
                   {% endif %}
@@ -238,7 +240,7 @@
 
             <div class="wizard-actions">
               <button type="button" class="btn btn--primary btn--block" id="toStep2">
-                Continue
+                {% trans "Continue" %}
               </button>
             </div>
           </div>

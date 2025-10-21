@@ -119,6 +119,8 @@ msgstr "CV"
 msgid "Continue"
 msgstr "Fortsæt"
 
+msgid "Full name"
+msgstr "Fulde navn"
 
 
 msgid "By continuing you agree to our"
