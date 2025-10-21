@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 22:45+0000\n"
+"POT-Creation-Date: 2025-10-21 23:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,51 +18,49 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: base/forms.py:89
+#: base/forms.py:88
 msgid "Select country"
 msgstr "Vælg land"
 
-#: base/forms.py:91
+#: base/forms.py:90 base/templates/base/login_register.html:263
 msgid "Country"
 msgstr "Land"
 
-#: base/forms.py:99
+#: base/forms.py:98
 msgid "Select industry"
 msgstr "Vælg din branche"
 
-#: base/forms.py:101
+#: base/forms.py:100 base/templates/base/login_register.html:274
 msgid "Industry"
 msgstr "Brance"
 
-#: base/forms.py:109
+#: base/forms.py:108
 msgid "Select job type"
 msgstr "Vælg jobtype"
 
-#: base/forms.py:111
+#: base/forms.py:110 base/templates/base/login_register.html:286
 msgid "What type of job are you looking for?"
 msgstr "Vælg jobtype"
 
-#: base/forms.py:136
+#: base/forms.py:135
 msgid "Your full name"
 msgstr "Dit fulde navn"
 
-#: base/forms.py:141
+#: base/forms.py:140
 msgid "you@mail.com"
 msgstr "din@mail.dk"
 
-#: base/forms.py:146
+#: base/forms.py:145
 msgid "Create a password"
 msgstr "Opret adgangskode"
 
-#: base/forms.py:151
+#: base/forms.py:150
 msgid "Confirm password"
 msgstr "Bekræft adgangskode"
 
 #: base/templates/base/landing_page.html:17
 msgid "Swipe Into Your <span class=\"accent\">Dream Career</span> Today"
 msgstr "Swipe dig ind i din <span class=\"accent\">drømmekarriere</span> i dag"
-
-
 
 #: base/templates/base/landing_page.html:21
 msgid ""
@@ -77,7 +75,7 @@ msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
 #: base/templates/base/landing_page.html:26
-#: base/templates/base/login_register.html:350 templates/navbar.html:59
+#: base/templates/base/login_register.html:351 templates/navbar.html:59
 msgid "Login"
 msgstr "Log ind"
 
@@ -106,7 +104,7 @@ msgid "Contact"
 msgstr "Kontakt"
 
 #: base/templates/base/landing_page.html:133
-#: base/templates/base/login_register.html:345
+#: base/templates/base/login_register.html:346
 msgid "Privacy Policy"
 msgstr "Privatlivspolitik"
 
@@ -178,15 +176,15 @@ msgstr "Dit fulde navn"
 msgid "Continue"
 msgstr "Fortsæt"
 
-#: base/templates/base/login_register.html:342
+#: base/templates/base/login_register.html:343
 msgid "By continuing you agree to our"
 msgstr "Ved at fortsætte accepterer du vores"
 
-#: base/templates/base/login_register.html:343
+#: base/templates/base/login_register.html:344
 msgid "Terms"
 msgstr ""
 
-#: base/templates/base/login_register.html:344
+#: base/templates/base/login_register.html:345
 #: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
 #: venv/lib/python3.11/site-packages/django/forms/models.py:908
 #: venv311/lib/python3.11/site-packages/django/db/models/base.py:1197
@@ -194,7 +192,7 @@ msgstr ""
 msgid "and"
 msgstr ""
 
-#: base/templates/base/login_register.html:349
+#: base/templates/base/login_register.html:350
 msgid "Already have an account?"
 msgstr "Har du allerede en konto?"
 
