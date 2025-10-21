@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 22:06+0000\n"
+"POT-Creation-Date: 2025-10-21 22:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: base/forms.py:133 base/templates/base/login_register.html:10
+msgid "Your full name"
+msgstr "Dit fulde navn"
+
+#: base/forms.py:138 base/templates/base/login_register.html:11
+msgid "you@mail.com"
+msgstr "din@mail.dk"
+
+#: base/forms.py:143 base/templates/base/login_register.html:12
+msgid "Create a password"
+msgstr "Opret adgangskode"
+
+#: base/forms.py:148 base/templates/base/login_register.html:13
+msgid "Confirm password"
+msgstr "Bekræft adgangskode"
 
 #: base/templates/base/landing_page.html:17
 msgid "Swipe Into Your <span class=\"accent\">Dream Career</span> Today"
@@ -71,22 +87,6 @@ msgstr "Privatlivspolitik"
 #: base/templates/base/landing_page.html:135
 msgid "Internship Platform. All rights reserved."
 msgstr "Praktikplatform. Alle rettigheder forbeholdes."
-
-#: base/templates/base/login_register.html:10
-msgid "Your full name"
-msgstr "Dit fulde navn"
-
-#: base/templates/base/login_register.html:11
-msgid "you@mail.com"
-msgstr "din@mail.dk"
-
-#: base/templates/base/login_register.html:12
-msgid "Create a password"
-msgstr "Opret adgangskode"
-
-#: base/templates/base/login_register.html:13
-msgid "Confirm password"
-msgstr "Bekræft adgangskode"
 
 #: base/templates/base/login_register.html:33
 msgid "Welcome back 👋"
