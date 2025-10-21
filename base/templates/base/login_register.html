@@ -1,8 +1,6 @@
 {% extends 'main.html' %}
 {% load static %}
 {% load widget_tweaks %}
-{% load i18n %}
-
 
 {% block content %}
 
@@ -98,17 +96,16 @@
       <!-- Left side -->
       <aside class="auth-side auth-side--register">
         <div class="auth-side__inner">
-          <div class="ai-badge">{% trans "AI job applications" %}</div>
-          <h2 class="auth-side__title">{% trans "Land your dream internship 🚀" %}</h2>
+          <div class="ai-badge">AI job applications</div>
+          <h2 class="auth-side__title">Land your dream internship 🚀</h2>
           <p class="auth-side__copy">
-            {% blocktrans %}Swipe through top opportunities, send instant applications, and let AI craft your perfect cover letter.{% endblocktrans %}
+            Swipe through top opportunities, send instant applications, and let AI craft your perfect cover letter.
           </p>
           <ul class="auth-side__bullets">
-            <li>{% trans "👉 Swipe to apply in one tap" %}</li>
-            <li>{% trans "🤖 AI-tailored cover letters" %}</li>
-            <li>{% trans "📊 Track every application in one place" %}</li>
+            <li>👉 Swipe to apply in one tap</li>
+            <li>🤖 AI-tailored cover letters</li>
+            <li>📊 Track every application in one place</li>
           </ul>
-          
           
           <!-- Decorative "AI nodes" -->
           <div class="ai-orbit">
@@ -130,22 +127,21 @@
             {% endfor %}
           </div>
         {% endif %}
-        <h1 class="auth-title">{% trans "Join Internstart" %}</h1>
-        <p class="auth-sub">{% trans "It takes under a minute — we’ll guide you." %}</p>
-        
+          <h1 class="auth-title">Join Internstart</h1>
+          <p class="auth-sub">It takes under a minute — we’ll guide you.</p>
 
           <!-- stepper + progress -->
           <div class="stepper stepper--tight" aria-label="Registration progress">
             <div class="stepper__item is-active" data-step-index="1">
-              <span class="stepper__dot"></span><span class="stepper__label">{% trans "Account" %}</span>
+              <span class="stepper__dot"></span><span class="stepper__label">Account</span>
             </div>
             <div class="stepper__sep"></div>
             <div class="stepper__item" data-step-index="2">
-              <span class="stepper__dot"></span><span class="stepper__label">{% trans "Preferences" %}</span>
+              <span class="stepper__dot"></span><span class="stepper__label">Preferences</span>
             </div>
             <div class="stepper__sep"></div>
             <div class="stepper__item" data-step-index="3">
-            <span class="stepper__dot"></span><span class="stepper__label">{% trans "Resume" %}</span>
+              <span class="stepper__dot"></span><span class="stepper__label">Resume</span>
             </div>
           </div>
           <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:33%"></span></div>
@@ -237,7 +233,7 @@
 
             <div class="wizard-actions">
               <button type="button" class="btn btn--primary btn--block" id="toStep2">
-                {% trans "Continue" %}
+                Continue
               </button>
             </div>
           </div>
@@ -328,18 +324,11 @@
             </div>
           </div>
 
-          <p class="auth-legal">
-            {% blocktrans %}By continuing you agree to our{% endblocktrans %}
-            <a href="{% url 'terms_conditions' %}" class="link">{% trans "Terms" %}</a>
-            {% blocktrans %}and{% endblocktrans %}
-            <a href="{% url 'privacy_policy' %}" class="link">{% trans "Privacy Policy" %}</a>.
-          </p>
-          
+          <p class="auth-legal">By continuing you agree to our <a href="{% url 'terms_conditions' %}" class="link">Terms</a> and <a href="{% url 'privacy_policy' %}" class="link">Privacy Policy</a>.</p>
+
           <footer class="auth-alt auth-alt--center">
-            <span>{% trans "Already have an account?" %}</span>
-            <a href="{% url 'app_login' %}" class="link">{% trans "Login" %}</a>
-          </footer>
-          
+            <span>Already have an account?</span>
+            <a href="{% url 'app_login' %}" class="link">Login</a>
           </footer>
         </form>
       </div>
@@ -384,24 +373,9 @@ body{font-family:var(--font); color:var(--ink)}
   padding-top: calc(var(--nav-h) + clamp(0px, 1vh, 12px));
 }
 .auth-shell{
-  max-width: 1280px; /* was 1100px */
+  max-width: 1100px;
   padding-inline: clamp(24px, 4vw, 48px);
   margin: -10px auto clamp(40px, 6vh, 80px);
-}
-
-/* Give the right form column a bit more room */
-@media (min-width: 981px) {
-  .auth-card--split {
-    grid-template-columns: 1fr 1.05fr; /* more balanced: wider form side */
-  }
-
-  .auth-form__header,
-  .auth-form form,
-  .auth-form .wizard-actions,
-  .auth-form .auth-legal,
-  .auth-form .auth-alt {
-    max-width: 640px; /* previously 560px */
-  }
 }
 
 /* ===== Card ===== */
@@ -642,55 +616,6 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
 .auth-card--split .auth-form {
   padding: clamp(22px, 4.2vw, 36px) 0; /* top/bottom only */
 }
-
-
-/* Fix cramped stepper labels */
-.stepper__label {
-  white-space: nowrap;       /* keeps labels like “Preferences” and “Resume” on one line */
-  flex-shrink: 0;            /* prevents them from being squeezed */
-}
-
-.stepper {
-  flex-wrap: wrap;           /* allows items to wrap on smaller screens if needed */
-  gap: 16px;                 /* slightly more breathing space */
-}
-
-.stepper__sep {
-  flex: 0 0 50px;            /* reduce the separator width slightly for better balance */
-}
-
-
-/* ===== Make the form area wider and the info area slightly slimmer ===== */
-@media (min-width: 981px) {
-  .auth-shell {
-    max-width: 1320px; /* overall layout wider */
-  }
-
-  .auth-card--split {
-    grid-template-columns: 0.85fr 1.15fr; /* make the form side clearly wider */
-  }
-
-  .auth-side__inner {
-    max-width: 420px; /* slightly reduce left-side content width */
-  }
-
-  .auth-form__header,
-  .auth-form form,
-  .auth-form .wizard-actions,
-  .auth-form .auth-legal,
-  .auth-form .auth-alt {
-    max-width: 700px; /* more breathing room for form elements */
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Make input columns a bit wider and better spaced */
-  .auth-form .form-grid--2 {
-    grid-template-columns: repeat(2, minmax(260px, 1fr));
-    gap: 20px;
-  }
-}
-
 
 </style>
 
