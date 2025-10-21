@@ -259,11 +259,9 @@
   <div class="form-grid form-grid--2">
     <!-- Country -->
     <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
-
-      <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
-        <label class="form__label" for="{{ student_form.country.id_for_label }}">
-          {% blocktrans %}Country{% endblocktrans %}
-        </label>
+      <label class="form__label" for="{{ student_form.country.id_for_label }}">
+        {{ student_form.country.label|default:"Country" }}
+      </label>
       {{ student_form.country|add_class:"form__control" }}
       {% if student_form.country.errors %}
         <small class="form__error">{{ student_form.country.errors|striptags }}</small>
