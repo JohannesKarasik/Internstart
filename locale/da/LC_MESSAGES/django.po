@@ -116,8 +116,6 @@ msgid "Resume"
 msgstr "CV"
 
 
-msgid "Continue"
-msgstr "Fortsæt"
 
 
 #: studybud/settings.py:29
