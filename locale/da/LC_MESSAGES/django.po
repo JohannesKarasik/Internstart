@@ -76,7 +76,7 @@ msgstr "AI-jobansøgninger"
 
 #: base/templates/base/login_register.html:100
 msgid "Land your dream internship 🚀"
-msgstr "Få dit drømmejob"
+msgstr "Få dit drømmejob 🚀""
 
 #: base/templates/base/login_register.html:102
 msgid ""

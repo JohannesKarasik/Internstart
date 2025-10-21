@@ -331,11 +331,18 @@
             </div>
           </div>
 
-          <p class="auth-legal">By continuing you agree to our <a href="{% url 'terms_conditions' %}" class="link">Terms</a> and <a href="{% url 'privacy_policy' %}" class="link">Privacy Policy</a>.</p>
-
+          <p class="auth-legal">
+            {% blocktrans %}By continuing you agree to our{% endblocktrans %}
+            <a href="{% url 'terms_conditions' %}" class="link">{% trans "Terms" %}</a>
+            {% blocktrans %}and{% endblocktrans %}
+            <a href="{% url 'privacy_policy' %}" class="link">{% trans "Privacy Policy" %}</a>.
+          </p>
+          
           <footer class="auth-alt auth-alt--center">
-            <span>Already have an account?</span>
-            <a href="{% url 'app_login' %}" class="link">Login</a>
+            <span>{% trans "Already have an account?" %}</span>
+            <a href="{% url 'app_login' %}" class="link">{% trans "Login" %}</a>
+          </footer>
+          
           </footer>
         </form>
       </div>
