@@ -100,6 +100,14 @@ msgid "Password confirmation"
 msgstr "Bekræft adgangskode"
 
 
+msgid "Join Internstart"
+msgstr "Tilmeld dig Internstart"
+
+msgid "It takes under a minute — we’ll guide you."
+msgstr "Det tager under et minut — vi guider dig."
+
+
+
 #: studybud/settings.py:29
 msgid "English"
 msgstr ""
