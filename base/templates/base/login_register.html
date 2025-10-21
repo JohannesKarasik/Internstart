@@ -197,7 +197,7 @@
               <div class="form__group{% if student_form.password1.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.password1.id_for_label }}">{{ student_form.password1.label }}</label>
                 <div class="form__controlWrap">
-                  {{ student_form.password1|add_class:"form__control"|attr:"placeholder=Create a password"|attr:"autocomplete=new-password" }}
+                  {{ student_form.password1|add_class:"form__control"|attr:"placeholder:'Create a password'"|attr:"autocomplete:new-password" }}
                   <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
                     <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
