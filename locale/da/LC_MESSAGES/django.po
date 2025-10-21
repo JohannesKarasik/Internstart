@@ -118,13 +118,28 @@ msgstr "Praktikplatform. Alle rettigheder forbeholdes."
 
 #: base/templates/base/login_register.html:30
 msgid "Welcome back 👋"
-msgstr ""
+msgstr "Velkommen tilbage 👋"
 
 #: base/templates/base/login_register.html:33
 msgid ""
 "Continue your journey — swipe through internships, apply instantly, and let "
 "AI craft tailored cover letters for you."
 msgstr ""
+"Fortsæt din rejse — swipe gennem praktikpladser, ansøg med det samme, og lad "
+"AI skrive skræddersyede ansøgninger til dig."
+
+
+
+msgid "👉 Swipe to apply in seconds"
+msgstr "👉 Swipe for at ansøge på få sekunder"
+
+#: base/templates/base/login_register.html:XX
+msgid "🤖 AI-generated cover letters"
+msgstr "🤖 AI-genererede ansøgninger"
+
+#: base/templates/base/login_register.html:XX
+msgid "📊 Track every application easily"
+msgstr "📊 Følg nemt alle dine ansøgninger"
 
 #: base/templates/base/login_register.html:108
 msgid "AI job applications"
