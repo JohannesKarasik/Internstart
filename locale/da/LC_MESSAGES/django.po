@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 00:25+0200\n"
+"POT-Creation-Date: 2025-10-21 22:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,19 +18,43 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: base/forms.py:135
+#: base/forms.py:89
+msgid "Select country"
+msgstr "Vælg land"
+
+#: base/forms.py:91
+msgid "Country"
+msgstr ""
+
+#: base/forms.py:99
+msgid "Select industry"
+msgstr "Vælg din branche"
+
+#: base/forms.py:101
+msgid "Industry"
+msgstr ""
+
+#: base/forms.py:109
+msgid "Select job type"
+msgstr "Vælg jobtype"
+
+#: base/forms.py:111
+msgid "What type of job are you looking for?"
+msgstr ""
+
+#: base/forms.py:136
 msgid "Your full name"
 msgstr "Dit fulde navn"
 
-#: base/forms.py:140
+#: base/forms.py:141
 msgid "you@mail.com"
 msgstr "din@mail.dk"
 
-#: base/forms.py:145
+#: base/forms.py:146
 msgid "Create a password"
 msgstr "Opret adgangskode"
 
-#: base/forms.py:150
+#: base/forms.py:151
 msgid "Confirm password"
 msgstr "Bekræft adgangskode"
 
