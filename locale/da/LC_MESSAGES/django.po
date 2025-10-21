@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 17:47+0200\n"
+"POT-Creation-Date: 2025-10-21 16:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,34 +34,67 @@ msgstr ""
 msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
-
-
-#: base/templates/base/landing_page.html:26
+#: base/templates/base/landing_page.html:26 templates/navbar.html:59
 msgid "Login"
 msgstr "Log ind"
 
-
+#: base/templates/base/landing_page.html:127
 msgid "Internstart"
 msgstr "Internstart"
 
-msgid "Helping students and graduates connect with top companies and discover career opportunities."
-msgstr "Hjælper studerende og kandidater med at komme i kontakt med førende virksomheder og finde karrieremuligheder."
+#: base/templates/base/landing_page.html:128
+msgid ""
+"Helping students and graduates connect with top companies and discover "
+"career opportunities."
+msgstr ""
+"Hjælper studerende og kandidater med at komme i kontakt med førende "
+"virksomheder og finde karrieremuligheder."
 
+#: base/templates/base/landing_page.html:130
 msgid "About"
 msgstr "Om os"
 
+#: base/templates/base/landing_page.html:131
 msgid "Careers"
 msgstr "Karriere"
 
+#: base/templates/base/landing_page.html:132
 msgid "Contact"
 msgstr "Kontakt"
 
+#: base/templates/base/landing_page.html:133
 msgid "Privacy Policy"
 msgstr "Privatlivspolitik"
 
+#: base/templates/base/landing_page.html:135
 msgid "Internship Platform. All rights reserved."
 msgstr "Praktikplatform. Alle rettigheder forbeholdes."
 
+#: base/templates/base/login_register.html:99
+msgid "AI job applications"
+msgstr "AI-jobansøgninger"
+
+#: base/templates/base/login_register.html:100
+msgid "Land your dream internship 🚀"
+msgstr "Få dit drømmejob"
+
+#: base/templates/base/login_register.html:102
+msgid ""
+"Swipe through top opportunities, send instant applications, and let AI craft "
+"your perfect cover letter."
+msgstr "Swipe gennem jobs, send ansøgninger med ét tryk, og lad AI skrive din perfekte motiverede ansøgning."
+
+#: base/templates/base/login_register.html:105
+msgid "👉 Swipe to apply in one tap"
+msgstr "👉 Swipe for at ansøge med ét tryk"
+
+#: base/templates/base/login_register.html:106
+msgid "🤖 AI-tailored cover letters"
+msgstr "🤖 AI-skræddersyede ansøgninger"
+
+#: base/templates/base/login_register.html:107
+msgid "📊 Track every application in one place"
+msgstr "📊 Følg alle dine ansøgninger ét sted"
 
 #: studybud/settings.py:29
 msgid "English"
