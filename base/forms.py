@@ -84,13 +84,12 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
-    # Country dropdown
     country = forms.ChoiceField(
-        choices=[('', _('Select country'))] + User.COUNTRY_CHOICES,   # ✅ translated placeholder
+        choices=[('', _('Select country'))] + User.COUNTRY_CHOICES,  # ✅ translated
         required=True,
-        label=_("Country"),                                           # ✅ translated label
+        label=_("Country"),
         widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
         })
     )
 
@@ -98,9 +97,9 @@ class StudentCreationForm(UserCreationForm):
     student_industry = forms.ChoiceField(
         choices=[('', _('Select industry'))] + User.INDUSTRY_CHOICES,  # ✅ translated
         required=True,
-        label=_("Industry"),                                           # ✅ translated label
+        label=_("Industry"),
         widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
         })
     )
 
@@ -108,9 +107,9 @@ class StudentCreationForm(UserCreationForm):
     job_type = forms.ChoiceField(
         choices=[('', _('Select job type'))] + User.JOB_TYPE_CHOICES,  # ✅ translated
         required=True,
-        label=_("What type of job are you looking for?"),              # ✅ translated
+        label=_("What type of job are you looking for?"),
         widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
         })
     )
 
