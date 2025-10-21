@@ -143,8 +143,8 @@ msgid "Resume"
 msgstr "CV"
 
 #: base/templates/base/login_register.html:176
-msgid "Full name"
-msgstr "Fulde navn"
+msgid "Your full name"
+msgstr "Dit fulde navn"
 
 #: base/templates/base/login_register.html:251
 msgid "Continue"
