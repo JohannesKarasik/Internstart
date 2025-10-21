@@ -86,9 +86,9 @@ class StudentCreationForm(UserCreationForm):
 
     # Country dropdown
     country = forms.ChoiceField(
-        choices=[('', 'Select country')] + User.COUNTRY_CHOICES,
+        choices=[('', _('Select country'))] + User.COUNTRY_CHOICES,   # ✅ translated placeholder
         required=True,
-        label="Country",
+        label=_("Country"),                                           # ✅ translated label
         widget=forms.Select(attrs={
             'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
         })
@@ -96,9 +96,9 @@ class StudentCreationForm(UserCreationForm):
 
     # Industry dropdown
     student_industry = forms.ChoiceField(
-        choices=[('', 'Select industry')] + User.INDUSTRY_CHOICES,
+        choices=[('', _('Select industry'))] + User.INDUSTRY_CHOICES,  # ✅ translated
         required=True,
-        label="Industry",
+        label=_("Industry"),                                           # ✅ translated label
         widget=forms.Select(attrs={
             'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
         })
@@ -106,13 +106,14 @@ class StudentCreationForm(UserCreationForm):
 
     # Job type dropdown
     job_type = forms.ChoiceField(
-        choices=[('', 'Select job type')] + User.JOB_TYPE_CHOICES,
+        choices=[('', _('Select job type'))] + User.JOB_TYPE_CHOICES,  # ✅ translated
         required=True,
-        label="What type of job are you looking for?",
+        label=_("What type of job are you looking for?"),              # ✅ translated
         widget=forms.Select(attrs={
             'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
         })
     )
+
 
     class Meta:
         model = User
