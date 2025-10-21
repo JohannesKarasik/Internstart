@@ -660,6 +660,38 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
 }
 
 
+/* ===== Make the form area wider and the info area slightly slimmer ===== */
+@media (min-width: 981px) {
+  .auth-shell {
+    max-width: 1320px; /* overall layout wider */
+  }
+
+  .auth-card--split {
+    grid-template-columns: 0.85fr 1.15fr; /* make the form side clearly wider */
+  }
+
+  .auth-side__inner {
+    max-width: 420px; /* slightly reduce left-side content width */
+  }
+
+  .auth-form__header,
+  .auth-form form,
+  .auth-form .wizard-actions,
+  .auth-form .auth-legal,
+  .auth-form .auth-alt {
+    max-width: 700px; /* more breathing room for form elements */
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Make input columns a bit wider and better spaced */
+  .auth-form .form-grid--2 {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 20px;
+  }
+}
+
+
 </style>
 
 <script>
