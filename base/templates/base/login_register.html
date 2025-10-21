@@ -628,6 +628,23 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
   padding: clamp(22px, 4.2vw, 36px) 0; /* top/bottom only */
 }
 
+
+/* Fix cramped stepper labels */
+.stepper__label {
+  white-space: nowrap;       /* keeps labels like “Preferences” and “Resume” on one line */
+  flex-shrink: 0;            /* prevents them from being squeezed */
+}
+
+.stepper {
+  flex-wrap: wrap;           /* allows items to wrap on smaller screens if needed */
+  gap: 16px;                 /* slightly more breathing space */
+}
+
+.stepper__sep {
+  flex: 0 0 50px;            /* reduce the separator width slightly for better balance */
+}
+
+
 </style>
 
 <script>
