@@ -32,7 +32,7 @@ msgstr "Vælg din branche"
 
 #: base/forms.py:101
 msgid "Industry"
-msgstr ""
+msgstr "Brance"
 
 #: base/forms.py:109
 msgid "Select job type"
@@ -40,7 +40,7 @@ msgstr "Vælg jobtype"
 
 #: base/forms.py:111
 msgid "What type of job are you looking for?"
-msgstr ""
+msgstr "Vælg jobtype"
 
 #: base/forms.py:136
 msgid "Your full name"
