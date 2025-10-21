@@ -160,15 +160,7 @@ class StudentCreationForm(UserCreationForm):
         self.fields['student_industry'].required = True
         self.fields['job_type'].required = True
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Mark key fields as required
-        self.fields['full_name'].required = True
-        self.fields['email'].required = True
-        self.fields['resume'].required = True
-        self.fields['country'].required = True
-        self.fields['student_industry'].required = True
-        self.fields['job_type'].required = True
+
 
     def clean_resume(self):
         f = self.cleaned_data.get('resume')
