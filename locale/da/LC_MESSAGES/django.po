@@ -96,6 +96,10 @@ msgstr "🤖 AI-skræddersyede ansøgninger"
 msgid "📊 Track every application in one place"
 msgstr "📊 Følg alle dine ansøgninger ét sted"
 
+msgid "Password confirmation"
+msgstr "Bekræft adgangskode"
+
+
 #: studybud/settings.py:29
 msgid "English"
 msgstr ""
