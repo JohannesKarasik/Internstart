@@ -260,36 +260,37 @@
     <!-- Country -->
     <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
       <label class="form__label" for="{{ student_form.country.id_for_label }}">
-        {{ student_form.country.label|default:"Country" }}
+        {% trans "Country" %}
       </label>
       {{ student_form.country|add_class:"form__control" }}
       {% if student_form.country.errors %}
         <small class="form__error">{{ student_form.country.errors|striptags }}</small>
       {% endif %}
     </div>
-
+    
     <!-- Industry -->
     <div class="form__group{% if student_form.student_industry.errors %} form__group--error{% endif %}">
       <label class="form__label" for="{{ student_form.student_industry.id_for_label }}">
-        {{ student_form.student_industry.label|default:"Industry" }}
+        {% trans "Industry" %}
       </label>
       {{ student_form.student_industry|add_class:"form__control" }}
       {% if student_form.student_industry.errors %}
         <small class="form__error">{{ student_form.student_industry.errors|striptags }}</small>
       {% endif %}
     </div>
-  </div>
-
-  <!-- Job Type -->
-<div class="form__group{% if student_form.job_type.errors %} form__group--error{% endif %}">
-  <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
-    {{ student_form.job_type.label|default:"What type of job are you looking for?" }}
-  </label>
-  {{ student_form.job_type|add_class:"form__control" }}
-  {% if student_form.job_type.errors %}
-    <small class="form__error">{{ student_form.job_type.errors|striptags }}</small>
-  {% endif %}
-</div>
+    </div>
+    
+    <!-- Job Type -->
+    <div class="form__group{% if student_form.job_type.errors %} form__group--error{% endif %}">
+      <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
+        {% trans "What type of job are you looking for?" %}
+      </label>
+      {{ student_form.job_type|add_class:"form__control" }}
+      {% if student_form.job_type.errors %}
+        <small class="form__error">{{ student_form.job_type.errors|striptags }}</small>
+      {% endif %}
+    </div>
+    
 
   <div class="wizard-actions wizard-actions--split">
     <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
