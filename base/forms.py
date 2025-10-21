@@ -85,11 +85,11 @@ class StudentCreationForm(UserCreationForm):
     )
 
     country = forms.ChoiceField(
-        choices=[('', _('Select country'))] + User.COUNTRY_CHOICES,  # ✅ translated
+        choices=[('', _('Select country'))] + User.COUNTRY_CHOICES,  # ✅ translated placeholder
         required=True,
-        label=_("Country"),
+        label=_("Country"),  # ✅ translated label
         widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
         })
     )
 
