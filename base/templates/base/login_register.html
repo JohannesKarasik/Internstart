@@ -170,74 +170,72 @@
 
               <!-- Full name (support both field names) -->
               {% if student_form.full_name %}
-                <div class="form__group{% if student_form.full_name.errors %} form__group--error{% endif %}">
-                  <label class="form__label" for="{{ student_form.full_name.id_for_label }}">
+              <div class="form__group{% if student_form.full_name.errors %} form__group--error{% endif %}">
+                <label class="form__label" for="{{ student_form.full_name.id_for_label }}">
+                  {% trans "Full name" %}
+                </label>
+                {{ student_form.full_name|add_class:"form__control"|attr:"placeholder:"|add:full_name_placeholder|attr:"autocomplete=name" }}
+                {% if student_form.full_name.errors %}
+                  <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
+                {% endif %}
+              </div>
+            {% else %}
+              {% if student_form.name %}
+                <div class="form__group{% if student_form.name.errors %} form__group--error{% endif %}">
+                  <label class="form__label" for="{{ student_form.name.id_for_label }}">
                     {% trans "Full name" %}
                   </label>
-                  {{ student_form.full_name|add_class:"form__control"|attr:"placeholder:Your full name"|attr:"autocomplete:name" }}
-                  {% if student_form.full_name.errors %}
-                    <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
+                  {{ student_form.name|add_class:"form__control"|attr:"placeholder:"|add:full_name_placeholder|attr:"autocomplete=name" }}
+                  {% if student_form.name.errors %}
+                    <small class="form__error">{{ student_form.name.errors|striptags }}</small>
                   {% endif %}
                 </div>
-              {% else %}
-                {% if student_form.name %}
-                  <div class="form__group{% if student_form.name.errors %} form__group--error{% endif %}">
-                    <label class="form__label" for="{{ student_form.name.id_for_label }}">{{ student_form.name.label }}</label>
-                    {{ student_form.name|add_class:"form__control"|attr:"placeholder=Your full name"|attr:"autocomplete=name" }}
-                    {% if student_form.name.errors %}
-                      <small class="form__error">{{ student_form.name.errors|striptags }}</small>
-                    {% endif %}
-                  </div>
-                {% endif %}
               {% endif %}
-
-              <!-- Email -->
-              <div class="form__group{% if student_form.email.errors %} form__group--error{% endif %}">
-                <label class="form__label" for="{{ student_form.email.id_for_label }}">{{ student_form.email.label }}</label>
-                {{ student_form.email|add_class:"form__control"|attr:"placeholder=you@mail.com"|attr:"autocomplete=email" }}
-                {% if student_form.email.errors %}
-                  <small class="form__error">{{ student_form.email.errors|striptags }}</small>
-                {% endif %}
+            {% endif %}
+            
+            <!-- Email -->
+            <div class="form__group{% if student_form.email.errors %} form__group--error{% endif %}">
+              <label class="form__label" for="{{ student_form.email.id_for_label }}">{{ student_form.email.label }}</label>
+              {{ student_form.email|add_class:"form__control"|attr:"placeholder:"|add:email_placeholder|attr:"autocomplete=email" }}
+              {% if student_form.email.errors %}
+                <small class="form__error">{{ student_form.email.errors|striptags }}</small>
+              {% endif %}
+            </div>
+            
+            <!-- Password -->
+            <div class="form__group{% if student_form.password1.errors %} form__group--error{% endif %}">
+              <label class="form__label" for="{{ student_form.password1.id_for_label }}">{{ student_form.password1.label }}</label>
+              <div class="form__controlWrap">
+                {{ student_form.password1|add_class:"form__control"|attr:"placeholder:"|add:create_password_placeholder|attr:"autocomplete=new-password" }}
+                <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
+                  <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3l18 18M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42M9.88 5.08A10.46 10.46 0 0 1 12 5c7 0 11 7 11 7a18.46 18.46 0 0 1-3.22 3.72M6.12 6.12A18.42 18.42 0 0 0 1 12s4 7 11 7a10.6 10.6 0 0 0 3.88-.72"/>
+                  </svg>
+                </button>
               </div>
-
-              <!-- Password -->
-              <div class="form__group{% if student_form.password1.errors %} form__group--error{% endif %}">
-                <label class="form__label" for="{{ student_form.password1.id_for_label }}">{{ student_form.password1.label }}</label>
-                <div class="form__controlWrap">
-                  {{ student_form.password1|add_class:"form__control"|attr:"placeholder:Create a password"|attr:"autocomplete:new-password" }}
-                  <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
-                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M3 3l18 18M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42M9.88 5.08A10.46 10.46 0 0 1 12 5c7 0 11 7 11 7a18.46 18.46 0 0 1-3.22 3.72M6.12 6.12A18.42 18.42 0 0 0 1 12s4 7 11 7a10.6 10.6 0 0 0 3.88-.72"/>
-                    </svg>
-                  </button>
-                </div>
-                {% if student_form.password1.help_text %}
-                  <small class="form__help">{{ student_form.password1.help_text }}</small>
-                {% endif %}
-                {% if student_form.password1.errors %}
-                  <small class="form__error">{{ student_form.password1.errors|striptags }}</small>
-                {% endif %}
+            </div>
+            
+            <!-- Confirm Password -->
+            <div class="form__group{% if student_form.password2.errors %} form__group--error{% endif %}">
+              <label class="form__label" for="{{ student_form.password2.id_for_label }}">{{ student_form.password2.label }}</label>
+              <div class="form__controlWrap">
+                {{ student_form.password2|add_class:"form__control"|attr:"placeholder:"|add:confirm_password_placeholder|attr:"autocomplete=new-password" }}
+                <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
+                  <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3l18 18M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42M9.88 5.08A10.46 10.46 0 0 1 12 5c7 0 11 7 11 7a18.46 18.46 0 0 1-3.22 3.72M6.12 6.12A18.42 18.42 0 0 0 1 12s4 7 11 7a10.6 10.6 0 0 0 3.88-.72"/>
+                  </svg>
+                </button>
               </div>
-
-              <!-- Confirm Password -->
-              <div class="form__group{% if student_form.password2.errors %} form__group--error{% endif %}">
-                <label class="form__label" for="{{ student_form.password2.id_for_label }}">{{ student_form.password2.label }}</label>
-                <div class="form__controlWrap">
-                  {{ student_form.password2|add_class:"form__control"|attr:"placeholder: Confirm password"|attr:"autocomplete=new-password" }}
-                  <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
-                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M3 3l18 18M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42M9.88 5.08A10.46 10.46 0 0 1 12 5c7 0 11 7 11 7a18.46 18.46 0 0 1-3.22 3.72M6.12 6.12A18.42 18.42 0 0 0 1 12s4 7 11 7a10.6 10.6 0 0 0 3.88-.72"/>
-                    </svg>
-                  </button>
-                </div>
+            </div>
+            
                 {% if student_form.password2.errors %}
                   <small class="form__error">{{ student_form.password2.errors|striptags }}</small>
                 {% endif %}
