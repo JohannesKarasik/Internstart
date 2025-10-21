@@ -120,6 +120,15 @@ msgid "Continue"
 msgstr "Fortsæt"
 
 
+
+msgid "By continuing you agree to our"
+msgstr "Ved at fortsætte accepterer du vores"
+
+
+
+msgid "Already have an account?"
+msgstr "Har du allerede en konto?"
+
 #: studybud/settings.py:29
 msgid "English"
 msgstr ""
