@@ -8,6 +8,8 @@
 {% block content %}
 
 
+
+
 <!-- Manrope to match landing -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -170,6 +172,8 @@
                   <label class="form__label" for="{{ student_form.full_name.id_for_label }}">
                     {% trans "Full name" %}
                   </label>
+                  {% trans "Your full name" as full_name_ph %}
+
                   {{ student_form.full_name|add_class:"form__control"|attr:"placeholder:Your full name"|attr:"autocomplete:name" }}
                   {% if student_form.full_name.errors %}
                     <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
