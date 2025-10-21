@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 01:19+0200\n"
+"POT-Creation-Date: 2025-10-21 17:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,9 +26,11 @@ msgstr "Swipe dig ind i din <span class=\"accent\">drømmekarriere</span> i dag"
 msgid ""
 "Discover internships at top companies, build your skills, and take the first "
 "step toward your future career."
-msgstr "Udforsk jobs hos førende virksomheder, udvikl dine færdigheder og tag det første skridt mod din fremtidige karriere."
+msgstr ""
+"Udforsk jobs hos førende virksomheder, udvikl dine færdigheder og tag det "
+"første skridt mod din fremtidige karriere."
 
-#: base/templates/base/landing_page.html:25
+#: base/templates/base/landing_page.html:25 templates/navbar.html:63
 msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
@@ -36,19 +38,19 @@ msgstr "Find dit drømmejob"
 msgid "Login"
 msgstr "Log ind"
 
-#: studybud/settings.py:24
+#: studybud/settings.py:29
 msgid "English"
 msgstr ""
 
-#: studybud/settings.py:25
+#: studybud/settings.py:30
 msgid "Danish"
 msgstr ""
 
-#: studybud/settings.py:26
+#: studybud/settings.py:31
 msgid "German"
 msgstr ""
 
-#: studybud/settings.py:27
+#: studybud/settings.py:32
 msgid "French"
 msgstr ""
 
