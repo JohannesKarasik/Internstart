@@ -62,6 +62,8 @@ msgstr "Bekræft adgangskode"
 msgid "Swipe Into Your <span class=\"accent\">Dream Career</span> Today"
 msgstr "Swipe dig ind i din <span class=\"accent\">drømmekarriere</span> i dag"
 
+
+
 #: base/templates/base/landing_page.html:21
 msgid ""
 "Discover internships at top companies, build your skills, and take the first "
