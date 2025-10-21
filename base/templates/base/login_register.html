@@ -293,14 +293,14 @@
     
 
   <div class="wizard-actions wizard-actions--split">
-    <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
-    <button type="button" class="btn btn--primary" id="toStep3">Continue</button>
+    <button type="button" class="btn btn--ghost" id="backToStep1">{% trans "Back" %}</button>
+    <button type="button" class="btn btn--primary" id="toStep3">{% trans "Continue" %}</button>    
   </div>
 </div>
 
           <!-- ========== STEP 2: Resume ========== -->
           <div class="form-step" id="step-3" data-step="3" role="group" aria-labelledby="step3label">
-            <h2 id="step3label" class="sr-only">Upload resume</h2>
+            <h2 id="step3label" class="sr-only">{% trans "Upload resume" %}</h2>
             <!-- Drag-drop styled wrapper -->
             <div class="form-grid">
               {% if student_form.resume %}
@@ -310,14 +310,14 @@
                   <div class="dropzone" id="resumeDrop">
                     <div class="dz-icon">📄</div>
                     <div class="dz-copy">
-                      <strong>Drag & drop</strong> your resume here<br>
-                      <span class="dz-sub">or click to browse (PDF/DOCX)</span>
+                      {% blocktrans %}<strong>Drag & drop</strong> your resume here<br>{% endblocktrans %}
+                      <span class="dz-sub">{% trans "or click to browse (PDF/DOCX)" %}</span>
                     </div>
                     <!-- Use the actual Django field; we visually style the container -->
                     {{ student_form.resume|add_class:"form__control dz-input"|attr:"accept=.pdf,.doc,.docx" }}
                   </div>
 
-                  <small class="form__help" id="resumeFileName">No file chosen</small>
+                  <small class="form__help" id="resumeFileName">{% trans "No file chosen" %}</small>
 
                   {% if student_form.resume.help_text %}
                     <small class="form__help">{{ student_form.resume.help_text }}</small>
@@ -335,7 +335,7 @@
 
             <div class="wizard-actions wizard-actions--split">
               <button type="button" class="btn btn--ghost" id="backToStep2">Back</button>
-              <button type="submit" class="btn btn--primary">Create account</button>
+              <button type="submit" class="btn btn--primary">{% trans "Create account" %}</button>
             </div>
           </div>
 

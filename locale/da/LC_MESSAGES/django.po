@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 23:35+0000\n"
+"POT-Creation-Date: 2025-10-21 23:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -173,8 +173,35 @@ msgid "Full name"
 msgstr "Dit fulde navn"
 
 #: base/templates/base/login_register.html:250
+#: base/templates/base/login_register.html:297
 msgid "Continue"
 msgstr "Fortsæt"
+
+#: base/templates/base/login_register.html:296
+msgid "Back"
+msgstr "Tilbage"
+
+#: base/templates/base/login_register.html:303
+msgid "Upload resume"
+msgstr "Upload CV"
+
+#: base/templates/base/login_register.html:313
+msgid "<strong>Drag & drop</strong> your resume here<br>"
+msgstr "<strong>Træk og slip</strong> dit CV her<br>"
+
+#: base/templates/base/login_register.html:314
+msgid "or click to browse (PDF/DOCX)"
+msgstr "eller klik for at vælge (PDF/DOCX)"
+
+#: base/templates/base/login_register.html:320
+msgid "No file chosen"
+msgstr "Ingen fil valgt"
+
+#: base/templates/base/login_register.html:338
+#, fuzzy
+#| msgid "Already have an account?"
+msgid "Create account"
+msgstr "Har du allerede en konto?"
 
 #: base/templates/base/login_register.html:343
 msgid "By continuing you agree to our"
