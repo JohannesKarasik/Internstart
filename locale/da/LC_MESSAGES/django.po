@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 21:54+0000\n"
+"POT-Creation-Date: 2025-10-21 21:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,7 @@ msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
 #: base/templates/base/landing_page.html:26
-#: base/templates/base/login_register.html:348 templates/navbar.html:59
+#: base/templates/base/login_register.html:350 templates/navbar.html:59
 msgid "Login"
 msgstr "Log ind"
 
@@ -64,7 +64,7 @@ msgid "Contact"
 msgstr "Kontakt"
 
 #: base/templates/base/landing_page.html:133
-#: base/templates/base/login_register.html:343
+#: base/templates/base/login_register.html:345
 msgid "Privacy Policy"
 msgstr "Privatlivspolitik"
 
@@ -72,19 +72,19 @@ msgstr "Privatlivspolitik"
 msgid "Internship Platform. All rights reserved."
 msgstr "Praktikplatform. Alle rettigheder forbeholdes."
 
-#: base/templates/base/login_register.html:6
+#: base/templates/base/login_register.html:10
 msgid "Your full name"
 msgstr "Dit fulde navn"
 
-#: base/templates/base/login_register.html:7
+#: base/templates/base/login_register.html:11
 msgid "you@mail.com"
 msgstr "din@mail.dk"
 
-#: base/templates/base/login_register.html:8
+#: base/templates/base/login_register.html:12
 msgid "Create a password"
 msgstr "Opret adgangskode"
 
-#: base/templates/base/login_register.html:9
+#: base/templates/base/login_register.html:13
 msgid "Confirm password"
 msgstr "Bekræft adgangskode"
 
@@ -143,23 +143,22 @@ msgid "Resume"
 msgstr "CV"
 
 #: base/templates/base/login_register.html:175
-#: base/templates/base/login_register.html:186
 msgid "Full name"
 msgstr "Fulde navn"
 
-#: base/templates/base/login_register.html:248
+#: base/templates/base/login_register.html:250
 msgid "Continue"
 msgstr "Fortsæt"
 
-#: base/templates/base/login_register.html:340
+#: base/templates/base/login_register.html:342
 msgid "By continuing you agree to our"
 msgstr "Ved at fortsætte accepterer du vores"
 
-#: base/templates/base/login_register.html:341
+#: base/templates/base/login_register.html:343
 msgid "Terms"
 msgstr ""
 
-#: base/templates/base/login_register.html:342
+#: base/templates/base/login_register.html:344
 #: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
 #: venv/lib/python3.11/site-packages/django/forms/models.py:908
 #: venv311/lib/python3.11/site-packages/django/db/models/base.py:1197
@@ -167,7 +166,7 @@ msgstr ""
 msgid "and"
 msgstr ""
 
-#: base/templates/base/login_register.html:347
+#: base/templates/base/login_register.html:349
 msgid "Already have an account?"
 msgstr "Har du allerede en konto?"
 
