@@ -617,6 +617,55 @@ textarea.form__control{ height:auto; min-height:110px; padding:10px 12px; resize
   padding: clamp(22px, 4.2vw, 36px) 0; /* top/bottom only */
 }
 
+
+/* === OVERRIDES: make the form bigger + add side spacing === */
+
+/* Give more real estate to the form column on desktop */
+@media (min-width: 981px){
+  .auth-card--split{
+    /* left info : right form */
+    grid-template-columns: 0.8fr 1.2fr;
+  }
+
+  /* Let the content inside the form breathe wider */
+  .auth-form__header,
+  .auth-form .auth-form-body,
+  .auth-form .wizard-actions,
+  .auth-form .auth-legal,
+  .auth-form .auth-alt{
+    max-width: 680px;   /* was 560px */
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Two comfortable columns inside the wider form */
+  .auth-form .form-grid--2{
+    grid-template-columns: repeat(2, minmax(260px,1fr));
+    gap: 18px; /* was 16px */
+  }
+}
+
+/* Restore + increase side padding for the right column */
+.auth-card--split .auth-form{
+  padding: clamp(22px, 4.2vw, 36px) clamp(28px, 5vw, 56px);
+}
+
+/* Make inputs a touch bigger and more premium-feeling */
+.form__control{
+  height: 52px;           /* was 46px */
+  border-radius: 14px;    /* subtle upscale (was 12px) */
+  font-size: 16px;        /* was 15px */
+}
+textarea.form__control{ min-height: 120px; }
+
+/* Give the main title/subtitle a little presence boost on the form side */
+.auth-title{ font-size: clamp(28px, 3.4vw, 34px); }
+.auth-sub{ font-size: 15px; }
+
+/* Slightly narrow the left info content so it doesn’t compete */
+.auth-side__inner{ max-width: 460px; } /* was 500px */
+
+
 </style>
 
 <script>
