@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 16:21+0000\n"
+"POT-Creation-Date: 2025-10-21 21:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,8 @@ msgstr ""
 msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
-#: base/templates/base/landing_page.html:26 templates/navbar.html:59
+#: base/templates/base/landing_page.html:26
+#: base/templates/base/login_register.html:343 templates/navbar.html:59
 msgid "Login"
 msgstr "Log ind"
 
@@ -63,6 +64,7 @@ msgid "Contact"
 msgstr "Kontakt"
 
 #: base/templates/base/landing_page.html:133
+#: base/templates/base/login_register.html:338
 msgid "Privacy Policy"
 msgstr "Privatlivspolitik"
 
@@ -70,64 +72,99 @@ msgstr "Privatlivspolitik"
 msgid "Internship Platform. All rights reserved."
 msgstr "Praktikplatform. Alle rettigheder forbeholdes."
 
-#: base/templates/base/login_register.html:99
+#: base/templates/base/login_register.html:25
+msgid "Welcome back 👋"
+msgstr ""
+
+#: base/templates/base/login_register.html:28
+msgid ""
+"Continue your journey — swipe through internships, apply instantly, and let "
+"AI craft tailored cover letters for you."
+msgstr ""
+
+#: base/templates/base/login_register.html:103
 msgid "AI job applications"
 msgstr "AI-jobansøgninger"
 
-#: base/templates/base/login_register.html:100
+#: base/templates/base/login_register.html:104
 msgid "Land your dream internship 🚀"
-msgstr "Få dit drømmejob 🚀""
+msgstr "Få dit drømmejob 🚀"
 
-#: base/templates/base/login_register.html:102
+#: base/templates/base/login_register.html:106
 msgid ""
 "Swipe through top opportunities, send instant applications, and let AI craft "
 "your perfect cover letter."
-msgstr "Swipe gennem jobs, send ansøgninger med ét tryk, og lad AI skrive din perfekte motiverede ansøgning."
+msgstr ""
+"Swipe gennem jobs, send ansøgninger med ét tryk, og lad AI skrive din "
+"perfekte motiverede ansøgning."
 
-#: base/templates/base/login_register.html:105
+#: base/templates/base/login_register.html:109
 msgid "👉 Swipe to apply in one tap"
 msgstr "👉 Swipe for at ansøge med ét tryk"
 
-#: base/templates/base/login_register.html:106
+#: base/templates/base/login_register.html:110
 msgid "🤖 AI-tailored cover letters"
 msgstr "🤖 AI-skræddersyede ansøgninger"
 
-#: base/templates/base/login_register.html:107
+#: base/templates/base/login_register.html:111
 msgid "📊 Track every application in one place"
 msgstr "📊 Følg alle dine ansøgninger ét sted"
 
-msgid "Password confirmation"
-msgstr "Bekræft adgangskode"
-
-
-msgid "Join Internstart"
-msgstr "Tilmeld dig Internstart"
-
+#: base/templates/base/login_register.html:135
 msgid "It takes under a minute — we’ll guide you."
 msgstr "Det tager under et minut — vi guider dig."
 
+#: base/templates/base/login_register.html:140
 msgid "Account"
 msgstr "Konto"
 
+#: base/templates/base/login_register.html:145
 msgid "Preferences"
 msgstr "Præferencer"
 
+#: base/templates/base/login_register.html:149
 msgid "Resume"
 msgstr "CV"
 
-
-msgid "Continue"
-msgstr "Fortsæt"
-
+#: base/templates/base/login_register.html:168
 msgid "Full name"
 msgstr "Fulde navn"
 
+#: base/templates/base/login_register.html:243
+msgid "Continue"
+msgstr "Fortsæt"
 
+#: base/templates/base/login_register.html:335
 msgid "By continuing you agree to our"
 msgstr "Ved at fortsætte accepterer du vores"
 
 
+msgid "Your full name"
+msgstr "Dit fulde navn"
 
+msgid "you@mail.com"
+msgstr "din@mail.dk"
+
+msgid "Create a password"
+msgstr "Opret adgangskode"
+
+msgid "Confirm password"
+msgstr "Bekræft adgangskode"
+
+
+#: base/templates/base/login_register.html:336
+msgid "Terms"
+msgstr ""
+
+#: base/templates/base/login_register.html:337
+#: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
+#: venv/lib/python3.11/site-packages/django/forms/models.py:908
+#: venv311/lib/python3.11/site-packages/django/db/models/base.py:1197
+#: venv311/lib/python3.11/site-packages/django/forms/models.py:768
+msgid "and"
+msgstr ""
+
+#: base/templates/base/login_register.html:342
 msgid "Already have an account?"
 msgstr "Har du allerede en konto?"
 
@@ -355,13 +392,6 @@ msgstr ""
 #: venv/lib/python3.11/site-packages/django/core/validators.py:659
 #: venv311/lib/python3.11/site-packages/django/core/validators.py:559
 msgid "Null characters are not allowed."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
-#: venv/lib/python3.11/site-packages/django/forms/models.py:908
-#: venv311/lib/python3.11/site-packages/django/db/models/base.py:1197
-#: venv311/lib/python3.11/site-packages/django/forms/models.py:768
-msgid "and"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/db/models/base.py:1602
@@ -2905,3 +2935,9 @@ msgstr ""
 #: venv311/lib/python3.11/site-packages/httplib2/__init__.py:1471
 msgid "Redirected but the response is missing a Location: header."
 msgstr ""
+
+#~ msgid "Password confirmation"
+#~ msgstr "Bekræft adgangskode"
+
+#~ msgid "Join Internstart"
+#~ msgstr "Tilmeld dig Internstart"
