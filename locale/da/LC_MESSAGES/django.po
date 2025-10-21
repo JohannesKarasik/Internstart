@@ -106,6 +106,14 @@ msgstr "Tilmeld dig Internstart"
 msgid "It takes under a minute — we’ll guide you."
 msgstr "Det tager under et minut — vi guider dig."
 
+msgid "Account"
+msgstr "Konto"
+
+msgid "Preferences"
+msgstr "Præferencer"
+
+msgid "Resume"
+msgstr "CV"
 
 
 #: studybud/settings.py:29
