@@ -173,8 +173,8 @@
                     {% trans "Full name" %}
                   </label>
                   {% trans "Your full name" as full_name_ph %}
-
-                  {{ student_form.full_name|add_class:"form__control"|attr:"placeholder:Your full name"|attr:"autocomplete:name" }}
+                  {{ student_form.full_name|add_class:"form__control"|attr:"placeholder:"+full_name_ph|attr:"autocomplete:name" }}
+                  
                   {% if student_form.full_name.errors %}
                     <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
                   {% endif %}
