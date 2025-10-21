@@ -194,7 +194,7 @@
               <!-- Email -->
               <div class="form__group{% if student_form.email.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.email.id_for_label }}">{{ student_form.email.label }}</label>
-                {{ student_form.email|add_class:"form__control"|attr:"placeholder=you@mail.com"|attr:"autocomplete=email" }}
+                {{ student_form.email|add_class:"form__control"|attr:("placeholder:"+email_placeholder)|attr:"autocomplete=email" }}
                 {% if student_form.email.errors %}
                   <small class="form__error">{{ student_form.email.errors|striptags }}</small>
                 {% endif %}
@@ -204,7 +204,7 @@
               <div class="form__group{% if student_form.password1.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.password1.id_for_label }}">{{ student_form.password1.label }}</label>
                 <div class="form__controlWrap">
-                  {{ student_form.password1|add_class:"form__control"|attr:"placeholder:Create a password"|attr:"autocomplete:new-password" }}
+                  {{ student_form.password1|add_class:"form__control"|attr:("placeholder:"+create_password_placeholder)|attr:"autocomplete=new-password" }}
                   <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
                     <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
@@ -227,7 +227,7 @@
               <div class="form__group{% if student_form.password2.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.password2.id_for_label }}">{{ student_form.password2.label }}</label>
                 <div class="form__controlWrap">
-                  {{ student_form.password2|add_class:"form__control"|attr:"placeholder: Confirm password"|attr:"autocomplete=new-password" }}
+                  {{ student_form.password2|add_class:"form__control"|attr:("placeholder:"+confirm_password_placeholder)|attr:"autocomplete=new-password" }}
                   <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
                     <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
