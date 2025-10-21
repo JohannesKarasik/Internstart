@@ -114,7 +114,6 @@ class StudentCreationForm(UserCreationForm):
 
     class Meta:
         model = User
-        # 👇 Reordered so country, industry, and job_type come last (below passwords)
         fields = [
             'full_name',
             'email',
@@ -125,6 +124,39 @@ class StudentCreationForm(UserCreationForm):
             'student_industry',
             'job_type',
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # ✅ Translated placeholders
+        self.fields['full_name'].widget.attrs.update({
+            'placeholder': _("Your full name"),
+            'autocomplete': 'name',
+            'class': 'form__control',
+        })
+        self.fields['email'].widget.attrs.update({
+            'placeholder': _("you@mail.com"),
+            'autocomplete': 'email',
+            'class': 'form__control',
+        })
+        self.fields['password1'].widget.attrs.update({
+            'placeholder': _("Create a password"),
+            'autocomplete': 'new-password',
+            'class': 'form__control',
+        })
+        self.fields['password2'].widget.attrs.update({
+            'placeholder': _("Confirm password"),
+            'autocomplete': 'new-password',
+            'class': 'form__control',
+        })
+
+        # keep your required logic
+        self.fields['full_name'].required = True
+        self.fields['email'].required = True
+        self.fields['resume'].required = True
+        self.fields['country'].required = True
+        self.fields['student_industry'].required = True
+        self.fields['job_type'].required = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
