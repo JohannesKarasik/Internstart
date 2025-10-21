@@ -27,29 +27,45 @@
 
       <!-- User / Auth (right) -->
       <nav class="header__menu" style="display: flex; align-items: center;">
-          {% if request.user.is_authenticated %}
-          <!-- Single Account button -->
-          <div class="header__user" style="padding-right: 20px; display:flex; align-items:center;">
-              <a href="{% url 'update-user' %}" class="btn-account">
-                <svg class="btn-account__icon" viewBox="0 0 24 24" aria-hidden="true" style="color: white;">
-                  <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-                  <path d="M4 20c1.8-3.4 5-5 8-5s6.2 1.6 8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                </svg>
-                <span style="color: white;">Account</span>
-              </a>
-          </div>
-          {% else %}
-          <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
-              <a href="{% url 'app_login' %}" 
-                 style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-                 Login
-              </a>
-              <a href="{% url 'register' %}" 
-                 style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-                 Start Your Journey
-              </a>
-          </div>
-          {% endif %}
+        {% if request.user.is_authenticated %}
+        <!-- Account + Logout buttons -->
+        <div class="header__authCluster" style="padding-right: 20px; display:flex; align-items:center; gap:12px;">
+          <!-- Account -->
+          <a href="{% url 'update-user' %}" class="btn-account">
+            <svg class="btn-account__icon" viewBox="0 0 24 24" aria-hidden="true" style="color: white;">
+              <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M4 20c1.8-3.4 5-5 8-5s6.2 1.6 8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span style="color: white;">Account</span>
+          </a>
+      
+          <!-- Logout (POST) -->
+          <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout" aria-label="Log out">
+              <svg class="btn-logout__icon" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- power icon -->
+                <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M6.2 6.2a8 8 0 1 0 11.6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Logout</span>
+            </button>
+          </form>
+        </div>
+      {% else %}
+        <!-- (unchanged) Login / Start buttons -->
+        <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
+          <a href="{% url 'app_login' %}" 
+             style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
+             Login
+          </a>
+          <a href="{% url 'register' %}" 
+             style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
+             Start Your Journey
+          </a>
+        </div>
+      {% endif %}
+      
       </nav>
   </div>
 
@@ -142,6 +158,46 @@
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
+}
+
+
+/* Logout button: same look as .btn-account, with a subtle darker tone */
+.btn-logout{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:10px 18px;
+  background: var(--brand-700);
+  color:#fff;
+  text-decoration:none;
+  font-weight:800;
+  font-family:'Manrope', sans-serif;
+  border-radius:12px;
+  border:1px solid var(--brand-700);
+  box-shadow: 0 6px 10px rgba(255,47,90,.18);
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .06s ease;
+  cursor:pointer;
+}
+.btn-logout__icon{
+  width:18px; height:18px; flex:0 0 18px; color: currentColor;
+}
+.btn-logout:hover{
+  background:#d61f46; /* hover a touch deeper than brand-700 */
+  border-color:#d61f46;
+  box-shadow: 0 8px 14px rgba(255,47,90,.22);
+  transform: translateY(-1px);
+}
+.btn-logout:active{
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(255,47,90,.18);
+}
+.btn-logout:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255,47,90,.25);
+}
+
+/* Keep mobile clean: hide the cluster like the account button */
+@media (max-width: 600px){
+  .header__authCluster{ display:none !important; }
+  .logout-form{ display:none !important; }
 }
 
 
