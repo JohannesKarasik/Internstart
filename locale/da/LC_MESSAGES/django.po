@@ -41,8 +41,8 @@ msgid "Login"
 msgstr "Log ind"
 
 
-msgid "Internship Platform"
-msgstr "Praktikplatform"
+msgid "Internstart"
+msgstr "Internstart"
 
 msgid "Helping students and graduates connect with top companies and discover career opportunities."
 msgstr "Hjælper studerende og kandidater med at komme i kontakt med førende virksomheder og finde karrieremuligheder."
