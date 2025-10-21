@@ -124,17 +124,18 @@
 ========================= -->
 <footer class="site-footer">
   <div class="footer__inner">
-    <h3>Internship Platform</h3>
-    <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+    <h3>{% trans "Internship Platform" %}</h3>
+    <p>{% trans "Helping students and graduates connect with top companies and discover career opportunities." %}</p>
     <nav class="footer__links" aria-label="Footer">
-      <a href="{% url 'about' %}">About</a>
-      <a href="#">Careers</a>
-      <a href="{% url 'contact' %}">Contact</a>
-      <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+      <a href="{% url 'about' %}">{% trans "About" %}</a>
+      <a href="#">{% trans "Careers" %}</a>
+      <a href="{% url 'contact' %}">{% trans "Contact" %}</a>
+      <a href="{% url 'privacy_policy' %}">{% trans "Privacy Policy" %}</a>
     </nav>
-    <div class="footer__legal">© 2025 Internship Platform. All rights reserved.</div>
+    <div class="footer__legal">© 2025 {% trans "Internship Platform. All rights reserved." %}</div>
   </div>
 </footer>
+
 
 <style>
   :root{
