@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from django.forms import modelformset_factory
 from .models import Room, RoomFile, Topic, ListingType, JobListing
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 
 User = get_user_model()
