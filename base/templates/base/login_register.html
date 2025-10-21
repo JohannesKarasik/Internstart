@@ -262,7 +262,7 @@
       <label class="form__label" for="{{ student_form.country.id_for_label }}">
         {% trans "Country" %}
       </label>
-      {{ student_form.country|add_class:"form__control" }}
+      {{ student_form.country }}
       {% if student_form.country.errors %}
         <small class="form__error">{{ student_form.country.errors|striptags }}</small>
       {% endif %}
