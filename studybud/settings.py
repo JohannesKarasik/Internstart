@@ -191,6 +191,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'base.context_processors.global_connections',  # <-- Add this line
                 'base.context_processors.stripe_public_key',
+                'django.template.context_processors.i18n',
 
             ],
         },
