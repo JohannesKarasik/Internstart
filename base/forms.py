@@ -80,7 +80,7 @@ class StudentCreationForm(UserCreationForm):
     # Resume upload
     resume = forms.FileField(
         required=True,
-        help_text="Upload your resume as PDF or DOCX.",
+        help_text=_("Upload your resume as PDF or DOCX."),  # ✅ translated
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
