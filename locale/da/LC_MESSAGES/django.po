@@ -24,7 +24,7 @@ msgstr "Vælg land"
 
 #: base/forms.py:91
 msgid "Country"
-msgstr ""
+msgstr "Land"
 
 #: base/forms.py:99
 msgid "Select industry"
