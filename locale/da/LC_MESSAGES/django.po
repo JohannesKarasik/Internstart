@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 21:58+0000\n"
+"POT-Creation-Date: 2025-10-21 22:06+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,7 @@ msgid "Start Your Journey"
 msgstr "Find dit drømmejob"
 
 #: base/templates/base/landing_page.html:26
-#: base/templates/base/login_register.html:350 templates/navbar.html:59
+#: base/templates/base/login_register.html:351 templates/navbar.html:59
 msgid "Login"
 msgstr "Log ind"
 
@@ -64,7 +64,7 @@ msgid "Contact"
 msgstr "Kontakt"
 
 #: base/templates/base/landing_page.html:133
-#: base/templates/base/login_register.html:345
+#: base/templates/base/login_register.html:346
 msgid "Privacy Policy"
 msgstr "Privatlivspolitik"
 
@@ -88,25 +88,25 @@ msgstr "Opret adgangskode"
 msgid "Confirm password"
 msgstr "Bekræft adgangskode"
 
-#: base/templates/base/login_register.html:32
+#: base/templates/base/login_register.html:33
 msgid "Welcome back 👋"
 msgstr ""
 
-#: base/templates/base/login_register.html:35
+#: base/templates/base/login_register.html:36
 msgid ""
 "Continue your journey — swipe through internships, apply instantly, and let "
 "AI craft tailored cover letters for you."
 msgstr ""
 
-#: base/templates/base/login_register.html:110
+#: base/templates/base/login_register.html:111
 msgid "AI job applications"
 msgstr "AI-jobansøgninger"
 
-#: base/templates/base/login_register.html:111
+#: base/templates/base/login_register.html:112
 msgid "Land your dream internship 🚀"
 msgstr "Få dit drømmejob 🚀"
 
-#: base/templates/base/login_register.html:113
+#: base/templates/base/login_register.html:114
 msgid ""
 "Swipe through top opportunities, send instant applications, and let AI craft "
 "your perfect cover letter."
@@ -114,51 +114,51 @@ msgstr ""
 "Swipe gennem jobs, send ansøgninger med ét tryk, og lad AI skrive din "
 "perfekte motiverede ansøgning."
 
-#: base/templates/base/login_register.html:116
+#: base/templates/base/login_register.html:117
 msgid "👉 Swipe to apply in one tap"
 msgstr "👉 Swipe for at ansøge med ét tryk"
 
-#: base/templates/base/login_register.html:117
+#: base/templates/base/login_register.html:118
 msgid "🤖 AI-tailored cover letters"
 msgstr "🤖 AI-skræddersyede ansøgninger"
 
-#: base/templates/base/login_register.html:118
+#: base/templates/base/login_register.html:119
 msgid "📊 Track every application in one place"
 msgstr "📊 Følg alle dine ansøgninger ét sted"
 
-#: base/templates/base/login_register.html:142
+#: base/templates/base/login_register.html:143
 msgid "It takes under a minute — we’ll guide you."
 msgstr "Det tager under et minut — vi guider dig."
 
-#: base/templates/base/login_register.html:147
+#: base/templates/base/login_register.html:148
 msgid "Account"
 msgstr "Konto"
 
-#: base/templates/base/login_register.html:152
+#: base/templates/base/login_register.html:153
 msgid "Preferences"
 msgstr "Præferencer"
 
-#: base/templates/base/login_register.html:156
+#: base/templates/base/login_register.html:157
 msgid "Resume"
 msgstr "CV"
 
-#: base/templates/base/login_register.html:175
+#: base/templates/base/login_register.html:176
 msgid "Full name"
 msgstr "Fulde navn"
 
-#: base/templates/base/login_register.html:250
+#: base/templates/base/login_register.html:251
 msgid "Continue"
 msgstr "Fortsæt"
 
-#: base/templates/base/login_register.html:342
+#: base/templates/base/login_register.html:343
 msgid "By continuing you agree to our"
 msgstr "Ved at fortsætte accepterer du vores"
 
-#: base/templates/base/login_register.html:343
+#: base/templates/base/login_register.html:344
 msgid "Terms"
 msgstr ""
 
-#: base/templates/base/login_register.html:344
+#: base/templates/base/login_register.html:345
 #: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
 #: venv/lib/python3.11/site-packages/django/forms/models.py:908
 #: venv311/lib/python3.11/site-packages/django/db/models/base.py:1197
@@ -166,7 +166,7 @@ msgstr ""
 msgid "and"
 msgstr ""
 
-#: base/templates/base/login_register.html:349
+#: base/templates/base/login_register.html:350
 msgid "Already have an account?"
 msgstr "Har du allerede en konto?"
 
