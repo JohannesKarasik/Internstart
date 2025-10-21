@@ -201,11 +201,11 @@ msgstr "eller klik for at vælge (PDF/DOCX)"
 msgid "No file chosen"
 msgstr "Ingen fil valgt"
 
-#: base/templates/base/login_register.html:338
-#, fuzzy
-#| msgid "Already have an account?"
+
+
 msgid "Create account"
-msgstr "Har du allerede en konto?"
+msgstr "Opret konto"
+
 
 #: base/templates/base/login_register.html:343
 msgid "By continuing you agree to our"
