@@ -1770,8 +1770,7 @@ def contact(request):
 
 
 
-
-client = OpenAI()  # uses your OPENAI_API_KEY automatically from env
+client = OpenAI()
 
 def extract_job_data(raw_text):
     prompt = f"""
@@ -1801,37 +1800,39 @@ def extract_job_data(raw_text):
     )
 
     try:
-        content = response.choices[0].message.content
-        data = json.loads(content)
+        data = json.loads(response.choices[0].message.content)
         return data
     except Exception as e:
-        print("Error parsing:", e)
+        print("OpenAI parsing error:", e)
         return {}
-
+    
 
 @staff_member_required
 def import_job_view(request):
-    extracted = None
     if request.method == "POST":
-        raw_text = request.POST.get("linkedin_text")
-        extracted = extract_job_data(raw_text)
+        raw_text = request.POST.get("linkedin_text", "").strip()
+        if not raw_text:
+            messages.error(request, "Please paste a LinkedIn job post first.")
+            return redirect("import_job")
 
-        if "save" in request.POST:
-            form = RoomForm(request.POST)
-            if form.is_valid():
-                form.save()
-                return redirect("home")
+        # Call OpenAI to extract job data
+        data = extract_job_data(raw_text)
 
-        else:
-            form = RoomForm(initial={
-                "name": extracted.get("job_role"),
-                "description": extracted.get("description"),
-                # adjust to your model fields
-            })
-    else:
-        form = None
+        if not data:
+            messages.error(request, "Couldn't extract data from text. Try again.")
+            return redirect("import_job")
 
-    return render(request, "base/import_job.html", {
-        "form": form,
-        "extracted": extracted,
-    })
+        # Create a new Room (adjust fields to match your model)
+        room = Room.objects.create(
+            name=data.get("job_role") or "Untitled Job",
+            description=(
+                f"{data.get('company_name', '')} — {data.get('location', '')}\n\n"
+                f"Job Type: {data.get('job_type', '')}\n\n"
+                f"{data.get('description', '')}"
+            )
+        )
+
+        messages.success(request, f"✅ Added new listing: {room.name}")
+        return redirect("import_job")
+
+    return render(request, "base/import_job.html")

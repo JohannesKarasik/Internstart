@@ -1,18 +1,20 @@
 <h2>Import LinkedIn Job</h2>
 
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
 <form method="POST">
   {% csrf_token %}
-  <textarea name="linkedin_text" placeholder="Paste LinkedIn text here..." rows="10" style="width:100%"></textarea>
-  <button type="submit" class="btn">Extract</button>
+  <textarea name="linkedin_text" rows="10" placeholder="Paste LinkedIn job post here..." style="width:100%;"></textarea>
+  <button type="submit" class="btn">Extract & Save</button>
 </form>
 
-{% if extracted %}
-  <h3>Extracted Data</h3>
-  <pre>{{ extracted|json_script:"jobdata" }}</pre>
-
-  <form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" name="save" class="btn btn-primary">Save to Database</button>
-  </form>
-{% endif %}
+<style>
+  .error { color: red; }
+  .success { color: green; }
+</style>
