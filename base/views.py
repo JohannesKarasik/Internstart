@@ -1774,20 +1774,16 @@ client = OpenAI()
 
 def extract_job_data(raw_text):
     prompt = f"""
-    Extract the following information from this LinkedIn job post:
-    - Job Role
-    - Company Name
-    - Location
-    - Job Type (internship, full-time, student job, part-time)
-    - Description (short summary of the main job content)
+    Extract and return ONLY valid JSON (no extra text, no explanation) with the following keys:
+    job_role, company_name, location, job_type, description.
 
-    Return JSON in this format:
+    Example:
     {{
-      "job_role": "",
-      "company_name": "",
-      "location": "",
-      "job_type": "",
-      "description": ""
+      "job_role": "Software Engineer Intern",
+      "company_name": "Google",
+      "location": "Copenhagen, Denmark",
+      "job_type": "Internship",
+      "description": "Assist in building scalable backend systems."
     }}
 
     LinkedIn post:
@@ -1796,14 +1792,22 @@ def extract_job_data(raw_text):
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
     )
 
+    content = response.choices[0].message.content
+    print("\n--- RAW OPENAI RESPONSE ---\n", content, "\n---------------------------")
+
+    # Try to extract the JSON substring if model adds extra text
+    match = re.search(r'\{.*\}', content, re.DOTALL)
+    if not match:
+        return {}
+
     try:
-        data = json.loads(response.choices[0].message.content)
+        data = json.loads(match.group())
         return data
-    except Exception as e:
-        print("OpenAI parsing error:", e)
+    except json.JSONDecodeError as e:
+        print("JSON decode error:", e)
         return {}
     
 
