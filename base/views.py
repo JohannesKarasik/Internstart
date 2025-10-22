@@ -403,7 +403,7 @@ import base64, json, re
 from django.utils import timezone
 import traceback
 
-
+from openai import OpenAI
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
