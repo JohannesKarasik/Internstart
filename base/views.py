@@ -119,7 +119,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 import requests
 from django.core.files.base import ContentFile
 from urllib.parse import urlparse
-
+from .tasks import apply_to_ats
+from .models import ATSRoom
 
 
 
@@ -2036,3 +2037,15 @@ def fetch_company_logo(company_name):
     print(f"⚠️ [DEBUG] No logo available for {company_name}.")
     return None
 
+@login_required
+def apply_ats_view(request, room_id):
+    room = get_object_or_404(ATSRoom, id=room_id)
+    user = request.user
+
+    if not user.resume:
+        messages.error(request, "Please upload a resume before applying.")
+        return redirect("settings")
+
+    apply_to_ats(room.id, user.id, user.resume.path, "Generated AI cover letter text here")
+    messages.success(request, f"Application started for {room.job_title} at {room.company_name}")
+    return redirect("dashboard")
