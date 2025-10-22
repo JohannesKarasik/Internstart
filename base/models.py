@@ -261,3 +261,38 @@ class SavedJob(models.Model):
 
     class Meta:
         unique_together = ('user', 'room')
+
+
+
+
+
+
+class ATSRoom(models.Model):
+    host = models.ForeignKey(User, on_delete=models.CASCADE)
+    company_name = models.CharField(max_length=255)
+    job_title = models.CharField(max_length=255)
+    apply_url = models.URLField(help_text="Direct ATS application link")
+    ats_type = models.CharField(
+        max_length=50,
+        choices=[
+            ("smartrecruiters", "SmartRecruiters"),
+            ("greenhouse", "Greenhouse"),
+            ("lever", "Lever"),
+            ("workable", "Workable"),
+            ("bamboohr", "BambooHR"),
+            ("workday", "Workday"),
+            ("other", "Other"),
+        ],
+        default="other",
+    )
+    job_type = models.CharField(max_length=20, choices=[
+        ('internship', 'Internship'),
+        ('student_job', 'Student Job'),
+        ('full_time', 'Full Time Job'),
+    ], null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.job_title} at {self.company_name}"
