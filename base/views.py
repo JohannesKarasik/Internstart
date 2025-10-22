@@ -1764,3 +1764,64 @@ from django.shortcuts import render
 
 def contact(request):
     return render(request, "base/contact.html")
+
+
+
+def extract_job_data(raw_text):
+    prompt = f"""
+    Extract the following information from this LinkedIn job post:
+    - Job Role
+    - Company Name
+    - Location
+    - Job Type (internship, full-time, student job, part-time)
+    - Description (short summary of the main job content)
+
+    Return JSON in this format:
+    {{
+      "job_role": "",
+      "company_name": "",
+      "location": "",
+      "job_type": "",
+      "description": ""
+    }}
+
+    LinkedIn post:
+    {raw_text}
+    """
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    try:
+        data = json.loads(response.choices[0].message.content)
+        return data
+    except Exception:
+        return {}
+
+
+@staff_member_required
+def import_job_view(request):
+    extracted = None
+    if request.method == "POST":
+        raw_text = request.POST.get("linkedin_text")
+        extracted = extract_job_data(raw_text)
+
+        if "save" in request.POST:
+            form = RoomForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect("home")
+
+        else:
+            form = RoomForm(initial={
+                "name": extracted.get("job_role"),
+                "description": extracted.get("description"),
+                # adjust to your model fields
+            })
+    else:
+        form = None
+
+    return render(request, "base/import_job.html", {
+        "form": form,
+        "extracted": extracted,
+    })

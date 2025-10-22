@@ -40,6 +40,8 @@ urlpatterns = [
     path("billing/cancel/", views.billing_cancel, name="billing_cancel"),
     path("swipe/jobs/", views.swipe_jobs_api, name="swipe_jobs_api"),
     path('welcome', views.landing_page, name=''),   # ✅ root
+    path('import-job/', views.import_job_view, name='import_job'),
+
 
 
 
