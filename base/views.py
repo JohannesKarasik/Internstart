@@ -1770,6 +1770,9 @@ def contact(request):
 
 
 
+
+client = OpenAI()  # uses your OPENAI_API_KEY automatically from env
+
 def extract_job_data(raw_text):
     prompt = f"""
     Extract the following information from this LinkedIn job post:
@@ -1791,14 +1794,18 @@ def extract_job_data(raw_text):
     LinkedIn post:
     {raw_text}
     """
-    response = openai.ChatCompletion.create(
+
+    response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]
     )
+
     try:
-        data = json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content
+        data = json.loads(content)
         return data
-    except Exception:
+    except Exception as e:
+        print("Error parsing:", e)
         return {}
 
 
