@@ -1843,13 +1843,13 @@ def import_job_view(request):
             messages.error(request, "Couldn't extract data from text. Check logs for details.")
             return redirect("import_job")
 
-        # Fallbacks and normalization
+        # ---------- Job type normalization ----------
         job_type_map = {
             "internship": "internship",
             "student job": "student_job",
             "student": "student_job",
             "full-time": "full_time",
-            "full time": "full_time"
+            "full time": "full_time",
         }
 
         job_type_clean = data.get("job_type", "").lower()
@@ -1859,11 +1859,83 @@ def import_job_view(request):
                 matched_type = val
                 break
 
-        # Create default topic + admin user
+        # ---------- Country detection ----------
+        location_text = (data.get("location") or "").lower()
+        country_map = {
+            "denmark": "DK",
+            "copenhagen": "DK",
+            "aarhus": "DK",
+            "odense": "DK",
+            "united states": "US",
+            "usa": "US",
+            "new york": "US",
+            "california": "US",
+            "united kingdom": "UK",
+            "london": "UK",
+            "england": "UK",
+            "france": "FRA",
+            "paris": "FRA",
+            "germany": "GER",
+            "berlin": "GER",
+            "munich": "GER",
+        }
+
+        country_code = None
+        for key, val in country_map.items():
+            if key in location_text:
+                country_code = val
+                break
+
+        if not country_code:
+            try:
+                gpt_country = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{
+                        "role": "user",
+                        "content": f"From this location '{data.get('location')}', which country is it in? "
+                                   f"Answer only with DK, US, UK, FRA, or GER."
+                    }],
+                    temperature=0,
+                )
+                country_code = gpt_country.choices[0].message.content.strip().upper()
+                if country_code not in ["DK", "US", "UK", "FRA", "GER"]:
+                    country_code = None
+            except Exception as e:
+                print("⚠️ [DEBUG] Country GPT fallback failed:", e)
+                country_code = None
+
+        # ---------- Industry detection ----------
+        job_text = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
+        industry_map = {
+            "marketing": "marketing",
+            "communication": "marketing",
+            "sales": "sales_customer",
+            "customer": "sales_customer",
+            "software": "software_backend",
+            "developer": "software_backend",
+            "engineer": "software_backend",
+            "frontend": "software_frontend",
+            "ui": "software_frontend",
+            "ux": "software_frontend",
+            "finance": "business_finance",
+            "accounting": "business_finance",
+            "bank": "business_finance",
+            "other": "other",
+        }
+
+        industry_key = "other"
+        for key, val in industry_map.items():
+            if key in job_text:
+                industry_key = val
+                break
+
+        print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}")
+
+        # ---------- Create default topic + admin user ----------
         topic, _ = Topic.objects.get_or_create(name="General")
         admin_user = User.objects.filter(is_staff=True).first()
 
-        # Create the Room
+        # ---------- Create the Room ----------
         room = Room.objects.create(
             host=admin_user,
             topic=topic,
@@ -1872,29 +1944,23 @@ def import_job_view(request):
             job_title=data.get("job_role", "Untitled Role"),
             description=data.get("description", ""),
             job_type=matched_type,
+            country=country_code,
+            industry=industry_key,
         )
 
-        # Fetch and attach logo
+        # ---------- Fetch and attach logo ----------
         logo_file = fetch_company_logo(data.get("company_name"))
         if logo_file:
             room.logo.save(logo_file.name, logo_file, save=True)
             print(f"✅ [DEBUG] Saved logo for {room.company_name}")
         else:
             print(f"⚠️ [DEBUG] No logo found for {room.company_name}")
-
-        # Try fetching and attaching a logo
-        logo_file = fetch_company_logo(data.get("company_name"))
-        if logo_file:
-            room.logo.save(logo_file.name, logo_file, save=True)
-            print(f"✅ [DEBUG] Saved logo for {room.company_name}")
-        else:
-            print(f"⚠️ [DEBUG] No logo found for {room.company_name}")
-
 
         messages.success(request, f"✅ Added new listing: {room.job_title} at {room.company_name}")
         return redirect("import_job")
 
     return render(request, "base/import_job.html")
+
 
 
 def fetch_company_logo(company_name):
