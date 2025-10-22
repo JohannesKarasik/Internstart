@@ -1773,43 +1773,74 @@ def contact(request):
 client = OpenAI()
 
 def extract_job_data(raw_text):
+    print("🚀 [DEBUG] Starting job extraction")
+    print(f"🔹 [DEBUG] Raw LinkedIn text length: {len(raw_text)} chars")
+
     prompt = f"""
-    Extract and return ONLY valid JSON (no extra text, no explanation) with the following keys:
-    job_role, company_name, location, job_type, description.
+    You are a JSON API. Return ONLY valid JSON — no explanations, no extra text.
+    Keys: job_role, company_name, location, job_type, description.
 
     Example:
     {{
-      "job_role": "Software Engineer Intern",
-      "company_name": "Google",
+      "job_role": "Marketing Intern",
+      "company_name": "Acme Corp",
       "location": "Copenhagen, Denmark",
       "job_type": "Internship",
-      "description": "Assist in building scalable backend systems."
+      "description": "Assist marketing team with social media and campaigns."
     }}
 
-    LinkedIn post:
+    LinkedIn job post:
     {raw_text}
     """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-    )
+    try:
+        print("🧠 [DEBUG] Sending request to OpenAI...")
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+        )
+        print("✅ [DEBUG] OpenAI call succeeded")
 
-    content = response.choices[0].message.content
-    print("\n--- RAW OPENAI RESPONSE ---\n", content, "\n---------------------------")
+    except Exception as e:
+        print("❌ [DEBUG] OpenAI API request failed:")
+        traceback.print_exc()
+        return {}
 
-    # Try to extract the JSON substring if model adds extra text
+    # --- Inspect raw response ---
+    try:
+        content = response.choices[0].message.content.strip()
+        print("\n--- RAW OPENAI RESPONSE ---")
+        print(content)
+        print("---------------------------\n")
+    except Exception as e:
+        print("❌ [DEBUG] Failed to read response. Full traceback:")
+        traceback.print_exc()
+        return {}
+
+    # --- Try extracting JSON block ---
     match = re.search(r'\{.*\}', content, re.DOTALL)
     if not match:
+        print("⚠️ [DEBUG] No JSON object found in response!")
         return {}
 
+    json_text = match.group()
+    print("🧩 [DEBUG] Potential JSON block:\n", json_text)
+
+    # --- Try parsing JSON ---
     try:
-        data = json.loads(match.group())
+        data = json.loads(json_text)
+        print("✅ [DEBUG] Parsed JSON successfully:", data)
         return data
     except json.JSONDecodeError as e:
-        print("JSON decode error:", e)
+        print("❌ [DEBUG] JSON decode error:", e)
+        print("⚠️ [DEBUG] Offending JSON text:\n", json_text)
+        traceback.print_exc()
         return {}
-    
+    except Exception as e:
+        print("❌ [DEBUG] Unknown parsing error:")
+        traceback.print_exc()
+        return {}
 
 @staff_member_required
 def import_job_view(request):
