@@ -60,12 +60,12 @@
           {% csrf_token %}
           <div class="form-grid">
             <div class="form__group">
-              <label class="form__label" for="username">Email</label>
+              <label class="form__label" for="username">{% trans "Email" %}</label>
               <input id="username" name="username" type="email" autocomplete="username" placeholder="you@school.edu" class="form__control" required>
                   </div>
 
             <div class="form__group">
-              <label class="form__label" for="password">Password</label>
+              <label class="form__label" for="password">{% trans "Password" %}</label>
               <div class="form__controlWrap">
                 <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" class="form__control" required>
                 <!-- low-key eye icon -->
