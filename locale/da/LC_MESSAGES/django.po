@@ -89,6 +89,9 @@ msgstr "Dit fremtidige job venter på dig."
 msgid "New to Internstart?"
 msgstr "Ny hos Internstart?"
 
+msgid "Create an account"
+msgstr "Opret en konto"
+
 #: base/templates/base/landing_page.html:127
 msgid "Internstart"
 msgstr "Internstart"
