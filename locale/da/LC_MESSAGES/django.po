@@ -84,7 +84,10 @@ msgid "Login"
 msgstr "Log ind"
 
 msgid "Your future internship awaits."
-msgstr "Din fremtidige praktikplads venter på dig."
+msgstr "Dit fremtidige job venter på dig."
+
+msgid "New to Internstart?"
+msgstr "Ny hos Internstart?"
 
 #: base/templates/base/landing_page.html:127
 msgid "Internstart"
