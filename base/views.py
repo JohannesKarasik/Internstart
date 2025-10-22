@@ -1843,19 +1843,28 @@ def import_job_view(request):
             messages.error(request, "Couldn't extract data from text. Check logs for details.")
             return redirect("import_job")
 
-        # ---------- Job type normalization ----------
+        # ---------- Email extraction (regex only) ----------
+        import re
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', raw_text)
+        email_found = email_match.group(0) if email_match else None
+        print(f"📧 [DEBUG] Extracted email: {email_found}")
+
+        # ---------- Job type detection ----------
         job_type_map = {
             "internship": "internship",
+            "intern": "internship",
             "student job": "student_job",
             "student": "student_job",
+            "part-time": "student_job",
+            "part time": "student_job",
             "full-time": "full_time",
             "full time": "full_time",
         }
 
-        job_type_clean = data.get("job_type", "").lower()
+        job_text = (data.get("job_type", "") + " " + raw_text).lower()
         matched_type = None
         for key, val in job_type_map.items():
-            if key in job_type_clean:
+            if key in job_text:
                 matched_type = val
                 break
 
@@ -1905,7 +1914,7 @@ def import_job_view(request):
                 country_code = None
 
         # ---------- Industry detection ----------
-        job_text = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
+        job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
         industry_map = {
             "marketing": "marketing",
             "communication": "marketing",
@@ -1925,11 +1934,12 @@ def import_job_view(request):
 
         industry_key = "other"
         for key, val in industry_map.items():
-            if key in job_text:
+            if key in job_text_lower:
                 industry_key = val
                 break
 
-        print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}")
+        print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, "
+              f"job_type: {matched_type}, email: {email_found}")
 
         # ---------- Create default topic + admin user ----------
         topic, _ = Topic.objects.get_or_create(name="General")
@@ -1946,6 +1956,7 @@ def import_job_view(request):
             job_type=matched_type,
             country=country_code,
             industry=industry_key,
+            email=email_found,
         )
 
         # ---------- Fetch and attach logo ----------
