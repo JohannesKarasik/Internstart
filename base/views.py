@@ -1859,14 +1859,11 @@ def import_job_view(request):
                 matched_type = val
                 break
 
-        # Create default topic if none exists
+        # Create default topic + admin user
         topic, _ = Topic.objects.get_or_create(name="General")
-
-        # Create a dummy host (e.g., admin) if needed
         admin_user = User.objects.filter(is_staff=True).first()
 
-        # Create the new Room listing
-# Create the new Room listing
+        # Create the Room
         room = Room.objects.create(
             host=admin_user,
             topic=topic,
@@ -1876,6 +1873,14 @@ def import_job_view(request):
             description=data.get("description", ""),
             job_type=matched_type,
         )
+
+        # Fetch and attach logo
+        logo_file = fetch_company_logo(data.get("company_name"))
+        if logo_file:
+            room.logo.save(logo_file.name, logo_file, save=True)
+            print(f"✅ [DEBUG] Saved logo for {room.company_name}")
+        else:
+            print(f"⚠️ [DEBUG] No logo found for {room.company_name}")
 
         # Try fetching and attaching a logo
         logo_file = fetch_company_logo(data.get("company_name"))
@@ -1894,43 +1899,48 @@ def import_job_view(request):
 
 def fetch_company_logo(company_name):
     """
-    Use GPT to find a company logo URL, download it, and return an image file for Django.
+    Try GPT first, then fall back to Clearbit for a company's logo.
+    Returns a ContentFile ready to be saved into an ImageField.
     """
-    print(f"🖼️ [DEBUG] Attempting to find logo for: {company_name}")
     if not company_name:
         return None
 
-    # Ask GPT for the official logo image URL
-    prompt = f"""
-    Find the official logo image URL (PNG, JPG, or SVG) for the company "{company_name}".
-    Return ONLY the direct image URL — no text, no explanations.
-    """
+    print(f"🖼️ [DEBUG] Finding logo for: {company_name}")
 
+    # 1️⃣ Ask GPT for the company domain (not logo link)
+    prompt = f"""
+    What is the official company website domain for "{company_name}"?
+    Return ONLY the domain name like "lego.com" or "microsoft.com".
+    """
     try:
-        response = client.chat.completions.create(
+        gpt_response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0,
+            temperature=0
         )
-        logo_url = response.choices[0].message.content.strip()
-        print(f"🔗 [DEBUG] GPT suggested logo URL: {logo_url}")
-
-        # Validate and download
-        if not logo_url.startswith("http"):
-            print("⚠️ [DEBUG] GPT returned invalid URL, skipping logo.")
-            return None
-
-        image_response = requests.get(logo_url, timeout=10)
-        if image_response.status_code != 200:
-            print(f"⚠️ [DEBUG] Could not fetch image, status {image_response.status_code}")
-            return None
-
-        # Extract a filename from the URL
-        parsed = urlparse(logo_url)
-        filename = parsed.path.split("/")[-1] or "logo.jpg"
-
-        return ContentFile(image_response.content, name=filename)
-
+        domain = gpt_response.choices[0].message.content.strip()
+        print(f"🌐 [DEBUG] GPT suggested domain: {domain}")
     except Exception as e:
-        print("❌ [DEBUG] Error fetching logo:", e)
+        print("❌ [DEBUG] GPT request failed:", e)
+        return None
+
+    # 2️⃣ Build Clearbit logo URL
+    if not domain or "." not in domain:
+        print("⚠️ [DEBUG] Invalid domain from GPT, skipping logo.")
+        return None
+
+    logo_url = f"https://logo.clearbit.com/{domain}"
+    print(f"🔗 [DEBUG] Fetching Clearbit logo from: {logo_url}")
+
+    try:
+        r = requests.get(logo_url, timeout=10)
+        if r.status_code == 200 and r.content:
+            parsed = urlparse(logo_url)
+            filename = parsed.path.split("/")[-1] or "logo.png"
+            return ContentFile(r.content, name=filename)
+        else:
+            print(f"⚠️ [DEBUG] No logo found for {company_name}, status {r.status_code}")
+            return None
+    except Exception as e:
+        print("❌ [DEBUG] Error downloading logo:", e)
         return None
