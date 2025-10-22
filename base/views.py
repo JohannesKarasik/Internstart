@@ -1780,7 +1780,7 @@ def extract_job_data(raw_text):
     You are a JSON API. Return ONLY valid JSON — no explanations, no extra text.
     Keys: job_role, company_name, location, job_type, description.
 
-    Example:
+    Example output:
     {{
       "job_role": "Marketing Intern",
       "company_name": "Acme Corp",
@@ -1794,53 +1794,37 @@ def extract_job_data(raw_text):
     """
 
     try:
-        print("🧠 [DEBUG] Sending request to OpenAI...")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
-        print("✅ [DEBUG] OpenAI call succeeded")
-
     except Exception as e:
         print("❌ [DEBUG] OpenAI API request failed:")
         traceback.print_exc()
         return {}
 
-    # --- Inspect raw response ---
-    try:
-        content = response.choices[0].message.content.strip()
-        print("\n--- RAW OPENAI RESPONSE ---")
-        print(content)
-        print("---------------------------\n")
-    except Exception as e:
-        print("❌ [DEBUG] Failed to read response. Full traceback:")
-        traceback.print_exc()
-        return {}
+    content = response.choices[0].message.content.strip()
+    print("\n--- RAW OPENAI RESPONSE ---\n", content, "\n---------------------------")
 
-    # --- Try extracting JSON block ---
+    # Try extracting JSON
     match = re.search(r'\{.*\}', content, re.DOTALL)
     if not match:
         print("⚠️ [DEBUG] No JSON object found in response!")
         return {}
 
     json_text = match.group()
-    print("🧩 [DEBUG] Potential JSON block:\n", json_text)
 
-    # --- Try parsing JSON ---
     try:
         data = json.loads(json_text)
         print("✅ [DEBUG] Parsed JSON successfully:", data)
         return data
-    except json.JSONDecodeError as e:
-        print("❌ [DEBUG] JSON decode error:", e)
-        print("⚠️ [DEBUG] Offending JSON text:\n", json_text)
-        traceback.print_exc()
-        return {}
     except Exception as e:
-        print("❌ [DEBUG] Unknown parsing error:")
+        print("❌ [DEBUG] JSON parse failed:", e)
+        print("⚠️ [DEBUG] Raw JSON text:\n", json_text)
         traceback.print_exc()
         return {}
+
 
 @staff_member_required
 def import_job_view(request):
@@ -1850,24 +1834,46 @@ def import_job_view(request):
             messages.error(request, "Please paste a LinkedIn job post first.")
             return redirect("import_job")
 
-        # Call OpenAI to extract job data
         data = extract_job_data(raw_text)
 
         if not data:
-            messages.error(request, "Couldn't extract data from text. Try again.")
+            messages.error(request, "Couldn't extract data from text. Check logs for details.")
             return redirect("import_job")
 
-        # Create a new Room (adjust fields to match your model)
+        # Fallbacks and normalization
+        job_type_map = {
+            "internship": "internship",
+            "student job": "student_job",
+            "student": "student_job",
+            "full-time": "full_time",
+            "full time": "full_time"
+        }
+
+        job_type_clean = data.get("job_type", "").lower()
+        matched_type = None
+        for key, val in job_type_map.items():
+            if key in job_type_clean:
+                matched_type = val
+                break
+
+        # Create default topic if none exists
+        topic, _ = Topic.objects.get_or_create(name="General")
+
+        # Create a dummy host (e.g., admin) if needed
+        admin_user = User.objects.filter(is_staff=True).first()
+
+        # Create the new Room listing
         room = Room.objects.create(
-            name=data.get("job_role") or "Untitled Job",
-            description=(
-                f"{data.get('company_name', '')} — {data.get('location', '')}\n\n"
-                f"Job Type: {data.get('job_type', '')}\n\n"
-                f"{data.get('description', '')}"
-            )
+            host=admin_user,
+            topic=topic,
+            company_name=data.get("company_name", "Unknown Company"),
+            location=data.get("location", "Unknown Location"),
+            job_title=data.get("job_role", "Untitled Role"),
+            description=data.get("description", ""),
+            job_type=matched_type,
         )
 
-        messages.success(request, f"✅ Added new listing: {room.name}")
+        messages.success(request, f"✅ Added new listing: {room.job_title} at {room.company_name}")
         return redirect("import_job")
 
     return render(request, "base/import_job.html")
