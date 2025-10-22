@@ -116,7 +116,7 @@ from .models import SavedJob
 import re
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
-import openai, json
+
 
 
 
@@ -403,7 +403,7 @@ import base64, json, re
 from django.utils import timezone
 import traceback
 
-from openai import OpenAI
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
