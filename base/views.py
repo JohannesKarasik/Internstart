@@ -1899,18 +1899,18 @@ def import_job_view(request):
 
 def fetch_company_logo(company_name):
     """
-    Try GPT first, then fall back to Clearbit for a company's logo.
-    Returns a ContentFile ready to be saved into an ImageField.
+    Try GPT → Clearbit → Google favicon fallback.
+    Always returns a ContentFile with proper .png or .jpg extension.
     """
     if not company_name:
         return None
 
     print(f"🖼️ [DEBUG] Finding logo for: {company_name}")
 
-    # 1️⃣ Ask GPT for the company domain (not logo link)
+    # 1️⃣ Ask GPT for domain
     prompt = f"""
     What is the official company website domain for "{company_name}"?
-    Return ONLY the domain name like "lego.com" or "microsoft.com".
+    Return ONLY the domain name, like "lego.com" or "microsoft.com".
     """
     try:
         gpt_response = client.chat.completions.create(
@@ -1924,23 +1924,38 @@ def fetch_company_logo(company_name):
         print("❌ [DEBUG] GPT request failed:", e)
         return None
 
-    # 2️⃣ Build Clearbit logo URL
     if not domain or "." not in domain:
-        print("⚠️ [DEBUG] Invalid domain from GPT, skipping logo.")
+        print("⚠️ [DEBUG] Invalid domain from GPT.")
         return None
 
-    logo_url = f"https://logo.clearbit.com/{domain}"
-    print(f"🔗 [DEBUG] Fetching Clearbit logo from: {logo_url}")
-
+    # 2️⃣ Try Clearbit first
+    clearbit_url = f"https://logo.clearbit.com/{domain}"
     try:
-        r = requests.get(logo_url, timeout=10)
+        r = requests.get(clearbit_url, timeout=8)
         if r.status_code == 200 and r.content:
-            parsed = urlparse(logo_url)
-            filename = parsed.path.split("/")[-1] or "logo.png"
+            content_type = r.headers.get("Content-Type", "").lower()
+            ext = ".png" if "png" in content_type else ".jpg"
+            filename = f"{domain.replace('.', '_')}{ext}"
+            print(f"✅ [DEBUG] Found logo via Clearbit for {company_name} ({ext})")
             return ContentFile(r.content, name=filename)
-        else:
-            print(f"⚠️ [DEBUG] No logo found for {company_name}, status {r.status_code}")
-            return None
+        print(f"⚠️ [DEBUG] Clearbit logo not found (status {r.status_code}).")
     except Exception as e:
-        print("❌ [DEBUG] Error downloading logo:", e)
-        return None
+        print("❌ [DEBUG] Clearbit fetch failed:", e)
+
+    # 3️⃣ Fallback: Google favicon
+    google_url = f"https://www.google.com/s2/favicons?sz=256&domain={domain}"
+    try:
+        r = requests.get(google_url, timeout=8)
+        if r.status_code == 200 and r.content:
+            content_type = r.headers.get("Content-Type", "").lower()
+            ext = ".png" if "png" in content_type else ".jpg"
+            filename = f"{domain.replace('.', '_')}{ext}"
+            print(f"✅ [DEBUG] Using Google favicon for {company_name} ({ext})")
+            return ContentFile(r.content, name=filename)
+        print(f"⚠️ [DEBUG] Google favicon also not found (status {r.status_code}).")
+    except Exception as e:
+        print("❌ [DEBUG] Google favicon fetch failed:", e)
+
+    print(f"⚠️ [DEBUG] No logo available for {company_name}.")
+    return None
+
