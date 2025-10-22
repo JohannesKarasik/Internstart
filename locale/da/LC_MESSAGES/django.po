@@ -87,7 +87,7 @@ msgid "Your future internship awaits."
 msgstr "Dit fremtidige job venter på dig."
 
 msgid "New to Internstart?"
-msgstr "Ny hos Internstart?"
+msgstr "Ny til Internstart?"
 
 msgid "Create an account"
 msgstr "Opret en konto"
@@ -134,7 +134,7 @@ msgid ""
 "Continue your journey — swipe through internships, apply instantly, and let "
 "AI craft tailored cover letters for you."
 msgstr ""
-"Fortsæt din rejse — swipe gennem praktikpladser, ansøg med det samme, og lad "
+"Fortsæt din rejse — swipe gennem jobs, ansøg med det samme, og lad "
 "AI skrive skræddersyede ansøgninger til dig."
 
 
