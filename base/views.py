@@ -116,7 +116,7 @@ from .models import SavedJob
 import re
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
-from .openai_utils import extract_job_data
+import openai, json
 
 
 
