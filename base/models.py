@@ -264,9 +264,6 @@ class SavedJob(models.Model):
 
 
 
-
-
-
 class ATSRoom(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE)
     company_name = models.CharField(max_length=255)
