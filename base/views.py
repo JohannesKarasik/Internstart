@@ -116,6 +116,9 @@ from .models import SavedJob
 import re
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
+import requests
+from django.core.files.base import ContentFile
+from urllib.parse import urlparse
 
 
 
@@ -1863,6 +1866,7 @@ def import_job_view(request):
         admin_user = User.objects.filter(is_staff=True).first()
 
         # Create the new Room listing
+# Create the new Room listing
         room = Room.objects.create(
             host=admin_user,
             topic=topic,
@@ -1873,7 +1877,60 @@ def import_job_view(request):
             job_type=matched_type,
         )
 
+        # Try fetching and attaching a logo
+        logo_file = fetch_company_logo(data.get("company_name"))
+        if logo_file:
+            room.logo.save(logo_file.name, logo_file, save=True)
+            print(f"✅ [DEBUG] Saved logo for {room.company_name}")
+        else:
+            print(f"⚠️ [DEBUG] No logo found for {room.company_name}")
+
+
         messages.success(request, f"✅ Added new listing: {room.job_title} at {room.company_name}")
         return redirect("import_job")
 
     return render(request, "base/import_job.html")
+
+
+def fetch_company_logo(company_name):
+    """
+    Use GPT to find a company logo URL, download it, and return an image file for Django.
+    """
+    print(f"🖼️ [DEBUG] Attempting to find logo for: {company_name}")
+    if not company_name:
+        return None
+
+    # Ask GPT for the official logo image URL
+    prompt = f"""
+    Find the official logo image URL (PNG, JPG, or SVG) for the company "{company_name}".
+    Return ONLY the direct image URL — no text, no explanations.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+        )
+        logo_url = response.choices[0].message.content.strip()
+        print(f"🔗 [DEBUG] GPT suggested logo URL: {logo_url}")
+
+        # Validate and download
+        if not logo_url.startswith("http"):
+            print("⚠️ [DEBUG] GPT returned invalid URL, skipping logo.")
+            return None
+
+        image_response = requests.get(logo_url, timeout=10)
+        if image_response.status_code != 200:
+            print(f"⚠️ [DEBUG] Could not fetch image, status {image_response.status_code}")
+            return None
+
+        # Extract a filename from the URL
+        parsed = urlparse(logo_url)
+        filename = parsed.path.split("/")[-1] or "logo.jpg"
+
+        return ContentFile(image_response.content, name=filename)
+
+    except Exception as e:
+        print("❌ [DEBUG] Error fetching logo:", e)
+        return None
