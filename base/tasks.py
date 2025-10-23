@@ -190,53 +190,64 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
-
-            # 9️⃣ Resume upload (handle hidden input)
-            # 9️⃣ Resume upload (Greenhouse + hidden inputs + shadow DOM safe)
+                
+            # 9️⃣ Resume upload (intelligent + multi-strategy)
             try:
                 if resume_path:
                     print(f"📎 Attempting to upload resume from: {resume_path}")
 
-                    # Strategy 1: Try direct <input type="file">
-                    file_inputs = context.locator("input[type='file']")
-                    if file_inputs.count() > 0:
-                        for i in range(file_inputs.count()):
-                            try:
-                                el = file_inputs.nth(i)
-                                # ensure visible
-                                context.evaluate("(el) => { el.style.display = 'block'; el.style.opacity = 1; el.removeAttribute('hidden'); }", el)
-                                el.set_input_files(resume_path)
-                                print("📄 Uploaded resume via input[type='file']")
-                                break
-                            except Exception:
-                                continue
-
-                    # Strategy 2: Click 'Attach' or 'Upload' buttons if no input worked
-                    else:
-                        attach_btn = context.locator("button:has-text('Attach'), button:has-text('Upload'), label:has-text('Attach')")
-                        if attach_btn.count() > 0:
-                            print("🖱️ Clicking 'Attach' button to trigger hidden upload input")
-                            attach_btn.first.click()
-                            page.wait_for_timeout(1500)
-                            # Try again to find any new file inputs
-                            hidden_input = context.locator("input[type='file']")
-                            if hidden_input.count() > 0:
-                                hidden_input.first.set_input_files(resume_path)
-                                print("📄 Uploaded resume after clicking attach button")
-                            else:
-                                print("⚠️ Still no input[type='file'] after clicking attach button.")
-
-                    # Strategy 3: Shadow DOM fallback (used by some ATS)
+                    # 🧠 Step 1: Always prefer clicking 'Attach' over 'Enter manually'
                     try:
-                        page.evaluate(
-                            """() => {
+                        all_buttons = context.locator("button, label")
+                        attach_btn = all_buttons.filter(has_text="Attach")
+                        manual_btn = all_buttons.filter(has_text="Enter manually")
+
+                        if attach_btn.count() > 0:
+                            print("🧠 AI decision: Choosing 'Attach' option for resume upload.")
+                            attach_btn.first.click()
+                            page.wait_for_timeout(2500)
+                        elif manual_btn.count() > 0:
+                            print("⚠️ Only 'Enter manually' found — skipping upload.")
+                        else:
+                            print("⚠️ No resume option buttons found.")
+                    except Exception as e:
+                        print(f"⚠️ Could not click attach button: {e}")
+
+                    # 🧩 Step 2: Wait for the hidden file input to appear dynamically
+                    file_input = None
+                    try:
+                        context.wait_for_selector("input[type='file']", timeout=5000)
+                        file_input = context.locator("input[type='file']").first
+                    except Exception:
+                        print("⚠️ File input did not appear after clicking 'Attach'.")
+
+                    # 🧱 Step 3: Try to unhide and upload file
+                    if file_input and resume_path:
+                        try:
+                            context.evaluate("""
+                                (el) => {
+                                    el.style.display = 'block';
+                                    el.style.opacity = 1;
+                                    el.removeAttribute('hidden');
+                                    el.classList.remove('visually-hidden');
+                                }
+                            """, file_input)
+                            file_input.set_input_files(resume_path)
+                            print("📄 Successfully uploaded resume via input[type='file']")
+                        except Exception as e:
+                            print(f"⚠️ Direct file upload failed: {e}")
+
+                    # 🪄 Step 4: Shadow DOM & fallback mode
+                    try:
+                        page.evaluate("""
+                            () => {
                                 const inputs = document.querySelectorAll('input[type=file]');
                                 for (const input of inputs) {
                                     input.style.display = 'block';
                                     input.removeAttribute('hidden');
                                 }
-                            }"""
-                        )
+                            }
+                        """)
                         file_inputs = page.locator("input[type='file']")
                         if file_inputs.count() > 0:
                             file_inputs.first.set_input_files(resume_path)
@@ -244,8 +255,19 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
+                    # 🕵️ Step 5: Verify upload visually (Greenhouse adds filename text)
+                    try:
+                        uploaded_name = context.locator("text=docx, text=pdf, text=Resume")
+                        if uploaded_name.count() > 0:
+                            print("✅ Resume file appears uploaded on page.")
+                        else:
+                            print("⚠️ Could not visually verify resume upload.")
+                    except Exception:
+                        pass
+
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
+
 
 
             # 🔟 Cover letter fill — skip captcha fields
