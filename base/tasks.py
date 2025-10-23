@@ -4,6 +4,53 @@ from .models import ATSRoom, User
 from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler
 import time, traceback, random
 from urllib.parse import urlparse
+import os, tempfile
+from openai import OpenAI
+
+OPENAI_API_KEY = getattr(settings, "OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+def generate_cover_letter_text(user, company="", role="", job_text=""):
+    """
+    Generate a short, personalized cover letter using the user's data and job context.
+    Relies solely on OpenAI's API — no local template fallback.
+    """
+    full_name = f"{(user.first_name or '').strip()} {(user.last_name or '').strip()}".strip()
+    resume_summary = []
+    if getattr(user, "occupation", ""): resume_summary.append(f"Occupation: {user.occupation}")
+    if getattr(user, "category", ""):   resume_summary.append(f"Field: {user.category}")
+    if getattr(user, "location", ""):   resume_summary.append(f"Location: {user.location}")
+    if getattr(user, "linkedin_url", ""): resume_summary.append(f"LinkedIn: {user.linkedin_url}")
+
+    prompt = f"""
+    You are a professional career assistant. Write a concise, natural-sounding cover letter
+    (max 250 words) tailored to this role and company.
+
+    Company: {company}
+    Role title: {role or 'unspecified'}
+    Candidate: {full_name}
+    Candidate summary: {' | '.join(resume_summary) or 'Motivated student candidate.'}
+    Job description snippet:
+    {job_text[:1200]}
+
+    The tone should be confident but friendly. Avoid clichés like “fast learner” or “team player”.
+    End with a short thank-you line and the candidate’s name.
+    """
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=[{"role": "user", "content": prompt.strip()}]
+    )
+
+    return response.output_text.strip()
+
+def write_temp_cover_letter_file(text, suffix=".txt"):
+    fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(text)
+    return path
+# --- end OpenAI helper ---
+
 
 
 # --- universal cookie/consent dismiss ---
@@ -1142,26 +1189,114 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
 
-            # 🔟 Cover letter fill — skip captcha fields
+            # 🔟 Cover letter: generate via OpenAI → paste or attach file
             try:
-                textareas = context.locator("textarea[name*='cover'], textarea[id*='cover'], textarea[placeholder*='cover']")
-                if textareas.count() == 0:
-                    textareas = context.locator("textarea")
-                if textareas.count() > 0:
-                    letter_text = cover_letter_text or (
-                        "Dear Hiring Manager,\n\nI'm very interested in this opportunity and believe my background fits well."
+                # Extract some job text context
+                job_text = ""
+                try:
+                    job_container = page.locator("main, #content, article").first
+                    if job_container and job_container.count() > 0:
+                        job_text = (job_container.inner_text() or "")[:1500]
+                except Exception:
+                    pass
+
+                role_guess = ""
+                try:
+                    role_guess = (page.title() or "").strip()
+                except Exception:
+                    pass
+
+                # 🧠 Generate cover letter text directly from OpenAI
+                letter_text = generate_cover_letter_text(
+                    user=user,
+                    company=room.company_name,
+                    role=role_guess,
+                    job_text=job_text
+                )
+
+                filled = False
+
+                # Prefer “Enter manually” if present
+                try:
+                    manual_btn = context.locator(
+                        ":is(button,label,a):has-text('Enter manually'), :is(button,label,a):has-text('Skriv manuelt')"
                     )
-                    for i in range(textareas.count()):
-                        el = textareas.nth(i)
-                        try:
-                            if "captcha" not in el.get_attribute("name", "").lower():
+                    if manual_btn.count() > 0 and manual_btn.first.is_visible():
+                        manual_btn.first.click()
+                        page.wait_for_timeout(800)
+                except Exception:
+                    pass
+
+                # Try to paste into textarea
+                try:
+                    ta = context.locator(
+                        "textarea[name*='cover' i], textarea[id*='cover' i], textarea[aria-label*='cover' i]"
+                    )
+                    if ta.count() == 0:
+                        ta = context.locator("textarea")
+                    for i in range(min(5, ta.count())):
+                        el = ta.nth(i)
+                        if el.is_visible():
+                            el.fill(letter_text)
+                            try: el.press("Tab")
+                            except Exception: pass
+                            print("💬 Pasted AI-generated cover letter into textarea.")
+                            filled = True
+                            break
+                except Exception:
+                    pass
+
+                # Some ATS use contenteditable instead of textarea
+                if not filled:
+                    try:
+                        ce = context.locator("[contenteditable='true']")
+                        for i in range(min(5, ce.count())):
+                            el = ce.nth(i)
+                            if el.is_visible():
+                                el.click()
                                 el.fill(letter_text)
-                                print("💬 Filled cover letter")
+                                print("💬 Pasted AI-generated cover letter into contenteditable.")
+                                filled = True
+                                break
+                    except Exception:
+                        pass
+
+                # Fallback: upload as file
+                if not filled:
+                    print("📎 No text field found — uploading AI-generated cover letter as file.")
+                    file_path = write_temp_cover_letter_file(letter_text, suffix=".txt")
+
+                    try:
+                        attach_btn = context.locator(
+                            ":is(button,label,a):has-text('Attach'), :is(button,label,a):has-text('Vedhæft')"
+                        )
+                        if attach_btn.count() > 0 and attach_btn.first.is_visible():
+                            attach_btn.first.click()
+                            page.wait_for_timeout(800)
+                    except Exception:
+                        pass
+
+                    # Look for file input
+                    file_input = None
+                    for frame in page.frames:
+                        try:
+                            fi = frame.locator("input[type='file']")
+                            if fi.count() > 0:
+                                file_input = fi.first
+                                context = frame
                                 break
                         except Exception:
                             continue
+
+                    if file_input:
+                        file_input.set_input_files(file_path)
+                        print("📄 Uploaded AI-generated cover letter file.")
+                    else:
+                        print("⚠️ Could not locate cover letter file input.")
+
             except Exception as e:
-                print(f"⚠️ Could not fill cover letter: {e}")
+                print(f"⚠️ Cover letter step failed: {e}")
+                
 
             # 11️⃣ Dry run
             screenshot_path = f"/home/clinton/Internstart/media/ats_preview_{room.company_name.replace(' ', '_')}.png"
