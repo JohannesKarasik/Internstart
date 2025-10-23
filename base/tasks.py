@@ -7,8 +7,7 @@ from urllib.parse import urlparse
 import os, tempfile
 from openai import OpenAI
 
-OPENAI_API_KEY = getattr(settings, "OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 def generate_cover_letter_text(user, company="", role="", job_text=""):
     """
@@ -1296,7 +1295,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             except Exception as e:
                 print(f"⚠️ Cover letter step failed: {e}")
-                
+
 
             # 11️⃣ Dry run
             screenshot_path = f"/home/clinton/Internstart/media/ats_preview_{room.company_name.replace(' ', '_')}.png"
