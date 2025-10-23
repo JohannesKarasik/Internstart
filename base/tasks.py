@@ -132,118 +132,111 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception as e:
                     print(f"⚠️ Could not fill {key}: {e}")
 
-            # ✅ LinkedIn field (attempt before upload)
+            # ✅ NEW: LinkedIn field handling (broader matching)
             try:
                 linkedin_url = getattr(user, "linkedin_url", "")
                 if linkedin_url:
                     linkedin_fields = context.locator(
-                        "input[name*='linkedin'], input[placeholder*='linkedin'], input[id*='linkedin'], input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile']"
+                        "input[name*='linkedin'], input[placeholder*='linkedin'], input[id*='linkedin'], input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], input[name*='url'], input[id*='url']"
                     )
                     if linkedin_fields.count() > 0:
                         linkedin_fields.first.fill(linkedin_url)
-                        print("🔗 Filled LinkedIn URL field (pre-upload).")
+                        print("🔗 Filled LinkedIn URL field.")
                     else:
-                        print("⚠️ No LinkedIn field detected yet — will retry after resume upload.")
+                        print("⚠️ No explicit LinkedIn field detected — will re-scan globally after upload.")
                 else:
                     print("⚠️ User has no LinkedIn URL set.")
             except Exception as e:
-                print(f"⚠️ Could not fill LinkedIn URL pre-upload: {e}")
+                print(f"⚠️ Could not fill LinkedIn URL: {e}")
 
-
-            # 9️⃣ Resume upload (Greenhouse robust fix)
+            # 7.1️⃣ Country field (dropdown or input)
             try:
-                if resume_path:
-                    print(f"📎 Attempting to upload resume from: {resume_path}")
+                user_country = getattr(user, "country", "") or ""
+                if user_country:
+                    country_map = {
+                        "DK": "Denmark",
+                        "US": "United States",
+                        "UK": "United Kingdom",
+                        "FRA": "France",
+                        "GER": "Germany",
+                    }
+                    country_name = country_map.get(user_country, user_country)
+                    print(f"🧩 Looking for country field to fill with '{country_name}'")
 
-                    # Step 1: Prefer "Attach" button if available
-                    try:
-                        all_buttons = context.locator("button, label")
-                        attach_btn = all_buttons.filter(has_text="Attach")
-                        manual_btn = all_buttons.filter(has_text="Enter manually")
-
-                        if attach_btn.count() > 0:
-                            attach_btn.first.click()
-                            print("🧠 Clicked 'Attach' for resume upload.")
-                            page.wait_for_timeout(2500)
-                        elif manual_btn.count() > 0:
-                            print("⚠️ Only 'Enter manually' found — skipping upload.")
-                        else:
-                            print("⚠️ No resume option buttons found.")
-                    except Exception as e:
-                        print(f"⚠️ Could not click attach button: {e}")
-
-                    # Step 2: Find <input type="file">
-                    file_input = None
-                    for i in range(10):
-                        try:
-                            for frame in page.frames:
-                                locator = frame.locator("input[type='file']")
-                                if locator.count() > 0:
-                                    file_input = locator.first
-                                    context = frame
-                                    print(f"✅ Found file input in frame after {i+1}s")
-                                    break
-                            if file_input:
-                                break
-                        except Exception:
-                            pass
+                    # Handle normal Greenhouse dropdowns
+                    container = context.locator(".select__container")
+                    if container.count() > 0:
+                        container.first.click()
                         page.wait_for_timeout(1000)
-
-                    # Step 3: Unhide and upload
-                    if file_input:
-                        try:
-                            context.evaluate("""
-                                () => {
-                                    const input = document.querySelector('input[type=file]');
-                                    if (input) {
-                                        input.style.display = 'block';
-                                        input.style.visibility = 'visible';
-                                        input.removeAttribute('hidden');
-                                    }
-                                }
-                            """)
-                            file_input.set_input_files(resume_path)
-                            print("📄 Uploaded resume successfully.")
-                            page.wait_for_timeout(2000)
-                        except Exception as e:
-                            print(f"⚠️ Upload failed after unhide: {e}")
-                    else:
-                        print("⚠️ Could not find input[type='file'].")
-
-                    # Step 4: Verify & re-scan for new fields (LinkedIn may appear now)
-                    try:
-                        context.wait_for_selector("text=LinkedIn", timeout=4000)
-                        linkedin_fields = context.locator(
-                            "input[name*='linkedin'], input[placeholder*='linkedin'], input[id*='linkedin'], input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile']"
-                        )
-                        if linkedin_fields.count() > 0:
-                            linkedin_fields.first.fill(linkedin_url)
-                            print("🔗 Filled LinkedIn URL field (post-upload).")
+                        menu = page.locator(".select__menu, .select__menu-list")
+                        if menu.count() > 0:
+                            option = menu.locator(f"text={country_name}")
+                            if option.count() > 0:
+                                option.first.click()
+                                print(f"🌍 Selected country from Greenhouse menu: {country_name}")
+                                page.mouse.click(10, 10)
+                                page.wait_for_timeout(1000)
+                            else:
+                                print(f"⚠️ Could not find '{country_name}' in dropdown.")
                         else:
-                            print("⚠️ LinkedIn field still not visible after upload.")
-                    except Exception:
-                        pass
-
+                            print("⚠️ No .select__menu found after opening dropdown.")
+                    else:
+                        # Handle <select> or text fields (skip phone country widgets)
+                        select = context.locator("select[name*='country'], select[id*='country']")
+                        if select.count() > 0:
+                            options = select.first.locator("option")
+                            for i in range(options.count()):
+                                text = options.nth(i).inner_text().strip().lower()
+                                if country_name.lower() in text:
+                                    value = options.nth(i).get_attribute("value")
+                                    select.first.select_option(value=value)
+                                    print(f"🌍 Selected country from <select>: {country_name}")
+                                    break
+                        else:
+                            # Try text input (not phone prefix)
+                            country_inputs = context.locator("input[placeholder*='Country'], input[aria-label*='Country']")
+                            for i in range(country_inputs.count()):
+                                el = country_inputs.nth(i)
+                                parent = el.evaluate("el => el.closest('div')?.innerText || ''")
+                                if "+" in parent or "Phone" in parent:
+                                    continue
+                                el.fill(country_name)
+                                print(f"🌍 Filled standalone country text field: {country_name}")
+                                break
+                            else:
+                                print("⚠️ No valid country field found.")
             except Exception as e:
-                print(f"⚠️ Resume upload failed: {e}")
+                print(f"⚠️ Could not select country: {e}")
 
-
-            # ✅ Final check — fill any remaining required empty fields
+            # ✅ EXTRA: Global scan for any unfilled fields (outside iframe or below form)
             try:
-                all_inputs = context.locator("input[type='text'], input:not([type])")
-                print(f"🔎 Scanning for unfilled text fields ({all_inputs.count()} found)")
-                for i in range(all_inputs.count()):
-                    el = all_inputs.nth(i)
-                    value = el.input_value().strip() if el else ""
-                    if not value:
-                        placeholder = el.get_attribute("placeholder") or el.get_attribute("aria-label") or ""
-                        # Skip obvious non-personal fields
-                        if any(k in placeholder.lower() for k in ["linkedin", "email", "phone", "country", "name"]):
-                            continue
-                        el.fill("N/A")
-                        print(f"🧩 Auto-filled missing field: {placeholder or '(no label)'}")
+                print("🔎 Performing global scan for unfilled visible inputs across all frames...")
+                for frame in page.frames:
+                    inputs = frame.locator("input[type='text'], input:not([type])")
+                    for i in range(inputs.count()):
+                        el = inputs.nth(i)
+                        value = el.input_value().strip() if el else ""
+                        if not value:
+                            placeholder = el.get_attribute("placeholder") or el.get_attribute("aria-label") or "(no label)"
+                            if any(k in placeholder.lower() for k in ["email", "phone", "captcha", "search"]):
+                                continue
+                            try:
+                                el.fill("N/A")
+                                print(f"🧩 Auto-filled global missing field: {placeholder}")
+                            except Exception:
+                                continue
+                print("✅ Global field check complete.")
             except Exception as e:
-                print(f"⚠️ Final completeness check failed: {e}")
+                print(f"⚠️ Global completeness scan failed: {e}")
+
+            # 🧠 AI dynamic field filling
+            try:
+                fill_dynamic_fields(context, user)
+            except Exception as e:
+                print(f"⚠️ AI dynamic field filling failed: {e}")
+                traceback.print_exc()
+
+            # Resume upload + rest of function unchanged...
 
 
 
