@@ -335,67 +335,101 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
 
-            # 🔍 UNIVERSAL FIELD SCANNER (fills every visible input-like field)
+            # 🔍 UNIVERSAL FIELD SCANNER (fills all visible input-like fields dynamically from user data)
             try:
-                print("🌐 Running universal field scan to ensure all visible fields are filled...")
+                print("🌐 Running user-based universal field scan (no static values)...")
 
-                # Define all field types to inspect (text, email, tel, textarea, editable divs)
                 selectors = [
                     "input:not([type='hidden']):not([disabled])",
                     "textarea:not([disabled])",
                     "div[contenteditable='true']"
                 ]
-                all_fields = []
+                filled_fields = []
 
                 for frame in page.frames:
                     print(f"🔎 Scanning frame: {frame.name or 'main'}")
+
                     for selector in selectors:
                         elements = frame.locator(selector)
-                        for i in range(elements.count()):
+                        count = elements.count()
+
+                        for i in range(count):
                             el = elements.nth(i)
                             try:
-                                # Skip invisible elements
                                 if not el.is_visible():
                                     continue
 
-                                # Read labels or placeholders
-                                label_text = el.get_attribute("aria-label") or el.get_attribute("placeholder") or ""
-                                surrounding = el.evaluate("el => el.closest('label')?.innerText || el.closest('div')?.innerText || ''")
-                                combined_label = (label_text + " " + surrounding).lower()
+                                # --- Collect identifiers ---
+                                attrs = {
+                                    "name": el.get_attribute("name") or "",
+                                    "id": el.get_attribute("id") or "",
+                                    "placeholder": el.get_attribute("placeholder") or "",
+                                    "aria": el.get_attribute("aria-label") or "",
+                                }
+                                nearby = el.evaluate("""
+                                    el => {
+                                        const label = el.closest('label');
+                                        const parent = el.closest('div');
+                                        return (label?.innerText || parent?.innerText || '').toLowerCase();
+                                    }
+                                """)
+                                joined = " ".join([attrs["name"], attrs["id"], attrs["placeholder"], attrs["aria"], nearby]).lower()
 
-                                # Detect what kind of field it is
-                                value = el.input_value().strip() if selector != "div[contenteditable='true']" else el.inner_text().strip()
-                                if value:
-                                    continue  # already filled
+                                # Skip filled fields
+                                current_val = (
+                                    el.inner_text().strip()
+                                    if selector == "div[contenteditable='true']"
+                                    else el.input_value().strip()
+                                )
+                                if current_val:
+                                    continue
 
-                                # Pick correct value dynamically
-                                if "first" in combined_label:
-                                    val = user.first_name
-                                elif "last" in combined_label or "surname" in combined_label:
-                                    val = user.last_name
-                                elif "email" in combined_label:
-                                    val = user.email
-                                elif "phone" in combined_label or "mobile" in combined_label:
-                                    val = getattr(user, "phone_number", "")
-                                elif "linkedin" in combined_label or "profile" in combined_label or "url" in combined_label:
-                                    val = getattr(user, "linkedin_url", "") or "https://www.linkedin.com/"
-                                elif "country" in combined_label:
-                                    val = dict(DK="Denmark", US="United States", UK="United Kingdom",
-                                            FRA="France", GER="Germany").get(getattr(user, "country", ""), "")
-                                else:
-                                    val = "N/A"
+                                # --- Smart mapping from user model ---
+                                fill_value = None
 
-                                # Fill the field
-                                el.fill(val)
-                                print(f"✅ Filled '{combined_label[:50]}' → {val}")
-                                all_fields.append(combined_label[:50])
+                                if any(k in joined for k in ["first", "fname", "given"]):
+                                    fill_value = user.first_name
+                                elif any(k in joined for k in ["last", "lname", "surname", "family"]):
+                                    fill_value = user.last_name
+                                elif "email" in joined:
+                                    fill_value = user.email
+                                elif any(k in joined for k in ["phone", "mobile", "tel"]):
+                                    fill_value = getattr(user, "phone_number", "")
+                                elif any(k in joined for k in ["linkedin", "profile", "url"]):
+                                    fill_value = getattr(user, "linkedin_url", "")
+                                elif "country" in joined:
+                                    # Convert DK → Denmark etc.
+                                    country_map = dict(
+                                        DK="Denmark",
+                                        US="United States",
+                                        UK="United Kingdom",
+                                        FRA="France",
+                                        GER="Germany",
+                                    )
+                                    fill_value = country_map.get(getattr(user, "country", ""), "")
+                                elif any(k in joined for k in ["city"]):
+                                    fill_value = getattr(user, "location", "")
+                                elif any(k in joined for k in ["job", "title", "position", "role"]):
+                                    fill_value = getattr(user, "occupation", "")
+                                elif any(k in joined for k in ["company", "employer"]):
+                                    fill_value = getattr(user, "category", "")
 
-                            except Exception as e:
+                                # Skip if no value found in user model
+                                if not fill_value:
+                                    continue
+
+                                # Fill dynamically
+                                el.fill(str(fill_value))
+                                filled_fields.append((joined[:70], fill_value))
+                                print(f"✅ Filled '{joined[:60]}' → {fill_value}")
+
+                            except Exception:
                                 continue
 
-                print(f"✅ Universal field scan complete. Filled {len(all_fields)} fields.")
+                print(f"✅ Universal field scan complete. Dynamically filled {len(filled_fields)} fields.")
             except Exception as e:
                 print(f"⚠️ Universal field scan failed: {e}")
+
 
 
 
