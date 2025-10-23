@@ -132,22 +132,30 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception as e:
                     print(f"⚠️ Could not fill {key}: {e}")
 
-            # ✅ NEW: LinkedIn field handling (broader matching)
-            try:
-                linkedin_url = getattr(user, "linkedin_url", "")
-                if linkedin_url:
+                # ✅ LinkedIn URL — sourced automatically from user model
+                try:
+                    # Pull LinkedIn URL from user model like resume
+                    linkedin_url = getattr(user, "linkedin_url", "") or ""
+                    if linkedin_url:
+                        print(f"🔗 Loaded LinkedIn URL from user profile: {linkedin_url}")
+                    else:
+                        print("⚠️ No LinkedIn URL found in user model.")
+
+                    # First attempt — fill any visible LinkedIn/Profile/URL fields
                     linkedin_fields = context.locator(
-                        "input[name*='linkedin'], input[placeholder*='linkedin'], input[id*='linkedin'], input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], input[name*='url'], input[id*='url']"
+                        "input[name*='linkedin'], input[id*='linkedin'], input[placeholder*='linkedin'], "
+                        "input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], "
+                        "input[name*='url'], input[id*='url']"
                     )
                     if linkedin_fields.count() > 0:
-                        linkedin_fields.first.fill(linkedin_url)
-                        print("🔗 Filled LinkedIn URL field.")
+                        linkedin_fields.first.fill(linkedin_url or "N/A")
+                        print("🔗 Filled LinkedIn URL field (initial pass).")
                     else:
-                        print("⚠️ No explicit LinkedIn field detected — will re-scan globally after upload.")
-                else:
-                    print("⚠️ User has no LinkedIn URL set.")
-            except Exception as e:
-                print(f"⚠️ Could not fill LinkedIn URL: {e}")
+                        print("⚠️ No LinkedIn field visible yet — will retry globally after resume upload.")
+
+                except Exception as e:
+                    print(f"⚠️ LinkedIn pre-fill failed: {e}")
+
 
             # 7.1️⃣ Country field (dropdown or input)
             try:
@@ -321,6 +329,34 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
+
+
+
+            # 🔁 Retry LinkedIn fill after resume upload (some ATSs load this field late)
+            try:
+                print("🔎 Re-scanning globally for LinkedIn URL fields after upload...")
+                for frame in page.frames:
+                    linkedin_retry = frame.locator(
+                        "input[name*='linkedin'], input[id*='linkedin'], input[placeholder*='linkedin'], "
+                        "input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], "
+                        "input[name*='url'], input[id*='url']"
+                    )
+                    if linkedin_retry.count() > 0:
+                        linkedin_retry.first.fill(linkedin_url or "N/A")
+                        print(f"🔗 Filled LinkedIn URL field (post-upload, frame={frame.name or 'main'}).")
+                        break
+                else:
+                    # Fallback check in main context
+                    linkedin_retry = context.locator(
+                        "input[placeholder*='LinkedIn'], input[name*='linkedin'], input[id*='linkedin']"
+                    )
+                    if linkedin_retry.count() > 0:
+                        linkedin_retry.first.fill(linkedin_url or "N/A")
+                        print("🔗 Filled LinkedIn URL field (fallback main).")
+                    else:
+                        print("⚠️ No LinkedIn field found even after upload scan.")
+            except Exception as e:
+                print(f"⚠️ LinkedIn post-upload retry failed: {e}")
 
 
 
