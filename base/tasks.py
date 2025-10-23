@@ -333,23 +333,35 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
 
-            # 🔁 Retry LinkedIn fill after resume upload (some ATSs load this field late)
+            # 🔁 Retry LinkedIn fill after resume upload (handles inputs, textareas, editable divs)
             try:
                 print("🔎 Re-scanning globally for LinkedIn URL fields after upload...")
                 for frame in page.frames:
                     linkedin_retry = frame.locator(
                         "input[name*='linkedin'], input[id*='linkedin'], input[placeholder*='linkedin'], "
+                        "textarea[name*='linkedin'], textarea[placeholder*='linkedin'], "
+                        "div[contenteditable][aria-label*='linkedin'], div[contenteditable][data-testid*='linkedin'], "
                         "input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], "
-                        "input[name*='url'], input[id*='url']"
+                        "input[name*='url'], input[id*='url'], textarea[name*='url'], textarea[id*='url']"
                     )
                     if linkedin_retry.count() > 0:
                         linkedin_retry.first.fill(linkedin_url or "N/A")
                         print(f"🔗 Filled LinkedIn URL field (post-upload, frame={frame.name or 'main'}).")
                         break
+
+                    # 🧠 NEW: Handle contenteditable divs (common on Greenhouse)
+                    editable_divs = frame.locator("div[contenteditable='true']")
+                    for i in range(editable_divs.count()):
+                        inner_text = editable_divs.nth(i).inner_text().lower()
+                        label_text = editable_divs.nth(i).evaluate("el => el.closest('div')?.innerText || ''").lower()
+                        if "linkedin" in label_text or "profile" in label_text:
+                            editable_divs.nth(i).fill(linkedin_url or "N/A")
+                            print(f"🔗 Filled LinkedIn URL contenteditable div (frame={frame.name or 'main'}).")
+                            break
                 else:
                     # Fallback check in main context
                     linkedin_retry = context.locator(
-                        "input[placeholder*='LinkedIn'], input[name*='linkedin'], input[id*='linkedin']"
+                        "input[placeholder*='LinkedIn'], textarea[placeholder*='LinkedIn'], div[contenteditable*='true']"
                     )
                     if linkedin_retry.count() > 0:
                         linkedin_retry.first.fill(linkedin_url or "N/A")
