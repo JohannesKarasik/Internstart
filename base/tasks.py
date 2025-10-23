@@ -117,7 +117,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 "last": user.last_name,
                 "email": user.email,
                 "phone": getattr(user, "phone_number", ""),
-                "linkedin": getattr(user, "linkedin_url", ""),
             }
 
             for key, value in fields.items():
@@ -132,6 +131,23 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         print(f"✍️ Filled {key} field")
                 except Exception as e:
                     print(f"⚠️ Could not fill {key}: {e}")
+
+            # ✅ NEW: LinkedIn field handling (broader matching)
+            try:
+                linkedin_url = getattr(user, "linkedin_url", "")
+                if linkedin_url:
+                    linkedin_fields = context.locator(
+                        "input[name*='linkedin'], input[placeholder*='linkedin'], input[id*='linkedin'], input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile']"
+                    )
+                    if linkedin_fields.count() > 0:
+                        linkedin_fields.first.fill(linkedin_url)
+                        print("🔗 Filled LinkedIn URL field.")
+                    else:
+                        print("⚠️ No explicit LinkedIn field detected.")
+                else:
+                    print("⚠️ User has no LinkedIn URL set.")
+            except Exception as e:
+                print(f"⚠️ Could not fill LinkedIn URL: {e}")
 
             # 7.1️⃣ Country field (dropdown or input)
             try:
@@ -186,12 +202,15 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Could not select country: {e}")
 
-            # 8️⃣ 🧠 AI dynamic field filling
+            # 🧠 AI dynamic field filling
             try:
                 fill_dynamic_fields(context, user)
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
+
+            # Resume upload + rest of function unchanged...
+
 
             # 9️⃣ Resume upload (Greenhouse robust fix for visually-hidden inputs)
             try:
