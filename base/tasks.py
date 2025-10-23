@@ -192,12 +192,12 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 traceback.print_exc()
 
 
-            # 9️⃣ Resume upload (Greenhouse dynamic + iframe-safe)
+            # 9️⃣ Resume upload (Greenhouse robust fix for visually-hidden inputs)
             try:
                 if resume_path:
                     print(f"📎 Attempting to upload resume from: {resume_path}")
 
-                    # 🧠 Step 1: Prefer "Attach" option
+                    # 🧠 Step 1: Prefer "Attach" button if available
                     try:
                         all_buttons = context.locator("button, label")
                         attach_btn = all_buttons.filter(has_text="Attach")
@@ -214,68 +214,60 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception as e:
                         print(f"⚠️ Could not click attach button: {e}")
 
-                    # 🕵️ Step 2: Re-scan all frames for input[type=file]
+                    # 🕵️ Step 2: Find <input type="file"> even if hidden
                     file_input = None
-                    for i in range(10):  # retry for 10s
-                        for frame in page.frames:
-                            try:
+                    for i in range(10):  # retry 10s
+                        try:
+                            for frame in page.frames:
                                 locator = frame.locator("input[type='file']")
                                 if locator.count() > 0:
                                     file_input = locator.first
-                                    print(f"✅ Found file input in frame after {i+1}s")
                                     context = frame
+                                    print(f"✅ Found file input (possibly hidden) in frame after {i+1}s")
                                     break
-                            except Exception:
-                                pass
-                        if file_input:
-                            break
+                            if file_input:
+                                break
+                        except Exception:
+                            pass
                         page.wait_for_timeout(1000)
 
-                    # 🧱 Step 3: Upload the resume if found
+                    # 🧱 Step 3: Force unhide input and upload
                     if file_input:
                         try:
-                            context.evaluate("""
-                                (el) => {
-                                    if (el) {
-                                        el.style.display = 'block';
-                                        el.style.opacity = 1;
-                                        el.removeAttribute('hidden');
-                                        el.classList.remove('visually-hidden');
+                            # Force visibility using direct JS
+                            frame = context
+                            frame.evaluate("""
+                                () => {
+                                    const input = document.querySelector('input[type=file]');
+                                    if (input) {
+                                        input.style.display = 'block';
+                                        input.style.visibility = 'visible';
+                                        input.style.position = 'static';
+                                        input.style.width = '200px';
+                                        input.style.height = '40px';
+                                        input.classList.remove('visually-hidden');
+                                        input.removeAttribute('hidden');
+                                        console.log("🎯 File input forcibly unhidden.");
+                                    } else {
+                                        console.warn("⚠️ No file input found in DOM for unhide.");
                                     }
                                 }
-                            """, file_input)
+                            """)
+                            # Set file
                             file_input.set_input_files(resume_path)
-                            print("📄 Successfully uploaded resume via input[type='file']")
+                            print("📄 Successfully uploaded resume via forced visibility fix.")
                         except Exception as e:
-                            print(f"⚠️ Upload attempt failed: {e}")
+                            print(f"⚠️ Upload attempt failed even after unhide: {e}")
                     else:
-                        print("⚠️ No input[type='file'] found after scanning all frames.")
+                        print("⚠️ Could not find any input[type='file'] after retries.")
 
-                    # 🧩 Step 4: Shadow DOM fallback
+                    # ✅ Step 4: Verify attachment (text or filename visible)
                     try:
-                        page.evaluate("""
-                            () => {
-                                const inputs = document.querySelectorAll('input[type=file]');
-                                for (const input of inputs) {
-                                    input.style.display = 'block';
-                                    input.removeAttribute('hidden');
-                                }
-                            }
-                        """)
-                        shadow_inputs = page.locator("input[type='file']")
-                        if shadow_inputs.count() > 0:
-                            shadow_inputs.first.set_input_files(resume_path)
-                            print("📄 Uploaded resume via shadow DOM fallback")
-                    except Exception:
-                        pass
-
-                    # ✅ Step 5: Verify upload success
-                    try:
-                        confirmation = context.locator("text=.docx, text=.pdf, text=Resume, text=Attached")
-                        if confirmation.count() > 0:
-                            print("✅ Resume visibly attached on page.")
+                        uploaded = context.locator("text=.docx, text=.pdf, text=Attached, text=uploaded")
+                        if uploaded.count() > 0:
+                            print("✅ Resume visibly uploaded on page.")
                         else:
-                            print("⚠️ Could not visually verify uploaded file.")
+                            print("⚠️ Could not visually verify upload (might still be attached internally).")
                     except Exception:
                         pass
 
