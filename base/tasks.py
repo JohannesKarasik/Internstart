@@ -192,14 +192,61 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 traceback.print_exc()
 
             # 9️⃣ Resume upload (handle hidden input)
+            # 9️⃣ Resume upload (Greenhouse + hidden inputs + shadow DOM safe)
             try:
-                file_input = context.locator("input[type='file']")
-                if file_input.count() > 0 and resume_path:
-                    context.evaluate("el => el.classList.remove('visually-hidden')", file_input.first)
-                    file_input.first.set_input_files(resume_path)
-                    print("📄 Uploaded resume successfully")
+                if resume_path:
+                    print(f"📎 Attempting to upload resume from: {resume_path}")
+
+                    # Strategy 1: Try direct <input type="file">
+                    file_inputs = context.locator("input[type='file']")
+                    if file_inputs.count() > 0:
+                        for i in range(file_inputs.count()):
+                            try:
+                                el = file_inputs.nth(i)
+                                # ensure visible
+                                context.evaluate("(el) => { el.style.display = 'block'; el.style.opacity = 1; el.removeAttribute('hidden'); }", el)
+                                el.set_input_files(resume_path)
+                                print("📄 Uploaded resume via input[type='file']")
+                                break
+                            except Exception:
+                                continue
+
+                    # Strategy 2: Click 'Attach' or 'Upload' buttons if no input worked
+                    else:
+                        attach_btn = context.locator("button:has-text('Attach'), button:has-text('Upload'), label:has-text('Attach')")
+                        if attach_btn.count() > 0:
+                            print("🖱️ Clicking 'Attach' button to trigger hidden upload input")
+                            attach_btn.first.click()
+                            page.wait_for_timeout(1500)
+                            # Try again to find any new file inputs
+                            hidden_input = context.locator("input[type='file']")
+                            if hidden_input.count() > 0:
+                                hidden_input.first.set_input_files(resume_path)
+                                print("📄 Uploaded resume after clicking attach button")
+                            else:
+                                print("⚠️ Still no input[type='file'] after clicking attach button.")
+
+                    # Strategy 3: Shadow DOM fallback (used by some ATS)
+                    try:
+                        page.evaluate(
+                            """() => {
+                                const inputs = document.querySelectorAll('input[type=file]');
+                                for (const input of inputs) {
+                                    input.style.display = 'block';
+                                    input.removeAttribute('hidden');
+                                }
+                            }"""
+                        )
+                        file_inputs = page.locator("input[type='file']")
+                        if file_inputs.count() > 0:
+                            file_inputs.first.set_input_files(resume_path)
+                            print("📄 Uploaded resume via shadow DOM fallback")
+                    except Exception:
+                        pass
+
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
+
 
             # 🔟 Cover letter fill — skip captcha fields
             try:
