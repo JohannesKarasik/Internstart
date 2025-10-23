@@ -80,7 +80,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception:
                 print("⚠️ No visible fields yet; continuing with scan.")
 
-            # 5️⃣ Expand collapsed / hidden sections (Workday, Lever, etc.)
+            # 5️⃣ Expand collapsed / hidden sections
             try:
                 expanders = context.locator("button:has-text('Expand'), button:has-text('Show more'), div[role='button']")
                 if expanders.count() > 0:
@@ -91,7 +91,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception:
                 pass
 
-            # 6️⃣ Scroll slowly to ensure all elements render
+            # 6️⃣ Scroll to render dynamic fields
             try:
                 for y in range(0, 2000, 400):
                     page.mouse.wheel(0, 400)
@@ -100,16 +100,18 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception:
                 pass
 
-            # 7️⃣ Fill deterministic user fields
+            # 7️⃣ Fill deterministic fields
             fields = {
                 "first": user.first_name,
                 "last": user.last_name,
                 "email": user.email,
-                "phone": getattr(user, "phone", ""),
-                "linkedin": getattr(user, "linkedin", ""),
+                "phone": getattr(user, "phone_number", ""),
+                "linkedin": getattr(user, "linkedin_url", ""),
             }
 
             for key, value in fields.items():
+                if not value:
+                    continue
                 try:
                     locator = context.locator(
                         f"input[name*='{key}'], input[placeholder*='{key}'], input[id*='{key}']"
@@ -120,6 +122,17 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception as e:
                     print(f"⚠️ Could not fill {key}: {e}")
 
+            # 7.1️⃣ Country field (dropdown)
+            try:
+                country_code = getattr(user, "country", "")
+                if country_code:
+                    select = context.locator("select[name*='country'], select[id*='country']")
+                    if select.count() > 0:
+                        select.first.select_option(value=country_code)
+                        print("🌍 Selected country")
+            except Exception as e:
+                print(f"⚠️ Could not select country: {e}")
+
             # 8️⃣ 🧠 AI dynamic field filling
             try:
                 fill_dynamic_fields(context, user)
@@ -127,38 +140,47 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
 
-            # 9️⃣ Upload resume
+            # 9️⃣ Resume upload (handle hidden input)
             try:
                 file_input = context.locator("input[type='file']")
                 if file_input.count() > 0 and resume_path:
+                    context.evaluate("el => el.classList.remove('visually-hidden')", file_input.first)
                     file_input.first.set_input_files(resume_path)
-                    print("📄 Uploaded resume")
+                    print("📄 Uploaded resume successfully")
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
 
-            # 🔟 Cover letter fill
+            # 🔟 Cover letter fill — skip captcha fields
             try:
-                textarea = context.locator("textarea")
-                if textarea.count() > 0:
+                textareas = context.locator("textarea[name*='cover'], textarea[id*='cover'], textarea[placeholder*='cover']")
+                if textareas.count() == 0:
+                    textareas = context.locator("textarea")
+                if textareas.count() > 0:
                     letter_text = cover_letter_text or (
                         "Dear Hiring Manager,\n\nI'm very interested in this opportunity and believe my background fits well."
                     )
-                    textarea.first.fill(letter_text)
-                    print("💬 Filled cover letter")
+                    for i in range(textareas.count()):
+                        el = textareas.nth(i)
+                        try:
+                            if "captcha" not in el.get_attribute("name", "").lower():
+                                el.fill(letter_text)
+                                print("💬 Filled cover letter")
+                                break
+                        except Exception:
+                            continue
             except Exception as e:
                 print(f"⚠️ Could not fill cover letter: {e}")
 
-            # 11️⃣ Dry run — skip submit safely
+            # 11️⃣ Dry run
             screenshot_path = f"/home/clinton/Internstart/media/ats_preview_{room.company_name.replace(' ', '_')}.png"
             if dry_run:
                 print("🧪 Dry run active — skipping submit.")
-                # always screenshot from page (even if using frame context)
                 page.screenshot(path=screenshot_path, full_page=True)
                 print(f"📸 Saved preview screenshot as {screenshot_path}")
                 browser.close()
                 return "dry-run"
 
-            # 12️⃣ Submit
+            # 12️⃣ Submit form
             try:
                 submit_btn = context.locator("button:has-text('Submit'), button:has-text('Apply'), input[type='submit']")
                 if submit_btn.count() > 0:
@@ -170,7 +192,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Could not click submit: {e}")
 
-            # 13️⃣ Success verification
+            # 13️⃣ Verify success
             html = page.content().lower()
             browser.close()
 
@@ -191,3 +213,4 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 pass
             browser.close()
             return False
+
