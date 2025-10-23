@@ -123,7 +123,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     print(f"⚠️ Could not fill {key}: {e}")
 
             # 7.1️⃣ Country field (dropdown or input)
-            # 7.1️⃣ Country field (dropdown or input — with debug)
+            # 7.1️⃣ Country field (Greenhouse .select__container support)
             try:
                 user_country = getattr(user, "country", "") or ""
                 if user_country:
@@ -137,42 +137,41 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     country_name = country_map.get(user_country, user_country)
                     print(f"🧩 Looking for country field to fill with '{country_name}'")
 
-                    # Look for real <select>
-                    select = context.locator("select[name*='country'], select[id*='country']")
-                    print(f"🔍 Found {select.count()} <select> elements that match 'country'")
+                    # ✅ 1. Try Greenhouse custom dropdowns (.select__container)
+                    container = context.locator(".select__container")
+                    if container.count() > 0:
+                        print(f"🔍 Found {container.count()} '.select__container' elements — clicking the first one.")
+                        container.first.click()
+                        page.wait_for_timeout(1000)
 
-                    if select.count() > 0:
-                        options = select.first.locator("option")
-                        print(f"🧩 Dropdown options count: {options.count()}")
-                        for i in range(options.count()):
-                            text = options.nth(i).inner_text().strip()
-                            print(f"   Option {i}: {text}")
-                            if country_name.lower() in text.lower():
-                                value = options.nth(i).get_attribute("value")
-                                select.first.select_option(value=value)
-                                print(f"🌍 Selected country from dropdown: {country_name}")
-                                break
-                    else:
-                        # Try to detect Greenhouse-style pseudo dropdowns
-                        pseudo = context.locator("div[role='listbox'], div[role='combobox'], input[aria-haspopup='listbox']")
-                        print(f"🔍 Found {pseudo.count()} custom dropdown candidates")
-
-                        if pseudo.count() > 0:
-                            pseudo.first.click()
-                            page.wait_for_timeout(1000)
-                            option = context.locator(f"text={country_name}")
-                            if option.count() > 0:
-                                option.first.click()
-                                print(f"🌍 Selected country from pseudo-dropdown: {country_name}")
-                            else:
-                                print(f"⚠️ Could not find option '{country_name}' after opening pseudo-dropdown")
+                        # Search for country option
+                        option = context.locator(f"text={country_name}")
+                        if option.count() > 0:
+                            option.first.click()
+                            print(f"🌍 Selected country from .select__container dropdown: {country_name}")
                         else:
-                            # Fallback: try input field
-                            input_field = context.locator("input[name*='country'], input[placeholder*='Country']")
-                            print(f"🔍 Found {input_field.count()} input fields possibly for country")
+                            print(f"⚠️ Could not find '{country_name}' option after opening dropdown.")
+                    else:
+                        # ✅ 2. Try normal <select> elements
+                        select = context.locator("select[name*='country'], select[id*='country']")
+                        if select.count() > 0:
+                            options = select.first.locator("option")
+                            for i in range(options.count()):
+                                text = options.nth(i).inner_text().strip().lower()
+                                if country_name.lower() in text:
+                                    value = options.nth(i).get_attribute("value")
+                                    select.first.select_option(value=value)
+                                    print(f"🌍 Selected country from standard <select>: {country_name}")
+                                    break
+
+                        # ✅ 3. Try input-like fields
+                        else:
+                            input_field = context.locator("input[placeholder*='Country'], input[aria-label*='Country']")
                             if input_field.count() > 0:
                                 input_field.first.fill(country_name)
                                 print(f"🌍 Filled country input: {country_name}")
+                            else:
+                                print("⚠️ No country selector found at all.")
             except Exception as e:
                 print(f"⚠️ Could not select country: {e}")
 
