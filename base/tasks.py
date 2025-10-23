@@ -219,26 +219,238 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 print(f"⚠️ Could not select country: {e}")
 
             # ✅ EXTRA: Global scan for any unfilled fields (outside iframe or below form)
-            try:
-                print("🔎 Performing global scan for unfilled visible inputs across all frames...")
-                for frame in page.frames:
-                    inputs = frame.locator("input[type='text'], input:not([type])")
-                    for i in range(inputs.count()):
-                        el = inputs.nth(i)
-                        value = el.input_value().strip() if el else ""
-                        if not value:
-                            placeholder = el.get_attribute("placeholder") or el.get_attribute("aria-label") or "(no label)"
-                            if any(k in placeholder.lower() for k in ["email", "phone", "captcha", "search", "linkedin", "profile", "url"]):
-                                continue
+            # 🔁 LinkedIn URL from user (single source)
+            linkedin_url = (getattr(user, "linkedin_url", "") or "").strip()
 
+            # 🚫 REMOVE the old "Global scan" that filled "N/A" before this point.
+
+            # 🌐 UNIVERSAL ACCESSIBLE-NAME FIELD SCANNER (dynamic, user-only)
+            try:
+                print("🌐 Running dynamic universal field scanner (accessible-name aware)...")
+
+                def _country_human(code: str) -> str:
+                    return {
+                        "DK": "Denmark",
+                        "US": "United States",
+                        "UK": "United Kingdom",
+                        "FRA": "France",
+                        "GER": "Germany",
+                    }.get((code or "").upper(), "")
+
+                user_data = {
+                    "first_name": user.first_name or "",
+                    "last_name": user.last_name or "",
+                    "email": user.email or "",
+                    "phone": getattr(user, "phone_number", "") or "",
+                    "linkedin": linkedin_url,
+                    "country": _country_human(getattr(user, "country", "")),
+                    "city": getattr(user, "location", "") or "",
+                    "occupation": getattr(user, "occupation", "") or "",
+                    "company": getattr(user, "category", "") or "",
+                }
+
+                # Helper that returns an element's best label using several strategies
+                def accessible_label(frame, el):
+                    try:
+                        return frame.evaluate(
+                            """
+                            (el) => {
+                            const byLabel = (el.labels && el.labels[0] && el.labels[0].innerText) || "";
+                            const aria = el.getAttribute("aria-label") || "";
+                            const ph = el.getAttribute("placeholder") || "";
+                            const byId = (() => {
+                                const ids = (el.getAttribute("aria-labelledby") || "").trim().split(/\s+/).filter(Boolean);
+                                return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
+                            })();
+                            // Nearby header/text container as fallback
+                            const near = (() => {
+                                const lab = el.closest("label");
+                                if (lab) return lab.innerText || "";
+                                const wrapper = el.closest("div, section, fieldset");
+                                return wrapper ? (wrapper.querySelector("legend,h1,h2,h3,h4,span,small,label")?.innerText || "") : "";
+                            })();
+                            return [byLabel, aria, ph, byId, near].join(" ").replace(/\\s+/g, " ").trim();
+                            }
+                            """,
+                            el,
+                        ) or ""
+                    except Exception:
+                        return ""
+
+                # Mapping predicate → user value, ordered by specificity
+                def value_for(label: str, el_type: str) -> str:
+                    L = label.lower()
+
+                    if "first" in L or "given" in L or "forename" in L:
+                        return user_data["first_name"]
+                    if "last" in L or "surname" in L or "family name" in L:
+                        return user_data["last_name"]
+                    if "email" in L or el_type == "email":
+                        return user_data["email"]
+                    if "phone" in L or "mobile" in L or "tel" in L or el_type == "tel":
+                        return user_data["phone"]
+                    if "linkedin" in L or ("profile" in L and "url" in L) or ("url" in L and "linkedin" in L):
+                        return user_data["linkedin"]
+                    if "country" in L:
+                        return user_data["country"]
+                    if "city" in L or "town" in L:
+                        return user_data["city"]
+                    if "job title" in L or ("title" in L and "job" in L) or "position" in L or "role" in L:
+                        return user_data["occupation"]
+                    if "company" in L or "employer" in L or "organization" in L or "organisation" in L:
+                        return user_data["company"]
+
+                    # generic URL fields: only fill if clearly LinkedIn
+                    if ("url" in L or "website" in L) and "linkedin" in L:
+                        return user_data["linkedin"]
+
+                    return ""
+
+                filled = 0
+
+                # Scan inputs, textareas, selects, and React comboboxes
+                selectors = [
+                    "input:not([type='hidden']):not([disabled])",
+                    "textarea:not([disabled])",
+                    "select:not([disabled])",
+                    "[role='combobox'] input",   # common for react-select & MUI
+                ]
+
+                for frame in page.frames:
+                    print(f"🔎 Scanning frame: {frame.name or 'main'}")
+                    for sel in selectors:
+                        loc = frame.locator(sel)
+                        n = loc.count()
+                        for i in range(n):
+                            el = loc.nth(i)
                             try:
-                                el.fill("N/A")
-                                print(f"🧩 Auto-filled global missing field: {placeholder}")
+                                if not el.is_visible():
+                                    continue
+
+                                # Determine element type & current value
+                                etype = (el.get_attribute("type") or "").lower()
+                                curr = ""
+                                try:
+                                    curr = el.input_value().strip()
+                                except Exception:
+                                    try:
+                                        curr = el.inner_text().strip()
+                                    except Exception:
+                                        curr = ""
+
+                                # Skip if already non-empty and not "N/A"
+                                if curr and curr.upper() != "N/A":
+                                    continue
+
+                                # Build best label
+                                label = accessible_label(frame, el)
+                                if not label:
+                                    # last-ditch: use name/id
+                                    label = " ".join(filter(None, [
+                                        el.get_attribute("name") or "",
+                                        el.get_attribute("id") or "",
+                                        etype
+                                    ])).strip()
+
+                                # Decide value from user data
+                                val = value_for(label, etype)
+
+                                # If field currently says "N/A" but we have a user value, clear then fill
+                                if (not val) and curr.upper() == "N/A":
+                                    # we don't want to leave N/A anywhere; clear it
+                                    try:
+                                        el.fill("")
+                                    except Exception:
+                                        pass
+                                    continue
+
+                                if not val:
+                                    continue  # nothing to fill from user
+
+                                # Scroll into view + fill + commit (helps controlled inputs)
+                                try:
+                                    el.scroll_into_view_if_needed(timeout=2000)
+                                except Exception:
+                                    pass
+
+                                if el.evaluate("el => el.tagName.toLowerCase() === 'select'"):
+                                    # select dropdown: choose matching option
+                                    # primarily used for Country etc.
+                                    try:
+                                        # exact text match first
+                                        el.select_option(label=val)
+                                    except Exception:
+                                        # fallback: partial match (lowercase contains)
+                                        frame.evaluate(
+                                            """
+                                            (el, want) => {
+                                            const opts = Array.from(el.options || []);
+                                            const target = opts.find(o => (o.textContent||'').trim().toLowerCase() === want.toLowerCase())
+                                                        || opts.find(o => (o.textContent||'').toLowerCase().includes(want.toLowerCase()));
+                                            if (target) el.value = target.value;
+                                            el.dispatchEvent(new Event('change', {bubbles:true}));
+                                            }
+                                            """,
+                                            el,
+                                            val,
+                                        )
+                                else:
+                                    # text-like fields
+                                    el.fill(val)
+                                    try:
+                                        el.press("Tab")
+                                    except Exception:
+                                        pass
+                                    # fire input/change for frameworks
+                                    try:
+                                        frame.evaluate(
+                                            "el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }",
+                                            el,
+                                        )
+                                    except Exception:
+                                        pass
+
+                                print(f"✅ Filled “{label[:60]}” → {val}")
+                                filled += 1
+
                             except Exception:
                                 continue
-                print("✅ Global field check complete.")
+
+                print(f"✅ Dynamic universal scanner filled {filled} fields.")
+
+                # 🔁 Robust LinkedIn retry anywhere (after dynamic fill & any late-render)
+                if linkedin_url:
+                    try:
+                        print("🔎 Extra LinkedIn scan across all frames...")
+                        for frame in page.frames:
+                            ln = frame.locator(
+                                "input[name*='linkedin' i], input[id*='linkedin' i], input[placeholder*='linkedin' i], "
+                                "input[aria-label*='linkedin' i], input[name*='profile' i][name*='url' i], "
+                                "input[id*='profile' i][id*='url' i]"
+                            )
+                            if ln.count() > 0:
+                                for j in range(ln.count()):
+                                    el = ln.nth(j)
+                                    if el.is_visible():
+                                        cur = ""
+                                        try:
+                                            cur = el.input_value().strip()
+                                        except Exception:
+                                            pass
+                                        if not cur or cur.upper() == "N/A":
+                                            el.fill(linkedin_url)
+                                            try:
+                                                el.press("Tab")
+                                            except Exception:
+                                                pass
+                                            print("🔗 LinkedIn field filled via extra scan.")
+                                            break
+                    except Exception:
+                        pass
+
             except Exception as e:
-                print(f"⚠️ Global completeness scan failed: {e}")
+                print(f"⚠️ Dynamic universal field scanner failed: {e}")
+
 
             # 🧠 AI dynamic field filling
             try:
