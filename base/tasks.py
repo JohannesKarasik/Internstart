@@ -124,6 +124,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             # 7.1️⃣ Country field (dropdown or input)
             # 7.1️⃣ Country field (Greenhouse .select__container support)
+            # 7.1️⃣ Country field (robust support for Greenhouse .select__container + .select__menu)
             try:
                 user_country = getattr(user, "country", "") or ""
                 if user_country:
@@ -137,26 +138,28 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     country_name = country_map.get(user_country, user_country)
                     print(f"🧩 Looking for country field to fill with '{country_name}'")
 
-                    # ✅ 1. Try Greenhouse custom dropdowns (.select__container)
+                    # Try Greenhouse dropdown (.select__container)
                     container = context.locator(".select__container")
                     if container.count() > 0:
                         print(f"🔍 Found {container.count()} '.select__container' elements — clicking the first one.")
                         container.first.click()
-                        page.wait_for_timeout(800)
+                        page.wait_for_timeout(1000)
 
-                        # Try to select visible country
-                        option = page.locator(f"text={country_name}")  # 🔄 search globally since dropdown may render outside iframe
-                        if option.count() > 0:
-                            option.first.click()
-                            print(f"🌍 Selected country from .select__container dropdown: {country_name}")
-                            # ✅ Force render update by clicking outside
-                            page.mouse.click(10, 10)
-                            page.wait_for_timeout(1000)
+                        # Greenhouse usually renders the dropdown list in .select__menu
+                        menu = page.locator(".select__menu, .select__menu-list")
+                        if menu.count() > 0:
+                            option = menu.locator(f"text={country_name}")
+                            if option.count() > 0:
+                                option.first.click()
+                                print(f"🌍 Selected country from Greenhouse menu: {country_name}")
+                                page.mouse.click(10, 10)  # click outside to confirm
+                                page.wait_for_timeout(1000)
+                            else:
+                                print(f"⚠️ Could not find '{country_name}' in .select__menu list.")
                         else:
-                            print(f"⚠️ Could not find '{country_name}' option after opening dropdown.")
-
+                            print("⚠️ No .select__menu found after opening dropdown.")
                     else:
-                        # ✅ 2. Try normal <select> elements
+                        # Try normal <select> element
                         select = context.locator("select[name*='country'], select[id*='country']")
                         if select.count() > 0:
                             options = select.first.locator("option")
@@ -165,19 +168,20 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 if country_name.lower() in text:
                                     value = options.nth(i).get_attribute("value")
                                     select.first.select_option(value=value)
-                                    print(f"🌍 Selected country from standard <select>: {country_name}")
+                                    print(f"🌍 Selected country from <select>: {country_name}")
                                     break
 
-                        # ✅ 3. Try input-like fields
+                        # Fallback: input field
                         else:
                             input_field = context.locator("input[placeholder*='Country'], input[aria-label*='Country']")
                             if input_field.count() > 0:
                                 input_field.first.fill(country_name)
-                                print(f"🌍 Filled country input: {country_name}")
+                                print(f"🌍 Filled country text field: {country_name}")
                             else:
-                                print("⚠️ No country selector found at all.")
+                                print("⚠️ No country field found at all.")
             except Exception as e:
                 print(f"⚠️ Could not select country: {e}")
+
 
 
             # 8️⃣ 🧠 AI dynamic field filling
