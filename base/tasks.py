@@ -6,6 +6,91 @@ import time, traceback, random
 from urllib.parse import urlparse
 
 
+# --- universal cookie/consent dismiss ---
+def dismiss_privacy_overlays(page, timeout_ms=8000):
+    import re, time
+    start = time.time()
+
+    known_selectors = [
+        "#onetrust-accept-btn-handler",
+        "button#onetrust-accept-btn-handler",
+        "#CybotCookiebotDialogBodyLevelButtonAccept",
+        "#CybotCookiebotDialogBodyButtonAccept",
+        "button:has-text('Accept All')",
+        "button:has-text('ACCEPT ALL')",
+        "button:has-text('Allow all')",
+        "button:has-text('Enable All')",
+        "button:has-text('Enable all')",
+        "button:has-text('Got it')",
+        # Danish
+        "button:has-text('Accepter alle')",
+        "button:has-text('Tillad alle')",
+        "button:has-text('Aktiver alle')",
+        "button:has-text('OK')",
+        "button:has-text('Forstået')",
+        # generic fallbacks
+        "button[aria-label*='accept' i]",
+        "button:has-text('accept' i)",
+        "[role='button']:has-text('accept' i)",
+        "input[type='button'][value*='accept' i]",
+        "input[type='submit'][value*='accept' i]",
+    ]
+
+    POSITIVE = re.compile(r"(accept|agree|allow|enable|ok|got it|continue|save.*(preferences|settings))", re.I)
+    NEGATIVE = re.compile(r"(reject|deny|decline|manage|settings|preferences|options|custom|kun nødvendige|strictly necessary)", re.I)
+
+    def try_click_in_frame(frame):
+        for sel in known_selectors:
+            try:
+                btns = frame.locator(sel)
+                if btns.count() > 0:
+                    for i in range(min(btns.count(), 3)):
+                        b = btns.nth(i)
+                        if b.is_visible():
+                            b.click(force=True)
+                            return True
+            except Exception:
+                pass
+        try:
+            containers = frame.locator(":is([id*='cookie' i],[class*='cookie' i],[id*='consent' i],[class*='consent' i],[id*='gdpr' i],[class*='gdpr' i],div[role='dialog'], .modal, .overlay, .cmp-container)")
+            btns = containers.locator(":is(button,[role='button'],a,input[type='button'],input[type='submit'])")
+            n = btns.count()
+            for i in range(n):
+                el = btns.nth(i)
+                if not el.is_visible():
+                    continue
+                txt = (el.inner_text() or el.get_attribute("value") or "").strip()
+                if POSITIVE.search(txt) and not NEGATIVE.search(txt):
+                    el.click(force=True)
+                    return True
+        except Exception:
+            pass
+        return False
+
+    while (time.time() - start) * 1000 < timeout_ms:
+        clicked = False
+        for fr in page.frames:
+            try:
+                if try_click_in_frame(fr):
+                    clicked = True
+            except Exception:
+                continue
+        if clicked:
+            page.wait_for_timeout(500)
+            continue
+        page.wait_for_timeout(250)
+
+    # last-resort close button
+    try:
+        xbtn = page.locator(":is(button,[role='button'],a)[aria-label*='close' i], :is(button,a):has-text('×')")
+        if xbtn.count() > 0 and xbtn.first.is_visible():
+            xbtn.first.click(force=True)
+    except Exception:
+        pass
+# --- end consent helper ---
+
+
+
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True):
     """
     Robust ATS automation handler.
@@ -44,15 +129,18 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             page.wait_for_timeout(4000)
             page.wait_for_timeout(4000)
 
-            # 1️⃣ Handle cookie/consent popups
-            try:
-                consent = page.locator("button:has-text('I agree'), button:has-text('Accept'), button:has-text('OK')")
-                if consent.count() > 0:
-                    consent.first.click()
-                    print("✅ Clicked consent button")
-                    page.wait_for_timeout(2000)
-            except Exception as e:
-                print(f"⚠️ Consent handling failed: {e}")
+            # 1️⃣ Kill cookie/consent overlays globally (main page + iframes)
+            dismiss_privacy_overlays(page)
+
+
+            page.goto(room.apply_url, timeout=120000, wait_until="domcontentloaded")
+            page.wait_for_load_state("load", timeout=20000)
+            page.wait_for_timeout(4000)
+
+            # NEW: clear any privacy modal that appears right after load
+            dismiss_privacy_overlays(page)
+
+            page.wait_for_timeout(4000)
 
             # 2️⃣ Trigger “Apply” or open hidden form modals (SAFE)
             try:
@@ -107,6 +195,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 el.click()
                                 print(f"🖱️ Safely clicked '{text[:40]}'")
                                 page.wait_for_timeout(1500)
+                            # NEW: some sites open consent again after first interaction
+                                dismiss_privacy_overlays(page, timeout_ms=5000)
+
 
                                 after_url = page.url
                                 after_field_count = page.locator("input, textarea, select").count()
@@ -117,6 +208,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                     try:
                                         page.go_back(timeout=10000)
                                         page.wait_for_timeout(1000)
+                                    # NEW: after going back, overlays may render again
+                                        dismiss_privacy_overlays(page, timeout_ms=3000)
+
                                     except Exception:
                                         pass
                                     continue
@@ -131,6 +225,8 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Safe apply trigger failed: {e}")
 
+        # NEW: ensure nothing is blocking inputs before we scan/fill
+            dismiss_privacy_overlays(page, timeout_ms=3000)
 
             # 3️⃣ Detect iframe context
             context = page
