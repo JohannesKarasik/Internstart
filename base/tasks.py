@@ -14,6 +14,17 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
     room = ATSRoom.objects.get(id=room_id)
     user = User.objects.get(id=user_id)
 
+    # ✅ Automatically pull resume from user model if not provided
+    if not resume_path:
+        try:
+            if hasattr(user, "resume") and user.resume:
+                resume_path = user.resume.path  # local filesystem path
+                print(f"📄 Loaded resume from user model: {resume_path}")
+            else:
+                print("⚠️ User has no resume uploaded in their profile.")
+        except Exception as e:
+            print(f"⚠️ Could not load resume from user model: {e}")
+
     print(f"🌐 Starting ATS automation for: {room.company_name} ({room.apply_url})")
     print(f"🧪 Dry-run mode: {dry_run}")
 
@@ -123,8 +134,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     print(f"⚠️ Could not fill {key}: {e}")
 
             # 7.1️⃣ Country field (dropdown or input)
-            # 7.1️⃣ Country field (Greenhouse .select__container support)
-            # 7.1️⃣ Country field (robust support for Greenhouse .select__container + .select__menu)
             try:
                 user_country = getattr(user, "country", "") or ""
                 if user_country:
@@ -138,28 +147,25 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     country_name = country_map.get(user_country, user_country)
                     print(f"🧩 Looking for country field to fill with '{country_name}'")
 
-                    # Try Greenhouse dropdown (.select__container)
                     container = context.locator(".select__container")
                     if container.count() > 0:
                         print(f"🔍 Found {container.count()} '.select__container' elements — clicking the first one.")
                         container.first.click()
                         page.wait_for_timeout(1000)
 
-                        # Greenhouse usually renders the dropdown list in .select__menu
                         menu = page.locator(".select__menu, .select__menu-list")
                         if menu.count() > 0:
                             option = menu.locator(f"text={country_name}")
                             if option.count() > 0:
                                 option.first.click()
                                 print(f"🌍 Selected country from Greenhouse menu: {country_name}")
-                                page.mouse.click(10, 10)  # click outside to confirm
+                                page.mouse.click(10, 10)
                                 page.wait_for_timeout(1000)
                             else:
                                 print(f"⚠️ Could not find '{country_name}' in .select__menu list.")
                         else:
                             print("⚠️ No .select__menu found after opening dropdown.")
                     else:
-                        # Try normal <select> element
                         select = context.locator("select[name*='country'], select[id*='country']")
                         if select.count() > 0:
                             options = select.first.locator("option")
@@ -170,8 +176,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                     select.first.select_option(value=value)
                                     print(f"🌍 Selected country from <select>: {country_name}")
                                     break
-
-                        # Fallback: input field
                         else:
                             input_field = context.locator("input[placeholder*='Country'], input[aria-label*='Country']")
                             if input_field.count() > 0:
@@ -182,15 +186,12 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Could not select country: {e}")
 
-
-
             # 8️⃣ 🧠 AI dynamic field filling
             try:
                 fill_dynamic_fields(context, user)
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
-
 
             # 9️⃣ Resume upload (Greenhouse robust fix for visually-hidden inputs)
             try:
