@@ -301,21 +301,124 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 def near_text(frame, el):
                     try:
                         return frame.evaluate("""
-                            (el) => {
-                            const lab = (el.labels && el.labels[0]) ? el.labels[0].innerText : "";
-                            const byId = (() => {
-                                const ids = (el.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean);
-                                return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
-                            })();
+                        (el) => {
+                            const lab  = (el.labels && el.labels[0]) ? el.labels[0].innerText : "";
                             const aria = el.getAttribute("aria-label") || "";
                             const ph   = el.getAttribute("placeholder") || "";
+
+                            // aria-labelledby chain
+                            const byId = (() => {
+                            const ids = (el.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean);
+                            return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
+                            })();
+
+                            // generic wrapper text
                             const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section");
                             const near = wrap ? (wrap.querySelector("legend, label, span, small, .label, .title")?.innerText || "") : "";
-                            return [lab, byId, aria, ph, near].join(" ").replace(/\\s+/g," ").trim();
-                            }
+
+                            // 🔴 HR-Manager: table layout — take the text from the first cell in the same row
+                            const tr = el.closest("tr");
+                            const leftCell = tr ? (tr.querySelector("td,th")?.innerText || "") : "";
+
+                            // also look at immediate previous sibling cell (some pages repeat cols)
+                            const prevCell = tr ? (tr.previousElementSibling?.innerText || "") : "";
+
+                            return [lab, aria, ph, byId, near, leftCell, prevCell]
+                                    .join(" ").replace(/\\s+/g," ").trim();
+                        }
                         """, el) or ""
                     except Exception:
                         return ""
+                    
+
+                    # 7.3️⃣ HR-Manager/table fallback: fill any still-empty selects and common Danish fields
+                try:
+                    print("🧰 Table-aware fallback (HR-Manager-style)…")
+
+                    dk = {
+                        "first_name": user.first_name or "",
+                        "last_name":  user.last_name or "",
+                        "email":      user.email or "",
+                        "phone":      getattr(user, "phone_number", "") or "",
+                        "city":       getattr(user, "location", "") or "",
+                        "address":    getattr(user, "address", "") or "N/A",
+                        "zip":        getattr(user, "postal_code", "") or "0000",
+                    }
+
+                    PLACEHOLDER = r"(select|vælg|choose|please|—|–|-)"
+
+                    for frame in page.frames:
+                        # A) Any <select> without a value → choose first non-placeholder option
+                        selects = frame.locator("select:not([disabled])")
+                        for i in range(selects.count()):
+                            sel = selects.nth(i)
+                            try:
+                                if not sel.is_visible():
+                                    continue
+                                has_val = frame.evaluate("(el) => !!el.value", sel)
+                                if has_val:
+                                    continue
+                                chosen = frame.evaluate(f"""
+                                (el) => {{
+                                    const re = new RegExp("{PLACEHOLDER}", "i");
+                                    const opts = Array.from(el.options || []);
+                                    const good = opts.find(o => {{
+                                    const t = (o.textContent||'').trim();
+                                    return t && !re.test(t);
+                                    }});
+                                    if (good) {{
+                                    el.value = good.value;
+                                    el.dispatchEvent(new Event('change', {{bubbles:true}}));
+                                    return good.textContent.trim();
+                                    }}
+                                    return "";
+                                }}
+                                """, sel)
+                                if chosen:
+                                    # log with the left cell label if available
+                                    label = near_text(frame, sel)
+                                    print(f"✅ Select filled → {chosen[:40]} ({label[:40]})")
+                            except Exception:
+                                continue
+
+                        # B) Common Danish text fields by row label (Adresse / Postnr./by / Køn handled above as select)
+                        inputs = frame.locator("input[type='text'], input:not([type]), textarea")
+                        for i in range(inputs.count()):
+                            el = inputs.nth(i)
+                            try:
+                                if not el.is_visible():
+                                    continue
+                                val = ""
+                                try:
+                                    val = el.input_value().strip()
+                                except Exception:
+                                    pass
+                                if val:
+                                    continue
+
+                                label = near_text(frame, el).lower()
+
+                                if "adresse" in label:
+                                    el.fill(dk["address"])
+                                elif "postnr" in label or "post nr" in label or "zip" in label:
+                                    el.fill(dk["zip"])
+                                elif ("/by" in label) or (" by" in label) or ("city" in label):
+                                    el.fill(dk["city"] or "Copenhagen")
+                                else:
+                                    continue
+
+                                try: el.press("Tab")
+                                except Exception: pass
+                                frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
+                                print(f"🏷️ Table text field filled ({label[:60]})")
+                            except Exception:
+                                continue
+
+                    print("✅ Table-aware fallback complete.")
+                except Exception as e:
+                    print(f"⚠️ Table-aware fallback failed: {e}")
+
+
 
                 def looks_required(text: str) -> bool:
                     t = (text or "").lower()
