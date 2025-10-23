@@ -122,14 +122,41 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception as e:
                     print(f"⚠️ Could not fill {key}: {e}")
 
-            # 7.1️⃣ Country field (dropdown)
+            # 7.1️⃣ Country field (dropdown or input)
             try:
-                country_code = getattr(user, "country", "")
-                if country_code:
+                user_country = getattr(user, "country", "") or ""
+                if user_country:
+                    # Map 2-letter codes to readable names
+                    country_map = {
+                        "DK": "Denmark",
+                        "US": "United States",
+                        "UK": "United Kingdom",
+                        "FRA": "France",
+                        "GER": "Germany",
+                    }
+                    country_name = country_map.get(user_country, user_country)
+
                     select = context.locator("select[name*='country'], select[id*='country']")
                     if select.count() > 0:
-                        select.first.select_option(value=country_code)
-                        print("🌍 Selected country")
+                        options = select.first.locator("option")
+                        matched = False
+                        for i in range(options.count()):
+                            text = options.nth(i).inner_text().strip().lower()
+                            if country_name.lower() in text or user_country.lower() in text:
+                                value = options.nth(i).get_attribute("value")
+                                if value:
+                                    select.first.select_option(value=value)
+                                    matched = True
+                                    print(f"🌍 Selected country: {country_name}")
+                                    break
+                        if not matched:
+                            print(f"⚠️ No exact country match found for {country_name}")
+                    else:
+                        # Handle input-based country fields
+                        input_field = context.locator("input[name*='country'], input[placeholder*='Country']")
+                        if input_field.count() > 0:
+                            input_field.first.fill(country_name)
+                            print(f"🌍 Filled country input: {country_name}")
             except Exception as e:
                 print(f"⚠️ Could not select country: {e}")
 
@@ -213,4 +240,3 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 pass
             browser.close()
             return False
-
