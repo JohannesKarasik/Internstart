@@ -3,6 +3,8 @@ from django.conf import settings
 from .models import ATSRoom, User
 from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler
 import time, traceback, random
+from urllib.parse import urlparse
+
 
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True):
     """
@@ -52,22 +54,83 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Consent handling failed: {e}")
 
-            # 2️⃣ Trigger “Apply” or open hidden form modals
+            # 2️⃣ Trigger “Apply” or open hidden form modals (SAFE)
             try:
-                buttons = page.locator("button, a")
-                trigger_words = [
-                    "apply", "continue", "start application",
-                    "next", "get started", "begin", "proceed"
-                ]
-                for word in trigger_words:
-                    matches = buttons.filter(has_text=word)
-                    if matches.count() > 0:
-                        matches.first.click()
-                        print(f"🖱️ Clicked '{word}' button to open form")
-                        page.wait_for_timeout(5000)
-                        break
+                # If we already see inputs, don't click anything.
+                existing_fields = page.locator("input, textarea, select").count()
+                if existing_fields >= 3:
+                    print("🛑 Form fields already visible; skipping any 'apply' clicks.")
+                else:
+                    print("🔎 Looking for a SAFE apply/continue trigger...")
+
+                    trigger_words = [
+                        "apply", "continue", "start application", "start your application",
+                        "next", "get started", "begin", "proceed"
+                    ]
+                    block_words = [
+                        "quick apply", "jobindex", "linkedin", "indeed", "glassdoor", "xing",
+                        "external", "login", "log ind", "sign in", "create account"
+                    ]
+
+                    candidates = page.locator("button, a")
+
+                    def looks_blocked(txt: str) -> bool:
+                        t = (txt or "").lower()
+                        return any(b in t for b in block_words)
+
+                    def looks_allowed(txt: str) -> bool:
+                        t = (txt or "").lower()
+                        return any(w in t for w in trigger_words)
+
+                    url_host = urlparse(page.url).netloc
+
+                    safe_clicked = False
+                    for i in range(candidates.count()):
+                        el = candidates.nth(i)
+                        try:
+                            if not el.is_visible():
+                                continue
+                            text = (el.inner_text() or "").strip()
+                            if not looks_allowed(text) or looks_blocked(text):
+                                continue
+
+                            in_form = el.evaluate("e => !!e.closest('form')")
+                            href = (el.get_attribute("href") or "").strip()
+                            same_origin = True
+                            if href.startswith("http"):
+                                same_origin = (urlparse(href).netloc == url_host)
+                            is_submit_type = (el.get_attribute("type") or "").lower() == "submit"
+
+                            if in_form or is_submit_type or (same_origin and not href.lower().startswith("mailto:")):
+                                before_url = page.url
+                                before_field_count = page.locator("input, textarea, select").count()
+                                el.click()
+                                print(f"🖱️ Safely clicked '{text[:40]}'")
+                                page.wait_for_timeout(1500)
+
+                                after_url = page.url
+                                after_field_count = page.locator("input, textarea, select").count()
+
+                                # If we navigated but didn't get more fields, go back.
+                                if (after_url != before_url and after_field_count <= before_field_count):
+                                    print("↩️ Navigation didn’t expose more fields; going back.")
+                                    try:
+                                        page.go_back(timeout=10000)
+                                        page.wait_for_timeout(1000)
+                                    except Exception:
+                                        pass
+                                    continue
+
+                                safe_clicked = True
+                                break
+                        except Exception:
+                            continue
+
+                    if not safe_clicked:
+                        print("⚠️ No safe apply/continue trigger found; proceeding without clicking.")
             except Exception as e:
-                print(f"⚠️ Could not trigger application form: {e}")
+                print(f"⚠️ Safe apply trigger failed: {e}")
+
 
             # 3️⃣ Detect iframe context
             context = page
