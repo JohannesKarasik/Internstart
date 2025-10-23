@@ -190,13 +190,16 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
+
                 
-            # 9️⃣ Resume upload (intelligent + multi-strategy)
+            # 9️⃣ Resume upload (waits for dynamically rendered input)
+
+
             try:
                 if resume_path:
                     print(f"📎 Attempting to upload resume from: {resume_path}")
 
-                    # 🧠 Step 1: Always prefer clicking 'Attach' over 'Enter manually'
+                    # 🧠 Step 1: Prefer 'Attach' option
                     try:
                         all_buttons = context.locator("button, label")
                         attach_btn = all_buttons.filter(has_text="Attach")
@@ -205,7 +208,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         if attach_btn.count() > 0:
                             print("🧠 AI decision: Choosing 'Attach' option for resume upload.")
                             attach_btn.first.click()
-                            page.wait_for_timeout(2500)
+                            page.wait_for_timeout(2000)
                         elif manual_btn.count() > 0:
                             print("⚠️ Only 'Enter manually' found — skipping upload.")
                         else:
@@ -213,31 +216,39 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception as e:
                         print(f"⚠️ Could not click attach button: {e}")
 
-                    # 🧩 Step 2: Wait for the hidden file input to appear dynamically
+                    # 🕒 Step 2: Wait up to 8 seconds for input[type=file] to appear
                     file_input = None
-                    try:
-                        context.wait_for_selector("input[type='file']", timeout=5000)
-                        file_input = context.locator("input[type='file']").first
-                    except Exception:
-                        print("⚠️ File input did not appear after clicking 'Attach'.")
+                    for i in range(8):
+                        try:
+                            file_input = context.locator("input[type='file']").first
+                            if file_input.count() > 0:
+                                print(f"✅ File input detected after {i+1}s")
+                                break
+                        except Exception:
+                            pass
+                        page.wait_for_timeout(1000)
 
-                    # 🧱 Step 3: Try to unhide and upload file
-                    if file_input and resume_path:
+                    # 🧱 Step 3: Make sure input is visible before upload
+                    if file_input and file_input.count() > 0:
                         try:
                             context.evaluate("""
                                 (el) => {
-                                    el.style.display = 'block';
-                                    el.style.opacity = 1;
-                                    el.removeAttribute('hidden');
-                                    el.classList.remove('visually-hidden');
+                                    if (el) {
+                                        el.style.display = 'block';
+                                        el.style.opacity = 1;
+                                        el.removeAttribute('hidden');
+                                        el.classList.remove('visually-hidden');
+                                    }
                                 }
                             """, file_input)
                             file_input.set_input_files(resume_path)
                             print("📄 Successfully uploaded resume via input[type='file']")
                         except Exception as e:
-                            print(f"⚠️ Direct file upload failed: {e}")
+                            print(f"⚠️ Upload attempt failed: {e}")
+                    else:
+                        print("⚠️ No input[type='file'] detected after waiting.")
 
-                    # 🪄 Step 4: Shadow DOM & fallback mode
+                    # 🧪 Step 4: Shadow DOM fallback
                     try:
                         page.evaluate("""
                             () => {
@@ -248,20 +259,20 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 }
                             }
                         """)
-                        file_inputs = page.locator("input[type='file']")
-                        if file_inputs.count() > 0:
-                            file_inputs.first.set_input_files(resume_path)
+                        shadow_inputs = page.locator("input[type='file']")
+                        if shadow_inputs.count() > 0:
+                            shadow_inputs.first.set_input_files(resume_path)
                             print("📄 Uploaded resume via shadow DOM fallback")
                     except Exception:
                         pass
 
-                    # 🕵️ Step 5: Verify upload visually (Greenhouse adds filename text)
+                    # ✅ Step 5: Verify upload success
                     try:
-                        uploaded_name = context.locator("text=docx, text=pdf, text=Resume")
-                        if uploaded_name.count() > 0:
-                            print("✅ Resume file appears uploaded on page.")
+                        uploaded_file_indicator = context.locator("text=.docx, text=.pdf, text=Resume")
+                        if uploaded_file_indicator.count() > 0:
+                            print("✅ Resume file visibly uploaded on page.")
                         else:
-                            print("⚠️ Could not visually verify resume upload.")
+                            print("⚠️ Could not visually verify uploaded file.")
                     except Exception:
                         pass
 
