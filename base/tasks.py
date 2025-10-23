@@ -10,9 +10,16 @@ from openai import OpenAI
 
 
 
+# ✅ Load both API key and optional project ID
 openai_key = os.getenv("OPENAI_API_KEY", getattr(settings, "OPENAI_API_KEY", None))
-client = OpenAI(api_key=openai_key)
+openai_project = os.getenv("OPENAI_PROJECT_ID", getattr(settings, "OPENAI_PROJECT_ID", None))
 
+# ✅ Initialize client safely (supports both global and project keys)
+if openai_project:
+    client = OpenAI(api_key=openai_key, project=openai_project)
+else:
+    client = OpenAI(api_key=openai_key)
+    
 def generate_cover_letter_text(user, company="", role="", job_text=""):
     """
     Generate a short, personalized cover letter using the user's data and job context.
