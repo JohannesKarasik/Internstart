@@ -226,8 +226,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         value = el.input_value().strip() if el else ""
                         if not value:
                             placeholder = el.get_attribute("placeholder") or el.get_attribute("aria-label") or "(no label)"
-                            if any(k in placeholder.lower() for k in ["email", "phone", "captcha", "search"]):
+                            if any(k in placeholder.lower() for k in ["email", "phone", "captcha", "search", "linkedin", "profile", "url"]):
                                 continue
+
                             try:
                                 el.fill("N/A")
                                 print(f"🧩 Auto-filled global missing field: {placeholder}")
