@@ -37,7 +37,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
         try:
             print(f"🌍 Visiting {room.apply_url} ...")
-            page.goto(room.apply_url, timeout=90000, wait_until="networkidle")
+            page.goto(room.apply_url, timeout=120000, wait_until="domcontentloaded")
+            page.wait_for_load_state("load", timeout=20000)
+            page.wait_for_timeout(4000)
             page.wait_for_timeout(4000)
 
             # 1️⃣ Handle cookie/consent popups
