@@ -44,6 +44,8 @@ class User(AbstractUser):
     background = models.ImageField(null=True, default="background.jpg")
     avatar = models.ImageField(null=True, default="avatar.svg")
     username = models.CharField(max_length=150, unique=True, null=True, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    linkedin_url = models.URLField(blank=True, null=True)
     onboarding_shown = models.BooleanField(default=False)
 
     # Resume upload
