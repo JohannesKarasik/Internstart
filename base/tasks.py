@@ -142,15 +142,19 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     if container.count() > 0:
                         print(f"🔍 Found {container.count()} '.select__container' elements — clicking the first one.")
                         container.first.click()
-                        page.wait_for_timeout(1000)
+                        page.wait_for_timeout(800)
 
-                        # Search for country option
-                        option = context.locator(f"text={country_name}")
+                        # Try to select visible country
+                        option = page.locator(f"text={country_name}")  # 🔄 search globally since dropdown may render outside iframe
                         if option.count() > 0:
                             option.first.click()
                             print(f"🌍 Selected country from .select__container dropdown: {country_name}")
+                            # ✅ Force render update by clicking outside
+                            page.mouse.click(10, 10)
+                            page.wait_for_timeout(1000)
                         else:
                             print(f"⚠️ Could not find '{country_name}' option after opening dropdown.")
+
                     else:
                         # ✅ 2. Try normal <select> elements
                         select = context.locator("select[name*='country'], select[id*='country']")
