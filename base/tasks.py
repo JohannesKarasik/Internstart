@@ -5,9 +5,13 @@ from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler
 import time, traceback, random
 from urllib.parse import urlparse
 import os, tempfile
+import os
 from openai import OpenAI
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+openai_key = os.getenv("OPENAI_API_KEY", getattr(settings, "OPENAI_API_KEY", None))
+client = OpenAI(api_key=openai_key)
 
 def generate_cover_letter_text(user, company="", role="", job_text=""):
     """
