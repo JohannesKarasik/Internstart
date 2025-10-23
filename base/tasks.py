@@ -281,6 +281,240 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Could not select country: {e}")
 
+
+            # 7.2️⃣ REQUIRED COMPLETENESS PASS — fill every remaining required field
+            try:
+                print("🧹 Running required-completeness pass (text/select/radio/checkbox/phone code)…")
+
+                # Small helpers
+                DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
+                user_cc = DIAL.get((getattr(user, "country", "") or "").upper(), "")
+
+                PLACEHOLDER_WORDS = ["select", "vælg", "choose", "chose", "pick", "—", "-", "–", "please"]
+                AVOID_CHECKBOX = ["newsletter", "marketing", "samarbejde", "marketingsføring", "updates", "promotion"]
+                REQUIRED_MARKERS = ["*", "required", "obligatorisk", "påkrævet", "mandatory"]
+
+                def is_placeholder(text: str) -> bool:
+                    t = (text or "").strip().lower()
+                    return (t == "" or any(w in t for w in PLACEHOLDER_WORDS))
+
+                def near_text(frame, el):
+                    try:
+                        return frame.evaluate("""
+                            (el) => {
+                            const lab = (el.labels && el.labels[0]) ? el.labels[0].innerText : "";
+                            const byId = (() => {
+                                const ids = (el.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean);
+                                return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
+                            })();
+                            const aria = el.getAttribute("aria-label") || "";
+                            const ph   = el.getAttribute("placeholder") || "";
+                            const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section");
+                            const near = wrap ? (wrap.querySelector("legend, label, span, small, .label, .title")?.innerText || "") : "";
+                            return [lab, byId, aria, ph, near].join(" ").replace(/\\s+/g," ").trim();
+                            }
+                        """, el) or ""
+                    except Exception:
+                        return ""
+
+                def looks_required(text: str) -> bool:
+                    t = (text or "").lower()
+                    return any(m in t for m in REQUIRED_MARKERS)
+
+                # Scan every frame for still-empty required fields
+                for frame in page.frames:
+                    # --- Phone country split widgets (select with +code next to phone input) ---
+                    if user_cc:
+                        try:
+                            phone_rows = frame.locator("select, [role='combobox']").filter(has_text="+")
+                            for i in range(min(6, phone_rows.count())):
+                                sel = phone_rows.nth(i)
+                                if not sel.is_visible():
+                                    continue
+                                # heuristic: sibling/nearby contains 'phone' text
+                                txt = near_text(frame, sel).lower()
+                                if "phone" in txt or "mobil" in txt or "telefon" in txt:
+                                    # try exact option match, then contains
+                                    try:
+                                        sel.select_option(label=user_cc)
+                                    except Exception:
+                                        frame.evaluate("""
+                                            (el, want) => {
+                                            const opts = Array.from((el.tagName==='SELECT' ? el.options : []));
+                                            const match = opts.find(o => (o.textContent||'').trim()===want)
+                                                        || opts.find(o => (o.textContent||'').includes(want));
+                                            if (match) { el.value = match.value; el.dispatchEvent(new Event('change',{bubbles:true})); }
+                                            }
+                                        """, sel, user_cc)
+                                    print(f"📞 Selected phone country code {user_cc}")
+                                    break
+                        except Exception:
+                            pass
+
+                    # --- Required text-like fields ---
+                    try:
+                        inputs = frame.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])")
+                        for i in range(inputs.count()):
+                            el = inputs.nth(i)
+                            try:
+                                if not el.is_visible():
+                                    continue
+                                t = (el.get_attribute("type") or "").lower()
+                                if t in ["checkbox", "radio", "file"]:
+                                    continue  # handled below
+
+                                curr = ""
+                                try:
+                                    curr = el.input_value().strip()
+                                except Exception:
+                                    try:
+                                        curr = el.inner_text().strip()
+                                    except Exception:
+                                        curr = ""
+
+                                if curr and curr.upper() != "N/A":
+                                    continue
+
+                                lbl = near_text(frame, el)
+                                req_attr = el.get_attribute("required") is not None or el.get_attribute("aria-required") in ["true", True]
+                                req_near = looks_required(lbl)
+                                if not (req_attr or req_near):
+                                    continue  # only mop up requireds
+
+                                # Don't auto-fill emails/phones here (those were handled earlier)
+                                L = lbl.lower()
+                                if any(k in L for k in ["email", "e-mail", "mail"]):
+                                    continue
+                                if any(k in L for k in ["phone", "mobil", "telefon", "tel"]):
+                                    continue
+                                if "linkedin" in L:
+                                    continue  # already handled by dedicated logic
+
+                                # Last resort: drop N/A so the field isn’t left blank
+                                el.fill("N/A")
+                                try: el.press("Tab")
+                                except Exception: pass
+                                frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
+                                print(f"🧩 Required text field had no value → set 'N/A' ({lbl[:60]})")
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+
+                    # --- Required <select> dropdowns ---
+                    try:
+                        selects = frame.locator("select:not([disabled])")
+                        for i in range(selects.count()):
+                            sel = selects.nth(i)
+                            try:
+                                if not sel.is_visible():
+                                    continue
+
+                                # already has value?
+                                has_val = frame.evaluate("(el) => !!el.value", sel)
+                                if has_val:
+                                    continue
+
+                                lbl = near_text(frame, sel)
+                                req_attr = sel.get_attribute("required") is not None or sel.get_attribute("aria-required") in ["true", True]
+                                req_near = looks_required(lbl)
+                                if not (req_attr or req_near):
+                                    continue
+
+                                # If label hints 'country' and we know the user's country text, try that first
+                                user_country_human = {
+                                    "DK": "Denmark",
+                                    "US": "United States",
+                                    "UK": "United Kingdom",
+                                    "FRA": "France",
+                                    "GER": "Germany",
+                                }.get((getattr(user, "country", "") or "").upper(), "")
+
+                                if "country" in lbl.lower() and user_country_human:
+                                    try:
+                                        sel.select_option(label=user_country_human)
+                                        print(f"🌍 Completed required Country select → {user_country_human}")
+                                        continue
+                                    except Exception:
+                                        pass
+
+                                # Otherwise choose the first non-placeholder option
+                                chose = frame.evaluate("""
+                                    (el) => {
+                                    const opts = Array.from(el.options || []);
+                                    const good = opts.find(o => {
+                                        const t = (o.textContent||'').trim();
+                                        return t && !/select|vælg|choose|please|—|–|-/i.test(t);
+                                    });
+                                    if (good) { el.value = good.value; el.dispatchEvent(new Event('change',{bubbles:true})); return good.textContent.trim(); }
+                                    return "";
+                                    }
+                                """, sel)
+                                if chose:
+                                    print(f"✅ Required select filled → {chose[:40]} ({lbl[:40]})")
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+
+                    # --- Radio groups (pick a safe default if required) ---
+                    try:
+                        radios = frame.locator("input[type='radio']:not([disabled])")
+                        processed = set()
+                        for i in range(radios.count()):
+                            r = radios.nth(i)
+                            try:
+                                name = r.get_attribute("name") or f"__idx{i}"
+                                if name in processed:
+                                    continue
+                                group = frame.locator(f"input[type='radio'][name='{name}']")
+                                # required?
+                                any_req = False
+                                for j in range(group.count()):
+                                    g = group.nth(j)
+                                    if g.get_attribute("required") is not None or g.get_attribute("aria-required") in ["true", True]:
+                                        any_req = True; break
+                                if not any_req:
+                                    continue
+                                # pick the first visible option
+                                for j in range(group.count()):
+                                    g = group.nth(j)
+                                    if g.is_visible():
+                                        g.check(force=True)
+                                        print(f"🔘 Checked required radio group '{name}'")
+                                        break
+                                processed.add(name)
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+
+                    # --- Checkboxes (required only; avoid marketing/newsletters) ---
+                    try:
+                        checks = frame.locator("input[type='checkbox']:not([disabled])")
+                        for i in range(checks.count()):
+                            c = checks.nth(i)
+                            try:
+                                lbl = near_text(frame, c).lower()
+                                req = c.get_attribute("required") is not None or c.get_attribute("aria-required") in ["true", True] or looks_required(lbl)
+                                if not req:
+                                    continue
+                                if any(w in lbl for w in AVOID_CHECKBOX):
+                                    print(f"🚫 Skipping nonessential checkbox: {lbl[:50]}")
+                                    continue
+                                c.check(force=True)
+                                print(f"☑️ Checked required checkbox ({lbl[:60]})")
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+
+                print("✅ Required-completeness pass finished.")
+            except Exception as e:
+                print(f"⚠️ Required-completeness pass failed: {e}")
+
+            
+
             # ✅ EXTRA: Global scan for any unfilled fields (outside iframe or below form)
             # 🔁 LinkedIn URL from user (single source)
             linkedin_url = (getattr(user, "linkedin_url", "") or "").strip()
