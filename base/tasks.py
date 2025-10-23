@@ -191,15 +191,13 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
 
-                
-            # 9️⃣ Resume upload (waits for dynamically rendered input)
 
-
+            # 9️⃣ Resume upload (Greenhouse dynamic + iframe-safe)
             try:
                 if resume_path:
                     print(f"📎 Attempting to upload resume from: {resume_path}")
 
-                    # 🧠 Step 1: Prefer 'Attach' option
+                    # 🧠 Step 1: Prefer "Attach" option
                     try:
                         all_buttons = context.locator("button, label")
                         attach_btn = all_buttons.filter(has_text="Attach")
@@ -208,7 +206,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         if attach_btn.count() > 0:
                             print("🧠 AI decision: Choosing 'Attach' option for resume upload.")
                             attach_btn.first.click()
-                            page.wait_for_timeout(2000)
+                            page.wait_for_timeout(2500)
                         elif manual_btn.count() > 0:
                             print("⚠️ Only 'Enter manually' found — skipping upload.")
                         else:
@@ -216,20 +214,25 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception as e:
                         print(f"⚠️ Could not click attach button: {e}")
 
-                    # 🕒 Step 2: Wait up to 8 seconds for input[type=file] to appear
+                    # 🕵️ Step 2: Re-scan all frames for input[type=file]
                     file_input = None
-                    for i in range(8):
-                        try:
-                            file_input = context.locator("input[type='file']").first
-                            if file_input.count() > 0:
-                                print(f"✅ File input detected after {i+1}s")
-                                break
-                        except Exception:
-                            pass
+                    for i in range(10):  # retry for 10s
+                        for frame in page.frames:
+                            try:
+                                locator = frame.locator("input[type='file']")
+                                if locator.count() > 0:
+                                    file_input = locator.first
+                                    print(f"✅ Found file input in frame after {i+1}s")
+                                    context = frame
+                                    break
+                            except Exception:
+                                pass
+                        if file_input:
+                            break
                         page.wait_for_timeout(1000)
 
-                    # 🧱 Step 3: Make sure input is visible before upload
-                    if file_input and file_input.count() > 0:
+                    # 🧱 Step 3: Upload the resume if found
+                    if file_input:
                         try:
                             context.evaluate("""
                                 (el) => {
@@ -246,9 +249,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         except Exception as e:
                             print(f"⚠️ Upload attempt failed: {e}")
                     else:
-                        print("⚠️ No input[type='file'] detected after waiting.")
+                        print("⚠️ No input[type='file'] found after scanning all frames.")
 
-                    # 🧪 Step 4: Shadow DOM fallback
+                    # 🧩 Step 4: Shadow DOM fallback
                     try:
                         page.evaluate("""
                             () => {
@@ -268,9 +271,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
                     # ✅ Step 5: Verify upload success
                     try:
-                        uploaded_file_indicator = context.locator("text=.docx, text=.pdf, text=Resume")
-                        if uploaded_file_indicator.count() > 0:
-                            print("✅ Resume file visibly uploaded on page.")
+                        confirmation = context.locator("text=.docx, text=.pdf, text=Resume, text=Attached")
+                        if confirmation.count() > 0:
+                            print("✅ Resume visibly attached on page.")
                         else:
                             print("⚠️ Could not visually verify uploaded file.")
                     except Exception:
@@ -278,6 +281,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
+
 
 
 
