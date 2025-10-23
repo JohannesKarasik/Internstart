@@ -333,43 +333,67 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
 
-            # 🔁 Retry LinkedIn fill after resume upload (handles inputs, textareas, editable divs)
+            # 🔍 UNIVERSAL FIELD SCANNER (fills every visible input-like field)
             try:
-                print("🔎 Re-scanning globally for LinkedIn URL fields after upload...")
-                for frame in page.frames:
-                    linkedin_retry = frame.locator(
-                        "input[name*='linkedin'], input[id*='linkedin'], input[placeholder*='linkedin'], "
-                        "textarea[name*='linkedin'], textarea[placeholder*='linkedin'], "
-                        "div[contenteditable][aria-label*='linkedin'], div[contenteditable][data-testid*='linkedin'], "
-                        "input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], "
-                        "input[name*='url'], input[id*='url'], textarea[name*='url'], textarea[id*='url']"
-                    )
-                    if linkedin_retry.count() > 0:
-                        linkedin_retry.first.fill(linkedin_url or "N/A")
-                        print(f"🔗 Filled LinkedIn URL field (post-upload, frame={frame.name or 'main'}).")
-                        break
+                print("🌐 Running universal field scan to ensure all visible fields are filled...")
 
-                    # 🧠 NEW: Handle contenteditable divs (common on Greenhouse)
-                    editable_divs = frame.locator("div[contenteditable='true']")
-                    for i in range(editable_divs.count()):
-                        inner_text = editable_divs.nth(i).inner_text().lower()
-                        label_text = editable_divs.nth(i).evaluate("el => el.closest('div')?.innerText || ''").lower()
-                        if "linkedin" in label_text or "profile" in label_text:
-                            editable_divs.nth(i).fill(linkedin_url or "N/A")
-                            print(f"🔗 Filled LinkedIn URL contenteditable div (frame={frame.name or 'main'}).")
-                            break
-                else:
-                    # Fallback check in main context
-                    linkedin_retry = context.locator(
-                        "input[placeholder*='LinkedIn'], textarea[placeholder*='LinkedIn'], div[contenteditable*='true']"
-                    )
-                    if linkedin_retry.count() > 0:
-                        linkedin_retry.first.fill(linkedin_url or "N/A")
-                        print("🔗 Filled LinkedIn URL field (fallback main).")
-                    else:
-                        print("⚠️ No LinkedIn field found even after upload scan.")
+                # Define all field types to inspect (text, email, tel, textarea, editable divs)
+                selectors = [
+                    "input:not([type='hidden']):not([disabled])",
+                    "textarea:not([disabled])",
+                    "div[contenteditable='true']"
+                ]
+                all_fields = []
+
+                for frame in page.frames:
+                    print(f"🔎 Scanning frame: {frame.name or 'main'}")
+                    for selector in selectors:
+                        elements = frame.locator(selector)
+                        for i in range(elements.count()):
+                            el = elements.nth(i)
+                            try:
+                                # Skip invisible elements
+                                if not el.is_visible():
+                                    continue
+
+                                # Read labels or placeholders
+                                label_text = el.get_attribute("aria-label") or el.get_attribute("placeholder") or ""
+                                surrounding = el.evaluate("el => el.closest('label')?.innerText || el.closest('div')?.innerText || ''")
+                                combined_label = (label_text + " " + surrounding).lower()
+
+                                # Detect what kind of field it is
+                                value = el.input_value().strip() if selector != "div[contenteditable='true']" else el.inner_text().strip()
+                                if value:
+                                    continue  # already filled
+
+                                # Pick correct value dynamically
+                                if "first" in combined_label:
+                                    val = user.first_name
+                                elif "last" in combined_label or "surname" in combined_label:
+                                    val = user.last_name
+                                elif "email" in combined_label:
+                                    val = user.email
+                                elif "phone" in combined_label or "mobile" in combined_label:
+                                    val = getattr(user, "phone_number", "")
+                                elif "linkedin" in combined_label or "profile" in combined_label or "url" in combined_label:
+                                    val = getattr(user, "linkedin_url", "") or "https://www.linkedin.com/"
+                                elif "country" in combined_label:
+                                    val = dict(DK="Denmark", US="United States", UK="United Kingdom",
+                                            FRA="France", GER="Germany").get(getattr(user, "country", ""), "")
+                                else:
+                                    val = "N/A"
+
+                                # Fill the field
+                                el.fill(val)
+                                print(f"✅ Filled '{combined_label[:50]}' → {val}")
+                                all_fields.append(combined_label[:50])
+
+                            except Exception as e:
+                                continue
+
+                print(f"✅ Universal field scan complete. Filled {len(all_fields)} fields.")
             except Exception as e:
-                print(f"⚠️ LinkedIn post-upload retry failed: {e}")
+                print(f"⚠️ Universal field scan failed: {e}")
 
 
 
