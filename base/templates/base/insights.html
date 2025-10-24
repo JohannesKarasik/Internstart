@@ -317,6 +317,8 @@
   
     /* --------- Theme --------- */
     const root = document.documentElement;
+    let currentChart = null;
+
     const setTheme = (mode) => {
       document.documentElement.setAttribute("data-theme", mode);
       document.getElementById("lightBtn").classList.toggle("active", mode === "light");
@@ -421,7 +423,6 @@
     };
   
     /* --------- Chart Rendering --------- */
-    let currentChart = null;
     const wrapper = document.getElementById("chartWrapper");
   
     function filterAndSort() {
