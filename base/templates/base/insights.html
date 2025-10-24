@@ -32,68 +32,18 @@
   <h1>📊 Listings Insights Dashboard</h1>
 
   <div class="chart-container">
-    <h3>Listings by Country</h3>
-    <canvas id="countryChart"></canvas>
-  </div>
-
-  <div class="chart-container">
-    <h3>Listings by Industry</h3>
-    <canvas id="industryChart"></canvas>
-  </div>
-
-  <div class="chart-container">
-    <h3>Listings by Job Type</h3>
-    <canvas id="jobTypeChart"></canvas>
-  </div>
-
-  <div class="chart-container">
     <h3>Combinations (Country + Industry + Job Type)</h3>
     <canvas id="comboChart"></canvas>
   </div>
 
   <script>
-
-    const countryData = JSON.parse('{{ country_data|escapejs }}');
-    const industryData = JSON.parse('{{ industry_data|escapejs }}');
-    const jobTypeData = JSON.parse('{{ job_type_data|escapejs }}');
     const comboData = JSON.parse('{{ combo_data|escapejs }}');
 
-    
     const colors = (n) =>
       Array.from({ length: n }, (_, i) => `hsl(${(i * 40) % 360}, 70%, 55%)`);
-  
-    // Helper to clean up nulls
+
     const labelOrUnknown = (v) => (v && v.trim() !== "" ? v : "Unknown");
-  
-    const makeChart = (id, label, data) => {
-      new Chart(document.getElementById(id), {
-        type: "bar",
-        data: {
-          labels: data.map((d) => labelOrUnknown(d[label])),
-          datasets: [
-            {
-              label: "Listings",
-              data: data.map((d) => d.total),
-              backgroundColor: colors(data.length),
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } },
-            x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } },
-          },
-          plugins: { legend: { display: false } },
-        },
-      });
-    };
-  
-    makeChart("countryChart", "country", countryData);
-    makeChart("industryChart", "industry", industryData);
-    makeChart("jobTypeChart", "job_type", jobTypeData);
-  
-    // Combination chart (for country + industry + job_type)
+
     new Chart(document.getElementById("comboChart"), {
       type: "bar",
       data: {
@@ -121,6 +71,5 @@
       },
     });
   </script>
-  
 </body>
 </html>
