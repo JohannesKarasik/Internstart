@@ -266,9 +266,16 @@
     </section>
   </div>
 
+  <script id="combo-data" type="application/json">
+    {{ combo_data|safe }}
+  </script>
+  
+  <script>
+    const rawData = JSON.parse(document.getElementById("combo-data").textContent) || [];
+  </script>
+  
   <script>
     /* --------- Data --------- */
-    const rawData = JSON.parse('{{ combo_data|escapejs }}') || [];
 
     /* --------- Utilities --------- */
     const labelOrUnknown = (v) => (v && String(v).trim() !== "" ? v : "Unknown");
