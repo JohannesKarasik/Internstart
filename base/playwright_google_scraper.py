@@ -53,7 +53,9 @@ def main():
         ))
         page = context.new_page()
         print("Navigating to:", url)
-        page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        page.goto(url, wait_until="networkidle", timeout=60000)
+        page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
+        page.wait_for_timeout(2000)
         time.sleep(1.2)  # give scripts on page a moment
 
         if is_captcha(page):
