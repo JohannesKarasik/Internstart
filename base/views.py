@@ -1917,30 +1917,58 @@ def import_job_view(request):
                 print("⚠️ [DEBUG] Country GPT fallback failed:", e)
                 country_code = None
 
-        # ---------- Industry detection ----------
-        job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
-        industry_map = {
-            "marketing": "marketing",
-            "communication": "marketing",
-            "sales": "sales_customer",
-            "customer": "sales_customer",
-            "software": "software_backend",
-            "developer": "software_backend",
-            "engineer": "software_backend",
-            "frontend": "software_frontend",
-            "ui": "software_frontend",
-            "ux": "software_frontend",
-            "finance": "business_finance",
-            "accounting": "business_finance",
-            "bank": "business_finance",
-            "other": "other",
-        }
+            # ---------- Industry detection ----------
+            job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
 
-        industry_key = "other"
-        for key, val in industry_map.items():
-            if key in job_text_lower:
-                industry_key = val
-                break
+            industry_map = {
+                "marketing": "marketing",
+                "communication": "marketing",
+                "sales": "sales_customer",
+                "customer": "sales_customer",
+                "software": "software_backend",
+                "backend": "software_backend",
+                "developer": "software_backend",
+                "engineering": "software_backend",
+                "frontend": "software_frontend",
+                "ui": "software_frontend",
+                "ux": "software_frontend",
+                "finance": "business_finance",
+                "accounting": "business_finance",
+                "bank": "business_finance",
+                "economics": "business_finance",
+            }
+
+            industry_key = None
+            for key, val in industry_map.items():
+                if key in job_text_lower:
+                    industry_key = val
+                    break
+
+            # If still not matched → use GPT to infer the most fitting category
+            if not industry_key:
+                try:
+                    gpt_industry = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        temperature=0,
+                        messages=[{
+                            "role": "user",
+                            "content": (
+                                "Classify this job into one of these categories only: "
+                                "business_finance, marketing, software_backend, software_frontend, or sales_customer. "
+                                f"Here is the job title and description: '{data.get('job_role', '')} - {data.get('description', '')}'. "
+                                "Answer only with the category name."
+                            )
+                        }]
+                    )
+                    industry_key = gpt_industry.choices[0].message.content.strip()
+                    if industry_key not in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
+                        industry_key = "business_finance"  # fallback default
+                except Exception as e:
+                    print("⚠️ [DEBUG] GPT industry classification failed:", e)
+                    industry_key = "business_finance"  # safe fallback
+
+            print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, job_type: {matched_type}, email: {email_found}")
+
 
         print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, "
               f"job_type: {matched_type}, email: {email_found}")
