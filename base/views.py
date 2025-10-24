@@ -1914,69 +1914,150 @@ def import_job_view(request):
                     }],
                     temperature=0,
                 )
-                country_code = gpt_country.choices[0].message.content.strip().upper()
+                country_code = (gpt_country.choices[0].message.content or "").strip().upper()
                 if country_code not in ["DK", "US", "UK", "FRA", "GER"]:
                     country_code = None
             except Exception as e:
                 print("⚠️ [DEBUG] Country GPT fallback failed:", e)
                 country_code = None
 
-        # ---------- Industry detection (DEDENTED so it ALWAYS runs) ----------
-        job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
+        # ---------- Industry detection (scored, robust) ----------
+        # Build a clean corpus from job title + description
+        title = (data.get("job_role") or "")
+        desc = (data.get("description") or "")
+        corpus = f"{title}\n{desc}\n{raw_text}".lower()
 
-        industry_map = {
-            "marketing": "marketing",
-            "communication": "marketing",
-            "sales": "sales_customer",
-            "customer": "sales_customer",
-            "software": "software_backend",
-            "backend": "software_backend",
-            "developer": "software_backend",
-            "engineering": "software_backend",
-            "frontend": "software_frontend",
-            "ui": "software_frontend",
-            "ux": "software_frontend",
-            "finance": "business_finance",
-            "accounting": "business_finance",
-            "bank": "business_finance",
-            "economics": "business_finance",
+        # Word-boundary regex helper (escapes and matches whole words/phrases)
+        def occurs(pattern: str) -> int:
+            # phrase → word boundary around each word; allow spaces or hyphens
+            # e.g. "paid social" ⇒ r"\bpaid[\s\-]+social\b"
+            parts = [re.escape(p) for p in pattern.split()]
+            if len(parts) == 1:
+                rx = rf"\b{parts[0]}\b"
+            else:
+                rx = r"\b" + r"[\s\-]+".join(parts) + r"\b"
+            return len(re.findall(rx, corpus))
+
+        # Weighted keyword dictionaries per category
+        CATS = {
+            "marketing": {
+                # EN
+                "marketing": 2, "performance marketing": 3, "paid social": 4, "social ads": 3,
+                "media buyer": 3, "google ads": 3, "facebook ads": 3, "linkedin ads": 3,
+                "adwords": 2, "seo": 2, "sem": 2, "ppc": 2, "campaign": 2, "campaigns": 2,
+                "creative": 1, "brand": 1, "content": 1, "analytics": 1,
+                # DA
+                "annoncering": 3, "annoncer": 2, "kampagne": 2, "kampagner": 2,
+                "betalt social": 4, "paid social": 4, "performance": 2, "bureau": 1,
+                "meta": 2, "tiktok": 2, "snapchat": 2, "sporing": 1, "tracking": 2,
+                "pixel": 2, "pixels": 2, "datasporing": 2, "rapportering": 1,
+                "visualisering": 1, "kommunikation": 2,
+            },
+            "sales_customer": {
+                "sales": 2, "account manager": 2, "customer success": 2,
+                "customer support": 2, "support": 1, "customer": 1,
+                # DA
+                "salg": 2, "kunde": 2, "kunder": 2, "konsulent": 1, "rådgiver": 2,
+                "forretningsudvikling": 2, "bd": 1, "bdr": 1, "sdr": 1,
+            },
+            "software_frontend": {
+                "frontend": 3, "react": 3, "next": 2, "vue": 2, "angular": 2,
+                "javascript": 2, "typescript": 2, "html": 2, "css": 2,
+                "tailwind": 1, "sass": 1, "ui/ux": 3, "ux/ui": 3,
+                # use full tokens only; do NOT use bare "ui" or "ux"
+                "ui designer": 2, "ux designer": 2, "frontend engineer": 3,
+            },
+            "software_backend": {
+                "backend": 3, "api": 2, "microservices": 2, "database": 2,
+                "postgres": 2, "mysql": 2, "sql": 1, "docker": 2, "kubernetes": 2,
+                "python": 2, "django": 2, "java": 2, "c#": 2, "node": 2, "go": 2,
+                "devops": 2, "cloud": 1,
+                # DA
+                "udvikler": 2, "backend udvikler": 3, "softwareudvikling": 2,
+            },
+            "business_finance": {
+                "finance": 2, "financial": 2, "accounting": 2, "auditing": 2,
+                "analyst": 1, "controller": 2, "bank": 2, "consulting": 1,
+                "strategy": 1, "procurement": 1, "supply chain": 1,
+                # DA
+                "økonomi": 3, "bogholder": 2, "revisor": 2, "analytiker": 1,
+            },
         }
 
-        # Step 1: Try to match keywords locally
-        for key, val in industry_map.items():
-            if key in job_text_lower:
-                industry_key = val
-                break
+        # Score each category
+        scores = {k: 0 for k in CATS.keys()}
 
-        # Step 2: If no match, ask GPT to classify it into one of the valid ones
+        # Slightly boost title matches (job titles are strong signals)
+        title_boost = 1.5
+        title_lc = title.lower()
+
+        for cat, kwmap in CATS.items():
+            for kw, w in kwmap.items():
+                count = occurs(kw)
+                if count:
+                    scores[cat] += count * w
+                # Also boost if KW appears in title specifically
+                if re.search(rf"\b{re.escape(kw)}\b", title_lc):
+                    scores[cat] += w * title_boost
+
+        # Choose the category with the highest score
+        best_cat = max(scores, key=scores.get) if any(scores.values()) else None
+
+        # Tie-breaker: prefer marketing if "marketing" or "paid social" appears
+        if best_cat:
+            if occurs("paid social") or occurs("marketing") or occurs("annoncering") or occurs("kampagne") or occurs("kampagner"):
+                # If marketing is close (within 1 point), force marketing
+                if scores["marketing"] >= max(scores[best_cat] - 1, 0):
+                    best_cat = "marketing"
+
+        industry_key = best_cat
+
+        # GPT fallback only if still none
         if not industry_key:
             try:
                 gpt_industry = client.chat.completions.create(
                     model="gpt-4o-mini",
                     temperature=0,
-                    messages=[{
-                        "role": "user",
-                        "content": (
-                            "Classify this job into one of these categories only: "
-                            "business_finance, marketing, software_backend, software_frontend, or sales_customer. "
-                            f"Here is the job title and description: '{data.get('job_role', '')} - {data.get('description', '')}'. "
-                            "Answer only with the category name."
-                        )
-                    }]
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You classify job postings into a single industry label."
+                        },
+                        {
+                            "role": "user",
+                            "content": (
+                                "Pick exactly one label from: business_finance, marketing, software_backend, "
+                                "software_frontend, sales_customer.\n\n"
+                                "Examples:\n"
+                                "Q: 'Paid Social Specialist at a marketing bureau, handles Meta/TikTok campaigns, tracking pixels'\n"
+                                "A: marketing\n\n"
+                                "Q: 'Frontend developer working with React, CSS, UI components'\n"
+                                "A: software_frontend\n\n"
+                                "Q: 'Backend engineer building APIs with Python/Django and Postgres'\n"
+                                "A: software_backend\n\n"
+                                "Q: 'Financial controller managing budgets and accounting'\n"
+                                "A: business_finance\n\n"
+                                "Q: 'Account Manager handling clients and upsell opportunities'\n"
+                                "A: sales_customer\n\n"
+                                f"Now classify this:\nTitle: {title}\nDescription: {desc}\nReturn ONLY the label."
+                            )
+                        }
+                    ]
                 )
-                industry_key = (gpt_industry.choices[0].message.content or "").strip()
-                if industry_key not in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
-                    industry_key = None
+                resp = (gpt_industry.choices[0].message.content or "").strip()
+                if resp in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
+                    industry_key = resp
             except Exception as e:
                 print("⚠️ [DEBUG] GPT industry classification failed:", e)
-                industry_key = None
 
-        # Step 3: FINAL guard — never blank, never 'other'
+        # FINAL guard — never blank
         if not industry_key:
-            industry_key = "business_finance"  # ✅ hard fallback to ensure it's always set
+            # Default to a safe category; marketing is common for posts mentioning campaigns/ads
+            industry_key = "marketing" if occurs("campaign") or occurs("kampagne") or occurs("paid social") or occurs("annoncering") else "business_finance"
 
         print(
-            f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, "
+            f"🌍 [DEBUG] Detected country: {country_code}, "
+            f"industry_scores: {scores} → chosen: {industry_key}, "
             f"job_type: {matched_type}, email: {email_found}"
         )
 
@@ -1994,7 +2075,7 @@ def import_job_view(request):
             description=data.get("description", ""),
             job_type=matched_type,
             country=country_code,
-            industry=industry_key,  # ✅ always a valid choice now
+            industry=industry_key,  # ✅ robust final value
             email=email_found,
         )
 
