@@ -33,6 +33,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
+import json
 
 from django.db.models import Q
 from.models import Connection
@@ -2067,11 +2068,12 @@ def listings_insights_view(request):
     )
 
     context = {
-        "country_data": list(country_data),
-        "industry_data": list(industry_data),
-        "job_type_data": list(job_type_data),
-        "combo_data": list(combo_data),
+        "country_data": json.dumps(list(country_data)),
+        "industry_data": json.dumps(list(industry_data)),
+        "job_type_data": json.dumps(list(job_type_data)),
+        "combo_data": json.dumps(list(combo_data)),
     }
+
     return render(request, "base/insights.html", context)
 
 

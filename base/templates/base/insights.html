@@ -52,11 +52,13 @@
   </div>
 
   <script>
-    const countryData = {{ country_data|safe }};
-    const industryData = {{ industry_data|safe }};
-    const jobTypeData = {{ job_type_data|safe }};
-    const comboData = {{ combo_data|safe }};
-  
+
+    const countryData = JSON.parse('{{ country_data|escapejs }}');
+    const industryData = JSON.parse('{{ industry_data|escapejs }}');
+    const jobTypeData = JSON.parse('{{ job_type_data|escapejs }}');
+    const comboData = JSON.parse('{{ combo_data|escapejs }}');
+
+    
     const colors = (n) =>
       Array.from({ length: n }, (_, i) => `hsl(${(i * 40) % 360}, 70%, 55%)`);
   
