@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Listings Insights</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #f9fafb;
+      padding: 40px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .chart-container {
+      width: 80%;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    canvas {
+      width: 100% !important;
+      height: 400px !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Listings Insights Dashboard</h1>
+
+  <div class="chart-container">
+    <h3>Listings by Country</h3>
+    <canvas id="countryChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>Listings by Industry</h3>
+    <canvas id="industryChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>Listings by Job Type</h3>
+    <canvas id="jobTypeChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>Combinations (Country + Industry + Job Type)</h3>
+    <canvas id="comboChart"></canvas>
+  </div>
+
+  <script>
+    const countryData = {{ country_data|safe }};
+    const industryData = {{ industry_data|safe }};
+    const jobTypeData = {{ job_type_data|safe }};
+    const comboData = {{ combo_data|safe }};
+
+    // Utility: generate random color palette
+    const colors = (n) => Array.from({length: n}, (_, i) => 
+      `hsl(${i * 45 % 360}, 70%, 60%)`
+    );
+
+    // ---- Country Chart ----
+    new Chart(document.getElementById('countryChart'), {
+      type: 'bar',
+      data: {
+        labels: countryData.map(d => d.country || 'Unknown'),
+        datasets: [{
+          label: 'Listings',
+          data: countryData.map(d => d.total),
+          backgroundColor: colors(countryData.length)
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // ---- Industry Chart ----
+    new Chart(document.getElementById('industryChart'), {
+      type: 'bar',
+      data: {
+        labels: industryData.map(d => d.industry || 'Unknown'),
+        datasets: [{
+          label: 'Listings',
+          data: industryData.map(d => d.total),
+          backgroundColor: colors(industryData.length)
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // ---- Job Type Chart ----
+    new Chart(document.getElementById('jobTypeChart'), {
+      type: 'bar',
+      data: {
+        labels: jobTypeData.map(d => d.job_type || 'Unknown'),
+        datasets: [{
+          label: 'Listings',
+          data: jobTypeData.map(d => d.total),
+          backgroundColor: colors(jobTypeData.length)
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // ---- Combination Chart ----
+    new Chart(document.getElementById('comboChart'), {
+      type: 'bar',
+      data: {
+        labels: comboData.map(d => 
+          `${d.country || 'Unknown'} - ${d.industry || 'Unknown'} - ${d.job_type || 'Unknown'}`
+        ),
+        datasets: [{
+          label: 'Listings',
+          data: comboData.map(d => d.total),
+          backgroundColor: colors(comboData.length)
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
