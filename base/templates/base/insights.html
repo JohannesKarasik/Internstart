@@ -4,6 +4,7 @@
 <head>
   <title>Listings Insights</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <style>
     body {
       font-family: Inter, Arial, sans-serif;
@@ -15,16 +16,17 @@
       margin-bottom: 30px;
     }
     .chart-container {
-      width: 80%;
-      margin: 40px auto;
+      width: 90%;
+      max-width: 1400px;
+      margin: 60px auto;
       background: #fff;
-      padding: 30px;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
     }
     canvas {
       width: 100% !important;
-      height: 400px !important;
+      height: 550px !important; /* Taller chart for better visibility */
     }
   </style>
 </head>
@@ -44,7 +46,9 @@
 
     const labelOrUnknown = (v) => (v && v.trim() !== "" ? v : "Unknown");
 
-    new Chart(document.getElementById("comboChart"), {
+    const ctx = document.getElementById("comboChart");
+
+    new Chart(ctx, {
       type: "bar",
       data: {
         labels: comboData.map(
@@ -63,12 +67,30 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
           y: { beginAtZero: true, ticks: { precision: 0 } },
-          x: { ticks: { autoSkip: false, maxRotation: 60, minRotation: 60 } },
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 55,
+              minRotation: 55,
+            },
+          },
         },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            color: "#333",
+            anchor: "end",
+            align: "start",
+            offset: -4,
+            font: { weight: "bold", size: 12 },
+            formatter: (value) => value,
+          },
+        },
       },
+      plugins: [ChartDataLabels],
     });
   </script>
 </body>
