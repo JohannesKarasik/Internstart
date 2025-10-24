@@ -1922,15 +1922,11 @@ def import_job_view(request):
                 country_code = None
 
         # ---------- Industry detection (scored, robust) ----------
-        # Build a clean corpus from job title + description
         title = (data.get("job_role") or "")
         desc = (data.get("description") or "")
         corpus = f"{title}\n{desc}\n{raw_text}".lower()
 
-        # Word-boundary regex helper (escapes and matches whole words/phrases)
         def occurs(pattern: str) -> int:
-            # phrase → word boundary around each word; allow spaces or hyphens
-            # e.g. "paid social" ⇒ r"\bpaid[\s\-]+social\b"
             parts = [re.escape(p) for p in pattern.split()]
             if len(parts) == 1:
                 rx = rf"\b{parts[0]}\b"
@@ -1938,17 +1934,14 @@ def import_job_view(request):
                 rx = r"\b" + r"[\s\-]+".join(parts) + r"\b"
             return len(re.findall(rx, corpus))
 
-        # Weighted keyword dictionaries per category
         CATS = {
             "marketing": {
-                # EN
                 "marketing": 2, "performance marketing": 3, "paid social": 4, "social ads": 3,
                 "media buyer": 3, "google ads": 3, "facebook ads": 3, "linkedin ads": 3,
                 "adwords": 2, "seo": 2, "sem": 2, "ppc": 2, "campaign": 2, "campaigns": 2,
                 "creative": 1, "brand": 1, "content": 1, "analytics": 1,
-                # DA
                 "annoncering": 3, "annoncer": 2, "kampagne": 2, "kampagner": 2,
-                "betalt social": 4, "paid social": 4, "performance": 2, "bureau": 1,
+                "betalt social": 4, "performance": 2, "bureau": 1,
                 "meta": 2, "tiktok": 2, "snapchat": 2, "sporing": 1, "tracking": 2,
                 "pixel": 2, "pixels": 2, "datasporing": 2, "rapportering": 1,
                 "visualisering": 1, "kommunikation": 2,
@@ -1956,7 +1949,6 @@ def import_job_view(request):
             "sales_customer": {
                 "sales": 2, "account manager": 2, "customer success": 2,
                 "customer support": 2, "support": 1, "customer": 1,
-                # DA
                 "salg": 2, "kunde": 2, "kunder": 2, "konsulent": 1, "rådgiver": 2,
                 "forretningsudvikling": 2, "bd": 1, "bdr": 1, "sdr": 1,
             },
@@ -1964,30 +1956,23 @@ def import_job_view(request):
                 "frontend": 3, "react": 3, "next": 2, "vue": 2, "angular": 2,
                 "javascript": 2, "typescript": 2, "html": 2, "css": 2,
                 "tailwind": 1, "sass": 1, "ui/ux": 3, "ux/ui": 3,
-                # use full tokens only; do NOT use bare "ui" or "ux"
                 "ui designer": 2, "ux designer": 2, "frontend engineer": 3,
             },
             "software_backend": {
                 "backend": 3, "api": 2, "microservices": 2, "database": 2,
                 "postgres": 2, "mysql": 2, "sql": 1, "docker": 2, "kubernetes": 2,
                 "python": 2, "django": 2, "java": 2, "c#": 2, "node": 2, "go": 2,
-                "devops": 2, "cloud": 1,
-                # DA
-                "udvikler": 2, "backend udvikler": 3, "softwareudvikling": 2,
+                "devops": 2, "cloud": 1, "udvikler": 2, "backend udvikler": 3, "softwareudvikling": 2,
             },
             "business_finance": {
                 "finance": 2, "financial": 2, "accounting": 2, "auditing": 2,
                 "analyst": 1, "controller": 2, "bank": 2, "consulting": 1,
                 "strategy": 1, "procurement": 1, "supply chain": 1,
-                # DA
                 "økonomi": 3, "bogholder": 2, "revisor": 2, "analytiker": 1,
             },
         }
 
-        # Score each category
         scores = {k: 0 for k in CATS.keys()}
-
-        # Slightly boost title matches (job titles are strong signals)
         title_boost = 1.5
         title_lc = title.lower()
 
@@ -1996,52 +1981,41 @@ def import_job_view(request):
                 count = occurs(kw)
                 if count:
                     scores[cat] += count * w
-                # Also boost if KW appears in title specifically
                 if re.search(rf"\b{re.escape(kw)}\b", title_lc):
                     scores[cat] += w * title_boost
 
-        # Choose the category with the highest score
         best_cat = max(scores, key=scores.get) if any(scores.values()) else None
 
-        # Tie-breaker: prefer marketing if "marketing" or "paid social" appears
         if best_cat:
             if occurs("paid social") or occurs("marketing") or occurs("annoncering") or occurs("kampagne") or occurs("kampagner"):
-                # If marketing is close (within 1 point), force marketing
                 if scores["marketing"] >= max(scores[best_cat] - 1, 0):
                     best_cat = "marketing"
 
         industry_key = best_cat
 
-        # GPT fallback only if still none
         if not industry_key:
             try:
                 gpt_industry = client.chat.completions.create(
                     model="gpt-4o-mini",
                     temperature=0,
                     messages=[
-                        {
-                            "role": "system",
-                            "content": "You classify job postings into a single industry label."
-                        },
-                        {
-                            "role": "user",
-                            "content": (
-                                "Pick exactly one label from: business_finance, marketing, software_backend, "
-                                "software_frontend, sales_customer.\n\n"
-                                "Examples:\n"
-                                "Q: 'Paid Social Specialist at a marketing bureau, handles Meta/TikTok campaigns, tracking pixels'\n"
-                                "A: marketing\n\n"
-                                "Q: 'Frontend developer working with React, CSS, UI components'\n"
-                                "A: software_frontend\n\n"
-                                "Q: 'Backend engineer building APIs with Python/Django and Postgres'\n"
-                                "A: software_backend\n\n"
-                                "Q: 'Financial controller managing budgets and accounting'\n"
-                                "A: business_finance\n\n"
-                                "Q: 'Account Manager handling clients and upsell opportunities'\n"
-                                "A: sales_customer\n\n"
-                                f"Now classify this:\nTitle: {title}\nDescription: {desc}\nReturn ONLY the label."
-                            )
-                        }
+                        {"role": "system", "content": "You classify job postings into a single industry label."},
+                        {"role": "user", "content": (
+                            "Pick exactly one label from: business_finance, marketing, software_backend, "
+                            "software_frontend, sales_customer.\n\n"
+                            "Examples:\n"
+                            "Q: 'Paid Social Specialist at a marketing bureau, handles Meta/TikTok campaigns, tracking pixels'\n"
+                            "A: marketing\n\n"
+                            "Q: 'Frontend developer working with React, CSS, UI components'\n"
+                            "A: software_frontend\n\n"
+                            "Q: 'Backend engineer building APIs with Python/Django and Postgres'\n"
+                            "A: software_backend\n\n"
+                            "Q: 'Financial controller managing budgets and accounting'\n"
+                            "A: business_finance\n\n"
+                            "Q: 'Account Manager handling clients and upsell opportunities'\n"
+                            "A: sales_customer\n\n"
+                            f"Now classify this:\nTitle: {title}\nDescription: {desc}\nReturn ONLY the label."
+                        )}
                     ]
                 )
                 resp = (gpt_industry.choices[0].message.content or "").strip()
@@ -2050,9 +2024,7 @@ def import_job_view(request):
             except Exception as e:
                 print("⚠️ [DEBUG] GPT industry classification failed:", e)
 
-        # FINAL guard — never blank
         if not industry_key:
-            # Default to a safe category; marketing is common for posts mentioning campaigns/ads
             industry_key = "marketing" if occurs("campaign") or occurs("kampagne") or occurs("paid social") or occurs("annoncering") else "business_finance"
 
         print(
@@ -2064,6 +2036,86 @@ def import_job_view(request):
         # ---------- Create default topic + admin user ----------
         topic, _ = Topic.objects.get_or_create(name="General")
         admin_user = User.objects.filter(is_staff=True).first()
+
+        # ---------- DEDUPE (before create) ----------
+        from difflib import SequenceMatcher
+
+        def _normalize(s: str) -> str:
+            if not s:
+                return ""
+            s = s.lower().strip()
+            s = re.sub(r'\b(aps|a/s|ltd|inc|inc\.|llc|gmbh|spa|ab|sa|s\.a\.)\b', '', s)
+            s = re.sub(r'[^a-z0-9\s]', ' ', s)
+            s = re.sub(r'\s+', ' ', s).strip()
+            return s
+
+        def _similar(a: str, b: str) -> float:
+            return SequenceMatcher(None, _normalize(a), _normalize(b)).ratio()
+
+        title_in = data.get("job_role", "") or ""
+        company_in = data.get("company_name", "") or ""
+
+        # 1) Exact (case-insensitive)
+        exists_exact = Room.objects.filter(
+            company_name__iexact=company_in,
+            job_title__iexact=title_in
+        ).exists()
+        if exists_exact:
+            messages.info(request, "ℹ️ Duplicate skipped: same company + role already exists.")
+            return redirect("import_job")
+
+        # 2) Fuzzy scan of likely candidates
+        candidates = Room.objects.all()
+        company_norm_in = _normalize(company_in)
+        if company_norm_in:
+            first_token = company_norm_in.split(' ')[0]
+            if first_token:
+                candidates = candidates.filter(company_name__icontains=first_token)
+
+        best = None
+        best_score = 0.0
+        for r in candidates[:200]:
+            t_score = _similar(title_in, r.job_title or "")
+            c_score = _similar(company_in, r.company_name or "")
+            score = (0.6 * c_score) + (0.4 * t_score)
+            if score > best_score:
+                best_score = score
+                best = r
+
+        HIGH_DUP = 0.93
+        MID_DUP_LOW, MID_DUP_HIGH = 0.82, 0.93
+
+        if best and best_score >= HIGH_DUP:
+            print(f"🧭 [DEDUP] Blocked duplicate (score={best_score:.3f}) → matches #{best.id}")
+            messages.info(request, "ℹ️ Duplicate skipped: same company + role already exists (fuzzy match).")
+            return redirect("import_job")
+
+        # 3) Borderline → ask GPT to confirm
+        is_duplicate = False
+        if best and MID_DUP_LOW <= best_score < MID_DUP_HIGH:
+            try:
+                gpt_check = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    temperature=0,
+                    messages=[{
+                        "role": "user",
+                        "content": (
+                            "Are these referring to the SAME job at the SAME company? "
+                            "Answer strictly 'YES' or 'NO'.\n\n"
+                            f"New role: '{title_in}' at '{company_in}'.\n"
+                            f"Existing role: '{best.job_title}' at '{best.company_name}'."
+                        )
+                    }]
+                )
+                ans = (gpt_check.choices[0].message.content or "").strip().upper()
+                is_duplicate = (ans == "YES")
+            except Exception as e:
+                print("⚠️ [DEDUP] GPT check failed:", e)
+
+        if is_duplicate:
+            print(f"🧭 [DEDUP] Blocked by GPT (borderline score={best_score:.3f}) → matches #{best.id}")
+            messages.info(request, "ℹ️ Duplicate skipped: AI confirmed same company + role already exists.")
+            return redirect("import_job")
 
         # ---------- Create the Room ----------
         room = Room.objects.create(
