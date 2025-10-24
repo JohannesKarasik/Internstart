@@ -267,261 +267,336 @@
   </div>
 
 
-  <pre style="color:lime;white-space:pre-wrap;font-size:12px;">
-    {{ combo_data|safe }}
-    </pre>
+  
 
-  <script id="combo-data" type="application/json">
+  <!-- JSON data safely embedded -->
+<script id="combo-data" type="application/json">
     {{ combo_data|safe }}
   </script>
   
   <script>
-    const rawData = JSON.parse(document.getElementById("combo-data").textContent) || [];
-  </script>
-
-  <script>
-    /* --------- Data --------- */
-
+    /* --------- Load + Validate Data --------- */
+    let rawData = [];
+    try {
+      rawData = JSON.parse(document.getElementById("combo-data").textContent.trim());
+      console.log("✅ Loaded", rawData.length, "records");
+    } catch (e) {
+      console.error("❌ Failed to parse combo_data JSON:", e);
+    }
+  
     /* --------- Utilities --------- */
     const labelOrUnknown = (v) => (v && String(v).trim() !== "" ? v : "Unknown");
     const flagMap = { DK:"🇩🇰", US:"🇺🇸", UK:"🇬🇧", GB:"🇬🇧", DE:"🇩🇪", GER:"🇩🇪", FR:"🇫🇷", FRA:"🇫🇷", SE:"🇸🇪", NO:"🇳🇴", NL:"🇳🇱", ES:"🇪🇸", IT:"🇮🇹", Unknown:"❓" };
     const flag = (c) => flagMap[c] || "❓";
     const fmt = (n) => new Intl.NumberFormat().format(n);
-
-    // Stable HSL by string hash
-    function hashStr(s){
-      let h=0; for (let i=0; i<s.length; i++){ h=(h<<5)-h + s.charCodeAt(i); h|=0; }
+  
+    // Stable HSL color generator
+    function hashStr(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) {
+        h = (h << 5) - h + s.charCodeAt(i);
+        h |= 0;
+      }
       return Math.abs(h);
     }
-    function colorFor(key, alpha=0.9){
+    function colorFor(key, alpha = 0.9) {
       const h = hashStr(key) % 360;
       return `hsla(${h}, 68%, 56%, ${alpha})`;
     }
-
-    // Chunking
+  
+    // Helpers
     const chunkArray = (arr, size) => {
-      const out=[]; for (let i=0;i<arr.length;i+=size){ out.push(arr.slice(i,i+size)); } return out;
+      const out = [];
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+      return out;
     };
-
-    // CSV helper
-    function toCSV(rows, header){
-      const esc = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
-      return [header.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+    function toCSV(rows, header) {
+      const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      return [header.map(esc).join(","), ...rows.map((r) => r.map(esc).join(","))].join("\n");
     }
-
+  
     /* --------- Theme --------- */
     const root = document.documentElement;
     const setTheme = (mode) => {
-      document.documentElement.setAttribute('data-theme', mode);
-      document.getElementById('lightBtn').classList.toggle('active', mode==='light');
-      document.getElementById('darkBtn').classList.toggle('active', mode==='dark');
-      localStorage.setItem('theme', mode);
-      // Refresh chart colors for grid/labels if needed
-      if(currentChart){ currentChart.options.scales.x.grid.color = getComputedStyle(root).getPropertyValue('--grid').trim();
-        currentChart.options.scales.y.grid.color = getComputedStyle(root).getPropertyValue('--grid').trim();
-        currentChart.update('none');
+      document.documentElement.setAttribute("data-theme", mode);
+      document.getElementById("lightBtn").classList.toggle("active", mode === "light");
+      document.getElementById("darkBtn").classList.toggle("active", mode === "dark");
+      localStorage.setItem("theme", mode);
+      if (currentChart) {
+        const grid = getComputedStyle(root).getPropertyValue("--grid").trim();
+        currentChart.options.scales.x.grid.color = grid;
+        currentChart.options.scales.y.grid.color = grid;
+        currentChart.update("none");
       }
     };
-    const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    const savedTheme =
+      localStorage.getItem("theme") ||
+      (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
     setTheme(savedTheme);
-
-    document.getElementById('lightBtn').onclick = () => setTheme('light');
-    document.getElementById('darkBtn').onclick = () => setTheme('dark');
-
-    /* --------- Populate filters & KPIs --------- */
-    const countries = [...new Set(rawData.map(d => labelOrUnknown(d.country)))].sort();
-    const industries = [...new Set(rawData.map(d => labelOrUnknown(d.industry)))].sort();
-    const jobtypes = [...new Set(rawData.map(d => labelOrUnknown(d.job_type)))].sort();
-
-    function fillSelect(sel, arr){
+    document.getElementById("lightBtn").onclick = () => setTheme("light");
+    document.getElementById("darkBtn").onclick = () => setTheme("dark");
+  
+    /* --------- Filters + KPIs --------- */
+    const countries = [...new Set(rawData.map((d) => labelOrUnknown(d.country)))].sort();
+    const industries = [...new Set(rawData.map((d) => labelOrUnknown(d.industry)))].sort();
+    const jobtypes = [...new Set(rawData.map((d) => labelOrUnknown(d.job_type)))].sort();
+  
+    function fillSelect(sel, arr) {
       const el = document.getElementById(sel);
-      arr.forEach(v => {
-        const o = document.createElement('option');
-        o.value = v; o.textContent = v; el.appendChild(o);
+      arr.forEach((v) => {
+        const o = document.createElement("option");
+        o.value = v;
+        o.textContent = v;
+        el.appendChild(o);
       });
     }
-    fillSelect('country', countries);
-    fillSelect('industry', industries);
-    fillSelect('jobtype', jobtypes);
-
-    // KPIs
-    document.getElementById('kpiTotal').textContent = fmt(rawData.reduce((a,b)=>a+(+b.total||0),0));
-    document.getElementById('kpiCountries').textContent = countries.length;
-    document.getElementById('kpiIndustries').textContent = industries.length;
-    document.getElementById('kpiJobTypes').textContent = jobtypes.length;
-
-    /* --------- Filtering + Sorting --------- */
+    fillSelect("country", countries);
+    fillSelect("industry", industries);
+    fillSelect("jobtype", jobtypes);
+  
+    document.getElementById("kpiTotal").textContent = fmt(
+      rawData.reduce((a, b) => a + (+b.total || 0), 0)
+    );
+    document.getElementById("kpiCountries").textContent = countries.length;
+    document.getElementById("kpiIndustries").textContent = industries.length;
+    document.getElementById("kpiJobTypes").textContent = jobtypes.length;
+  
+    /* --------- Filtering + State --------- */
     const state = {
-      q: "", country:"", industry:"", jobtype:"", showZero:true, chunkSize:35, page:0
+      q: "",
+      country: "",
+      industry: "",
+      jobtype: "",
+      showZero: true,
+      chunkSize: 35,
+      page: 0,
     };
-
-    // read controls
-    const $ = (id)=>document.getElementById(id);
-    $('q').addEventListener('input', e => { state.q = e.target.value.toLowerCase(); state.page=0; render(); });
-    $('country').addEventListener('change', e => { state.country = e.target.value; state.page=0; render(); });
-    $('industry').addEventListener('change', e => { state.industry = e.target.value; state.page=0; render(); });
-    $('jobtype').addEventListener('change', e => { state.jobtype = e.target.value; state.page=0; render(); });
-    $('showZero').addEventListener('change', e => { state.showZero = e.target.checked; state.page=0; render(); });
-    $('chunkSize').addEventListener('change', e => { state.chunkSize = +e.target.value; state.page=0; render(); });
-    $('resetBtn').onclick = () => {
-      $('q').value=""; $('country').value=""; $('industry').value=""; $('jobtype').value="";
-      $('showZero').checked=true; $('chunkSize').value="35";
-      state.q=""; state.country=""; state.industry=""; state.jobtype=""; state.showZero=true; state.chunkSize=35; state.page=0; render();
+    const $ = (id) => document.getElementById(id);
+  
+    $("q").addEventListener("input", (e) => {
+      state.q = e.target.value.toLowerCase();
+      state.page = 0;
+      render();
+    });
+    $("country").addEventListener("change", (e) => {
+      state.country = e.target.value;
+      state.page = 0;
+      render();
+    });
+    $("industry").addEventListener("change", (e) => {
+      state.industry = e.target.value;
+      state.page = 0;
+      render();
+    });
+    $("jobtype").addEventListener("change", (e) => {
+      state.jobtype = e.target.value;
+      state.page = 0;
+      render();
+    });
+    $("showZero").addEventListener("change", (e) => {
+      state.showZero = e.target.checked;
+      state.page = 0;
+      render();
+    });
+    $("chunkSize").addEventListener("change", (e) => {
+      state.chunkSize = +e.target.value;
+      state.page = 0;
+      render();
+    });
+    $("resetBtn").onclick = () => {
+      $("q").value = "";
+      $("country").value = "";
+      $("industry").value = "";
+      $("jobtype").value = "";
+      $("showZero").checked = true;
+      $("chunkSize").value = "35";
+      state.q = "";
+      state.country = "";
+      state.industry = "";
+      state.jobtype = "";
+      state.showZero = true;
+      state.chunkSize = 35;
+      state.page = 0;
+      render();
     };
-
-    /* --------- Chart rendering --------- */
+  
+    /* --------- Chart Rendering --------- */
     let currentChart = null;
-    const wrapper = document.getElementById('chartWrapper');
-
+    const wrapper = document.getElementById("chartWrapper");
+  
     function filterAndSort() {
-      let rows = rawData.map(d => ({
+      let rows = rawData.map((d) => ({
         country: labelOrUnknown(d.country),
         industry: labelOrUnknown(d.industry),
         job_type: labelOrUnknown(d.job_type),
-        total: +d.total || 0
+        total: +d.total || 0,
       }));
-
-      if (!state.showZero) rows = rows.filter(r => r.total > 0);
-      if (state.country) rows = rows.filter(r => r.country === state.country);
-      if (state.industry) rows = rows.filter(r => r.industry === state.industry);
-      if (state.jobtype) rows = rows.filter(r => r.job_type === state.jobtype);
+  
+      if (!state.showZero) rows = rows.filter((r) => r.total > 0);
+      if (state.country) rows = rows.filter((r) => r.country === state.country);
+      if (state.industry) rows = rows.filter((r) => r.industry === state.industry);
+      if (state.jobtype) rows = rows.filter((r) => r.job_type === state.jobtype);
       if (state.q) {
-        rows = rows.filter(r =>
+        rows = rows.filter((r) =>
           (r.country + r.industry + r.job_type).toLowerCase().includes(state.q)
         );
       }
-
-      // Sort by total desc then alpha
-      rows.sort((a,b)=> b.total - a.total || (a.country+a.industry+a.job_type).localeCompare(b.country+b.industry+b.job_type));
+  
+      rows.sort(
+        (a, b) =>
+          b.total - a.total ||
+          (a.country + a.industry + a.job_type).localeCompare(
+            b.country + b.industry + b.job_type
+          )
+      );
       return rows;
     }
-
-    function makeChartData(chunk){
-      const labels = chunk.map(d => `${flag(d.country)} ${d.country} — ${d.industry} · ${d.job_type}`);
-      const data = chunk.map(d => d.total);
-      const colors = chunk.map(d => colorFor(`${d.country}|${d.industry}|${d.job_type}`, 0.88));
+  
+    function makeChartData(chunk) {
+      const labels = chunk.map(
+        (d) => `${flag(d.country)} ${d.country} — ${d.industry} · ${d.job_type}`
+      );
+      const data = chunk.map((d) => d.total);
+      const colors = chunk.map((d) =>
+        colorFor(`${d.country}|${d.industry}|${d.job_type}`, 0.88)
+      );
       return { labels, data, colors };
     }
-
-    function draw(chunk, groupIndex, totalGroups){
-      // clear
+  
+    function draw(chunk, groupIndex, totalGroups) {
       wrapper.innerHTML = "";
-      const block = document.createElement('div'); block.className = "chart-block";
-      const chartArea = document.createElement('div'); chartArea.className = "chart-wrap";
-      const canvas = document.createElement('canvas'); chartArea.appendChild(canvas);
+      const block = document.createElement("div");
+      block.className = "chart-block";
+      const chartArea = document.createElement("div");
+      chartArea.className = "chart-wrap";
+      const canvas = document.createElement("canvas");
+      chartArea.appendChild(canvas);
       block.appendChild(chartArea);
       wrapper.appendChild(block);
-
+  
       const { labels, data, colors } = makeChartData(chunk);
-
-      if (currentChart){ try { currentChart.destroy(); } catch(e){} }
-      currentChart = new Chart(canvas.getContext('2d'), {
-        type: 'bar',
+  
+      if (currentChart) {
+        try {
+          currentChart.destroy();
+        } catch (e) {}
+      }
+  
+      currentChart = new Chart(canvas.getContext("2d"), {
+        type: "bar",
         data: {
           labels,
-          datasets: [{
-            label: 'Listings',
-            data,
-            backgroundColor: colors,
-            borderRadius: 8,
-            borderSkipped: false,
-            barThickness: 'flex',
-            maxBarThickness: 36,
-          }]
+          datasets: [
+            {
+              label: "Listings",
+              data,
+              backgroundColor: colors,
+              borderRadius: 8,
+              borderSkipped: false,
+              barThickness: "flex",
+              maxBarThickness: 36,
+            },
+          ],
         },
         options: {
-          indexAxis: 'y',          // horizontal bars
+          indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
           layout: { padding: 8 },
           scales: {
             x: {
               beginAtZero: true,
-              ticks: { color: getComputedStyle(root).getPropertyValue('--text-weak').trim() },
-              grid: { color: getComputedStyle(root).getPropertyValue('--grid').trim() }
+              ticks: {
+                color: getComputedStyle(root).getPropertyValue("--text-weak").trim(),
+              },
+              grid: { color: getComputedStyle(root).getPropertyValue("--grid").trim() },
             },
             y: {
               ticks: {
-                color: getComputedStyle(root).getPropertyValue('--text').trim(),
+                color: getComputedStyle(root).getPropertyValue("--text").trim(),
                 font: { size: 12 },
                 callback: (v, idx) => {
                   const full = labels[idx] || "";
-                  // clamp to keep tidy on small screens
-                  return full.length > 56 ? full.slice(0,54) + "…" : full;
-                }
+                  return full.length > 56 ? full.slice(0, 54) + "…" : full;
+                },
               },
-              grid: { display:false }
-            }
+              grid: { display: false },
+            },
           },
           plugins: {
-            legend: { display:false },
+            legend: { display: false },
             tooltip: {
               callbacks: {
                 title: (items) => items[0]?.label || "",
-                label: (ctx) => `Listings: ${fmt(ctx.parsed.x)}`
-              }
+                label: (ctx) => `Listings: ${fmt(ctx.parsed.x)}`,
+              },
             },
             datalabels: {
-              color: getComputedStyle(root).getPropertyValue('--text').trim(),
-              anchor: 'end',
-              align: 'right',
+              color: getComputedStyle(root).getPropertyValue("--text").trim(),
+              anchor: "end",
+              align: "right",
               offset: 6,
-              formatter: (v) => v > 0 ? fmt(v) : "",
+              formatter: (v) => (v > 0 ? fmt(v) : ""),
               font: { weight: 700, size: 12 },
-              clip: true
-            }
-          }
+              clip: true,
+            },
+          },
         },
-        plugins: [ChartDataLabels]
+        plugins: [ChartDataLabels],
       });
-
-      // Update pager
-      const pager = document.getElementById('pager');
-      pager.textContent = `Group ${groupIndex+1} / ${totalGroups}`;
-      document.getElementById('prev').disabled = groupIndex <= 0;
-      document.getElementById('next').disabled = groupIndex >= totalGroups-1;
+  
+      const pager = document.getElementById("pager");
+      pager.textContent = `Group ${groupIndex + 1} / ${totalGroups}`;
+      document.getElementById("prev").disabled = groupIndex <= 0;
+      document.getElementById("next").disabled = groupIndex >= totalGroups - 1;
     }
-
-    function render(){
+  
+    function render() {
       const rows = filterAndSort();
+      console.log("Rendering", rows.length, "rows");
       const groups = chunkArray(rows, state.chunkSize);
-      if (groups.length === 0){
+      if (groups.length === 0) {
         wrapper.innerHTML = `<div class="empty">No data for current filters.</div>`;
-        document.getElementById('pager').textContent = `Group 0 / 0`;
+        document.getElementById("pager").textContent = `Group 0 / 0`;
         return;
       }
       if (state.page >= groups.length) state.page = groups.length - 1;
       draw(groups[state.page], state.page, groups.length);
     }
-
-    // Pager
-    document.getElementById('prev').onclick = () => { state.page = Math.max(0, state.page-1); render(); };
-    document.getElementById('next').onclick = () => {
+  
+    document.getElementById("prev").onclick = () => {
+      state.page = Math.max(0, state.page - 1);
+      render();
+    };
+    document.getElementById("next").onclick = () => {
       const rows = filterAndSort();
       const groups = chunkArray(rows, state.chunkSize);
-      state.page = Math.min(groups.length-1, state.page+1); render();
+      state.page = Math.min(groups.length - 1, state.page + 1);
+      render();
     };
-
+  
     /* --------- Downloads --------- */
-    document.getElementById('pngBtn').onclick = () => {
-      if(!currentChart) return;
-      const a = document.createElement('a');
-      a.href = currentChart.toBase64Image('image/png', 1);
-      a.download = `listings-insights-${new Date().toISOString().slice(0,10)}.png`;
+    document.getElementById("pngBtn").onclick = () => {
+      if (!currentChart) return;
+      const a = document.createElement("a");
+      a.href = currentChart.toBase64Image("image/png", 1);
+      a.download = `listings-insights-${new Date().toISOString().slice(0, 10)}.png`;
       a.click();
     };
-
-    document.getElementById('csvBtn').onclick = () => {
-      const rows = filterAndSort().map(d => [d.country, d.industry, d.job_type, d.total]);
-      const csv = toCSV(rows, ["country","industry","job_type","total"]);
-      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  
+    document.getElementById("csvBtn").onclick = () => {
+      const rows = filterAndSort().map((d) => [d.country, d.industry, d.job_type, d.total]);
+      const csv = toCSV(rows, ["country", "industry", "job_type", "total"]);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = `listings-insights-${Date.now()}.csv`; a.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `listings-insights-${Date.now()}.csv`;
+      a.click();
       URL.revokeObjectURL(url);
     };
-
+  
     /* --------- Init --------- */
     render();
   </script>
-</body>
-</html>
+  
