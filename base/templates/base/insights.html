@@ -434,25 +434,46 @@
     /* --------- Chart Rendering --------- */
     const wrapper = document.getElementById("chartWrapper");
   
-    function filterAndSort(){
-      let rows = rawData.map(d => ({
+    function filterAndSort() {
+    let rows = rawData.map((d) => ({
         country: labelOrUnknown(d.country),
         industry: labelOrUnknown(d.industry),
         job_type: labelOrUnknown(d.job_type),
-        total: +d.total || 0
-      }));
-  
-      if (!state.showZero) rows = rows.filter(r => r.total > 0);
-      if (state.country)   rows = rows.filter(r => r.country  === state.country);
-      if (state.industry)  rows = rows.filter(r => r.industry === state.industry);
-      if (state.jobtype)   rows = rows.filter(r => r.job_type === state.jobtype);
-      if (state.q) {
-        rows = rows.filter(r => (r.country + r.industry + r.job_type).toLowerCase().includes(state.q));
-      }
-  
-      rows.sort((a,b)=> b.total - a.total || (a.country+a.industry+a.job_type).localeCompare(b.country+b.industry+b.job_type));
-      return rows;
+        total: +d.total || 0,
+    }));
+
+    // Apply filters
+    if (!state.showZero) rows = rows.filter((r) => r.total > 0);
+    if (state.country) rows = rows.filter((r) => r.country === state.country);
+    if (state.industry) rows = rows.filter((r) => r.industry === state.industry);
+    if (state.jobtype) rows = rows.filter((r) => r.job_type === state.jobtype);
+    if (state.q) {
+        rows = rows.filter((r) =>
+        (r.country + r.industry + r.job_type).toLowerCase().includes(state.q)
+        );
     }
+
+    // 🔢 Custom country order (you can extend this)
+    const countryOrder = ["DK", "UK", "US", "GER", "FR", "FRA", "DE"];
+    const getCountryRank = (c) => {
+        const idx = countryOrder.indexOf(c);
+        return idx === -1 ? countryOrder.length : idx;
+    };
+
+    // Sort first by country order, then total desc, then name
+    rows.sort((a, b) => {
+        const ca = getCountryRank(a.country);
+        const cb = getCountryRank(b.country);
+        if (ca !== cb) return ca - cb;
+        return (
+        b.total - a.total ||
+        (a.industry + a.job_type).localeCompare(b.industry + b.job_type)
+        );
+    });
+
+    return rows;
+    }
+
   
     function makeChartData(chunk){
       const labels = chunk.map(d => `${flag(d.country)} ${d.country} — ${d.industry} · ${d.job_type}`);
