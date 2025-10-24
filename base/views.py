@@ -1836,6 +1836,7 @@ def extract_job_data(raw_text):
 @staff_member_required
 def import_job_view(request):
     if request.method == "POST":
+        industry_key = None  # ✅ Prevent UnboundLocalError globally
         raw_text = request.POST.get("linkedin_text", "").strip()
         if not raw_text:
             messages.error(request, "Please paste a LinkedIn job post first.")
