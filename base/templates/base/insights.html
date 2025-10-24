@@ -266,6 +266,11 @@
     </section>
   </div>
 
+
+  <pre style="color:lime;white-space:pre-wrap;font-size:12px;">
+    {{ combo_data|safe }}
+    </pre>
+
   <script id="combo-data" type="application/json">
     {{ combo_data|safe }}
   </script>
@@ -273,7 +278,7 @@
   <script>
     const rawData = JSON.parse(document.getElementById("combo-data").textContent) || [];
   </script>
-  
+
   <script>
     /* --------- Data --------- */
 
