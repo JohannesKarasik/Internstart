@@ -2081,12 +2081,12 @@ def listings_insights_view(request):
     # Sort by total (desc)
     all_combos.sort(key=lambda x: x["total"], reverse=True)
 
-    context = {
-        "combo_data": json.dumps(all_combos),
-    }
+    # ✅ Important: serialize to valid JSON string
+    combo_json = json.dumps(all_combos)
 
-    return render(request, "base/insights.html", context)
-
+    return render(request, "base/insights.html", {
+        "combo_data": combo_json
+    })
 
 @login_required
 def apply_ats_view(request, room_id):
