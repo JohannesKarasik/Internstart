@@ -40,58 +40,82 @@
 
   <script>
     const comboData = JSON.parse('{{ combo_data|escapejs }}');
-
+  
     const colors = (n) =>
       Array.from({ length: n }, (_, i) => `hsl(${(i * 40) % 360}, 70%, 55%)`);
-
     const labelOrUnknown = (v) => (v && v.trim() !== "" ? v : "Unknown");
-
-    const ctx = document.getElementById("comboChart");
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: comboData.map(
-          (d) =>
-            `${labelOrUnknown(d.country)} • ${labelOrUnknown(
-              d.industry
-            )} • ${labelOrUnknown(d.job_type)}`
-        ),
-        datasets: [
-          {
-            label: "Listings",
-            data: comboData.map((d) => d.total),
-            backgroundColor: colors(comboData.length),
+  
+    // Split the data into chunks (e.g. 40 per row)
+    const chunkArray = (arr, size) => {
+      const chunks = [];
+      for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+      }
+      return chunks;
+    };
+  
+    const chunks = chunkArray(comboData, 40); // 40 combos per row (adjust as needed)
+  
+    const container = document.querySelector(".chart-container");
+  
+    // Clear original single canvas
+    container.innerHTML = "";
+  
+    // Create one chart per chunk
+    chunks.forEach((chunk, idx) => {
+      const subTitle = document.createElement("h3");
+      subTitle.textContent = `Combinations (Group ${idx + 1}/${chunks.length})`;
+      subTitle.style.marginTop = idx === 0 ? "0" : "50px";
+      container.appendChild(subTitle);
+  
+      const canvas = document.createElement("canvas");
+      canvas.height = 450;
+      container.appendChild(canvas);
+  
+      new Chart(canvas, {
+        type: "bar",
+        data: {
+          labels: chunk.map(
+            (d) =>
+              `${labelOrUnknown(d.country)} • ${labelOrUnknown(
+                d.industry
+              )} • ${labelOrUnknown(d.job_type)}`
+          ),
+          datasets: [
+            {
+              label: "Listings",
+              data: chunk.map((d) => d.total),
+              backgroundColor: chunk.map((d) =>
+                d.total === 0
+                  ? "rgba(200,200,200,0.3)"
+                  : `hsl(${(Math.random() * 360)}, 70%, 55%)`
+              ),
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } },
+            x: { ticks: { autoSkip: false, maxRotation: 55, minRotation: 55 } },
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true, ticks: { precision: 0 } },
-          x: {
-            ticks: {
-              autoSkip: false,
-              maxRotation: 55,
-              minRotation: 55,
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              color: "#333",
+              anchor: "end",
+              align: "start",
+              offset: -4,
+              font: { weight: "bold", size: 11 },
+              formatter: (value) => value,
             },
           },
         },
-        plugins: {
-          legend: { display: false },
-          datalabels: {
-            color: "#333",
-            anchor: "end",
-            align: "start",
-            offset: -4,
-            font: { weight: "bold", size: 12 },
-            formatter: (value) => value,
-          },
-        },
-      },
-      plugins: [ChartDataLabels],
+        plugins: [ChartDataLabels],
+      });
     });
   </script>
+  
 </body>
 </html>
