@@ -1917,8 +1917,10 @@ def import_job_view(request):
                 print("⚠️ [DEBUG] Country GPT fallback failed:", e)
                 country_code = None
 
-            # ---------- Industry detection ----------
+# ---------- Industry detection ----------
             job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
+
+            industry_key = None  # ensure defined before try/except
 
             industry_map = {
                 "marketing": "marketing",
@@ -1938,13 +1940,13 @@ def import_job_view(request):
                 "economics": "business_finance",
             }
 
-            industry_key = None
+            # Step 1: Try to match keywords locally
             for key, val in industry_map.items():
                 if key in job_text_lower:
                     industry_key = val
                     break
 
-            # If still not matched → use GPT to infer the most fitting category
+            # Step 2: If no match, ask GPT to classify it into one of the valid ones
             if not industry_key:
                 try:
                     gpt_industry = client.chat.completions.create(
@@ -1962,7 +1964,7 @@ def import_job_view(request):
                     )
                     industry_key = gpt_industry.choices[0].message.content.strip()
                     if industry_key not in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
-                        industry_key = "business_finance"  # fallback default
+                        industry_key = "business_finance"  # fallback
                 except Exception as e:
                     print("⚠️ [DEBUG] GPT industry classification failed:", e)
                     industry_key = "business_finance"  # safe fallback
