@@ -1837,6 +1837,7 @@ def extract_job_data(raw_text):
 def import_job_view(request):
     if request.method == "POST":
         industry_key = None  # ✅ Prevent UnboundLocalError globally
+
         raw_text = request.POST.get("linkedin_text", "").strip()
         if not raw_text:
             messages.error(request, "Please paste a LinkedIn job post first.")
@@ -1906,8 +1907,10 @@ def import_job_view(request):
                     model="gpt-4o-mini",
                     messages=[{
                         "role": "user",
-                        "content": f"From this location '{data.get('location')}', which country is it in? "
-                                   f"Answer only with DK, US, UK, FRA, or GER."
+                        "content": (
+                            f"From this location '{data.get('location')}', which country is it in? "
+                            f"Answer only with DK, US, UK, FRA, or GER."
+                        )
                     }],
                     temperature=0,
                 )
@@ -1918,63 +1921,64 @@ def import_job_view(request):
                 print("⚠️ [DEBUG] Country GPT fallback failed:", e)
                 country_code = None
 
-# ---------- Industry detection ----------
-            job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
+        # ---------- Industry detection (DEDENTED so it ALWAYS runs) ----------
+        job_text_lower = f"{data.get('job_role', '')} {data.get('description', '')}".lower()
 
-            industry_key = None  # ensure defined before try/except
+        industry_map = {
+            "marketing": "marketing",
+            "communication": "marketing",
+            "sales": "sales_customer",
+            "customer": "sales_customer",
+            "software": "software_backend",
+            "backend": "software_backend",
+            "developer": "software_backend",
+            "engineering": "software_backend",
+            "frontend": "software_frontend",
+            "ui": "software_frontend",
+            "ux": "software_frontend",
+            "finance": "business_finance",
+            "accounting": "business_finance",
+            "bank": "business_finance",
+            "economics": "business_finance",
+        }
 
-            industry_map = {
-                "marketing": "marketing",
-                "communication": "marketing",
-                "sales": "sales_customer",
-                "customer": "sales_customer",
-                "software": "software_backend",
-                "backend": "software_backend",
-                "developer": "software_backend",
-                "engineering": "software_backend",
-                "frontend": "software_frontend",
-                "ui": "software_frontend",
-                "ux": "software_frontend",
-                "finance": "business_finance",
-                "accounting": "business_finance",
-                "bank": "business_finance",
-                "economics": "business_finance",
-            }
+        # Step 1: Try to match keywords locally
+        for key, val in industry_map.items():
+            if key in job_text_lower:
+                industry_key = val
+                break
 
-            # Step 1: Try to match keywords locally
-            for key, val in industry_map.items():
-                if key in job_text_lower:
-                    industry_key = val
-                    break
+        # Step 2: If no match, ask GPT to classify it into one of the valid ones
+        if not industry_key:
+            try:
+                gpt_industry = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    temperature=0,
+                    messages=[{
+                        "role": "user",
+                        "content": (
+                            "Classify this job into one of these categories only: "
+                            "business_finance, marketing, software_backend, software_frontend, or sales_customer. "
+                            f"Here is the job title and description: '{data.get('job_role', '')} - {data.get('description', '')}'. "
+                            "Answer only with the category name."
+                        )
+                    }]
+                )
+                industry_key = (gpt_industry.choices[0].message.content or "").strip()
+                if industry_key not in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
+                    industry_key = None
+            except Exception as e:
+                print("⚠️ [DEBUG] GPT industry classification failed:", e)
+                industry_key = None
 
-            # Step 2: If no match, ask GPT to classify it into one of the valid ones
-            if not industry_key:
-                try:
-                    gpt_industry = client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        temperature=0,
-                        messages=[{
-                            "role": "user",
-                            "content": (
-                                "Classify this job into one of these categories only: "
-                                "business_finance, marketing, software_backend, software_frontend, or sales_customer. "
-                                f"Here is the job title and description: '{data.get('job_role', '')} - {data.get('description', '')}'. "
-                                "Answer only with the category name."
-                            )
-                        }]
-                    )
-                    industry_key = gpt_industry.choices[0].message.content.strip()
-                    if industry_key not in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
-                        industry_key = "business_finance"  # fallback
-                except Exception as e:
-                    print("⚠️ [DEBUG] GPT industry classification failed:", e)
-                    industry_key = "business_finance"  # safe fallback
+        # Step 3: FINAL guard — never blank, never 'other'
+        if not industry_key:
+            industry_key = "business_finance"  # ✅ hard fallback to ensure it's always set
 
-            print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, job_type: {matched_type}, email: {email_found}")
-
-
-        print(f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, "
-              f"job_type: {matched_type}, email: {email_found}")
+        print(
+            f"🌍 [DEBUG] Detected country: {country_code}, industry: {industry_key}, "
+            f"job_type: {matched_type}, email: {email_found}"
+        )
 
         # ---------- Create default topic + admin user ----------
         topic, _ = Topic.objects.get_or_create(name="General")
@@ -1990,7 +1994,7 @@ def import_job_view(request):
             description=data.get("description", ""),
             job_type=matched_type,
             country=country_code,
-            industry=industry_key,
+            industry=industry_key,  # ✅ always a valid choice now
             email=email_found,
         )
 
