@@ -2041,37 +2041,48 @@ def fetch_company_logo(company_name):
     return None
 
 
+from django.db.models import Count
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render
+from base.models import Room
+import json
+import itertools
+
 @staff_member_required
 def listings_insights_view(request):
-    # ---- Aggregations ----
-    country_data = (
-        Room.objects.values("country")
-        .annotate(total=Count("id"))
-        .order_by("-total")
-    )
-    industry_data = (
-        Room.objects.values("industry")
-        .annotate(total=Count("id"))
-        .order_by("-total")
-    )
-    job_type_data = (
-        Room.objects.values("job_type")
-        .annotate(total=Count("id"))
-        .order_by("-total")
-    )
+    # === Define all possible categories ===
+    countries = [code for code, _ in Room.COUNTRY_CHOICES]
+    industries = [code for code, _ in Room.INDUSTRY_CHOICES]
+    job_types = [code for code, _ in Room.JOB_TYPE_CHOICES]
 
-    # Combined stats — country + industry + job type
-    combo_data = (
+    # === Actual data ===
+    combo_data_raw = (
         Room.objects.values("country", "industry", "job_type")
         .annotate(total=Count("id"))
-        .order_by("-total")
     )
 
+    # Convert to lookup dict for fast access
+    existing = {
+        (d["country"], d["industry"], d["job_type"]): d["total"]
+        for d in combo_data_raw
+    }
+
+    # === Build full combination list (even with 0 counts) ===
+    all_combos = []
+    for country, industry, job_type in itertools.product(countries, industries, job_types):
+        total = existing.get((country, industry, job_type), 0)
+        all_combos.append({
+            "country": country,
+            "industry": industry,
+            "job_type": job_type,
+            "total": total
+        })
+
+    # Sort by total (desc)
+    all_combos.sort(key=lambda x: x["total"], reverse=True)
+
     context = {
-        "country_data": json.dumps(list(country_data)),
-        "industry_data": json.dumps(list(industry_data)),
-        "job_type_data": json.dumps(list(job_type_data)),
-        "combo_data": json.dumps(list(combo_data)),
+        "combo_data": json.dumps(all_combos),
     }
 
     return render(request, "base/insights.html", context)
