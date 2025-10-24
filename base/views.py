@@ -1836,7 +1836,16 @@ def extract_job_data(raw_text):
 @staff_member_required
 def import_job_view(request):
     if request.method == "POST":
-        industry_key = None  # ✅ Prevent UnboundLocalError globally
+        # Hard choices provided by the template (validated below)
+        VALID_COUNTRIES = {"DK", "US", "UK", "FRA", "GER"}
+        VALID_INDUSTRIES = {
+            "business_finance",
+            "marketing",
+            "software_backend",
+            "software_frontend",
+            "sales_customer",
+        }
+        VALID_JOB_TYPES = {"internship", "student_job", "full_time"}
 
         raw_text = request.POST.get("linkedin_text", "").strip()
         if not raw_text:
@@ -1855,102 +1864,7 @@ def import_job_view(request):
         email_found = email_match.group(0) if email_match else None
         print(f"📧 [DEBUG] Extracted email: {email_found}")
 
-        # ---------- Job type detection (scored + GPT + hard fallback) ----------
-        # Valid labels: internship, student_job, full_time
-        title_jt = (data.get("job_role") or "")
-        desc_jt = (data.get("description") or "")
-        corpus_jt = f"{title_jt}\n{desc_jt}\n{raw_text}".lower()
-
-        def occurs_jt(pattern: str) -> int:
-            # word-boundary match for phrases with spaces/hyphens
-            parts = [re.escape(p) for p in pattern.split()]
-            rx = rf"\b{parts[0]}\b" if len(parts) == 1 else r"\b" + r"[\s\-]+".join(parts) + r"\b"
-            return len(re.findall(rx, corpus_jt))
-
-        JT = {
-            "internship": {
-                # EN
-                "internship": 4, "intern": 4, "intern role": 4, "trainee": 3, "graduate program": 2,
-                "summer internship": 4, "intern position": 4,
-                # DA
-                "praktik": 4, "praktikant": 4, "traineeprogram": 2, "graduate": 2,
-            },
-            "student_job": {
-                # EN
-                "student job": 4, "student position": 3, "part-time": 3, "part time": 3, "working student": 4,
-                # DA
-                "studiejob": 5, "studiemedarbejder": 5, "deltid": 3, "studenter": 4, "studentermedhjælper": 5,
-            },
-            "full_time": {
-                # EN
-                "full-time": 3, "full time": 3, "permanent": 2,
-                # DA
-                "fuldtid": 4, "fastansættelse": 3, "fast ansættelse": 3,
-            },
-        }
-
-        jt_scores = {k: 0 for k in JT.keys()}
-        title_boost_jt = 1.4
-        title_lc_jt = title_jt.lower()
-
-        for cat, kwmap in JT.items():
-            for kw, w in kwmap.items():
-                c = occurs_jt(kw)
-                if c:
-                    jt_scores[cat] += c * w
-                # boost if appears in title
-                if re.search(rf"\b{re.escape(kw)}\b", title_lc_jt):
-                    jt_scores[cat] += w * title_boost_jt
-
-        # Priority rule: if "intern" or "praktik" appears anywhere, prefer internship
-        internship_signal = (occurs_jt("intern") or occurs_jt("internship") or occurs_jt("praktik") or occurs_jt("praktikant"))
-        if internship_signal:
-            job_type_key = "internship"
-        else:
-            # Otherwise, pick highest score
-            job_type_key = max(jt_scores, key=jt_scores.get) if any(jt_scores.values()) else None
-
-            # Tie-bias: if student terms present, prefer student_job
-            student_signal = (
-                occurs_jt("student job") or occurs_jt("studiejob") or occurs_jt("studiemedarbejder")
-                or occurs_jt("student position") or occurs_jt("working student") or occurs_jt("studentermedhjælper")
-                or occurs_jt("deltid")  # part-time often implies student roles in your context
-            )
-            if student_signal:
-                # If student score is within 1 point of chosen best, force student_job
-                if jt_scores["student_job"] >= max((jt_scores.get(job_type_key, 0) - 1), 0):
-                    job_type_key = "student_job"
-
-        # GPT fallback only if still undecided
-        if not job_type_key:
-            try:
-                gpt_jobtype = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    temperature=0,
-                    messages=[
-                        {"role": "system", "content": "You classify job postings into one of: internship, student_job, full_time."},
-                        {"role": "user", "content": (
-                            "Return EXACTLY one label: internship, student_job, or full_time.\n\n"
-                            "Rules: If any strong 'intern' signals → internship.\n"
-                            "If student/part-time signals (studiejob, student, working student, deltid) → student_job.\n"
-                            "Otherwise → full_time.\n\n"
-                            f"Title: {title_jt}\nDescription: {desc_jt}\nText: {raw_text}\n"
-                            "Answer ONLY with the label."
-                        )}
-                    ]
-                )
-                resp_jt = (gpt_jobtype.choices[0].message.content or "").strip()
-                if resp_jt in ["internship", "student_job", "full_time"]:
-                    job_type_key = resp_jt
-            except Exception as e:
-                print("⚠️ [DEBUG] GPT job type classification failed:", e)
-
-        # FINAL guard — never blank
-        if not job_type_key:
-            # Heuristic fallback: if any student terms, choose student_job; else full_time
-            job_type_key = "student_job" if student_signal else "full_time"
-
-        # ---------- Country detection ----------
+        # ---------- Country detection (kept as before) ----------
         location_text = (data.get("location") or "").lower()
         country_map = {
             "denmark": "DK",
@@ -1997,116 +1911,24 @@ def import_job_view(request):
                 print("⚠️ [DEBUG] Country GPT fallback failed:", e)
                 country_code = None
 
-        # ---------- Industry detection (scored, robust) ----------
-        title = (data.get("job_role") or "")
-        desc = (data.get("description") or "")
-        corpus = f"{title}\n{desc}\n{raw_text}".lower()
+        # ---------- OVERRIDES from form (authoritative) ----------
+        # Country: use dropdown if provided; otherwise keep detected/None
+        country_override = (request.POST.get("country") or "").upper()
+        if country_override in VALID_COUNTRIES:
+            country_code = country_override
 
-        def occurs(pattern: str) -> int:
-            parts = [re.escape(p) for p in pattern.split()]
-            if len(parts) == 1:
-                rx = rf"\b{parts[0]}\b"
-            else:
-                rx = r"\b" + r"[\s\-]+".join(parts) + r"\b"
-            return len(re.findall(rx, corpus))
+        # Industry & Job Type: NOW ONLY from form (no AI). Always set with safe fallback.
+        industry_key = request.POST.get("industry") or ""
+        if industry_key not in VALID_INDUSTRIES:
+            industry_key = "business_finance"  # hard fallback to avoid blanks
 
-        CATS = {
-            "marketing": {
-                "marketing": 2, "performance marketing": 3, "paid social": 4, "social ads": 3,
-                "media buyer": 3, "google ads": 3, "facebook ads": 3, "linkedin ads": 3,
-                "adwords": 2, "seo": 2, "sem": 2, "ppc": 2, "campaign": 2, "campaigns": 2,
-                "creative": 1, "brand": 1, "content": 1, "analytics": 1,
-                "annoncering": 3, "annoncer": 2, "kampagne": 2, "kampagner": 2,
-                "betalt social": 4, "performance": 2, "bureau": 1,
-                "meta": 2, "tiktok": 2, "snapchat": 2, "sporing": 1, "tracking": 2,
-                "pixel": 2, "pixels": 2, "datasporing": 2, "rapportering": 1,
-                "visualisering": 1, "kommunikation": 2,
-            },
-            "sales_customer": {
-                "sales": 2, "account manager": 2, "customer success": 2,
-                "customer support": 2, "support": 1, "customer": 1,
-                "salg": 2, "kunde": 2, "kunder": 2, "konsulent": 1, "rådgiver": 2,
-                "forretningsudvikling": 2, "bd": 1, "bdr": 1, "sdr": 1,
-            },
-            "software_frontend": {
-                "frontend": 3, "react": 3, "next": 2, "vue": 2, "angular": 2,
-                "javascript": 2, "typescript": 2, "html": 2, "css": 2,
-                "tailwind": 1, "sass": 1, "ui/ux": 3, "ux/ui": 3,
-                "ui designer": 2, "ux designer": 2, "frontend engineer": 3,
-            },
-            "software_backend": {
-                "backend": 3, "api": 2, "microservices": 2, "database": 2,
-                "postgres": 2, "mysql": 2, "sql": 1, "docker": 2, "kubernetes": 2,
-                "python": 2, "django": 2, "java": 2, "c#": 2, "node": 2, "go": 2,
-                "devops": 2, "cloud": 1, "udvikler": 2, "backend udvikler": 3, "softwareudvikling": 2,
-            },
-            "business_finance": {
-                "finance": 2, "financial": 2, "accounting": 2, "auditing": 2,
-                "analyst": 1, "controller": 2, "bank": 2, "consulting": 1,
-                "strategy": 1, "procurement": 1, "supply chain": 1,
-                "økonomi": 3, "bogholder": 2, "revisor": 2, "analytiker": 1,
-            },
-        }
-
-        scores = {k: 0 for k in CATS.keys()}
-        title_boost = 1.5
-        title_lc = title.lower()
-
-        for cat, kwmap in CATS.items():
-            for kw, w in kwmap.items():
-                count = occurs(kw)
-                if count:
-                    scores[cat] += count * w
-                if re.search(rf"\b{re.escape(kw)}\b", title_lc):
-                    scores[cat] += w * title_boost
-
-        best_cat = max(scores, key=scores.get) if any(scores.values()) else None
-
-        if best_cat:
-            if occurs("paid social") or occurs("marketing") or occurs("annoncering") or occurs("kampagne") or occurs("kampagner"):
-                if scores["marketing"] >= max(scores[best_cat] - 1, 0):
-                    best_cat = "marketing"
-
-        industry_key = best_cat
-
-        if not industry_key:
-            try:
-                gpt_industry = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    temperature=0,
-                    messages=[
-                        {"role": "system", "content": "You classify job postings into a single industry label."},
-                        {"role": "user", "content": (
-                            "Pick exactly one label from: business_finance, marketing, software_backend, "
-                            "software_frontend, sales_customer.\n\n"
-                            "Examples:\n"
-                            "Q: 'Paid Social Specialist at a marketing bureau, handles Meta/TikTok campaigns, tracking pixels'\n"
-                            "A: marketing\n\n"
-                            "Q: 'Frontend developer working with React, CSS, UI components'\n"
-                            "A: software_frontend\n\n"
-                            "Q: 'Backend engineer building APIs with Python/Django and Postgres'\n"
-                            "A: software_backend\n\n"
-                            "Q: 'Financial controller managing budgets and accounting'\n"
-                            "A: business_finance\n\n"
-                            "Q: 'Account Manager handling clients and upsell opportunities'\n"
-                            "A: sales_customer\n\n"
-                            f"Now classify this:\nTitle: {title}\nDescription: {desc}\nReturn ONLY the label."
-                        )}
-                    ]
-                )
-                resp = (gpt_industry.choices[0].message.content or "").strip()
-                if resp in ["business_finance", "marketing", "software_backend", "software_frontend", "sales_customer"]:
-                    industry_key = resp
-            except Exception as e:
-                print("⚠️ [DEBUG] GPT industry classification failed:", e)
-
-        if not industry_key:
-            industry_key = "marketing" if occurs("campaign") or occurs("kampagne") or occurs("paid social") or occurs("annoncering") else "business_finance"
+        job_type_key = request.POST.get("job_type") or ""
+        if job_type_key not in VALID_JOB_TYPES:
+            job_type_key = "full_time"  # hard fallback to avoid blanks
 
         print(
             f"🌍 [DEBUG] Country: {country_code}, "
-            f"industry_scores: {scores} → industry: {industry_key}, "
-            f"job_type_scores: {jt_scores} → job_type: {job_type_key}, "
+            f"industry: {industry_key}, job_type: {job_type_key}, "
             f"email: {email_found}"
         )
 
@@ -2200,9 +2022,9 @@ def import_job_view(request):
             location=data.get("location", "Unknown Location"),
             job_title=data.get("job_role", "Untitled Role"),
             description=data.get("description", ""),
-            job_type=job_type_key,     # ✅ ALWAYS set now
-            country=country_code,
-            industry=industry_key,     # ✅ robust final value
+            job_type=job_type_key,     # ← from form (validated) with hard fallback
+            country=country_code,      # ← from form if given, else detected/None
+            industry=industry_key,     # ← from form (validated) with hard fallback
             email=email_found,
         )
 

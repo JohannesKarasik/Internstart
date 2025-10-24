@@ -69,6 +69,43 @@
             </div>
           </div>
   
+          <!-- Manual categorization (overrides) -->
+          <div class="triple-grid" aria-label="Manual categorization">
+            <div class="select-field">
+              <label for="country" class="label">Country</label>
+              <select id="country" name="country" class="select">
+                <option value="" {% if not request.POST.country %}selected{% endif %} disabled>Select country…</option>
+                <option value="DK"  {% if request.POST.country == "DK" %}selected{% endif %}>🇩🇰 Denmark</option>
+                <option value="UK"  {% if request.POST.country == "UK" %}selected{% endif %}>🇬🇧 United Kingdom</option>
+                <option value="US"  {% if request.POST.country == "US" %}selected{% endif %}>🇺🇸 United States</option>
+                <option value="GER" {% if request.POST.country == "GER" %}selected{% endif %}>🇩🇪 Germany</option>
+                <option value="FRA" {% if request.POST.country == "FRA" %}selected{% endif %}>🇫🇷 France</option>
+              </select>
+            </div>
+  
+            <div class="select-field">
+              <label for="industry" class="label">Industry</label>
+              <select id="industry" name="industry" class="select">
+                <option value="" {% if not request.POST.industry %}selected{% endif %} disabled>Select industry…</option>
+                <option value="business_finance"   {% if request.POST.industry == "business_finance" %}selected{% endif %}>Business &amp; Finance</option>
+                <option value="marketing"          {% if request.POST.industry == "marketing" %}selected{% endif %}>Marketing &amp; Communications</option>
+                <option value="software_backend"   {% if request.POST.industry == "software_backend" %}selected{% endif %}>Software Development (Backend)</option>
+                <option value="software_frontend"  {% if request.POST.industry == "software_frontend" %}selected{% endif %}>Software Development (Frontend)</option>
+                <option value="sales_customer"     {% if request.POST.industry == "sales_customer" %}selected{% endif %}>Sales &amp; Customer Relations</option>
+              </select>
+            </div>
+  
+            <div class="select-field">
+              <label for="job_type" class="label">Job type</label>
+              <select id="job_type" name="job_type" class="select">
+                <option value="" {% if not request.POST.job_type %}selected{% endif %} disabled>Select job type…</option>
+                <option value="internship"  {% if request.POST.job_type == "internship" %}selected{% endif %}>Internship</option>
+                <option value="student_job" {% if request.POST.job_type == "student_job" %}selected{% endif %}>Student Job</option>
+                <option value="full_time"   {% if request.POST.job_type == "full_time" %}selected{% endif %}>Full Time Job</option>
+              </select>
+            </div>
+          </div>
+  
           <div class="actions">
             <button type="submit" class="btn" id="submitBtn">
               <span class="btn-spinner" aria-hidden="true"></span>
@@ -97,7 +134,7 @@
     </main>
   
     <footer class="footer" role="contentinfo">
-      <p> Import Jobs<a href="#" class="link">Privacy</a></p>
+      <p> Import Jobs <a href="#" class="link">Privacy</a></p>
     </footer>
   </div>
   
@@ -126,7 +163,6 @@
   
     .ai-shell{ position:relative; min-height:100dvh; overflow-x:hidden }
   
-    /* Background decoration */
     .bg .orb{ position:absolute; width:420px; height:420px; border-radius:50%; filter: blur(70px); opacity:.35; pointer-events:none; }
     .orb-1{ background:radial-gradient(closest-side, var(--accent), transparent 70%); top:-120px; left:-120px; }
     .orb-2{ background:radial-gradient(closest-side, #7B61FF, transparent 70%); right:-140px; bottom:-140px; }
@@ -137,7 +173,6 @@
       pointer-events:none;
     }
   
-    /* Top bar */
     .topbar{ display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px clamp(20px,6vw,56px); position:sticky; top:0; backdrop-filter:saturate(140%) blur(10px); background:linear-gradient(180deg, rgba(12,16,28,.7), rgba(12,16,28,.35)); border-bottom:1px solid var(--stroke); z-index:10 }
     .brand{ display:flex; align-items:center; gap:10px; letter-spacing:.3px; font-weight:700 }
     .brand-name{ font-size:18px }
@@ -148,7 +183,6 @@
     .nav-link:hover{ color:var(--text); background:rgba(255,255,255,.04) }
     .nav-link.is-active{ color:var(--text); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border:1px solid var(--stroke) }
   
-    /* Layout */
     .wrap{ max-width: 1000px; margin: clamp(24px, 5vw, 60px) auto; padding: 0 clamp(20px, 5vw, 32px); }
     .card{ background: var(--card); border:1px solid var(--stroke); border-radius: calc(var(--radius) + 4px); box-shadow: var(--shadow); padding: clamp(18px, 3vw, 28px); position: relative; overflow: hidden }
     .card::after{ content:""; position:absolute; inset: -1px; border-radius: inherit; pointer-events:none; background: radial-gradient(300px 80px at 10% 0%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 60%) }
@@ -158,7 +192,6 @@
     .title-icon{ width:22px; height:22px; color: var(--accent) }
     .subtitle{ margin:0; color: var(--muted); max-width: 68ch }
   
-    /* Toasts */
     .toasts{ list-style:none; margin: 16px 0 0; padding:0; display:grid; gap:10px }
     .toast{ display:flex; align-items:flex-start; gap:10px; background: rgba(255,255,255,.04); border:1px solid var(--stroke); border-radius: 12px; padding: 10px 12px; color: var(--text) }
     .toast .dot{ width:10px; height:10px; margin-top:6px; border-radius:50%; background: var(--accent) }
@@ -166,10 +199,10 @@
     .toast.error .dot{ background: var(--error) }
     .toast-text{ color: inherit }
   
-    /* Form */
     .form{ margin-top: 18px }
     .label{ display:block; font-weight:600; margin: 0 0 8px }
     .field{ position:relative }
+  
     .textarea{
       width:100%; resize: vertical; min-height: 220px; color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
       border:1px solid var(--stroke); border-radius: 14px; padding: 14px 16px 18px; outline:none; caret-color: var(--accent);
@@ -182,6 +215,30 @@
     .field-meta{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top: 10px }
     .hint{ margin:0; color: var(--muted); font-size: 14px }
     .counter{ margin:0; color: var(--muted); font-variant-numeric: tabular-nums }
+  
+    /* Manual categorization layout */
+    .triple-grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:12px;
+      margin:18px 0 10px;
+    }
+    @media (max-width: 860px){
+      .triple-grid{ grid-template-columns: 1fr }
+    }
+  
+    .select-field .select{
+      width:100%;
+      appearance:none;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color: var(--text);
+      font-weight:600;
+      outline:none;
+    }
+    .select:focus{ border-color: color-mix(in oklab, var(--accent) 55%, white 0%); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 26%, transparent) }
   
     .actions{ display:flex; gap:12px; margin-top: 18px; flex-wrap: wrap }
     .btn{
@@ -198,9 +255,7 @@
       width:0; height:0; border:0px solid transparent; border-top-color:#0B0F1A; border-radius:50%;
       transition: width .2s, height .2s, border-width .2s; will-change: transform;
     }
-    .btn.loading .btn-spinner{
-      width:16px; height:16px; border-width:2px; animation: spin 1s linear infinite;
-    }
+    .btn.loading .btn-spinner{ width:16px; height:16px; border-width:2px; animation: spin 1s linear infinite; }
     .btn.loading .btn-text{ opacity:.7 }
   
     .btn.ghost{
@@ -211,7 +266,6 @@
     }
     .btn.ghost:hover{ background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.04)) }
   
-    /* Secondary cards */
     .mini-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; margin-top: 16px }
     .mini-card{ background: var(--card); border:1px solid var(--stroke); border-radius: 14px; padding: 14px; box-shadow: var(--shadow) }
     .mini-card h3{ margin:0 0 6px; font-size: 15px }
@@ -222,16 +276,6 @@
     .footer .link:hover{ text-decoration: underline }
   
     @keyframes spin{ to{ transform: rotate(360deg) } }
-  
-    @media (max-width: 860px){
-      .nav{ display:none }
-      .mini-grid{ grid-template-columns: 1fr }
-    }
-  
-    @media (prefers-reduced-motion: reduce){
-      .btn{ transition: none }
-      .btn.loading .btn-spinner{ animation: none }
-    }
   </style>
   
   <script>
@@ -249,7 +293,6 @@
       if(btn){
         btn.addEventListener('click', () => {
           btn.classList.add('loading');
-          // Soft guard: let the form submit; if the server returns fast we won't see this long.
           setTimeout(()=>btn.classList.remove('loading'), 8000);
         });
       }
