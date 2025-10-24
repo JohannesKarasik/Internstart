@@ -86,6 +86,10 @@ def main():
             return
 
         html = page.content()
+        with open("debug_google.html", "w", encoding="utf-8") as f:
+            f.write(html)
+        print("💾 Saved raw HTML to debug_google.html for inspection")
+
         results = parse_google_html(html)
         browser.close()
 
