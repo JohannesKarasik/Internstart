@@ -1855,24 +1855,100 @@ def import_job_view(request):
         email_found = email_match.group(0) if email_match else None
         print(f"📧 [DEBUG] Extracted email: {email_found}")
 
-        # ---------- Job type detection ----------
-        job_type_map = {
-            "internship": "internship",
-            "intern": "internship",
-            "student job": "student_job",
-            "student": "student_job",
-            "part-time": "student_job",
-            "part time": "student_job",
-            "full-time": "full_time",
-            "full time": "full_time",
+        # ---------- Job type detection (scored + GPT + hard fallback) ----------
+        # Valid labels: internship, student_job, full_time
+        title_jt = (data.get("job_role") or "")
+        desc_jt = (data.get("description") or "")
+        corpus_jt = f"{title_jt}\n{desc_jt}\n{raw_text}".lower()
+
+        def occurs_jt(pattern: str) -> int:
+            # word-boundary match for phrases with spaces/hyphens
+            parts = [re.escape(p) for p in pattern.split()]
+            rx = rf"\b{parts[0]}\b" if len(parts) == 1 else r"\b" + r"[\s\-]+".join(parts) + r"\b"
+            return len(re.findall(rx, corpus_jt))
+
+        JT = {
+            "internship": {
+                # EN
+                "internship": 4, "intern": 4, "intern role": 4, "trainee": 3, "graduate program": 2,
+                "summer internship": 4, "intern position": 4,
+                # DA
+                "praktik": 4, "praktikant": 4, "traineeprogram": 2, "graduate": 2,
+            },
+            "student_job": {
+                # EN
+                "student job": 4, "student position": 3, "part-time": 3, "part time": 3, "working student": 4,
+                # DA
+                "studiejob": 5, "studiemedarbejder": 5, "deltid": 3, "studenter": 4, "studentermedhjælper": 5,
+            },
+            "full_time": {
+                # EN
+                "full-time": 3, "full time": 3, "permanent": 2,
+                # DA
+                "fuldtid": 4, "fastansættelse": 3, "fast ansættelse": 3,
+            },
         }
 
-        job_text = (data.get("job_type", "") + " " + raw_text).lower()
-        matched_type = None
-        for key, val in job_type_map.items():
-            if key in job_text:
-                matched_type = val
-                break
+        jt_scores = {k: 0 for k in JT.keys()}
+        title_boost_jt = 1.4
+        title_lc_jt = title_jt.lower()
+
+        for cat, kwmap in JT.items():
+            for kw, w in kwmap.items():
+                c = occurs_jt(kw)
+                if c:
+                    jt_scores[cat] += c * w
+                # boost if appears in title
+                if re.search(rf"\b{re.escape(kw)}\b", title_lc_jt):
+                    jt_scores[cat] += w * title_boost_jt
+
+        # Priority rule: if "intern" or "praktik" appears anywhere, prefer internship
+        internship_signal = (occurs_jt("intern") or occurs_jt("internship") or occurs_jt("praktik") or occurs_jt("praktikant"))
+        if internship_signal:
+            job_type_key = "internship"
+        else:
+            # Otherwise, pick highest score
+            job_type_key = max(jt_scores, key=jt_scores.get) if any(jt_scores.values()) else None
+
+            # Tie-bias: if student terms present, prefer student_job
+            student_signal = (
+                occurs_jt("student job") or occurs_jt("studiejob") or occurs_jt("studiemedarbejder")
+                or occurs_jt("student position") or occurs_jt("working student") or occurs_jt("studentermedhjælper")
+                or occurs_jt("deltid")  # part-time often implies student roles in your context
+            )
+            if student_signal:
+                # If student score is within 1 point of chosen best, force student_job
+                if jt_scores["student_job"] >= max((jt_scores.get(job_type_key, 0) - 1), 0):
+                    job_type_key = "student_job"
+
+        # GPT fallback only if still undecided
+        if not job_type_key:
+            try:
+                gpt_jobtype = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    temperature=0,
+                    messages=[
+                        {"role": "system", "content": "You classify job postings into one of: internship, student_job, full_time."},
+                        {"role": "user", "content": (
+                            "Return EXACTLY one label: internship, student_job, or full_time.\n\n"
+                            "Rules: If any strong 'intern' signals → internship.\n"
+                            "If student/part-time signals (studiejob, student, working student, deltid) → student_job.\n"
+                            "Otherwise → full_time.\n\n"
+                            f"Title: {title_jt}\nDescription: {desc_jt}\nText: {raw_text}\n"
+                            "Answer ONLY with the label."
+                        )}
+                    ]
+                )
+                resp_jt = (gpt_jobtype.choices[0].message.content or "").strip()
+                if resp_jt in ["internship", "student_job", "full_time"]:
+                    job_type_key = resp_jt
+            except Exception as e:
+                print("⚠️ [DEBUG] GPT job type classification failed:", e)
+
+        # FINAL guard — never blank
+        if not job_type_key:
+            # Heuristic fallback: if any student terms, choose student_job; else full_time
+            job_type_key = "student_job" if student_signal else "full_time"
 
         # ---------- Country detection ----------
         location_text = (data.get("location") or "").lower()
@@ -2028,9 +2104,10 @@ def import_job_view(request):
             industry_key = "marketing" if occurs("campaign") or occurs("kampagne") or occurs("paid social") or occurs("annoncering") else "business_finance"
 
         print(
-            f"🌍 [DEBUG] Detected country: {country_code}, "
-            f"industry_scores: {scores} → chosen: {industry_key}, "
-            f"job_type: {matched_type}, email: {email_found}"
+            f"🌍 [DEBUG] Country: {country_code}, "
+            f"industry_scores: {scores} → industry: {industry_key}, "
+            f"job_type_scores: {jt_scores} → job_type: {job_type_key}, "
+            f"email: {email_found}"
         )
 
         # ---------- Create default topic + admin user ----------
@@ -2085,13 +2162,11 @@ def import_job_view(request):
         HIGH_DUP = 0.93
         MID_DUP_LOW, MID_DUP_HIGH = 0.82, 0.93
 
+        is_duplicate = False
         if best and best_score >= HIGH_DUP:
             print(f"🧭 [DEDUP] Blocked duplicate (score={best_score:.3f}) → matches #{best.id}")
             messages.info(request, "ℹ️ Duplicate skipped: same company + role already exists (fuzzy match).")
             return redirect("import_job")
-
-        # 3) Borderline → ask GPT to confirm
-        is_duplicate = False
         if best and MID_DUP_LOW <= best_score < MID_DUP_HIGH:
             try:
                 gpt_check = client.chat.completions.create(
@@ -2125,9 +2200,9 @@ def import_job_view(request):
             location=data.get("location", "Unknown Location"),
             job_title=data.get("job_role", "Untitled Role"),
             description=data.get("description", ""),
-            job_type=matched_type,
+            job_type=job_type_key,     # ✅ ALWAYS set now
             country=country_code,
-            industry=industry_key,  # ✅ robust final value
+            industry=industry_key,     # ✅ robust final value
             email=email_found,
         )
 
