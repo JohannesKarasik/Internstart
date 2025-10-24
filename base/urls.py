@@ -55,6 +55,9 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path("apply-ats/<int:room_id>/", views.apply_ats_view, name="apply_ats"),
+    path("insights/", views.listings_insights_view, name="listings_insights"),
+
+
 
 
 

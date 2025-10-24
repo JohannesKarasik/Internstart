@@ -2037,6 +2037,42 @@ def fetch_company_logo(company_name):
     print(f"⚠️ [DEBUG] No logo available for {company_name}.")
     return None
 
+
+@staff_member_required
+def listings_insights_view(request):
+    # ---- Aggregations ----
+    country_data = (
+        Room.objects.values("country")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+    industry_data = (
+        Room.objects.values("industry")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+    job_type_data = (
+        Room.objects.values("job_type")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    # Combined stats — country + industry + job type
+    combo_data = (
+        Room.objects.values("country", "industry", "job_type")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    context = {
+        "country_data": list(country_data),
+        "industry_data": list(industry_data),
+        "job_type_data": list(job_type_data),
+        "combo_data": list(combo_data),
+    }
+    return render(request, "base/insights.html", context)
+
+
 @login_required
 def apply_ats_view(request, room_id):
     room = get_object_or_404(ATSRoom, id=room_id)
