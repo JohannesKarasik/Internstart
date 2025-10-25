@@ -17,13 +17,16 @@ QUERY = (
     '("United Kingdom" OR "UK" OR ".co.uk")'
 )
 
+# Only show results from the past month
+TIME_FILTER = "qdr:m"  # qdr:m = month, qdr:w = week, qdr:d = day
+
 PARAMS = {
     "engine": "google",
     "q": QUERY,
-    "hl": "en",
-    "gl": "gb",       # sets region to United Kingdom
-    "num": "100",     # fetch up to 100 results per request
-    "tbs": "qdr:m"    # only past month
+    "hl": "en",          # interface language
+    "gl": "gb",          # country (United Kingdom)
+    "num": "100",        # up to 100 results per query
+    "tbs": TIME_FILTER   # limit to past month
 }
 
 # -----------------------------------------------------------------------------
@@ -38,7 +41,7 @@ def scrape_uk_jobs():
 
     PARAMS["api_key"] = API_KEY
 
-    print("🔍 Fetching UK results from SerpAPI ...")
+    print("🔍 Fetching UK results from SerpAPI (past month only)...")
     search = GoogleSearch(PARAMS)
     results = search.get_dict()
 
@@ -49,13 +52,18 @@ def scrape_uk_jobs():
         link = r.get("link")
         title = r.get("title")
         snippet = r.get("snippet", "")
-        # Only keep jobs mentioning visible emails
+
+        # Only include visible email listings from the last month
         if link and "linkedin.com/jobs" in link and "@" in snippet:
-            jobs.append({
-                "title": title,
-                "url": link,
-                "snippet": snippet
-            })
+            # Extra safeguard: ignore snippets mentioning older posts
+            if not any(phrase in snippet.lower() for phrase in [
+                "2 months ago", "3 months ago", "4 months ago", "year ago"
+            ]):
+                jobs.append({
+                    "title": title,
+                    "url": link,
+                    "snippet": snippet
+                })
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     output_file = f"linkedin_uk_jobs_{timestamp}.json"
@@ -63,7 +71,7 @@ def scrape_uk_jobs():
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(jobs, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Saved {len(jobs)} listings to {output_file}")
+    print(f"✅ Saved {len(jobs)} listings (past month only) to {output_file}")
 
 # -----------------------------------------------------------------------------
 # MAIN EXECUTION
