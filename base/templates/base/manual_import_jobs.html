@@ -2,35 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Manual Job Import</title>
+  <title>Manual Job Entry</title>
   <style>
     body { font-family: Inter, sans-serif; background:#0b0f1a; color:#fff; padding:40px; }
     .card { background:#11182b; padding:30px; border-radius:16px; max-width:900px; margin:auto; }
-    select, textarea, input, button {
-      width:100%; padding:10px; margin:6px 0;
+    h2 { margin-bottom:20px; }
+    label { font-size:14px; color:#ccc; margin-top:12px; display:block; }
+    input, textarea, select {
+      width:100%; padding:12px; margin-top:6px;
       border-radius:8px; border:none; font-size:15px;
+      background:#1b2235; color:white;
     }
-    select { background:#1b2235; color:white; }
-    textarea { height:150px; background:#1b2235; color:white; }
-    button { background:#FF2F5A; font-weight:bold; cursor:pointer; margin-top:10px; }
-    .result { margin-top:20px; background:#1a2239; padding:10px; border-radius:10px; }
+    textarea { height:100px; resize:vertical; }
+    button {
+      width:100%; padding:14px; border:none; border-radius:8px;
+      font-weight:600; margin-top:14px; cursor:pointer;
+      transition:0.2s ease-in-out;
+    }
+    #addBtn { background:#FF2F5A; color:white; }
+    #addBtn:hover { background:#ff4a70; }
+    .success { background:#182a20; color:#46ff98; padding:10px; border-radius:8px; margin-top:20px; display:none; }
+    .error { background:#2a1818; color:#ff5c5c; padding:10px; border-radius:8px; margin-top:20px; display:none; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>Manual Job Import</h2>
-    <p>Select a JSON file to import jobs manually one by one.</p>
-
-    <label>Choose file:</label>
-    <select id="fileSelect">
-      <option value="">-- Choose --</option>
-      {% for f in json_files %}
-        <option value="{{ f }}">{{ f }}</option>
-      {% endfor %}
-    </select>
+    <p>Insert job info manually — AI will detect company name, logo, location, and description.</p>
 
     <label>Country</label>
-    <select id="countrySelect">
+    <select id="country">
       <option value="">Select...</option>
       <option value="UK">🇬🇧 United Kingdom</option>
       <option value="DK">🇩🇰 Denmark</option>
@@ -38,72 +39,80 @@
     </select>
 
     <label>Industry</label>
-    <select id="industrySelect">
+    <select id="industry">
       <option value="">Select...</option>
       <option value="marketing">Marketing</option>
-      <option value="software_backend">Software Backend</option>
-      <option value="software_frontend">Software Frontend</option>
+      <option value="engineering">Engineering</option>
       <option value="sales">Sales</option>
+      <option value="software">Software</option>
     </select>
 
     <label>Job Type</label>
-    <select id="jobTypeSelect">
+    <select id="job_type">
       <option value="">Select...</option>
-      <option value="internship">Internship</option>
       <option value="full_time">Full Time</option>
+      <option value="internship">Internship</option>
       <option value="student_job">Student Job</option>
     </select>
 
-    <hr>
+    <hr style="border:none; border-top:1px solid #333; margin:20px 0;">
 
-    <div id="jobContainer" class="result">No job loaded yet.</div>
-    <button id="nextBtn">Load Next Job</button>
-    <button id="importBtn" style="background:#7B61FF;">Import This Job</button>
+    <label>Job Title</label>
+    <input id="title" type="text" placeholder="e.g. Digital Marketing Manager" />
+
+    <label>Job Link</label>
+    <input id="link" type="text" placeholder="e.g. https://uk.linkedin.com/jobs/view/..." />
+
+    <label>Job Snippet / Description</label>
+    <textarea id="snippet" placeholder="Paste a short description or snippet here..."></textarea>
+
+    <button id="addBtn">Add to Database / Process</button>
+
+    <div id="successMsg" class="success">✅ Successfully processed!</div>
+    <div id="errorMsg" class="error">❌ Something went wrong.</div>
   </div>
 
   <script>
-    let jobs = [], index = 0;
-
-    document.getElementById("fileSelect").addEventListener("change", async (e) => {
-      const filename = e.target.value;
-      if (!filename) return;
-      const res = await fetch(`/media/${filename}`); // or a custom route if stored elsewhere
-      jobs = await res.json();
-      index = 0;
-      showJob();
-    });
-
-    function showJob() {
-      const c = document.getElementById("jobContainer");
-      if (!jobs.length) return c.innerHTML = "No jobs in file.";
-      const j = jobs[index];
-      c.innerHTML = `
-        <b>${index+1}/${jobs.length}</b><br>
-        <b>${j.title}</b><br>
-        <a href="${j.link}" target="_blank">${j.link}</a><br>
-        <small>${j.snippet}</small>
-      `;
-    }
-
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      if (index < jobs.length - 1) { index++; showJob(); }
-    });
-
-    document.getElementById("importBtn").addEventListener("click", async () => {
-      const j = jobs[index];
+    document.getElementById("addBtn").addEventListener("click", async () => {
       const payload = {
-        title: j.title, link: j.link, snippet: j.snippet,
-        country: document.getElementById("countrySelect").value,
-        industry: document.getElementById("industrySelect").value,
-        job_type: document.getElementById("jobTypeSelect").value
+        title: document.getElementById("title").value.trim(),
+        link: document.getElementById("link").value.trim(),
+        snippet: document.getElementById("snippet").value.trim(),
+        country: document.getElementById("country").value,
+        industry: document.getElementById("industry").value,
+        job_type: document.getElementById("job_type").value
       };
-      const res = await fetch("/process_manual_job/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      alert(data.success ? `✅ Imported: ${data.company}` : `❌ ${data.error}`);
+
+      if (!payload.title || !payload.link) {
+        alert("Please fill in at least title and link");
+        return;
+      }
+
+      document.getElementById("addBtn").innerText = "⏳ Processing...";
+      try {
+        const res = await fetch("/process_manual_job/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        document.getElementById("addBtn").innerText = "Add to Database / Process";
+        if (data.success) {
+          document.getElementById("successMsg").innerText = `✅ Added ${data.company}`;
+          document.getElementById("successMsg").style.display = "block";
+          document.getElementById("errorMsg").style.display = "none";
+        } else {
+          document.getElementById("errorMsg").innerText = `❌ ${data.error}`;
+          document.getElementById("errorMsg").style.display = "block";
+          document.getElementById("successMsg").style.display = "none";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("addBtn").innerText = "Add to Database / Process";
+        document.getElementById("errorMsg").innerText = "❌ Failed to send request.";
+        document.getElementById("errorMsg").style.display = "block";
+      }
     });
   </script>
 </body>
