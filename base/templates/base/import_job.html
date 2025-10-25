@@ -126,10 +126,10 @@
         return true;
       }
     
-      // 1️⃣ Run Scraper (with dynamic filters)
+      // 1️⃣ Run Scraper (improved)
       scrapeBtn.addEventListener("click", async () => {
         if (!validateSelections()) return;
-    
+
         const scraperType = scraperSelect.value || "uk_marketing";
     
         resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
@@ -167,43 +167,6 @@
             return;
           }
     
-          // 🎯 Apply filters depending on scraper type
-          if (scraperType === "uk_marketing") {
-            const MARKETING_KEYWORDS = [
-              "marketing", "digital", "seo", "sem", "ppc", "social media",
-              "content", "copywriter", "copywriting", "pr", "public relations",
-              "communications", "brand", "advertising", "creative", "growth",
-              "email", "campaign", "media", "community", "influencer",
-              "affiliate", "crm", "performance", "ecommerce", "demand gen",
-              "account manager", "marcom"
-            ];
-            const lower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
-    
-            cachedResults = cachedResults.filter(job => {
-              const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
-              return lower.some(k => text.includes(k));
-            });
-            console.log(`🎯 Filtered to ${cachedResults.length} marketing-related listings`);
-          }
-    
-          if (scraperType === "uk_finance") {
-            const FINANCE_KEYWORDS = [
-              "finance", "financial", "accounting", "accountant", "auditor", "audit",
-              "bookkeeper", "bookkeeping", "treasury", "controller", "cfo", "banking",
-              "investment", "analyst", "fp&a", "fp and a", "compliance", "risk",
-              "credit", "loan", "underwriter", "treasurer", "fund", "asset",
-              "wealth", "valuation", "tax", "reconciliation", "ledger", "budgeting"
-            ];
-            const lower = FINANCE_KEYWORDS.map(k => k.toLowerCase());
-    
-            cachedResults = cachedResults.filter(job => {
-              const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
-              return lower.some(k => text.includes(k));
-            });
-            console.log(`💰 Filtered to ${cachedResults.length} finance-related listings`);
-          }
-    
-          // 🧾 Display listings
           const list = cachedResults.map((job, i) => `
             <div class="job-row" id="job-${i}">
               <strong>${job.title || "Untitled Job"}</strong><br>
@@ -215,14 +178,7 @@
     
           resultsContainer.innerHTML = `
             <div class="job-row">
-              <strong>✅ Found ${cachedResults.length} valid listings (${scraperType})</strong><br>
-              <small>${
-                scraperType === "uk_marketing"
-                  ? "Filtered by marketing-related keywords"
-                  : scraperType === "uk_finance"
-                  ? "Filtered by finance-related keywords"
-                  : "No keyword filter applied"
-              }</small>
+              <strong>✅ Found ${totalCount} listings (${scraperType})</strong>
             </div>
             ${list}
           `;
@@ -234,7 +190,7 @@
         }
       });
     
-      // 2️⃣ Add to Database
+      // 2️⃣ Add to Database (same)
       addBtn.addEventListener("click", async () => {
         if (!cachedResults.length) {
           alert("Run the scraper first.");
@@ -295,7 +251,6 @@
         addBtn.disabled = false;
       });
     });
-    </script>
-    
+  </script>
 </body>
 </html>
