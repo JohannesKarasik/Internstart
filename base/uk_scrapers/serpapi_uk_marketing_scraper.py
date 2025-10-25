@@ -1,8 +1,9 @@
 import os
 import json
+import time
+import re
 from datetime import datetime
 from serpapi import GoogleSearch
-import re
 
 
 # 🧩 --- Configuration ---
@@ -20,39 +21,46 @@ QUERY = (
 
 def main():
     """Fetch up to 200 recent LinkedIn job listings (past 7 days, UK marketing) using SerpAPI."""
-    # 🔑 --- API Key ---
     API_KEY = os.getenv("SERPAPI_API_KEY")
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
     print("🔍 Fetching up to 200 UK marketing listings from SerpAPI (past 7 days)...")
 
-    # 🌍 --- Base Search Parameters ---
     base_params = {
         "engine": "google",
         "q": QUERY,
-        "num": 10,                 # SerpAPI limit: 10 results per page
+        "num": 10,
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
         "filter": "0",
-        "tbs": "qdr:w",            # past week filter
+        "tbs": "qdr:w",
         "api_key": API_KEY,
     }
 
     all_results = []
 
-    # 🌀 --- Paginate through 20 pages (10 results each = ~200 total) ---
+    # 🌀 --- Paginate safely through up to 20 pages ---
     for start in range(0, 200, 10):
         params = base_params.copy()
         params["start"] = start
-        print(f"📄 Fetching page starting at {start}...")
+        print(f"\n📄 Fetching page starting at {start}...")
 
-        search = GoogleSearch(params)
-        data = search.get_dict()
+        try:
+            search = GoogleSearch(params)
+            data = search.get_dict(timeout=25)  # ⏱ shorter timeout
+        except Exception as e:
+            print(f"⚠️ Request failed on page {start//10 + 1}: {e}")
+            time.sleep(3)
+            continue
+
+        if not data:
+            print("⚠️ No data returned — stopping pagination.")
+            break
 
         if "error" in data:
-            print(f"⚠️ SerpAPI error on page {start//10 + 1}: {data['error']}")
+            print(f"⚠️ SerpAPI error: {data['error']}")
             break
 
         results = data.get("organic_results", [])
@@ -60,9 +68,13 @@ def main():
             print("⏹️ No more results found — stopping pagination.")
             break
 
+        print(f"✅ Page fetched successfully with {len(results)} results.")
         all_results.extend(results)
 
-    print(f"🌍 Total raw results fetched: {len(all_results)}")
+        # 💤 polite delay between requests to avoid hitting rate limit
+        time.sleep(2)
+
+    print(f"\n🌍 Total raw results fetched: {len(all_results)}")
 
     # 🧹 --- Filter results with visible emails + freshness check ---
     filtered = []
@@ -71,17 +83,14 @@ def main():
         title = r.get("title", "")
         link = r.get("link", "")
 
-        # Must contain an email
         if "@" not in snippet:
             continue
 
-        # Must mention days (not weeks/months)
         old_match = re.search(r"(\d+)\s+(day|days|week|weeks|month|months|year|years)\s+ago", snippet.lower())
         if old_match:
             num = int(old_match.group(1))
             unit = old_match.group(2)
             if unit.startswith(("week", "month", "year")) or num > 7:
-                print(f"⏭️ Skipping old listing: '{title}' ({old_match.group(0)})")
                 continue
 
         filtered.append({
@@ -90,7 +99,7 @@ def main():
             "snippet": snippet,
         })
 
-    # 💾 --- Save to JSON file ---
+    # 💾 --- Save results ---
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"linkedin_uk_marketing_jobs_{timestamp}.json"
     output_path = os.path.join(os.path.dirname(__file__), filename)
@@ -101,6 +110,5 @@ def main():
     print(f"✅ Saved {len(filtered)} listings (past 7 days, email-visible) to {filename}")
 
 
-# 🧠 --- Allow both direct and programmatic execution ---
 if __name__ == "__main__":
     main()
