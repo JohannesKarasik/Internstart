@@ -193,3 +193,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
+<script>
+  window.onload = () => {
+    const scrapeBtn = document.getElementById('scrapeBtn');
+    const resultsContainer = document.getElementById('resultsContainer');
+    console.log("✅ JS active");
+  
+    scrapeBtn?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      console.log("🚀 Run Scraper clicked!");
+      resultsContainer.innerHTML = '<p class="muted">Running scraper...</p>';
+      try {
+        const res = await fetch('/run_scraper/?type=uk_marketing');
+        const data = await res.json();
+        console.log("📦 Scraper data:", data);
+        resultsContainer.innerHTML = JSON.stringify(data);
+      } catch (err) {
+        console.error("❌ Fetch failed:", err);
+        resultsContainer.innerHTML = '<p class="muted">Error running scraper.</p>';
+      }
+    });
+  };
+  </script>
