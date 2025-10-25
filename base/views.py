@@ -1848,7 +1848,7 @@ from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 
 from .models import Room, Topic, User
-from .utils import extract_job_data, fetch_company_logo
+
 from openai import OpenAI
 
 client = OpenAI()
