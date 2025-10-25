@@ -1,214 +1,191 @@
-<!-- === Internstart | Import Jobs from Scraper === -->
-<div class="ai-shell">
-  <!-- Background Orbs & Grid -->
-  <div class="bg">
-    <span class="orb orb-1"></span>
-    <span class="orb orb-2"></span>
-    <span class="grid"></span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internstart Scraper</title>
+  <style>
+    :root {
+      --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324;
+      --card:rgba(18,22,36,.72); --stroke:rgba(255,255,255,.08);
+      --text:#E7ECF3; --muted:#A6B0C3; --radius:16px;
+      --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    @media(prefers-color-scheme:light){
+      :root{--bg:#F6F8FF;--bg-2:#EEF1FF;--card:#fff;--text:#0B0F1A;--muted:#596177;--stroke:rgba(10,15,30,.08);}
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:linear-gradient(180deg,var(--bg),var(--bg-2));color:var(--text);font:500 16px/1.5 Inter,system-ui}
+    .ai-shell{position:relative;min-height:100dvh;overflow-x:hidden}
+    .bg{pointer-events:none;} /* ✅ important: allows clicks through orbs/grid */
+    .bg .orb{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(70px);opacity:.35;}
+    .orb-1{background:radial-gradient(closest-side,var(--accent),transparent 70%);top:-120px;left:-120px;}
+    .orb-2{background:radial-gradient(closest-side,#7B61FF,transparent 70%);right:-140px;bottom:-140px;}
+    .bg .grid{position:absolute;inset:0;background-image:
+      linear-gradient(to right,var(--stroke)1px,transparent 1px),
+      linear-gradient(to bottom,var(--stroke)1px,transparent 1px);
+      background-size:36px 36px;
+      mask-image:radial-gradient(60% 60% at 50% 40%,black 60%,transparent 100%);
+    }
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px clamp(20px,6vw,56px);
+      position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);
+      background:linear-gradient(180deg,rgba(12,16,28,.7),rgba(12,16,28,.35));
+      border-bottom:1px solid var(--stroke);z-index:10}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand-name{font-size:18px}.logo-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
+    .nav{display:flex;gap:16px}.nav-link{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px;}
+    .nav-link:hover{color:var(--text);background:rgba(255,255,255,.04);}
+    .nav-link.is-active{color:var(--text);background:rgba(255,255,255,.06);}
+    .wrap{max-width:1000px;margin:clamp(24px,5vw,60px) auto;padding:0 clamp(20px,5vw,32px);}
+    .card{background:var(--card);border:1px solid var(--stroke);border-radius:calc(var(--radius) + 4px);
+      box-shadow:var(--shadow);padding:clamp(18px,3vw,28px);position:relative;overflow:hidden;}
+    .card::after{content:"";position:absolute;inset:-1px;border-radius:inherit;
+      background:radial-gradient(300px 80px at 10% 0%,color-mix(in oklab,var(--accent) 18%,transparent),transparent 60%)}
+    .card-head{margin-bottom:18px}
+    .title{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:clamp(22px,3.2vw,28px);}
+    .title-icon{width:22px;height:22px;color:var(--accent);}
+    .subtitle{color:var(--muted);max-width:70ch;}
+    .label{display:block;font-weight:600;margin:10px 0 6px;}
+    .select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--stroke);
+      background:rgba(255,255,255,.06);color:var(--text);font-weight:600;}
+    .select:focus{outline:3px solid color-mix(in oklab,var(--accent) 25%,transparent);}
+    .actions{display:flex;gap:12px;margin-top:10px;}
+    .btn{background:var(--accent);color:#0B0F1A;border:none;border-radius:12px;padding:12px 16px;
+      font-weight:700;cursor:pointer;box-shadow:0 8px 24px color-mix(in oklab,var(--accent) 30%,transparent);}
+    .btn:hover{filter:brightness(1.05);}
+    .results-container{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
+    .job-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;
+      padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
+    .job-header{display:flex;align-items:center;gap:12px;}
+    .job-logo{width:50px;height:50px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.1);flex-shrink:0;}
+    .job-placeholder{display:flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:50%;
+      background:rgba(255,255,255,.08);font-weight:700;color:var(--muted);}
+    .job-title{font-weight:600;font-size:17px;}
+    .job-snippet{font-size:14px;color:var(--muted);}
+    .job-link{font-size:14px;color:var(--accent);text-decoration:none;}
+    .job-actions{display:flex;gap:10px;margin-top:8px;}
+    .btn.small{padding:8px 12px;font-size:14px;}
+    .muted{text-align:center;color:var(--muted);}
+    .footer{display:flex;justify-content:center;padding:28px;color:var(--muted);font-size:14px;}
+    .footer .link{color:var(--accent);text-decoration:none;}
+  </style>
+</head>
+
+<body>
+  <div class="ai-shell">
+    <div class="bg">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="grid"></span>
+    </div>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="brand-name">Internstart<span class="accent"> Scraper</span></span>
+      </div>
+      <nav class="nav">
+        <a href="#" class="nav-link is-active">Import</a>
+        <a href="#" class="nav-link">Jobs</a>
+        <a href="#" class="nav-link">Settings</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <header class="card-head">
+          <h1 class="title">
+            <svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z"/></svg>
+            Import Jobs from Scraper
+          </h1>
+          <p class="subtitle">Run one of your scrapers, preview listings, and process them individually with AI.</p>
+        </header>
+
+        <form id="scraperForm" class="form">
+          <label for="scraperSelect" class="label">Select Scraper</label>
+          <select id="scraperSelect" class="select">
+            <option value="uk_marketing">🇬🇧 UK Marketing Scraper</option>
+          </select>
+
+          <div class="actions" style="margin-top:16px;">
+            <button type="button" id="scrapeBtn" class="btn">
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <span class="btn-text">Run Scraper</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="resultsContainer" class="results-container">
+          <p class="muted">No results yet — run a scraper to see jobs here.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Import Jobs • <a href="#" class="link">Privacy</a></p>
+    </footer>
   </div>
 
-  <!-- Top Bar -->
-  <header class="topbar" role="banner">
-    <div class="brand">
-      <span class="logo-dot" aria-hidden="true"></span>
-      <span class="brand-name">Internstart<span class="accent"> Scraper</span></span>
-    </div>
-    <nav class="nav" aria-label="primary">
-      <a href="#" class="nav-link is-active">Import</a>
-      <a href="#" class="nav-link">Jobs</a>
-      <a href="#" class="nav-link">Settings</a>
-    </nav>
-  </header>
+  <!-- === Script === -->
+  <script>
+  window.addEventListener("load", () => {
+    console.log("✅ Page fully loaded — script active");
 
-  <!-- Main Card -->
-  <main class="wrap" role="main">
-    <section class="card">
-      <header class="card-head">
-        <h1 class="title">
-          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
-          </svg>
-          Import Jobs from Scraper
-        </h1>
-        <p class="subtitle">Run one of your scrapers, preview listings, and process them individually with AI.</p>
-      </header>
+    const scrapeBtn = document.getElementById("scrapeBtn");
+    const resultsContainer = document.getElementById("resultsContainer");
 
-      <!-- Scraper Controls -->
-      <form id="scraperForm" class="form">
-        <label for="scraperSelect" class="label">Select Scraper</label>
-        <select id="scraperSelect" class="select">
-          <option value="uk_marketing">🇬🇧 UK Marketing Scraper</option>
-        </select>
-
-        <div class="actions" style="margin-top: 16px;">
-          <button type="button" id="scrapeBtn" class="btn">
-            <span class="btn-spinner" aria-hidden="true"></span>
-            <span class="btn-text">Run Scraper</span>
-          </button>
-        </div>
-      </form>
-
-      <!-- Scraper Results -->
-      <div id="resultsContainer" class="results-container">
-        <p class="muted">No results yet — run a scraper to see jobs here.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer" role="contentinfo">
-    <p>Import Jobs • <a href="#" class="link">Privacy</a></p>
-  </footer>
-</div>
-
-<!-- === Styles === -->
-<style>
-:root {
-  --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324;
-  --card:rgba(18,22,36,.72); --stroke:rgba(255,255,255,.08);
-  --text:#E7ECF3; --muted:#A6B0C3; --radius:16px;
-  --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
-}
-@media(prefers-color-scheme:light){
-  :root{--bg:#F6F8FF;--bg-2:#EEF1FF;--card:#fff;--text:#0B0F1A;--muted:#596177;--stroke:rgba(10,15,30,.08);}
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:linear-gradient(180deg,var(--bg),var(--bg-2));color:var(--text);font:500 16px/1.5 Inter,system-ui}
-.ai-shell{position:relative;min-height:100dvh;overflow-x:hidden}
-.bg .orb{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(70px);opacity:.35;pointer-events:none;}
-.orb-1{background:radial-gradient(closest-side,var(--accent),transparent 70%);top:-120px;left:-120px;}
-.orb-2{background:radial-gradient(closest-side,#7B61FF,transparent 70%);right:-140px;bottom:-140px;}
-.bg .grid{position:absolute;inset:0;background-image:
-linear-gradient(to right,var(--stroke)1px,transparent 1px),
-linear-gradient(to bottom,var(--stroke)1px,transparent 1px);
-background-size:36px 36px;mask-image:radial-gradient(60% 60% at 50% 40%,black 60%,transparent 100%);}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px clamp(20px,6vw,56px);
-position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);
-background:linear-gradient(180deg,rgba(12,16,28,.7),rgba(12,16,28,.35));border-bottom:1px solid var(--stroke);z-index:10}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700}
-.brand-name{font-size:18px}.logo-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
-.nav{display:flex;gap:16px}.nav-link{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px;}
-.nav-link:hover{color:var(--text);background:rgba(255,255,255,.04);}
-.nav-link.is-active{color:var(--text);background:rgba(255,255,255,.06);}
-.wrap{max-width:1000px;margin:clamp(24px,5vw,60px) auto;padding:0 clamp(20px,5vw,32px);}
-.card{background:var(--card);border:1px solid var(--stroke);border-radius:calc(var(--radius) + 4px);
-box-shadow:var(--shadow);padding:clamp(18px,3vw,28px);position:relative;overflow:hidden;}
-.card::after{content:"";position:absolute;inset:-1px;border-radius:inherit;
-background:radial-gradient(300px 80px at 10% 0%,color-mix(in oklab,var(--accent) 18%,transparent),transparent 60%)}
-.card-head{margin-bottom:18px}
-.title{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:clamp(22px,3.2vw,28px);}
-.title-icon{width:22px;height:22px;color:var(--accent);}
-.subtitle{color:var(--muted);max-width:70ch;}
-.label{display:block;font-weight:600;margin:10px 0 6px;}
-.select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--stroke);
-background:rgba(255,255,255,.06);color:var(--text);font-weight:600;}
-.select:focus{outline:3px solid color-mix(in oklab,var(--accent) 25%,transparent);}
-.actions{display:flex;gap:12px;margin-top:10px;}
-.btn{background:var(--accent);color:#0B0F1A;border:none;border-radius:12px;padding:12px 16px;
-font-weight:700;cursor:pointer;box-shadow:0 8px 24px color-mix(in oklab,var(--accent) 30%,transparent);}
-.btn:hover{filter:brightness(1.05);}
-.results-container{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
-.job-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;
-padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
-.job-header{display:flex;align-items:center;gap:12px;}
-.job-logo{width:50px;height:50px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.1);flex-shrink:0;}
-.job-placeholder{display:flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:50%;
-background:rgba(255,255,255,.08);font-weight:700;color:var(--muted);}
-.job-title{font-weight:600;font-size:17px;}
-.job-snippet{font-size:14px;color:var(--muted);}
-.job-link{font-size:14px;color:var(--accent);text-decoration:none;}
-.job-actions{display:flex;gap:10px;margin-top:8px;}
-.btn.small{padding:8px 12px;font-size:14px;}
-.muted{text-align:center;color:var(--muted);}
-.footer{display:flex;justify-content:center;padding:28px;color:var(--muted);font-size:14px;}
-.footer .link{color:var(--accent);text-decoration:none;}
-</style>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log("🧠 DOMContentLoaded event fired — script executing...");
-  
-    const scrapeBtn = document.querySelector("#scrapeBtn");
-    const resultsContainer = document.querySelector("#resultsContainer");
-  
-    console.log("🔍 scrapeBtn element:", scrapeBtn);
-    console.log("🔍 resultsContainer element:", resultsContainer);
-  
     if (!scrapeBtn) {
-      console.error("❌ scrapeBtn not found in DOM. The button ID might be missing or script loaded too early.");
+      console.error("❌ scrapeBtn not found!");
       return;
     }
-  
-    console.log("✅ Script loaded and button found — attaching click listener now...");
-  
+
+    console.log("🎯 Button ready — attaching event...");
     scrapeBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      console.log("🚀 Run Scraper button clicked!");
-      
-      // Visual feedback
+      console.log("🚀 Run Scraper clicked!");
       resultsContainer.innerHTML = '<p class="muted">🔄 Running scraper... please wait.</p>';
-  
+
       try {
-        console.log("🌐 Starting fetch to /run_scraper/?type=uk_marketing ...");
-        const res = await fetch("/run_scraper/?type=uk_marketing");
-        console.log("📡 Fetch complete — HTTP status:", res.status);
-  
-        if (!res.ok) {
-          console.error(`❌ Server responded with error status ${res.status}`);
-          resultsContainer.innerHTML = `<p class="muted">❌ HTTP error ${res.status}</p>`;
+        console.log("🌍 Fetching from /run_scraper/?type=uk_marketing");
+        const response = await fetch("/run_scraper/?type=uk_marketing");
+        console.log("📡 HTTP status:", response.status);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        console.log("📦 Received:", data);
+
+        if (!data.results?.length) {
+          resultsContainer.innerHTML = "<p class='muted'>No jobs found.</p>";
+          console.warn("⚠️ No job results");
           return;
         }
-  
-        const data = await res.json();
-        console.log("📦 Received data from backend:", data);
-  
-        if (!data) {
-          console.warn("⚠️ No JSON data returned from server");
-          resultsContainer.innerHTML = '<p class="muted">⚠️ No data returned.</p>';
-          return;
-        }
-  
-        if (!data.results || data.results.length === 0) {
-          console.warn("⚠️ No job results found in data:", data);
-          resultsContainer.innerHTML = '<p class="muted">No jobs found.</p>';
-          return;
-        }
-  
-        console.log(`✅ Rendering ${data.results.length} results...`);
+
         resultsContainer.innerHTML = "";
-  
         data.results.forEach((job, i) => {
-          console.log(`🧩 Rendering job #${i + 1}:`, job);
-  
           const row = document.createElement("div");
           row.className = "job-row";
-  
           const initials = (job.title || "J")[0].toUpperCase();
           row.innerHTML = `
             <div class="job-header">
-              <div class="job-placeholder" id="logo-${i}">${initials}</div>
+              <div class="job-placeholder">${initials}</div>
               <div>
                 <div class="job-title">${job.title || "Untitled Job"}</div>
                 <a href="${job.link}" target="_blank" class="job-link">${job.link}</a>
               </div>
             </div>
             <div class="job-snippet">${job.snippet || ""}</div>
-            <div class="job-actions">
-              <button class="btn small" data-index="${i}">Process & Add to DB with AI</button>
-            </div>
           `;
           resultsContainer.appendChild(row);
         });
-  
-        console.log("🎉 Render complete — all jobs displayed!");
-  
+        console.log("🎉 Rendered", data.results.length, "jobs");
+
       } catch (err) {
-        console.error("💥 Uncaught fetch or render error:", err);
-        resultsContainer.innerHTML = '<p class="muted">❌ Error running scraper. Check console for details.</p>';
+        console.error("💥 Fetch failed:", err);
+        resultsContainer.innerHTML = "<p class='muted'>❌ Error running scraper. See console.</p>";
       }
     });
-  
-    console.log("🧩 Event listener successfully attached to #scrapeBtn");
   });
   </script>
-  
-  
+</body>
+</html>
