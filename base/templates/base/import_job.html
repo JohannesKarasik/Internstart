@@ -70,6 +70,13 @@
             <option value="student_job">Student Job</option>
             <option value="full_time">Full Time Job</option>
           </select>
+
+          <!-- 🆕 Scraper Type -->
+          <label>Scraper Type</label>
+          <select id="scraperSelect" class="select">
+            <option value="uk_marketing">🇬🇧 UK – Marketing & Communications</option>
+            <option value="uk_finance">🇬🇧 UK – Business & Finance</option>
+          </select>
         </div>
 
         <!-- Action Buttons -->
@@ -103,6 +110,7 @@
       const scrapeBtn = document.getElementById("scrapeBtn");
       const addBtn = document.getElementById("addToDBBtn");
       const resultsContainer = document.getElementById("resultsContainer");
+      const scraperSelect = document.getElementById("scraperSelect");
     
       let cachedResults = [];
     
@@ -118,15 +126,17 @@
         return true;
       }
     
-      // 1️⃣ Run Scraper (improved: show errors + debug info)
+      // 1️⃣ Run Scraper (with dynamic filters)
       scrapeBtn.addEventListener("click", async () => {
         if (!validateSelections()) return;
+    
+        const scraperType = scraperSelect.value || "uk_marketing";
     
         resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
         scrapeBtn.disabled = true;
     
         try {
-          const res = await fetch("/run_scraper/?type=uk_marketing");
+          const res = await fetch(`/run_scraper/?type=${scraperType}`);
           const isJson = res.headers.get("content-type")?.includes("application/json");
           const data = isJson ? await res.json() : { error: "Non-JSON response from server." };
     
@@ -137,8 +147,6 @@
               <div class="job-row">
                 <strong>⚠️ Scraper error</strong><br>
                 <small>${(data.error || "Unknown error").toString().replace(/</g,"&lt;")}</small>
-                ${data.stdout ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDOUT:\n${data.stdout.replace(/</g,"&lt;")}</pre>` : ""}
-                ${data.stderr ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDERR:\n${data.stderr.replace(/</g,"&lt;")}</pre>` : ""}
               </div>
             `;
             scrapeBtn.disabled = false;
@@ -153,55 +161,50 @@
               <div class="job-row">
                 <strong>No jobs found.</strong><br>
                 <small>Latest file: ${data.latest_file || "—"}</small>
-                ${data.stdout ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDOUT:\n${data.stdout.replace(/</g,"&lt;")}</pre>` : ""}
               </div>
             `;
             scrapeBtn.disabled = false;
             return;
           }
     
-          // 🎯 Filter listings by marketing-related keywords
-          const MARKETING_KEYWORDS = [
-            "marketing", "digital", "seo", "sem", "ppc", "social media",
-            "content", "copywriter", "copywriting", "pr", "public relations",
-            "communications", "brand", "advertising", "creative", "growth",
-            "email", "campaign", "media", "community", "influencer",
-            "affiliate", "crm", "performance", "ecommerce", "demand gen",
-            "account manager", "marcom"
-          ];
-          const keywordsLower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
+          // 🎯 Apply filters depending on scraper type
+          if (scraperType === "uk_marketing") {
+            const MARKETING_KEYWORDS = [
+              "marketing", "digital", "seo", "sem", "ppc", "social media",
+              "content", "copywriter", "copywriting", "pr", "public relations",
+              "communications", "brand", "advertising", "creative", "growth",
+              "email", "campaign", "media", "community", "influencer",
+              "affiliate", "crm", "performance", "ecommerce", "demand gen",
+              "account manager", "marcom"
+            ];
+            const lower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
     
-          const marketingResults = cachedResults.filter(job => {
-            const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
-            return keywordsLower.some(keyword => text.includes(keyword));
-          });
-    
-          const count = marketingResults.length;
-          console.log(`🎯 Filtered ${count} marketing-related jobs out of ${cachedResults.length}`);
-    
-          if (!count) {
-            resultsContainer.innerHTML = `
-              <div class="job-row">
-                <strong>⚠️ No marketing listings found after keyword filtering.</strong><br>
-                <small>Try rerunning the scraper or broadening the keyword set.</small>
-              </div>
-            `;
-            scrapeBtn.disabled = false;
-            return;
+            cachedResults = cachedResults.filter(job => {
+              const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
+              return lower.some(k => text.includes(k));
+            });
+            console.log(`🎯 Filtered to ${cachedResults.length} marketing-related listings`);
           }
     
-          // Render jobs + debug header
-          const header = `
-            <div class="job-row">
-              <strong>✅ Found ${count} marketing-related jobs</strong><br>
-              <small>Filtered from ${totalCount} total results</small>
-              ${data.latest_file ? `<br><small>Latest file: ${data.latest_file}</small>` : ""}
-              ${data.stdout ? `<details style="margin-top:8px;"><summary>Show scraper log</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stdout.replace(/</g,"&lt;")}</pre></details>` : ""}
-              ${data.stderr ? `<details style="margin-top:8px;"><summary>Show errors</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stderr.replace(/</g,"&lt;")}</pre></details>` : ""}
-            </div>
-          `;
+          if (scraperType === "uk_finance") {
+            const FINANCE_KEYWORDS = [
+              "finance", "financial", "accounting", "accountant", "auditor", "audit",
+              "bookkeeper", "bookkeeping", "treasury", "controller", "cfo", "banking",
+              "investment", "analyst", "fp&a", "fp and a", "compliance", "risk",
+              "credit", "loan", "underwriter", "treasurer", "fund", "asset",
+              "wealth", "valuation", "tax", "reconciliation", "ledger", "budgeting"
+            ];
+            const lower = FINANCE_KEYWORDS.map(k => k.toLowerCase());
     
-          const list = marketingResults.map((job, i) => `
+            cachedResults = cachedResults.filter(job => {
+              const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
+              return lower.some(k => text.includes(k));
+            });
+            console.log(`💰 Filtered to ${cachedResults.length} finance-related listings`);
+          }
+    
+          // 🧾 Display listings
+          const list = cachedResults.map((job, i) => `
             <div class="job-row" id="job-${i}">
               <strong>${job.title || "Untitled Job"}</strong><br>
               <a href="${job.link}" target="_blank">${job.link}</a><br>
@@ -210,7 +213,19 @@
             </div>
           `).join("");
     
-          resultsContainer.innerHTML = header + list;
+          resultsContainer.innerHTML = `
+            <div class="job-row">
+              <strong>✅ Found ${cachedResults.length} valid listings (${scraperType})</strong><br>
+              <small>${
+                scraperType === "uk_marketing"
+                  ? "Filtered by marketing-related keywords"
+                  : scraperType === "uk_finance"
+                  ? "Filtered by finance-related keywords"
+                  : "No keyword filter applied"
+              }</small>
+            </div>
+            ${list}
+          `;
         } catch (err) {
           console.error("run_scraper failed:", err);
           resultsContainer.innerHTML = `<p class='muted'>❌ Failed to call /run_scraper — check console/network tab.</p>`;
@@ -219,7 +234,7 @@
         }
       });
     
-      // 2️⃣ Process loop (with duplicate detection feedback)
+      // 2️⃣ Add to Database
       addBtn.addEventListener("click", async () => {
         if (!cachedResults.length) {
           alert("Run the scraper first.");
@@ -281,8 +296,6 @@
       });
     });
     </script>
-    
-    
     
 </body>
 </html>
