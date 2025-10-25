@@ -13,7 +13,10 @@ def main():
         'site:linkedin.com/jobs inurl:uk '
         '("send your CV" OR "apply by email" OR "email your application") '
         '("@co.uk" OR "@gmail.com" OR "@outlook.com") '
-        '(marketing OR SEO OR "social media" OR PR OR advertising)'
+        '(marketing OR "digital marketing" OR SEO OR "content marketing" OR "social media" OR PR OR "public relations" '
+        'OR communications OR "email marketing" OR "copywriter" OR "brand manager" OR "advertising" OR "growth marketing" '
+        'OR "marketing assistant" OR "marketing coordinator" OR "media buyer" OR "campaign manager" OR "community manager" '
+        'OR "marketing executive" OR "account manager" OR "marketing intern" OR "performance marketing")'
     )
 
     # 🔑 --- API Key ---
@@ -65,6 +68,22 @@ def main():
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
+    # 🎯 --- Define relevant and exclusion keywords ---
+    MARKETING_KEYWORDS = [
+        "marketing", "seo", "sem", "ppc", "content", "copywriter", "advertising",
+        "branding", "growth", "campaign", "communications", "pr", "public relations",
+        "email", "media", "digital", "social", "brand", "community", "performance",
+        "influencer", "affiliate", "creative", "ecommerce", "paid search",
+        "account manager", "engagement", "customer acquisition"
+    ]
+
+    EXCLUDE_KEYWORDS = [
+        "engineer", "developer", "roofer", "technician", "plumber",
+        "construction", "warehouse", "driver", "nurse", "teacher",
+        "chef", "accountant", "finance", "hr", "recruiter", "maintenance",
+        "installer", "operator", "mechanic", "laborer", "caretaker"
+    ]
+
     # 🧹 --- Filter results with visible emails ---
     filtered = []
     for r in all_results:
@@ -72,11 +91,20 @@ def main():
         link = r.get("link", "")
         title = r.get("title", "")
 
+        text = (title + " " + snippet).lower()
+
+        # Must contain email and be UK based
         if "@" not in snippet:
             continue
-
-        text = (title + " " + snippet).lower()
         if not ("uk" in text or "united kingdom" in text or "/uk/" in link.lower()):
+            continue
+
+        # Must contain at least one marketing keyword
+        if not any(word in text for word in MARKETING_KEYWORDS):
+            continue
+
+        # Must NOT contain excluded words
+        if any(word in text for word in EXCLUDE_KEYWORDS):
             continue
 
         filtered.append({
@@ -85,7 +113,7 @@ def main():
             "snippet": snippet.strip(),
         })
 
-    print(f"✅ Filtered down to {len(filtered)} listings with visible emails before closure check.")
+    print(f"✅ Filtered down to {len(filtered)} listings with marketing relevance before closure check.")
 
     # 🔎 --- Remove closed listings ---
     CLOSED_PATTERNS = [
@@ -138,6 +166,6 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(open_listings)} open UK listings to {filename}")
+    print(f"✅ Saved {len(open_listings)} open UK marketing listings to {filename}")
 
     return open_listings
