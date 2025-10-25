@@ -125,36 +125,63 @@ background:rgba(255,255,255,.08);font-weight:700;color:var(--muted);}
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    console.log("🧠 DOMContentLoaded event fired — script executing...");
+  
     const scrapeBtn = document.querySelector("#scrapeBtn");
     const resultsContainer = document.querySelector("#resultsContainer");
   
+    console.log("🔍 scrapeBtn element:", scrapeBtn);
+    console.log("🔍 resultsContainer element:", resultsContainer);
+  
     if (!scrapeBtn) {
-      console.error("❌ scrapeBtn not found in DOM");
+      console.error("❌ scrapeBtn not found in DOM. The button ID might be missing or script loaded too early.");
       return;
     }
   
-    console.log("✅ Script loaded and button found");
+    console.log("✅ Script loaded and button found — attaching click listener now...");
   
     scrapeBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      console.log("🚀 Run Scraper clicked!");
+      console.log("🚀 Run Scraper button clicked!");
+      
+      // Visual feedback
       resultsContainer.innerHTML = '<p class="muted">🔄 Running scraper... please wait.</p>';
   
       try {
+        console.log("🌐 Starting fetch to /run_scraper/?type=uk_marketing ...");
         const res = await fetch("/run_scraper/?type=uk_marketing");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log("📡 Fetch complete — HTTP status:", res.status);
+  
+        if (!res.ok) {
+          console.error(`❌ Server responded with error status ${res.status}`);
+          resultsContainer.innerHTML = `<p class="muted">❌ HTTP error ${res.status}</p>`;
+          return;
+        }
+  
         const data = await res.json();
-        console.log("📦 Scraper data:", data);
+        console.log("📦 Received data from backend:", data);
+  
+        if (!data) {
+          console.warn("⚠️ No JSON data returned from server");
+          resultsContainer.innerHTML = '<p class="muted">⚠️ No data returned.</p>';
+          return;
+        }
   
         if (!data.results || data.results.length === 0) {
+          console.warn("⚠️ No job results found in data:", data);
           resultsContainer.innerHTML = '<p class="muted">No jobs found.</p>';
           return;
         }
   
+        console.log(`✅ Rendering ${data.results.length} results...`);
         resultsContainer.innerHTML = "";
+  
         data.results.forEach((job, i) => {
+          console.log(`🧩 Rendering job #${i + 1}:`, job);
+  
           const row = document.createElement("div");
           row.className = "job-row";
+  
           const initials = (job.title || "J")[0].toUpperCase();
           row.innerHTML = `
             <div class="job-header">
@@ -171,11 +198,17 @@ background:rgba(255,255,255,.08);font-weight:700;color:var(--muted);}
           `;
           resultsContainer.appendChild(row);
         });
+  
+        console.log("🎉 Render complete — all jobs displayed!");
+  
       } catch (err) {
-        console.error("❌ Fetch failed:", err);
-        resultsContainer.innerHTML = '<p class="muted">❌ Error running scraper.</p>';
+        console.error("💥 Uncaught fetch or render error:", err);
+        resultsContainer.innerHTML = '<p class="muted">❌ Error running scraper. Check console for details.</p>';
       }
     });
+  
+    console.log("🧩 Event listener successfully attached to #scrapeBtn");
   });
   </script>
+  
   
