@@ -1942,15 +1942,28 @@ def process_job_with_ai_bulk(request):
     Process a single job listing at a time.
     Uses AI to extract structured data, fetches logo, and stores in DB.
     """
-    import json, re, requests
+    import json, re, requests, os
     from django.core.files.base import ContentFile
     from openai import OpenAI
     from io import BytesIO
+    from django.http import JsonResponse
+    from base.models import Room, Topic, User  # ✅ ensure these imports are present
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     try:
         data = json.loads(request.body)
+
+        # ✅ --- TEMPORARY LIMIT FOR TESTING ---
+        # If you ever send a batch or multiple results, this ensures only the first one is processed.
+        if isinstance(data, list) and len(data) > 1:
+            print(f"⚙️ [TEST MODE] Limiting AI processing to only the first listing (out of {len(data)})")
+            data = data[0]
+        elif isinstance(data, dict):
+            print("⚙️ [TEST MODE] Single listing detected — continuing normally.")
+        else:
+            print("⚠️ Unexpected data format:", type(data))
+
         text = f"{data.get('title')}\n\n{data.get('snippet')}"
         link = data.get("link")
 
@@ -1964,6 +1977,8 @@ def process_job_with_ai_bulk(request):
         Text:
         {text}
         """
+
+        print("🧠 Sending text to AI for extraction...")
         ai_resp = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}]
@@ -1989,6 +2004,9 @@ def process_job_with_ai_bulk(request):
             resp = requests.get(logo_url, timeout=4)
             if resp.status_code == 200:
                 logo_file = ContentFile(resp.content, name=f"{company}.png")
+                print(f"🖼️ Logo fetched successfully for {company}")
+            else:
+                print(f"⚠️ Logo not found for {company} (status {resp.status_code})")
         except Exception as e:
             print("⚠️ Logo fetch failed:", e)
 
@@ -2010,11 +2028,13 @@ def process_job_with_ai_bulk(request):
         if logo_file:
             room.logo.save(f"{company}.png", logo_file, save=True)
 
+        print(f"✅ Job saved successfully: {company} — {location}")
         return JsonResponse({"success": True, "company": company, "id": room.id})
 
     except Exception as e:
         print("❌ process_job_with_ai_bulk failed:", e)
         return JsonResponse({"success": False, "error": str(e)})
+
 
 
 def fetch_company_logo(company_name):
