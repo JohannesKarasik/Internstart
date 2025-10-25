@@ -99,108 +99,154 @@
   </div>
 
   <script>
-  window.addEventListener("load", () => {
-    const scrapeBtn = document.getElementById("scrapeBtn");
-    const addBtn = document.getElementById("addToDBBtn");
-    const resultsContainer = document.getElementById("resultsContainer");
-
-    let cachedResults = [];
-
-    // ✅ Ensure dropdowns are selected before scraping
-    function validateSelections() {
-      const country = document.getElementById("countrySelect").value;
-      const industry = document.getElementById("industrySelect").value;
-      const jobType = document.getElementById("jobTypeSelect").value;
-
-      if (!country || !industry || !jobType) {
-        alert("Please select Country, Industry, and Job Type before running the scraper.");
-        return false;
+    window.addEventListener("load", () => {
+      const scrapeBtn = document.getElementById("scrapeBtn");
+      const addBtn = document.getElementById("addToDBBtn");
+      const resultsContainer = document.getElementById("resultsContainer");
+    
+      let cachedResults = [];
+    
+      function validateSelections() {
+        const country = document.getElementById("countrySelect").value;
+        const industry = document.getElementById("industrySelect").value;
+        const jobType = document.getElementById("jobTypeSelect").value;
+    
+        if (!country || !industry || !jobType) {
+          alert("Please select Country, Industry, and Job Type before running the scraper.");
+          return false;
+        }
+        return true;
       }
-      return true;
-    }
-
-    // 1️⃣ Run Scraper
-    scrapeBtn.addEventListener("click", async () => {
-      if (!validateSelections()) return;
-
-      resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
-      const res = await fetch("/run_scraper/?type=uk_marketing");
-      const data = await res.json();
-      cachedResults = data.results || [];
-
-      if (!cachedResults.length) {
-        resultsContainer.innerHTML = "<p class='muted'>No jobs found.</p>";
-        return;
-      }
-
-      resultsContainer.innerHTML = cachedResults.map((job, i) => `
-        <div class="job-row" id="job-${i}">
-          <strong>${job.title || "Untitled Job"}</strong><br>
-          <a href="${job.link}" target="_blank">${job.link}</a><br>
-          <small>${job.snippet}</small><br>
-          <span class="status muted">⏸ Waiting...</span>
-        </div>
-      `).join("");
-    });
-
-    // 2️⃣ Sequentially process each job
-    addBtn.addEventListener("click", async () => {
-      if (!cachedResults.length) {
-        alert("Run the scraper first.");
-        return;
-      }
-
-      const country = document.getElementById("countrySelect").value;
-      const jobType = document.getElementById("jobTypeSelect").value;
-      const industry = document.getElementById("industrySelect").value;
-
-      addBtn.textContent = "Processing...";
-      addBtn.disabled = true;
-
-      for (let i = 0; i < cachedResults.length; i++) {
-        const job = cachedResults[i];
-        const jobEl = document.getElementById(`job-${i}`);
-        const statusEl = jobEl.querySelector(".status");
-
-        statusEl.textContent = "🤖 Processing...";
-        statusEl.style.color = "#7B61FF";
-
+    
+      // 1️⃣ Run Scraper (improved: show errors + debug info)
+      scrapeBtn.addEventListener("click", async () => {
+        if (!validateSelections()) return;
+    
+        resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
+        scrapeBtn.disabled = true;
+    
         try {
-          const res = await fetch("/process_job_with_ai_bulk/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: job.title,
-              link: job.link,
-              snippet: job.snippet,
-              country,
-              job_type: jobType,
-              industry
-            })
-          });
-
-          const data = await res.json();
-
-          if (data.success) {
-            statusEl.textContent = `✅ Added: ${data.company}`;
-            statusEl.style.color = "#4CAF50";
-          } else {
-            statusEl.textContent = "❌ Failed";
+          const res = await fetch("/run_scraper/?type=uk_marketing");
+          const isJson = res.headers.get("content-type")?.includes("application/json");
+          const data = isJson ? await res.json() : { error: "Non-JSON response from server." };
+    
+          console.log("[run_scraper] response:", data);
+    
+          if (!res.ok || data.error) {
+            resultsContainer.innerHTML = `
+              <div class="job-row">
+                <strong>⚠️ Scraper error</strong><br>
+                <small>${(data.error || "Unknown error").toString().replace(/</g,"&lt;")}</small>
+                ${data.stdout ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDOUT:\n${data.stdout.replace(/</g,"&lt;")}</pre>` : ""}
+                ${data.stderr ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDERR:\n${data.stderr.replace(/</g,"&lt;")}</pre>` : ""}
+              </div>
+            `;
+            scrapeBtn.disabled = false;
+            return;
+          }
+    
+          cachedResults = Array.isArray(data.results) ? data.results : [];
+          const count = data.count ?? cachedResults.length;
+    
+          if (!cachedResults.length) {
+            resultsContainer.innerHTML = `
+              <div class="job-row">
+                <strong>No jobs found.</strong><br>
+                <small>Latest file: ${data.latest_file || "—"}</small>
+                ${data.stdout ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDOUT:\n${data.stdout.replace(/</g,"&lt;")}</pre>` : ""}
+              </div>
+            `;
+            scrapeBtn.disabled = false;
+            return;
+          }
+    
+          // render jobs + a tiny debug header
+          const header = `
+            <div class="job-row">
+              <strong>✅ Found ${count} jobs</strong><br>
+              <small>Latest file: ${data.latest_file || "—"}</small>
+              ${data.stdout ? `<details style="margin-top:8px;"><summary>Show scraper log</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stdout.replace(/</g,"&lt;")}</pre></details>` : ""}
+              ${data.stderr ? `<details style="margin-top:8px;"><summary>Show errors</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stderr.replace(/</g,"&lt;")}</pre></details>` : ""}
+            </div>
+          `;
+    
+          const list = cachedResults.map((job, i) => `
+            <div class="job-row" id="job-${i}">
+              <strong>${job.title || "Untitled Job"}</strong><br>
+              <a href="${job.link}" target="_blank">${job.link}</a><br>
+              <small>${job.snippet || ""}</small><br>
+              <span class="status muted">⏸ Waiting...</span>
+            </div>
+          `).join("");
+    
+          resultsContainer.innerHTML = header + list;
+        } catch (err) {
+          console.error("run_scraper failed:", err);
+          resultsContainer.innerHTML = `<p class='muted'>❌ Failed to call /run_scraper — check console/network tab.</p>`;
+        } finally {
+          scrapeBtn.disabled = false;
+        }
+      });
+    
+      // 2️⃣ Process loop (unchanged)
+      addBtn.addEventListener("click", async () => {
+        if (!cachedResults.length) {
+          alert("Run the scraper first.");
+          return;
+        }
+    
+        const country = document.getElementById("countrySelect").value;
+        const jobType = document.getElementById("jobTypeSelect").value;
+        const industry = document.getElementById("industrySelect").value;
+    
+        addBtn.textContent = "Processing...";
+        addBtn.disabled = true;
+    
+        for (let i = 0; i < cachedResults.length; i++) {
+          const job = cachedResults[i];
+          const jobEl = document.getElementById(`job-${i}`);
+          const statusEl = jobEl.querySelector(".status");
+    
+          statusEl.textContent = "🤖 Processing...";
+          statusEl.style.color = "#7B61FF";
+    
+          try {
+            const res = await fetch("/process_job_with_ai_bulk/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: job.title,
+                link: job.link,
+                snippet: job.snippet,
+                country,
+                job_type: jobType,
+                industry
+              })
+            });
+    
+            const data = await res.json();
+    
+            if (data.success) {
+              statusEl.textContent = `✅ Added: ${data.company}`;
+              statusEl.style.color = "#4CAF50";
+            } else {
+              statusEl.textContent = "❌ Failed";
+              statusEl.style.color = "#ff2f5a";
+            }
+          } catch (err) {
+            console.error("❌ Error on job", i + 1, err);
+            statusEl.textContent = "❌ Error";
             statusEl.style.color = "#ff2f5a";
           }
-        } catch (err) {
-          console.error("❌ Error on job", i + 1, err);
-          statusEl.textContent = "❌ Error";
-          statusEl.style.color = "#ff2f5a";
+    
+          await new Promise(r => setTimeout(r, 2000));
         }
-
-        await new Promise(r => setTimeout(r, 2000));
-      }
-
-      addBtn.textContent = "✅ Done";
-      addBtn.disabled = false;
+    
+        addBtn.textContent = "✅ Done";
+        addBtn.disabled = false;
+      });
     });
-  });
-  </script>
+    </script>
+    
 </body>
 </html>
