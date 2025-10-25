@@ -45,6 +45,7 @@
         <div class="filters">
           <label>Country</label>
           <select id="countrySelect" class="select">
+            <option value="">Select a country</option>
             <option value="DK">🇩🇰 Denmark</option>
             <option value="US">🇺🇸 United States</option>
             <option value="UK">🇬🇧 United Kingdom</option>
@@ -54,6 +55,7 @@
 
           <label>Industry</label>
           <select id="industrySelect" class="select">
+            <option value="">Select an industry</option>
             <option value="business_finance">Business & Finance</option>
             <option value="marketing">Marketing & Communications</option>
             <option value="software_backend">Software Development (Backend)</option>
@@ -63,6 +65,7 @@
 
           <label>Job Type</label>
           <select id="jobTypeSelect" class="select">
+            <option value="">Select a job type</option>
             <option value="internship">Internship</option>
             <option value="student_job">Student Job</option>
             <option value="full_time">Full Time Job</option>
@@ -91,8 +94,23 @@
 
     let cachedResults = [];
 
+    // ✅ Ensure dropdowns are selected before scraping
+    function validateSelections() {
+      const country = document.getElementById("countrySelect").value;
+      const industry = document.getElementById("industrySelect").value;
+      const jobType = document.getElementById("jobTypeSelect").value;
+
+      if (!country || !industry || !jobType) {
+        alert("Please select Country, Industry, and Job Type before running the scraper.");
+        return false;
+      }
+      return true;
+    }
+
     // 1️⃣ Run Scraper
     scrapeBtn.addEventListener("click", async () => {
+      if (!validateSelections()) return;
+
       resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
       const res = await fetch("/run_scraper/?type=uk_marketing");
       const data = await res.json();
@@ -164,7 +182,6 @@
           statusEl.style.color = "#ff2f5a";
         }
 
-        // 🕐 Wait between each job (for stability)
         await new Promise(r => setTimeout(r, 2000));
       }
 
