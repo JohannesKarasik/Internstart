@@ -9,14 +9,10 @@ from urllib.parse import urlparse
 
 # 🧩 --- Configuration ---
 QUERY = (
-    'site:linkedin.com/jobs ('
-    'intitle:marketing OR intitle:"digital marketing" OR intitle:"social media" OR intitle:SEO OR intitle:advertising OR '
-    'intitle:content OR intitle:communications OR intitle:PR OR intitle:"public relations" OR intitle:brand OR '
-    'intitle:"growth" OR intitle:"media" OR intitle:"creative" OR intitle:"copywriter" OR intitle:"campaign" OR '
-    'intitle:"performance" OR intitle:"influencer" OR intitle:"paid media") '
+    'site:linkedin.com/jobs inurl:uk '
     '("send your CV" OR "apply by email" OR "email your application") '
-    '("@gmail.com" OR "@outlook.com" OR "@hotmail.com" OR "@company.co.uk" OR "@co.uk" OR "@") '
-    '("United Kingdom" OR "UK")'
+    '("@co.uk" OR "@gmail.com" OR "@outlook.com") '
+    '(marketing OR SEO OR "social media" OR PR OR advertising)'
 )
 
 # 🔑 --- API Key ---
@@ -30,12 +26,12 @@ print("🔍 Fetching up to 100 UK marketing listings from SerpAPI ...")
 base_params = {
     "engine": "google",
     "q": QUERY,
-    "num": 10,               # 10 results per page (SerpAPI limit)
+    "num": 10,  # 10 results per page (SerpAPI limit)
     "hl": "en",
     "gl": "uk",
     "location": "United Kingdom",
     "filter": "0",
-    "tbs": "qdr:w",          # past week
+    "tbs": "qdr:w",  # past week
     "api_key": API_KEY,
 }
 
@@ -64,29 +60,25 @@ for start in range(0, 100, 10):
         break
 
     all_results.extend(organic)
-    time.sleep(2)
+    time.sleep(2)  # prevent rate-limit issues
 
 print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-# 🧹 --- Filter results with visible emails & UK domains ---
+# 🧹 --- Filter results with visible emails ---
 filtered = []
 for r in all_results:
     snippet = r.get("snippet", "")
     link = r.get("link", "")
     title = r.get("title", "")
 
-    # Must contain email
+    # Must contain an email
     if "@" not in snippet:
         continue
 
-    # Must be UK-related (either domain or text mentions UK)
-    domain = urlparse(link).netloc.lower()
-    path = urlparse(link).path.lower()
+    # Ensure it's a UK job (via URL or text)
     text = (title + " " + snippet).lower()
-
-    if not (".uk" in domain or "/uk/" in path or "united kingdom" in text or " uk " in text):
+    if not ("uk" in text or "united kingdom" in text or "/uk/" in link.lower()):
         continue
-
 
     filtered.append({
         "title": title.strip(),
@@ -94,7 +86,7 @@ for r in all_results:
         "snippet": snippet.strip(),
     })
 
-print(f"✅ Filtered down to {len(filtered)} UK listings with visible emails.")
+print(f"✅ Filtered down to {len(filtered)} listings with visible emails before closure check.")
 
 # 🔎 --- Remove closed listings (check LinkedIn pages) ---
 CLOSED_PATTERNS = [
@@ -135,9 +127,9 @@ for job in filtered:
         print(f"⚠️ Request failed for {url}: {e}")
         continue
 
-    time.sleep(1.2)  # polite delay
+    time.sleep(1.2)  # polite delay to avoid rate limiting
 
-# Limit to 100 just in case
+# Limit to 100 max
 open_listings = open_listings[:100]
 
 # 💾 --- Save to JSON file ---
