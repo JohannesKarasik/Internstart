@@ -182,4 +182,5 @@ def main():
     return open_listings
 
 if __name__ == "__main__":
-    main()
+    results = main()
+    print(json.dumps(results, ensure_ascii=False))
