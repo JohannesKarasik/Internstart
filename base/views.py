@@ -1946,7 +1946,6 @@ def process_job_with_ai_bulk(request):
     from urllib.parse import urlparse
     from django.core.files.base import ContentFile
     from openai import OpenAI
-    from io import BytesIO
     from django.http import JsonResponse
     from base.models import Room, Topic, User
 
@@ -1955,35 +1954,33 @@ def process_job_with_ai_bulk(request):
     try:
         data = json.loads(request.body)
 
-        # ✅ --- TEMPORARY LIMIT FOR TESTING ---
+        # ✅ Limit to one listing for now
         if isinstance(data, list) and len(data) > 1:
-            print(f"⚙️ [TEST MODE] Limiting AI processing to only the first listing (out of {len(data)})")
+            print(f"⚙️ [TEST MODE] Limiting to 1 listing out of {len(data)}")
             data = data[0]
-        elif isinstance(data, dict):
-            print("⚙️ [TEST MODE] Single listing detected — continuing normally.")
-        else:
-            print("⚠️ Unexpected data format:", type(data))
 
-        text = f"{data.get('title')}\n\n{data.get('snippet')}"
+        title = data.get("title", "")
+        snippet = data.get("snippet", "")
         link = data.get("link", "")
-        print(f"🔗 Processing link: {link}")
+        email = data.get("email", "")
 
-        # 🔹 Step 1: Extract structured info from AI
+        print(f"🧩 Starting AI processing for: {title}")
+        print(f"🔗 Link: {link}")
+
+        # 🔹 Step 1: Extract structured info using AI
         prompt = f"""
-        You are a structured data extractor for job listings.
-        Given the text below, extract these fields clearly:
-
-        Company: (actual employer name, not a job board)
-        Location: (city or country)
-        Description: (2-3 sentence summary)
-
+        You are a data extractor for job listings.
+        From the following text, extract:
+        - Company name (real employer)
+        - Location (city or country)
+        - Job description (summary 2-3 sentences)
         Text:
-        {text}
+        {title}\n\n{snippet}
         """
         ai_resp = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
+            temperature=0.3
         )
 
         raw = ai_resp.choices[0].message.content.strip()
@@ -1996,9 +1993,9 @@ def process_job_with_ai_bulk(request):
 
         ai_company = company_match.group(1).strip() if company_match else None
         location = loc_match.group(1).strip() if loc_match else "Unknown"
-        description = desc_match.group(1).strip() if desc_match else data.get("snippet", "")
+        description = desc_match.group(1).strip() if desc_match else snippet
 
-        # 🔹 Step 3: Intelligent fallback from URL if AI missed company
+        # 🔹 Step 3: Fallback — extract company name from URL
         def extract_company_from_url(url):
             if not url:
                 return None
@@ -2006,31 +2003,33 @@ def process_job_with_ai_bulk(request):
             domain = parsed.netloc.lower()
             path = parsed.path.strip("/")
 
-            # Remove common job board domains
-            bad_domains = ["linkedin.com", "uk.linkedin.com", "indeed.com", "glassdoor.com", "jobstreet.com"]
-            if any(bad in domain for bad in bad_domains):
-                # Try to extract a company name from the URL path (like /company/brightwave-marketing/)
+            # Ignore known job board domains
+            blocked = ["linkedin.com", "indeed.com", "glassdoor.com", "jobstreet.com"]
+            if any(b in domain for b in blocked):
                 parts = re.split(r"[/\-_.]", path)
-                parts = [p for p in parts if p not in ["company", "jobs", "careers", "", "view", "job"]]
+                parts = [p for p in parts if p not in ["company", "jobs", "careers", "view", "", "job"]]
                 if parts:
-                    candidate = parts[0]
-                    candidate = candidate.replace("-", " ").replace("_", " ")
-                    return candidate.title()
-                else:
-                    return None
-            # Otherwise, use domain base
+                    return parts[0].replace("-", " ").replace("_", " ").title()
+                return None
             clean = re.sub(r"(www\.|uk\.|us\.)", "", domain)
-            name_part = clean.split(".")[0]
-            return name_part.replace("-", " ").replace("_", " ").title()
+            return clean.split(".")[0].replace("-", " ").title()
 
-        company = ai_company or extract_company_from_url(link)
-        if not company:
-            company = "Unknown Company"
-
-        print(f"🏢 Final company name: {company}")
+        company = ai_company or extract_company_from_url(link) or "Unknown Company"
+        print(f"🏢 Final Company: {company}")
         print(f"📍 Location: {location}")
 
-        # 🔹 Step 4: Try fetching company logo
+        # 🔹 Step 4: Detect email if missing
+        if not email:
+            # Try to find an email in the snippet
+            found_email = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", snippet)
+            if found_email:
+                email = found_email.group(0)
+                print(f"📧 Found email in snippet: {email}")
+            else:
+                email = "unknown@unknown.com"
+                print("⚠️ No email found, using placeholder.")
+
+        # 🔹 Step 5: Fetch company logo
         logo_url = f"https://logo.clearbit.com/{company.lower().replace(' ', '')}.com"
         logo_file = None
         try:
@@ -2039,34 +2038,37 @@ def process_job_with_ai_bulk(request):
                 logo_file = ContentFile(resp.content, name=f"{company}.png")
                 print(f"🖼️ Logo fetched successfully for {company}")
             else:
-                print(f"⚠️ Logo not found for {company} (status {resp.status_code})")
+                print(f"⚠️ No logo found for {company}")
         except Exception as e:
             print("⚠️ Logo fetch failed:", e)
 
-        # 🔹 Step 5: Save to DB
+        # 🔹 Step 6: Save to DB
         topic, _ = Topic.objects.get_or_create(name="AI Imported")
         admin = User.objects.filter(is_staff=True).first()
+
         room = Room.objects.create(
             host=admin,
             topic=topic,
             company_name=company,
             location=location,
-            job_title=data.get("title"),
+            job_title=title,
             description=description,
             country=data.get("country"),
             job_type=data.get("job_type"),
             industry=data.get("industry"),
+            email=email
         )
 
         if logo_file:
             room.logo.save(f"{company}.png", logo_file, save=True)
 
-        print(f"✅ Job saved successfully: {company} — {location}")
-        return JsonResponse({"success": True, "company": company, "id": room.id})
+        print(f"✅ Job saved: {company} — {email}")
+        return JsonResponse({"success": True, "company": company, "email": email, "id": room.id})
 
     except Exception as e:
         print("❌ process_job_with_ai_bulk failed:", e)
         return JsonResponse({"success": False, "error": str(e)})
+
 
 
 
