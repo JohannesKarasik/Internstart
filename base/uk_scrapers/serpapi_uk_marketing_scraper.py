@@ -19,37 +19,48 @@ QUERY = (
 
 
 def main():
-    """Fetch recent LinkedIn job listings (past 7 days, UK marketing) using SerpAPI."""
+    """Fetch up to 200 recent LinkedIn job listings (past 7 days, UK marketing) using SerpAPI."""
     # 🔑 --- API Key ---
     API_KEY = os.getenv("SERPAPI_API_KEY")
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-    print("🔍 Fetching UK marketing listings from SerpAPI (forced past 7 days)...")
+    print("🔍 Fetching up to 200 UK marketing listings from SerpAPI (past 7 days)...")
 
-    # 🌍 --- Search Parameters ---
-    params = {
+    # 🌍 --- Base Search Parameters ---
+    base_params = {
         "engine": "google",
         "q": QUERY,
-        "num": 20,                # fetch more to improve variety
+        "num": 10,                 # SerpAPI limit: 10 results per page
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
-        "filter": "0",            # show similar results too
-        "tbs": "qdr:w",           # still apply past-week filter
+        "filter": "0",
+        "tbs": "qdr:w",            # past week filter
         "api_key": API_KEY,
     }
 
-    # 🌀 --- Perform search ---
-    search = GoogleSearch(params)
-    data = search.get_dict()
+    all_results = []
 
-    if "error" in data:
-        print(f"⚠️ SerpAPI error: {data['error']}")
-        all_results = []
-    else:
-        all_results = data.get("organic_results", []) or []
-        print(f"📄 Page 1: fetched {len(all_results)} results...")
+    # 🌀 --- Paginate through 20 pages (10 results each = ~200 total) ---
+    for start in range(0, 200, 10):
+        params = base_params.copy()
+        params["start"] = start
+        print(f"📄 Fetching page starting at {start}...")
+
+        search = GoogleSearch(params)
+        data = search.get_dict()
+
+        if "error" in data:
+            print(f"⚠️ SerpAPI error on page {start//10 + 1}: {data['error']}")
+            break
+
+        results = data.get("organic_results", [])
+        if not results:
+            print("⏹️ No more results found — stopping pagination.")
+            break
+
+        all_results.extend(results)
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
@@ -64,7 +75,7 @@ def main():
         if "@" not in snippet:
             continue
 
-        # Must mention days, and ignore weeks/months
+        # Must mention days (not weeks/months)
         old_match = re.search(r"(\d+)\s+(day|days|week|weeks|month|months|year|years)\s+ago", snippet.lower())
         if old_match:
             num = int(old_match.group(1))
