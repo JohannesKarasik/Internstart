@@ -1833,6 +1833,14 @@ def extract_job_data(raw_text):
         return {}
 
 
+@staff_member_required
+def import_job_view(request):
+    """
+    Renders the Import Jobs from Scraper page.
+    Actual scraping & processing is handled by AJAX endpoints.
+    """
+    return render(request, "base/import_job.html")
+
 import json
 import os
 import re
