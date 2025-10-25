@@ -123,96 +123,59 @@ background:rgba(255,255,255,.08);font-weight:700;color:var(--muted);}
 .footer .link{color:var(--accent);text-decoration:none;}
 </style>
 
-<!-- === JS Logic === -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const scrapeBtn = document.getElementById('scrapeBtn');
-  const resultsContainer = document.getElementById('resultsContainer');
-
-  scrapeBtn.addEventListener('click', async () => {
-    resultsContainer.innerHTML = '<p class="muted">🔄 Running scraper... please wait.</p>';
-    try {
-      const res = await fetch('/run_scraper/?type=uk_marketing');
-      const data = await res.json();
-      if (!data.results || data.results.length === 0) {
-        resultsContainer.innerHTML = '<p class="muted">No jobs found.</p>';
-        return;
-      }
-      resultsContainer.innerHTML = '';
-      data.results.forEach((job, i) => {
-        const row = document.createElement('div');
-        row.className = 'job-row';
-        const initials = (job.title || 'J')[0].toUpperCase();
-        row.innerHTML = `
-          <div class="job-header">
-            <div class="job-placeholder" id="logo-${i}">${initials}</div>
-            <div>
-              <div class="job-title">${job.title || 'Untitled Job'}</div>
-              <a href="${job.link}" target="_blank" class="job-link">${job.link}</a>
-            </div>
-          </div>
-          <div class="job-snippet">${job.snippet || ''}</div>
-          <div class="job-actions">
-            <button class="btn small" data-index="${i}">Process & Add to DB with AI</button>
-          </div>
-        `;
-        resultsContainer.appendChild(row);
-      });
-    } catch (err) {
-      resultsContainer.innerHTML = '<p class="muted">❌ Error running scraper.</p>';
-      console.error(err);
-    }
-  });
-
-  // Handle "Process & Add to DB with AI" button clicks
-  document.addEventListener('click', async (e) => {
-    if (e.target.matches('.job-actions .btn')) {
-      const idx = e.target.dataset.index;
-      e.target.textContent = 'Processing...';
-      e.target.disabled = true;
-      try {
-        const res = await fetch(`/process_job_with_ai/?index=${idx}`, { method: 'POST' });
-        const data = await res.json();
-
-        if (data.success) {
-          e.target.textContent = '✅ Added';
-          const logo = document.getElementById(`logo-${idx}`);
-          if (data.logo_url) {
-            logo.outerHTML = `<img src="${data.logo_url}" class="job-logo" alt="Company logo" />`;
-          } else {
-            logo.textContent = '🏢';
-          }
-        } else {
-          e.target.textContent = '❌ Failed';
-        }
-      } catch (err) {
-        e.target.textContent = '❌ Error';
-        console.error(err);
-      }
-    }
-  });
-});
-</script>
-
-<script>
-  window.onload = () => {
-    const scrapeBtn = document.getElementById('scrapeBtn');
-    const resultsContainer = document.getElementById('resultsContainer');
-    console.log("✅ JS active");
+  document.addEventListener("DOMContentLoaded", () => {
+    const scrapeBtn = document.querySelector("#scrapeBtn");
+    const resultsContainer = document.querySelector("#resultsContainer");
   
-    scrapeBtn?.addEventListener('click', async (e) => {
+    if (!scrapeBtn) {
+      console.error("❌ scrapeBtn not found in DOM");
+      return;
+    }
+  
+    console.log("✅ Script loaded and button found");
+  
+    scrapeBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       console.log("🚀 Run Scraper clicked!");
-      resultsContainer.innerHTML = '<p class="muted">Running scraper...</p>';
+      resultsContainer.innerHTML = '<p class="muted">🔄 Running scraper... please wait.</p>';
+  
       try {
-        const res = await fetch('/run_scraper/?type=uk_marketing');
+        const res = await fetch("/run_scraper/?type=uk_marketing");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         console.log("📦 Scraper data:", data);
-        resultsContainer.innerHTML = JSON.stringify(data);
+  
+        if (!data.results || data.results.length === 0) {
+          resultsContainer.innerHTML = '<p class="muted">No jobs found.</p>';
+          return;
+        }
+  
+        resultsContainer.innerHTML = "";
+        data.results.forEach((job, i) => {
+          const row = document.createElement("div");
+          row.className = "job-row";
+          const initials = (job.title || "J")[0].toUpperCase();
+          row.innerHTML = `
+            <div class="job-header">
+              <div class="job-placeholder" id="logo-${i}">${initials}</div>
+              <div>
+                <div class="job-title">${job.title || "Untitled Job"}</div>
+                <a href="${job.link}" target="_blank" class="job-link">${job.link}</a>
+              </div>
+            </div>
+            <div class="job-snippet">${job.snippet || ""}</div>
+            <div class="job-actions">
+              <button class="btn small" data-index="${i}">Process & Add to DB with AI</button>
+            </div>
+          `;
+          resultsContainer.appendChild(row);
+        });
       } catch (err) {
         console.error("❌ Fetch failed:", err);
-        resultsContainer.innerHTML = '<p class="muted">Error running scraper.</p>';
+        resultsContainer.innerHTML = '<p class="muted">❌ Error running scraper.</p>';
       }
     });
-  };
+  });
   </script>
+  
