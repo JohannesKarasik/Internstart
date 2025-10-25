@@ -58,7 +58,8 @@ urlpatterns = [
     path("insights/", views.listings_insights_view, name="listings_insights"),
     path("run_scraper/", views.run_scraper, name="run_scraper"),
     path("process_job_with_ai_bulk/", views.process_job_with_ai_bulk, name="process_job_with_ai_bulk"),
-
+    path("manual-import/", views.manual_import_jobs, name="manual_import_jobs"),
+    path("process_manual_job/", views.process_manual_job, name="process_manual_job"),
 
 
 

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manual Job Import</title>
+  <style>
+    body { font-family: Inter, sans-serif; background:#0b0f1a; color:#fff; padding:40px; }
+    .card { background:#11182b; padding:30px; border-radius:16px; max-width:900px; margin:auto; }
+    select, textarea, input, button {
+      width:100%; padding:10px; margin:6px 0;
+      border-radius:8px; border:none; font-size:15px;
+    }
+    select { background:#1b2235; color:white; }
+    textarea { height:150px; background:#1b2235; color:white; }
+    button { background:#FF2F5A; font-weight:bold; cursor:pointer; margin-top:10px; }
+    .result { margin-top:20px; background:#1a2239; padding:10px; border-radius:10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Manual Job Import</h2>
+    <p>Select a JSON file to import jobs manually one by one.</p>
+
+    <label>Choose file:</label>
+    <select id="fileSelect">
+      <option value="">-- Choose --</option>
+      {% for f in json_files %}
+        <option value="{{ f }}">{{ f }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Country</label>
+    <select id="countrySelect">
+      <option value="">Select...</option>
+      <option value="UK">🇬🇧 United Kingdom</option>
+      <option value="DK">🇩🇰 Denmark</option>
+      <option value="US">🇺🇸 United States</option>
+    </select>
+
+    <label>Industry</label>
+    <select id="industrySelect">
+      <option value="">Select...</option>
+      <option value="marketing">Marketing</option>
+      <option value="software_backend">Software Backend</option>
+      <option value="software_frontend">Software Frontend</option>
+      <option value="sales">Sales</option>
+    </select>
+
+    <label>Job Type</label>
+    <select id="jobTypeSelect">
+      <option value="">Select...</option>
+      <option value="internship">Internship</option>
+      <option value="full_time">Full Time</option>
+      <option value="student_job">Student Job</option>
+    </select>
+
+    <hr>
+
+    <div id="jobContainer" class="result">No job loaded yet.</div>
+    <button id="nextBtn">Load Next Job</button>
+    <button id="importBtn" style="background:#7B61FF;">Import This Job</button>
+  </div>
+
+  <script>
+    let jobs = [], index = 0;
+
+    document.getElementById("fileSelect").addEventListener("change", async (e) => {
+      const filename = e.target.value;
+      if (!filename) return;
+      const res = await fetch(`/media/${filename}`); // or a custom route if stored elsewhere
+      jobs = await res.json();
+      index = 0;
+      showJob();
+    });
+
+    function showJob() {
+      const c = document.getElementById("jobContainer");
+      if (!jobs.length) return c.innerHTML = "No jobs in file.";
+      const j = jobs[index];
+      c.innerHTML = `
+        <b>${index+1}/${jobs.length}</b><br>
+        <b>${j.title}</b><br>
+        <a href="${j.link}" target="_blank">${j.link}</a><br>
+        <small>${j.snippet}</small>
+      `;
+    }
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (index < jobs.length - 1) { index++; showJob(); }
+    });
+
+    document.getElementById("importBtn").addEventListener("click", async () => {
+      const j = jobs[index];
+      const payload = {
+        title: j.title, link: j.link, snippet: j.snippet,
+        country: document.getElementById("countrySelect").value,
+        industry: document.getElementById("industrySelect").value,
+        job_type: document.getElementById("jobTypeSelect").value
+      };
+      const res = await fetch("/process_manual_job/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      alert(data.success ? `✅ Imported: ${data.company}` : `❌ ${data.error}`);
+    });
+  </script>
+</body>
+</html>
