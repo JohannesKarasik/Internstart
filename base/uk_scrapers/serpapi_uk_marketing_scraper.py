@@ -180,3 +180,6 @@ def main():
     print(f"✅ Saved {len(open_listings)} open UK marketing listings to {filename}")
 
     return open_listings
+
+if __name__ == "__main__":
+    main()
