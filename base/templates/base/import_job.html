@@ -126,10 +126,10 @@
         return true;
       }
     
-      // 1️⃣ Run Scraper (improved)
+      // 1️⃣ Run Scraper (simplified - backend handles filtering)
       scrapeBtn.addEventListener("click", async () => {
         if (!validateSelections()) return;
-
+    
         const scraperType = scraperSelect.value || "uk_marketing";
     
         resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
@@ -167,6 +167,10 @@
             return;
           }
     
+          // ✅ Skip redundant client-side keyword filtering
+          console.log(`🧩 Received ${cachedResults.length} results directly from ${scraperType}`);
+    
+          // 🧾 Display listings
           const list = cachedResults.map((job, i) => `
             <div class="job-row" id="job-${i}">
               <strong>${job.title || "Untitled Job"}</strong><br>
@@ -178,7 +182,8 @@
     
           resultsContainer.innerHTML = `
             <div class="job-row">
-              <strong>✅ Found ${totalCount} listings (${scraperType})</strong>
+              <strong>✅ Found ${cachedResults.length} listings (${scraperType})</strong><br>
+              <small>Results filtered directly by backend scraper</small>
             </div>
             ${list}
           `;
@@ -190,7 +195,7 @@
         }
       });
     
-      // 2️⃣ Add to Database (same)
+      // 2️⃣ Add to Database
       addBtn.addEventListener("click", async () => {
         if (!cachedResults.length) {
           alert("Run the scraper first.");
@@ -252,5 +257,7 @@
       });
     });
   </script>
+  
+    
 </body>
 </html>
