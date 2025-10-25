@@ -1936,74 +1936,85 @@ def run_scraper(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# 🧠 --- 2. Process scraped job + AI extraction + Logo fetch ---
-@staff_member_required
-def process_job_with_ai(request):
+@csrf_exempt
+def process_job_with_ai_bulk(request):
     """
-    Takes one job from session results, extracts structured data,
-    fetches logo via GPT/Clearbit, and adds to DB.
+    Process a single job listing at a time.
+    Uses AI to extract structured data, fetches logo, and stores in DB.
     """
+    import json, re, requests
+    from django.core.files.base import ContentFile
+    from openai import OpenAI
+    from io import BytesIO
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     try:
-        idx = int(request.GET.get("index", 0))
-    except ValueError:
-        return JsonResponse({"error": "Invalid index."}, status=400)
+        data = json.loads(request.body)
+        text = f"{data.get('title')}\n\n{data.get('snippet')}"
+        link = data.get("link")
 
-    scraped = request.session.get("scraper_results", [])
-    if not scraped or idx >= len(scraped):
-        return JsonResponse({"error": "No cached results found."}, status=404)
+        # 🔹 Step 1: Extract structured info from AI
+        prompt = f"""
+        You are a data extractor for job listings.
+        Given the text below, extract:
+        - Company name
+        - Location
+        - Job description (summary 2-3 sentences)
+        Text:
+        {text}
+        """
+        ai_resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
 
-    job = scraped[idx]
-    text = f"{job.get('title')}\n\n{job.get('snippet')}"
-    link = job.get("link")
+        raw = ai_resp.choices[0].message.content.strip()
+        print("🤖 AI Output:", raw)
 
-    # 1️⃣ Extract structured data with your existing AI pipeline
-    data = extract_job_data(text)
-    if not data:
-        return JsonResponse({"error": "AI extraction failed."}, status=500)
+        # 🔹 Step 2: Simple parsing
+        company_match = re.search(r"Company\s*[:\-]\s*(.*)", raw)
+        loc_match = re.search(r"Location\s*[:\-]\s*(.*)", raw)
+        desc_match = re.search(r"Description\s*[:\-]\s*(.*)", raw)
 
-    # 2️⃣ Email extraction (regex)
-    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', job.get("snippet", ""))
-    email_found = email_match.group(0) if email_match else None
+        company = (company_match.group(1) if company_match else
+                   re.sub(r"https?://(www\.)?", "", link).split("/")[0])
+        location = loc_match.group(1) if loc_match else "Unknown"
+        description = desc_match.group(1) if desc_match else data.get("snippet", "")
 
-    # 3️⃣ Create topic/admin
-    topic, _ = Topic.objects.get_or_create(name="General")
-    admin_user = User.objects.filter(is_staff=True).first()
+        # 🔹 Step 3: Try fetching company logo
+        logo_url = f"https://logo.clearbit.com/{company.lower().replace(' ', '')}.com"
+        logo_file = None
+        try:
+            resp = requests.get(logo_url, timeout=4)
+            if resp.status_code == 200:
+                logo_file = ContentFile(resp.content, name=f"{company}.png")
+        except Exception as e:
+            print("⚠️ Logo fetch failed:", e)
 
-    # 4️⃣ Create Room
-    room = Room.objects.create(
-        host=admin_user,
-        topic=topic,
-        company_name=data.get("company_name", "Unknown Company"),
-        location=data.get("location", "Unknown Location"),
-        job_title=data.get("job_role", "Untitled Role"),
-        description=data.get("description", job.get("snippet", "")),
-        country="UK",
-        industry="marketing",
-        job_type="full_time",
-        email=email_found,
-    )
+        # 🔹 Step 4: Save to DB
+        topic, _ = Topic.objects.get_or_create(name="AI Imported")
+        admin = User.objects.filter(is_staff=True).first()
+        room = Room.objects.create(
+            host=admin,
+            topic=topic,
+            company_name=company,
+            location=location,
+            job_title=data.get("title"),
+            description=description,
+            country=data.get("country"),
+            job_type=data.get("job_type"),
+            industry=data.get("industry"),
+        )
 
-    # 5️⃣ Fetch & save logo
-    try:
-        logo_file = fetch_company_logo(data.get("company_name"))
         if logo_file:
-            room.logo.save(logo_file.name, logo_file, save=True)
-            print(f"✅ [LOGO] Saved logo for {room.company_name}")
-        else:
-            print(f"⚠️ [LOGO] No logo found for {room.company_name}")
+            room.logo.save(f"{company}.png", logo_file, save=True)
+
+        return JsonResponse({"success": True, "company": company, "id": room.id})
+
     except Exception as e:
-        print(f"❌ [LOGO ERROR] {e}")
-
-    return JsonResponse({
-        "success": True,
-        "room_id": room.id,
-        "company": room.company_name,
-        "title": room.job_title,
-        "email": email_found,
-        "link": link,
-        "logo_url": room.logo.url if room.logo else None,
-    })
-
+        print("❌ process_job_with_ai_bulk failed:", e)
+        return JsonResponse({"success": False, "error": str(e)})
 
 
 def fetch_company_logo(company_name):
