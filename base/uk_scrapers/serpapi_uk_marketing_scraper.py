@@ -68,30 +68,29 @@ def main():
 
     # 🎯 --- Strict title filters (regex with word boundaries) ---
     # Allow (must be present in TITLE)
+    # 🎯 --- Strict marketing inclusion pattern ---
     MARKETING_TITLE_RE = re.compile(
         r"""(?ix)
-        \b(marketing|marketer|marcom|crm|demand\s+gen(eration)?|growth|brand(ing)?|
-           digital\s+marketing|performance\s+marketing|content(\s+marketing)?|
-           copywrit(er|ing)|email(\s+marketing)?|retention|lifecycle|
-           seo|sem|ppc|paid(\s+search|\s+social)?|social\s+media|community\s+manager|
-           media\s+buyer|campaign\s+manager|pr|public\s+relations|
-           communications?|comms|influencer|affiliate|e[-\s]?commerce
-          )
+        \b(marketing|digital|seo|sem|ppc|social\s+media|content|copywriter|copywriting|
+        pr|public\s+relations|communications|brand|advertising|creative|growth|
+        email|campaign|media|community|influencer|affiliate|crm|performance|
+        ecommerce|demand\s+gen|account\s+manager|marcom|branding|paid\s+ads|
+        digital\s+strategy|marketing\s+assistant|marketing\s+intern|marketing\s+manager)
+        \b
         """,
-        re.IGNORECASE,
     )
 
-    # Block (if present in TITLE -> drop)
+    # 🚫 --- Exclude unrelated manual/service/technical jobs ---
     EXCLUDE_TITLE_RE = re.compile(
         r"""(?ix)
-        \b(roofer|engineer|developer|technician|plumber|electrician|welder|carpenter|
-           construction|warehouse|driver|nurse|teacher|chef|cook|mechanic|operator|
-           installer|laborer|labourer|caretaker|handyman|foreman|cleaner|janitor|
-           solicitor|paralegal|lawyer|accountant|auditor|bookkeeper|receptionist|
-           security|guard|porter|surveyor|estimator|site\s+manager|bricklayer
-          )\b
+        \b(roofer|plumber|electrician|carpenter|construction|warehouse|driver|nurse|
+        teacher|chef|cook|mechanic|operator|installer|laborer|labourer|caretaker|
+        handyman|foreman|cleaner|janitor|waiter|barista|server|porter|delivery|
+        security|maintenance|technician|developer|engineer|it|software)
+        \b
         """,
     )
+
 
     # 🧹 --- Filter results (EMAIL + UK + TITLE must match marketing & not excluded) ---
     filtered = []

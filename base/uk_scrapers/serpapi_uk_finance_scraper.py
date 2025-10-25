@@ -70,28 +70,30 @@ def main():
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
     # 🎯 --- Strict title filters ---
+    # 🎯 --- Strict finance inclusion pattern ---
     FINANCE_TITLE_RE = re.compile(
         r"""(?ix)
         \b(finance|financial|accountant|accounting|auditor|audit|cfo|controller|
-           bookkeeping|bookkeeper|treasury|banking|investment|analyst|fp(&|and)a|
-           compliance|risk|credit|loan|underwriter|treasurer|fund|asset|wealth|
-           budgeting|valuation|tax|cost|reconciliation|ledger|finance\s+assistant|
-           finance\s+manager|financial\s+controller|accounts\s+assistant|business\s+analyst)
+        bookkeeping|bookkeeper|treasury|banking|investment|analyst|fp(&|and)a|
+        compliance|risk|credit|loan|underwriter|treasurer|fund|asset|wealth|
+        budgeting|valuation|tax|cost|reconciliation|ledger|finance\s+assistant|
+        finance\s+manager|financial\s+controller|accounts\s+assistant|
+        business\s+analyst(\s+finance)?)
         \b
         """,
-        re.IGNORECASE,
     )
 
+    # 🚫 --- Exclude only *irrelevant* manual/trade/service jobs ---
     EXCLUDE_TITLE_RE = re.compile(
         r"""(?ix)
         \b(roofer|engineer|developer|technician|plumber|electrician|welder|carpenter|
-           construction|warehouse|driver|nurse|teacher|chef|cook|mechanic|operator|
-           installer|laborer|labourer|caretaker|handyman|foreman|cleaner|janitor|
-           marketing|designer|graphic|social\s+media|sales|recruiter|hr|hospitality|
-           waiter|cook|customer\s+service|support|retail|barista|server
-          )\b
+        construction|warehouse|driver|nurse|teacher|chef|cook|mechanic|operator|
+        installer|laborer|labourer|caretaker|handyman|foreman|cleaner|janitor|
+        waiter|barista|server|porter|delivery|security|maintenance)
+        \b
         """,
     )
+
 
     # 🧹 --- Filter results (EMAIL + UK + TITLE must match finance & not excluded) ---
     filtered = []
