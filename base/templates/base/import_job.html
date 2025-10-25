@@ -1,301 +1,141 @@
-<!-- === AI SaaS: Import LinkedIn Job === -->
+<!-- === AI SaaS: Import Job Listings === -->
 <div class="ai-shell">
-    <!-- Decorative background -->
-    <div class="bg">
-      <span class="orb orb-1"></span>
-      <span class="orb orb-2"></span>
-      <span class="grid"></span>
-    </div>
-  
-    <!-- Top bar -->
-    <header class="topbar" role="banner">
-      <div class="brand">
-        <span class="logo-dot" aria-hidden="true"></span>
-        <span class="brand-name">Internstart<span class="accent"></span></span>
-      </div>
-      <nav class="nav" aria-label="primary">
-        <a href="#" class="nav-link is-active">Import</a>
-        <a href="#" class="nav-link">Jobs</a>
-        <a href="#" class="nav-link">Settings</a>
-      </nav>
-    </header>
-  
-    <!-- Main card -->
-    <main class="wrap" role="main">
-      <section class="card">
-        <header class="card-head">
-          <h1 class="title">
-            <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="currentColor" d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
-            </svg>
-            Import LinkedIn Job
-          </h1>
-          <p class="subtitle">Paste a LinkedIn job post and we’ll extract title, company, location, and key requirements using our AI parser.</p>
-        </header>
-  
-        <!-- System messages -->
-        {% if messages %}
-          <ul class="toasts" role="status" aria-live="polite">
-            {% for message in messages %}
-              <li class="toast {{ message.tags }}">
-                <span class="dot" aria-hidden="true"></span>
-                <span class="toast-text">{{ message }}</span>
-              </li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-  
-        <!-- Form -->
-        <form method="POST" class="form" novalidate>
-          {% csrf_token %}
-  
-          <label for="linkedin_text" class="label">LinkedIn Job Post</label>
-          <div class="field">
-            <textarea
-              id="linkedin_text"
-              name="linkedin_text"
-              rows="12"
-              placeholder="Paste LinkedIn job post here…"
-              class="textarea"
-              aria-describedby="hint counter"
-              required
-            >{{ request.POST.linkedin_text|default_if_none:"" }}</textarea>
-  
-            <div class="field-meta">
-              <p id="hint" class="hint">
-                Tip: You can paste the full post — URLs and emojis are fine. We’ll clean it.
-              </p>
-              <p id="counter" class="counter" aria-live="polite">0 characters</p>
-            </div>
-          </div>
-  
-          <!-- Manual categorization (overrides) -->
-          <div class="triple-grid" aria-label="Manual categorization">
-            <div class="select-field">
-              <label for="country" class="label">Country</label>
-              <select id="country" name="country" class="select">
-                <option value="" {% if not request.POST.country %}selected{% endif %} disabled>Select country…</option>
-                <option value="DK"  {% if request.POST.country == "DK" %}selected{% endif %}>🇩🇰 Denmark</option>
-                <option value="UK"  {% if request.POST.country == "UK" %}selected{% endif %}>🇬🇧 United Kingdom</option>
-                <option value="US"  {% if request.POST.country == "US" %}selected{% endif %}>🇺🇸 United States</option>
-                <option value="GER" {% if request.POST.country == "GER" %}selected{% endif %}>🇩🇪 Germany</option>
-                <option value="FRA" {% if request.POST.country == "FRA" %}selected{% endif %}>🇫🇷 France</option>
-              </select>
-            </div>
-  
-            <div class="select-field">
-              <label for="industry" class="label">Industry</label>
-              <select id="industry" name="industry" class="select">
-                <option value="" {% if not request.POST.industry %}selected{% endif %} disabled>Select industry…</option>
-                <option value="business_finance"   {% if request.POST.industry == "business_finance" %}selected{% endif %}>Business &amp; Finance</option>
-                <option value="marketing"          {% if request.POST.industry == "marketing" %}selected{% endif %}>Marketing &amp; Communications</option>
-                <option value="software_backend"   {% if request.POST.industry == "software_backend" %}selected{% endif %}>Software Development (Backend)</option>
-                <option value="software_frontend"  {% if request.POST.industry == "software_frontend" %}selected{% endif %}>Software Development (Frontend)</option>
-                <option value="sales_customer"     {% if request.POST.industry == "sales_customer" %}selected{% endif %}>Sales &amp; Customer Relations</option>
-              </select>
-            </div>
-  
-            <div class="select-field">
-              <label for="job_type" class="label">Job type</label>
-              <select id="job_type" name="job_type" class="select">
-                <option value="" {% if not request.POST.job_type %}selected{% endif %} disabled>Select job type…</option>
-                <option value="internship"  {% if request.POST.job_type == "internship" %}selected{% endif %}>Internship</option>
-                <option value="student_job" {% if request.POST.job_type == "student_job" %}selected{% endif %}>Student Job</option>
-                <option value="full_time"   {% if request.POST.job_type == "full_time" %}selected{% endif %}>Full Time Job</option>
-              </select>
-            </div>
-          </div>
-  
-          <div class="actions">
-            <button type="submit" class="btn" id="submitBtn">
-              <span class="btn-spinner" aria-hidden="true"></span>
-              <span class="btn-text">Extract &amp; Save</span>
-            </button>
-            <button type="reset" class="btn ghost">Clear</button>
-          </div>
-        </form>
-      </section>
-  
-      <!-- Secondary info -->
-      <section class="mini-grid" aria-label="What we extract">
-        <div class="mini-card">
-          <h3>Smart Fields</h3>
-          <p>Role, company, location, seniority, salary hints, skills.</p>
-        </div>
-        <div class="mini-card">
-          <h3>Quality Checks</h3>
-          <p>Deduping, profanity filter, and structure validation.</p>
-        </div>
-        <div class="mini-card">
-          <h3>Audit Trail</h3>
-          <p>Source text hash &amp; timestamp for compliance.</p>
-        </div>
-      </section>
-    </main>
-  
-    <footer class="footer" role="contentinfo">
-      <p> Import Jobs <a href="#" class="link">Privacy</a></p>
-    </footer>
+  <div class="bg">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="grid"></span>
   </div>
-  
-  <style>
-    :root{
-      --accent:#FF2F5A;
-      --bg:#0B0F1A;
-      --bg-2:#0E1324;
-      --card:rgba(18,22,36,.72);
-      --stroke:rgba(255,255,255,.08);
-      --text:#E7ECF3;
-      --muted:#A6B0C3;
-      --success:#12D678;
-      --error:#FF5D5D;
-      --focus: #FF9AAF;
-      --radius:16px;
-      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
-    }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#F6F8FF; --bg-2:#EEF1FF; --card:#FFFFFFCC; --text:#0B0F1A; --muted:#596177; --stroke:rgba(10,15,30,.08); }
-    }
-  
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
-    body{ margin:0; background:linear-gradient(180deg,var(--bg),var(--bg-2)); color:var(--text); font: 500 16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial; }
-  
-    .ai-shell{ position:relative; min-height:100dvh; overflow-x:hidden }
-  
-    .bg .orb{ position:absolute; width:420px; height:420px; border-radius:50%; filter: blur(70px); opacity:.35; pointer-events:none; }
-    .orb-1{ background:radial-gradient(closest-side, var(--accent), transparent 70%); top:-120px; left:-120px; }
-    .orb-2{ background:radial-gradient(closest-side, #7B61FF, transparent 70%); right:-140px; bottom:-140px; }
-    .bg .grid{ position:absolute; inset:0; background-image:
-      linear-gradient(to right, var(--stroke) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--stroke) 1px, transparent 1px);
-      background-size: 36px 36px; mask-image: radial-gradient(60% 60% at 50% 40%, black 60%, transparent 100%);
-      pointer-events:none;
-    }
-  
-    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px clamp(20px,6vw,56px); position:sticky; top:0; backdrop-filter:saturate(140%) blur(10px); background:linear-gradient(180deg, rgba(12,16,28,.7), rgba(12,16,28,.35)); border-bottom:1px solid var(--stroke); z-index:10 }
-    .brand{ display:flex; align-items:center; gap:10px; letter-spacing:.3px; font-weight:700 }
-    .brand-name{ font-size:18px }
-    .logo-dot{ width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px color-mix(in oklab, var(--accent) 25%, transparent); }
-    .accent{ color:var(--accent) }
-    .nav{ display:flex; gap:16px }
-    .nav-link{ color:var(--muted); text-decoration:none; padding:8px 12px; border-radius:10px; transition:color .2s, background .2s }
-    .nav-link:hover{ color:var(--text); background:rgba(255,255,255,.04) }
-    .nav-link.is-active{ color:var(--text); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border:1px solid var(--stroke) }
-  
-    .wrap{ max-width: 1000px; margin: clamp(24px, 5vw, 60px) auto; padding: 0 clamp(20px, 5vw, 32px); }
-    .card{ background: var(--card); border:1px solid var(--stroke); border-radius: calc(var(--radius) + 4px); box-shadow: var(--shadow); padding: clamp(18px, 3vw, 28px); position: relative; overflow: hidden }
-    .card::after{ content:""; position:absolute; inset: -1px; border-radius: inherit; pointer-events:none; background: radial-gradient(300px 80px at 10% 0%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 60%) }
-  
-    .card-head{ margin-bottom: 18px }
-    .title{ display:flex; align-items:center; gap:10px; margin:0 0 8px; font-size: clamp(22px, 3.2vw, 28px); letter-spacing:.2px }
-    .title-icon{ width:22px; height:22px; color: var(--accent) }
-    .subtitle{ margin:0; color: var(--muted); max-width: 68ch }
-  
-    .toasts{ list-style:none; margin: 16px 0 0; padding:0; display:grid; gap:10px }
-    .toast{ display:flex; align-items:flex-start; gap:10px; background: rgba(255,255,255,.04); border:1px solid var(--stroke); border-radius: 12px; padding: 10px 12px; color: var(--text) }
-    .toast .dot{ width:10px; height:10px; margin-top:6px; border-radius:50%; background: var(--accent) }
-    .toast.success .dot{ background: var(--success) }
-    .toast.error .dot{ background: var(--error) }
-    .toast-text{ color: inherit }
-  
-    .form{ margin-top: 18px }
-    .label{ display:block; font-weight:600; margin: 0 0 8px }
-    .field{ position:relative }
-  
-    .textarea{
-      width:100%; resize: vertical; min-height: 220px; color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid var(--stroke); border-radius: 14px; padding: 14px 16px 18px; outline:none; caret-color: var(--accent);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-      font: 500 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    }
-    .textarea::placeholder{ color: color-mix(in oklab, var(--muted) 80%, transparent) }
-    .textarea:focus{ border-color: color-mix(in oklab, var(--accent) 55%, white 0%); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 26%, transparent) }
-  
-    .field-meta{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top: 10px }
-    .hint{ margin:0; color: var(--muted); font-size: 14px }
-    .counter{ margin:0; color: var(--muted); font-variant-numeric: tabular-nums }
-  
-    /* Manual categorization layout */
-    .triple-grid{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:12px;
-      margin:18px 0 10px;
-    }
-    @media (max-width: 860px){
-      .triple-grid{ grid-template-columns: 1fr }
-    }
-  
-    .select-field .select{
-      width:100%;
-      appearance:none;
-      padding:12px 14px;
-      border-radius:12px;
-      border:1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      color: var(--text);
-      font-weight:600;
-      outline:none;
-    }
-    .select:focus{ border-color: color-mix(in oklab, var(--accent) 55%, white 0%); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 26%, transparent) }
-  
-    .actions{ display:flex; gap:12px; margin-top: 18px; flex-wrap: wrap }
-    .btn{
-      --btn-bg: var(--accent);
-      appearance:none; border:0; border-radius: 12px; padding: 12px 16px; font-weight:700; letter-spacing:.2px; color:#0B0F1A;
-      background: linear-gradient(180deg, color-mix(in oklab, var(--btn-bg) 92%, white 8%), var(--btn-bg));
-      box-shadow: 0 8px 24px color-mix(in oklab, var(--accent) 30%, transparent), inset 0 1px 0 rgba(255,255,255,.4);
-      display:inline-flex; align-items:center; gap:10px; cursor:pointer; transition: transform .08s ease, filter .2s ease;
-    }
-    .btn:hover{ filter: brightness(1.05) }
-    .btn:active{ transform: translateY(1px) }
-    .btn:focus-visible{ outline: 3px solid var(--focus); outline-offset: 2px }
-    .btn .btn-spinner{
-      width:0; height:0; border:0px solid transparent; border-top-color:#0B0F1A; border-radius:50%;
-      transition: width .2s, height .2s, border-width .2s; will-change: transform;
-    }
-    .btn.loading .btn-spinner{ width:16px; height:16px; border-width:2px; animation: spin 1s linear infinite; }
-    .btn.loading .btn-text{ opacity:.7 }
-  
-    .btn.ghost{
-      --btn-bg: rgba(255,255,255,.02);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      color: var(--text);
-      box-shadow: inset 0 0 0 1px var(--stroke);
-    }
-    .btn.ghost:hover{ background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.04)) }
-  
-    .mini-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; margin-top: 16px }
-    .mini-card{ background: var(--card); border:1px solid var(--stroke); border-radius: 14px; padding: 14px; box-shadow: var(--shadow) }
-    .mini-card h3{ margin:0 0 6px; font-size: 15px }
-    .mini-card p{ margin:0; color: var(--muted); font-size: 14px }
-  
-    .footer{ display:flex; justify-content:center; padding: 28px; color:var(--muted); font-size:14px }
-    .footer .link{ color: var(--accent); text-decoration: none }
-    .footer .link:hover{ text-decoration: underline }
-  
-    @keyframes spin{ to{ transform: rotate(360deg) } }
-  </style>
-  
-  <script>
-    (function(){
-      const ta = document.getElementById('linkedin_text');
-      const counter = document.getElementById('counter');
-      const btn = document.getElementById('submitBtn');
-  
-      if(ta && counter){
-        const update = () => { counter.textContent = `${ta.value.length} characters`; };
-        ta.addEventListener('input', update);
-        update();
+
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <span class="logo-dot" aria-hidden="true"></span>
+      <span class="brand-name">Internstart<span class="accent"></span></span>
+    </div>
+    <nav class="nav" aria-label="primary">
+      <a href="#" class="nav-link is-active">Import</a>
+      <a href="#" class="nav-link">Jobs</a>
+      <a href="#" class="nav-link">Settings</a>
+    </nav>
+  </header>
+
+  <main class="wrap" role="main">
+    <section class="card">
+      <header class="card-head">
+        <h1 class="title">
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
+          </svg>
+          Import Jobs from Scraper
+        </h1>
+        <p class="subtitle">Run one of your scrapers, view all fetched listings, and process them individually with AI.</p>
+      </header>
+
+      <form id="scraperForm" class="form">
+        <label class="label">Select Scraper</label>
+        <select id="scraperSelect" class="select">
+          <option value="uk_marketing">🇬🇧 UK Marketing Scraper</option>
+          <!-- Later you can add more like: -->
+          <!-- <option value="us_tech">🇺🇸 US Tech Scraper</option> -->
+        </select>
+
+        <div class="actions" style="margin-top: 16px;">
+          <button type="button" id="scrapeBtn" class="btn">Run Scraper</button>
+        </div>
+      </form>
+
+      <!-- Results -->
+      <div id="resultsContainer" class="results-container" style="margin-top: 30px;">
+        <p class="muted">No results yet — run a scraper to see jobs here.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <p>Import Jobs <a href="#" class="link">Privacy</a></p>
+  </footer>
+</div>
+
+<style>
+  /* Reuse previous styles */
+  :root {
+    --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324; --card:rgba(18,22,36,.72);
+    --stroke:rgba(255,255,255,.08); --text:#E7ECF3; --muted:#A6B0C3;
+  }
+  body{ margin:0; background:linear-gradient(180deg,var(--bg),var(--bg-2)); color:var(--text); font:500 16px/1.5 Inter, system-ui; }
+  .ai-shell{ position:relative; min-height:100dvh; overflow-x:hidden }
+  .card{ background:var(--card); border:1px solid var(--stroke); border-radius:16px; padding:28px; }
+  .results-container{ display:flex; flex-direction:column; gap:16px; }
+  .job-row{
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--stroke);
+    border-radius:14px;
+    padding:16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .job-title{ font-weight:600; font-size:17px; }
+  .job-snippet{ font-size:14px; color:var(--muted); }
+  .job-link{ font-size:14px; color:var(--accent); text-decoration:none; }
+  .job-actions{ display:flex; gap:10px; margin-top:8px; }
+  .btn{ background:var(--accent); border:none; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer; color:#0B0F1A; }
+  .btn.small{ padding:6px 12px; font-size:14px; }
+  .btn:hover{ filter:brightness(1.05); }
+  .muted{ color:var(--muted); text-align:center; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const scrapeBtn = document.getElementById('scrapeBtn');
+  const resultsContainer = document.getElementById('resultsContainer');
+
+  scrapeBtn.addEventListener('click', async () => {
+    resultsContainer.innerHTML = '<p class="muted">Running scraper... please wait.</p>';
+
+    try {
+      // Example endpoint (you’ll build this view in Django):
+      const res = await fetch('/run_scraper/?type=uk_marketing');
+      const data = await res.json();
+
+      if (!data.results || data.results.length === 0) {
+        resultsContainer.innerHTML = '<p class="muted">No jobs found.</p>';
+        return;
       }
-  
-      if(btn){
-        btn.addEventListener('click', () => {
-          btn.classList.add('loading');
-          setTimeout(()=>btn.classList.remove('loading'), 8000);
-        });
+
+      resultsContainer.innerHTML = '';
+      data.results.forEach((job, i) => {
+        const row = document.createElement('div');
+        row.className = 'job-row';
+        row.innerHTML = `
+          <div class="job-title">${job.title || 'Untitled Job'}</div>
+          <div class="job-snippet">${job.snippet || ''}</div>
+          <a href="${job.link}" target="_blank" class="job-link">${job.link}</a>
+          <div class="job-actions">
+            <button class="btn small" data-index="${i}">Process & Add to DB with AI</button>
+          </div>
+        `;
+        resultsContainer.appendChild(row);
+      });
+    } catch (err) {
+      resultsContainer.innerHTML = '<p class="muted">❌ Error running scraper.</p>';
+      console.error(err);
+    }
+  });
+
+  // Handle "Process with AI" clicks
+  document.addEventListener('click', async (e) => {
+    if (e.target.matches('.job-actions .btn')) {
+      const idx = e.target.dataset.index;
+      e.target.textContent = 'Processing...';
+      e.target.disabled = true;
+      try {
+        const res = await fetch(`/process_job_with_ai/?index=${idx}`, { method: 'POST' });
+        if (res.ok) e.target.textContent = '✅ Added';
+        else throw new Error();
+      } catch {
+        e.target.textContent = '❌ Failed';
       }
-    })();
-  </script>
-  
+    }
+  });
+});
+</script>
