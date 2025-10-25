@@ -146,7 +146,7 @@
           }
     
           cachedResults = Array.isArray(data.results) ? data.results : [];
-          const count = data.count ?? cachedResults.length;
+          const totalCount = data.count ?? cachedResults.length;
     
           if (!cachedResults.length) {
             resultsContainer.innerHTML = `
@@ -160,17 +160,48 @@
             return;
           }
     
-          // render jobs + a tiny debug header
+          // 🎯 Filter listings by marketing-related keywords
+          const MARKETING_KEYWORDS = [
+            "marketing", "digital", "seo", "sem", "ppc", "social media",
+            "content", "copywriter", "copywriting", "pr", "public relations",
+            "communications", "brand", "advertising", "creative", "growth",
+            "email", "campaign", "media", "community", "influencer",
+            "affiliate", "crm", "performance", "ecommerce", "demand gen",
+            "account manager", "marcom"
+          ];
+          const keywordsLower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
+    
+          const marketingResults = cachedResults.filter(job => {
+            const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
+            return keywordsLower.some(keyword => text.includes(keyword));
+          });
+    
+          const count = marketingResults.length;
+          console.log(`🎯 Filtered ${count} marketing-related jobs out of ${cachedResults.length}`);
+    
+          if (!count) {
+            resultsContainer.innerHTML = `
+              <div class="job-row">
+                <strong>⚠️ No marketing listings found after keyword filtering.</strong><br>
+                <small>Try rerunning the scraper or broadening the keyword set.</small>
+              </div>
+            `;
+            scrapeBtn.disabled = false;
+            return;
+          }
+    
+          // Render jobs + debug header
           const header = `
             <div class="job-row">
-              <strong>✅ Found ${count} jobs</strong><br>
-              <small>Latest file: ${data.latest_file || "—"}</small>
+              <strong>✅ Found ${count} marketing-related jobs</strong><br>
+              <small>Filtered from ${totalCount} total results</small>
+              ${data.latest_file ? `<br><small>Latest file: ${data.latest_file}</small>` : ""}
               ${data.stdout ? `<details style="margin-top:8px;"><summary>Show scraper log</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stdout.replace(/</g,"&lt;")}</pre></details>` : ""}
               ${data.stderr ? `<details style="margin-top:8px;"><summary>Show errors</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stderr.replace(/</g,"&lt;")}</pre></details>` : ""}
             </div>
           `;
     
-          const list = cachedResults.map((job, i) => `
+          const list = marketingResults.map((job, i) => `
             <div class="job-row" id="job-${i}">
               <strong>${job.title || "Untitled Job"}</strong><br>
               <a href="${job.link}" target="_blank">${job.link}</a><br>
@@ -247,6 +278,7 @@
       });
     });
     </script>
+    
     
 </body>
 </html>
