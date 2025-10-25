@@ -1,15 +1,17 @@
-<!-- === AI SaaS: Import Job Listings === -->
+<!-- === Internstart | Import Jobs from Scraper === -->
 <div class="ai-shell">
+  <!-- Background Orbs & Grid -->
   <div class="bg">
     <span class="orb orb-1"></span>
     <span class="orb orb-2"></span>
     <span class="grid"></span>
   </div>
 
+  <!-- Top Bar -->
   <header class="topbar" role="banner">
     <div class="brand">
       <span class="logo-dot" aria-hidden="true"></span>
-      <span class="brand-name">Internstart<span class="accent"></span></span>
+      <span class="brand-name">Internstart<span class="accent"> Scraper</span></span>
     </div>
     <nav class="nav" aria-label="primary">
       <a href="#" class="nav-link is-active">Import</a>
@@ -18,6 +20,7 @@
     </nav>
   </header>
 
+  <!-- Main Card -->
   <main class="wrap" role="main">
     <section class="card">
       <header class="card-head">
@@ -27,81 +30,110 @@
           </svg>
           Import Jobs from Scraper
         </h1>
-        <p class="subtitle">Run one of your scrapers, view all fetched listings, and process them individually with AI.</p>
+        <p class="subtitle">Run one of your scrapers, preview listings, and process them individually with AI.</p>
       </header>
 
+      <!-- Scraper Controls -->
       <form id="scraperForm" class="form">
-        <label class="label">Select Scraper</label>
+        <label for="scraperSelect" class="label">Select Scraper</label>
         <select id="scraperSelect" class="select">
           <option value="uk_marketing">🇬🇧 UK Marketing Scraper</option>
-          <!-- Later you can add more like: -->
-          <!-- <option value="us_tech">🇺🇸 US Tech Scraper</option> -->
         </select>
 
         <div class="actions" style="margin-top: 16px;">
-          <button type="button" id="scrapeBtn" class="btn">Run Scraper</button>
+          <button type="button" id="scrapeBtn" class="btn">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-text">Run Scraper</span>
+          </button>
         </div>
       </form>
 
-      <!-- Results -->
-      <div id="resultsContainer" class="results-container" style="margin-top: 30px;">
+      <!-- Scraper Results -->
+      <div id="resultsContainer" class="results-container">
         <p class="muted">No results yet — run a scraper to see jobs here.</p>
       </div>
     </section>
   </main>
 
   <footer class="footer" role="contentinfo">
-    <p>Import Jobs <a href="#" class="link">Privacy</a></p>
+    <p>Import Jobs • <a href="#" class="link">Privacy</a></p>
   </footer>
 </div>
 
+<!-- === Styles === -->
 <style>
-  /* Reuse previous styles */
-  :root {
-    --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324; --card:rgba(18,22,36,.72);
-    --stroke:rgba(255,255,255,.08); --text:#E7ECF3; --muted:#A6B0C3;
-  }
-  body{ margin:0; background:linear-gradient(180deg,var(--bg),var(--bg-2)); color:var(--text); font:500 16px/1.5 Inter, system-ui; }
-  .ai-shell{ position:relative; min-height:100dvh; overflow-x:hidden }
-  .card{ background:var(--card); border:1px solid var(--stroke); border-radius:16px; padding:28px; }
-  .results-container{ display:flex; flex-direction:column; gap:16px; }
-  .job-row{
-    background:rgba(255,255,255,.04);
-    border:1px solid var(--stroke);
-    border-radius:14px;
-    padding:16px 18px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
-  .job-title{ font-weight:600; font-size:17px; }
-  .job-snippet{ font-size:14px; color:var(--muted); }
-  .job-link{ font-size:14px; color:var(--accent); text-decoration:none; }
-  .job-actions{ display:flex; gap:10px; margin-top:8px; }
-  .btn{ background:var(--accent); border:none; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer; color:#0B0F1A; }
-  .btn.small{ padding:6px 12px; font-size:14px; }
-  .btn:hover{ filter:brightness(1.05); }
-  .muted{ color:var(--muted); text-align:center; }
+:root {
+  --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324;
+  --card:rgba(18,22,36,.72); --stroke:rgba(255,255,255,.08);
+  --text:#E7ECF3; --muted:#A6B0C3; --radius:16px;
+  --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+}
+@media(prefers-color-scheme:light){
+  :root{--bg:#F6F8FF;--bg-2:#EEF1FF;--card:#fff;--text:#0B0F1A;--muted:#596177;--stroke:rgba(10,15,30,.08);}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--bg),var(--bg-2));color:var(--text);font:500 16px/1.5 Inter,system-ui}
+.ai-shell{position:relative;min-height:100dvh;overflow-x:hidden}
+.bg .orb{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(70px);opacity:.35;pointer-events:none;}
+.orb-1{background:radial-gradient(closest-side,var(--accent),transparent 70%);top:-120px;left:-120px;}
+.orb-2{background:radial-gradient(closest-side,#7B61FF,transparent 70%);right:-140px;bottom:-140px;}
+.bg .grid{position:absolute;inset:0;background-image:
+linear-gradient(to right,var(--stroke)1px,transparent 1px),
+linear-gradient(to bottom,var(--stroke)1px,transparent 1px);
+background-size:36px 36px;mask-image:radial-gradient(60% 60% at 50% 40%,black 60%,transparent 100%);}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px clamp(20px,6vw,56px);
+position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);
+background:linear-gradient(180deg,rgba(12,16,28,.7),rgba(12,16,28,.35));border-bottom:1px solid var(--stroke);z-index:10}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.brand-name{font-size:18px}.logo-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
+.nav{display:flex;gap:16px}.nav-link{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px;}
+.nav-link:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.nav-link.is-active{color:var(--text);background:rgba(255,255,255,.06);}
+.wrap{max-width:1000px;margin:clamp(24px,5vw,60px) auto;padding:0 clamp(20px,5vw,32px);}
+.card{background:var(--card);border:1px solid var(--stroke);border-radius:calc(var(--radius) + 4px);
+box-shadow:var(--shadow);padding:clamp(18px,3vw,28px);position:relative;overflow:hidden;}
+.card::after{content:"";position:absolute;inset:-1px;border-radius:inherit;
+background:radial-gradient(300px 80px at 10% 0%,color-mix(in oklab,var(--accent) 18%,transparent),transparent 60%)}
+.card-head{margin-bottom:18px}
+.title{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:clamp(22px,3.2vw,28px);}
+.title-icon{width:22px;height:22px;color:var(--accent);}
+.subtitle{color:var(--muted);max-width:70ch;}
+.label{display:block;font-weight:600;margin:10px 0 6px;}
+.select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--stroke);
+background:rgba(255,255,255,.06);color:var(--text);font-weight:600;}
+.select:focus{outline:3px solid color-mix(in oklab,var(--accent) 25%,transparent);}
+.actions{display:flex;gap:12px;margin-top:10px;}
+.btn{background:var(--accent);color:#0B0F1A;border:none;border-radius:12px;padding:12px 16px;
+font-weight:700;cursor:pointer;box-shadow:0 8px 24px color-mix(in oklab,var(--accent) 30%,transparent);}
+.btn:hover{filter:brightness(1.05);}
+.results-container{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
+.job-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;
+padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
+.job-title{font-weight:600;font-size:17px;}
+.job-snippet{font-size:14px;color:var(--muted);}
+.job-link{font-size:14px;color:var(--accent);text-decoration:none;}
+.job-actions{display:flex;gap:10px;margin-top:8px;}
+.btn.small{padding:8px 12px;font-size:14px;}
+.muted{text-align:center;color:var(--muted);}
+.footer{display:flex;justify-content:center;padding:28px;color:var(--muted);font-size:14px;}
+.footer .link{color:var(--accent);text-decoration:none;}
 </style>
 
+<!-- === JS Logic === -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const scrapeBtn = document.getElementById('scrapeBtn');
   const resultsContainer = document.getElementById('resultsContainer');
 
   scrapeBtn.addEventListener('click', async () => {
-    resultsContainer.innerHTML = '<p class="muted">Running scraper... please wait.</p>';
-
+    resultsContainer.innerHTML = '<p class="muted">🔄 Running scraper... please wait.</p>';
     try {
-      // Example endpoint (you’ll build this view in Django):
       const res = await fetch('/run_scraper/?type=uk_marketing');
       const data = await res.json();
-
       if (!data.results || data.results.length === 0) {
         resultsContainer.innerHTML = '<p class="muted">No jobs found.</p>';
         return;
       }
-
       resultsContainer.innerHTML = '';
       data.results.forEach((job, i) => {
         const row = document.createElement('div');
@@ -122,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Handle "Process with AI" clicks
   document.addEventListener('click', async (e) => {
     if (e.target.matches('.job-actions .btn')) {
       const idx = e.target.dataset.index;
