@@ -79,11 +79,14 @@ for r in all_results:
     if "@" not in snippet:
         continue
 
-    # Must have .uk or /uk/ in the domain or path
+    # Must be UK-related (either domain or text mentions UK)
     domain = urlparse(link).netloc.lower()
     path = urlparse(link).path.lower()
-    if not (".uk" in domain or "/uk/" in path):
+    text = (title + " " + snippet).lower()
+
+    if not (".uk" in domain or "/uk/" in path or "united kingdom" in text or " uk " in text):
         continue
+
 
     filtered.append({
         "title": title.strip(),
