@@ -219,7 +219,7 @@
         }
       });
     
-      // 2️⃣ Process loop (unchanged)
+      // 2️⃣ Process loop (with duplicate detection feedback)
       addBtn.addEventListener("click", async () => {
         if (!cachedResults.length) {
           alert("Run the scraper first.");
@@ -260,6 +260,9 @@
             if (data.success) {
               statusEl.textContent = `✅ Added: ${data.company}`;
               statusEl.style.color = "#4CAF50";
+            } else if (data.duplicate) {
+              statusEl.textContent = `⚠️ Duplicate — skipped (${data.message || ""})`;
+              statusEl.style.color = "#FFA500";
             } else {
               statusEl.textContent = "❌ Failed";
               statusEl.style.color = "#ff2f5a";
@@ -278,6 +281,7 @@
       });
     });
     </script>
+    
     
     
 </body>
