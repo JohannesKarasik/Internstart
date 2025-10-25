@@ -2,118 +2,233 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Manual Job Entry</title>
+  <title>Manual Job Import — Paste Mode</title>
   <style>
-    body { font-family: Inter, sans-serif; background:#0b0f1a; color:#fff; padding:40px; }
-    .card { background:#11182b; padding:30px; border-radius:16px; max-width:900px; margin:auto; }
-    h2 { margin-bottom:20px; }
-    label { font-size:14px; color:#ccc; margin-top:12px; display:block; }
-    input, textarea, select {
-      width:100%; padding:12px; margin-top:6px;
-      border-radius:8px; border:none; font-size:15px;
-      background:#1b2235; color:white;
-    }
-    textarea { height:100px; resize:vertical; }
-    button {
-      width:100%; padding:14px; border:none; border-radius:8px;
-      font-weight:600; margin-top:14px; cursor:pointer;
-      transition:0.2s ease-in-out;
-    }
-    #addBtn { background:#FF2F5A; color:white; }
-    #addBtn:hover { background:#ff4a70; }
-    .success { background:#182a20; color:#46ff98; padding:10px; border-radius:8px; margin-top:20px; display:none; }
-    .error { background:#2a1818; color:#ff5c5c; padding:10px; border-radius:8px; margin-top:20px; display:none; }
+    :root{--bg:#0b0f1a;--card:#11182b;--ink:#e7ecf3;--muted:#9aa6bf;--stroke:#26314d;--accent:#ff2f5a;--accent-2:#7b61ff;--ok:#3ddc97;--bad:#ff667a}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:34px}
+    .wrap{max-width:1000px;margin:0 auto}
+    .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:24px}
+    h1{margin:0 0 8px;font-size:28px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .full{grid-column:1/-1}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    select,textarea,button{width:100%;border-radius:10px;border:1px solid var(--stroke);background:#1b2235;color:var(--ink);padding:12px;font-size:15px}
+    textarea{min-height:120px;resize:vertical;line-height:1.35}
+    .row{background:#121a30;border:1px solid var(--stroke);border-radius:12px;padding:12px}
+    .row-head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .row-idx{font-weight:700;color:#c8d2ea}
+    .status{font-size:13px;color:var(--muted)}
+    .status.ok{color:var(--ok)} .status.bad{color:var(--bad)} .status.work{color:var(--accent-2)}
+    .toolbar{display:flex;gap:10px;margin:10px 0 16px}
+    .btn{border:none;cursor:pointer;font-weight:700}
+    .btn.primary{background:var(--accent);color:#0b0f1a}
+    .btn.alt{background:var(--accent-2);color:#0b0f1a}
+    .btn.ghost{background:transparent;border:1px solid var(--stroke);color:var(--ink)}
+    .cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .help{font-size:13px;color:var(--muted);margin-top:8px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Manual Job Import</h2>
-    <p>Insert job info manually — AI will detect company name, logo, location, and description.</p>
+  <div class="wrap">
+    <section class="card">
+      <h1>Manual Job Import (Paste JSON objects)</h1>
+      <p class="lead">Paste one JSON object per box (keys: <span class="mono">title</span>, <span class="mono">link</span>, <span class="mono">snippet</span>). Then click <b>Process All</b>. AI will detect company name, logo, location, and finalize each listing one-by-one.</p>
 
-    <label>Country</label>
-    <select id="country">
-      <option value="">Select...</option>
-      <option value="UK">🇬🇧 United Kingdom</option>
-      <option value="DK">🇩🇰 Denmark</option>
-      <option value="US">🇺🇸 United States</option>
-    </select>
+      <!-- Global selectors (applied to all rows) -->
+      <div class="cols-3">
+        <div>
+          <label>Country</label>
+          <select id="country">
+            <option value="">Select…</option>
+            <option value="UK">🇬🇧 United Kingdom</option>
+            <option value="DK">🇩🇰 Denmark</option>
+            <option value="US">🇺🇸 United States</option>
+            <option value="FRA">🇫🇷 France</option>
+            <option value="GER">🇩🇪 Germany</option>
+          </select>
+        </div>
+        <div>
+          <label>Industry</label>
+          <select id="industry">
+            <option value="">Select…</option>
+            <option value="business_finance">Business & Finance</option>
+            <option value="marketing">Marketing & Communications</option>
+            <option value="software_backend">Software Development (Backend)</option>
+            <option value="software_frontend">Software Development (Frontend)</option>
+            <option value="sales_customer">Sales & Customer Relations</option>
+          </select>
+        </div>
+        <div>
+          <label>Job Type</label>
+          <select id="job_type">
+            <option value="">Select…</option>
+            <option value="internship">Internship</option>
+            <option value="student_job">Student Job</option>
+            <option value="full_time">Full Time Job</option>
+          </select>
+        </div>
+      </div>
 
-    <label>Industry</label>
-    <select id="industry">
-      <option value="">Select...</option>
-      <option value="marketing">Marketing</option>
-      <option value="engineering">Engineering</option>
-      <option value="sales">Sales</option>
-      <option value="software">Software</option>
-    </select>
+      <div class="toolbar">
+        <button id="processAll" class="btn primary">Process All (Top → Bottom)</button>
+        <button id="addRow" class="btn alt">+ Add Row</button>
+        <button id="clearAll" class="btn ghost">Clear All</button>
+      </div>
 
-    <label>Job Type</label>
-    <select id="job_type">
-      <option value="">Select...</option>
-      <option value="full_time">Full Time</option>
-      <option value="internship">Internship</option>
-      <option value="student_job">Student Job</option>
-    </select>
+      <!-- Rows container -->
+      <div id="rows" class="grid full">
+        <!-- Rows are inserted here -->
+      </div>
 
-    <hr style="border:none; border-top:1px solid #333; margin:20px 0;">
-
-    <label>Job Title</label>
-    <input id="title" type="text" placeholder="e.g. Digital Marketing Manager" />
-
-    <label>Job Link</label>
-    <input id="link" type="text" placeholder="e.g. https://uk.linkedin.com/jobs/view/..." />
-
-    <label>Job Snippet / Description</label>
-    <textarea id="snippet" placeholder="Paste a short description or snippet here..."></textarea>
-
-    <button id="addBtn">Add to Database / Process</button>
-
-    <div id="successMsg" class="success">✅ Successfully processed!</div>
-    <div id="errorMsg" class="error">❌ Something went wrong.</div>
+      <div class="help">
+        Example object to paste (one per box):
+        <pre class="mono" style="white-space:pre-wrap;background:#0f1527;border:1px solid var(--stroke);padding:10px;border-radius:8px;margin-top:8px;">
+{ "title": "Operations Administrator – Electrical & Solar PV",
+  "link": "https://uk.linkedin.com/jobs/view/operations-administrator-%E2%80%93-electrical-solar-pv-at-norcroft-energy-4317358506",
+  "snippet": "To apply send your CV to info@norcroftenergy.co.uk. Show more. Show less..." }
+        </pre>
+      </div>
+    </section>
   </div>
 
   <script>
-    document.getElementById("addBtn").addEventListener("click", async () => {
-      const payload = {
-        title: document.getElementById("title").value.trim(),
-        link: document.getElementById("link").value.trim(),
-        snippet: document.getElementById("snippet").value.trim(),
+    // ------- Config -------
+    const PROCESS_ENDPOINT = "/process_manual_job/"; // or your existing /process_job_with_ai_bulk/
+
+    // ------- Helpers -------
+    const rowsEl = document.getElementById("rows");
+    const addRowBtn = document.getElementById("addRow");
+    const clearAllBtn = document.getElementById("clearAll");
+    const processAllBtn = document.getElementById("processAll");
+
+    function makeRow(index) {
+      const el = document.createElement("div");
+      el.className = "row full";
+      el.innerHTML = `
+        <div class="row-head">
+          <div class="row-idx">#<span data-role="idx">${index}</span></div>
+          <div class="status" data-role="status">⏸ Waiting…</div>
+        </div>
+        <textarea data-role="json" placeholder='Paste one JSON object here…
+{ "title": "...", "link": "https://…", "snippet": "…" }'></textarea>
+      `;
+      return el;
+    }
+
+    function renumberRows() {
+      [...rowsEl.querySelectorAll('[data-role="idx"]')].forEach((n, i) => n.textContent = i + 1);
+    }
+
+    function addRow() {
+      rowsEl.appendChild(makeRow(rowsEl.children.length + 1));
+    }
+
+    function clearAll() {
+      rowsEl.innerHTML = "";
+      for (let i = 0; i < 5; i++) addRow(); // start with 5 empty rows
+    }
+
+    function getGlobals() {
+      return {
         country: document.getElementById("country").value,
         industry: document.getElementById("industry").value,
         job_type: document.getElementById("job_type").value
       };
+    }
 
-      if (!payload.title || !payload.link) {
-        alert("Please fill in at least title and link");
-        return;
+    function validateGlobals() {
+      const g = getGlobals();
+      if (!g.country || !g.industry || !g.job_type) {
+        alert("Please select Country, Industry, and Job Type before processing.");
+        return false;
       }
+      return true;
+    }
 
-      document.getElementById("addBtn").innerText = "⏳ Processing...";
-      try {
-        const res = await fetch("/process_manual_job/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
+    async function processAll() {
+      if (!validateGlobals()) return;
 
-        document.getElementById("addBtn").innerText = "Add to Database / Process";
-        if (data.success) {
-          document.getElementById("successMsg").innerText = `✅ Added ${data.company}`;
-          document.getElementById("successMsg").style.display = "block";
-          document.getElementById("errorMsg").style.display = "none";
-        } else {
-          document.getElementById("errorMsg").innerText = `❌ ${data.error}`;
-          document.getElementById("errorMsg").style.display = "block";
-          document.getElementById("successMsg").style.display = "none";
+      processAllBtn.disabled = true;
+      processAllBtn.textContent = "Processing…";
+
+      const globals = getGlobals();
+      const rows = [...rowsEl.querySelectorAll(".row")];
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const status = row.querySelector('[data-role="status"]');
+        const box = row.querySelector('[data-role="json"]');
+        const raw = box.value.trim();
+
+        if (!raw) { // skip empty rows
+          status.textContent = "⏭️ Skipped (empty)";
+          status.className = "status";
+          continue;
         }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("addBtn").innerText = "Add to Database / Process";
-        document.getElementById("errorMsg").innerText = "❌ Failed to send request.";
-        document.getElementById("errorMsg").style.display = "block";
+
+        // Parse JSON safely
+        let obj;
+        try {
+          obj = JSON.parse(raw);
+        } catch (e) {
+          status.textContent = "❌ Invalid JSON";
+          status.className = "status bad";
+          continue;
+        }
+
+        if (!obj.title || !obj.link) {
+          status.textContent = "❌ Missing title/link";
+          status.className = "status bad";
+          continue;
+        }
+
+        status.textContent = "🤖 Processing…";
+        status.className = "status work";
+
+        try {
+          const res = await fetch(PROCESS_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: obj.title,
+              link: obj.link,
+              snippet: obj.snippet || "",
+              ...globals
+            })
+          });
+          const data = await res.json();
+
+          if (data && data.success) {
+            status.textContent = `✅ Added: ${data.company || "OK"}`;
+            status.className = "status ok";
+          } else {
+            status.textContent = `❌ Failed${data && data.error ? ": " + data.error : ""}`;
+            status.className = "status bad";
+          }
+        } catch (err) {
+          console.error("Row error:", err);
+          status.textContent = "❌ Network/Error";
+          status.className = "status bad";
+        }
+
+        // Small delay to keep it sequential and stable
+        await new Promise(r => setTimeout(r, 1200));
       }
-    });
+
+      processAllBtn.disabled = false;
+      processAllBtn.textContent = "Process All (Top → Bottom)";
+    }
+
+    // ------- Wire up -------
+    addRowBtn.addEventListener("click", () => { addRow(); renumberRows(); });
+    clearAllBtn.addEventListener("click", clearAll);
+    processAllBtn.addEventListener("click", processAll);
+
+    // initial rows
+    clearAll();
   </script>
 </body>
 </html>
