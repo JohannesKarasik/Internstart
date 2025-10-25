@@ -14,7 +14,6 @@ QUERY = (
     '("@gmail.com" OR "@outlook.com" OR "@hotmail.com" OR "@company.co.uk" OR "@co.uk" OR "@") '
     '("United Kingdom" OR "UK")'
 )
-
 # 🔑 --- API Key ---
 API_KEY = os.getenv("SERPAPI_API_KEY")
 if not API_KEY:
@@ -26,7 +25,7 @@ print("🔍 Fetching UK marketing listings from SerpAPI ...")
 params = {
     "engine": "google",
     "q": QUERY,
-    "num": 10,               # fetch 10 per page (Google cap)
+    "num": 10,               # fetch only 10 total results
     "hl": "en",
     "gl": "uk",
     "location": "United Kingdom",
@@ -35,23 +34,16 @@ params = {
     "api_key": API_KEY,
 }
 
-# 🌀 --- Paginate up to 100 results ---
-all_results = []
-for start in range(0, 100, 10):  # Google supports start=0,10,20,...
-    params["start"] = start
-    search = GoogleSearch(params)
-    data = search.get_dict()
+# 🌀 --- Single page only (10 results) ---
+search = GoogleSearch(params)
+data = search.get_dict()
 
-    if "error" in data:
-        print(f"⚠️ SerpAPI error on page {start//10 + 1}: {data['error']}")
-        break
-
-    organic = data.get("organic_results", [])
-    if not organic:
-        break
-
-    all_results.extend(organic)
-    print(f"📄 Page {start//10 + 1}: fetched {len(organic)} results...")
+if "error" in data:
+    print(f"⚠️ SerpAPI error: {data['error']}")
+    all_results = []
+else:
+    all_results = data.get("organic_results", []) or []
+    print(f"📄 Page 1: fetched {len(all_results)} results...")
 
 print(f"🌍 Total raw results fetched: {len(all_results)}")
 

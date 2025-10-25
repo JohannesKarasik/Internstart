@@ -109,6 +109,10 @@ font-weight:700;cursor:pointer;box-shadow:0 8px 24px color-mix(in oklab,var(--ac
 .results-container{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
 .job-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;
 padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
+.job-header{display:flex;align-items:center;gap:12px;}
+.job-logo{width:50px;height:50px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.1);flex-shrink:0;}
+.job-placeholder{display:flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:50%;
+background:rgba(255,255,255,.08);font-weight:700;color:var(--muted);}
 .job-title{font-weight:600;font-size:17px;}
 .job-snippet{font-size:14px;color:var(--muted);}
 .job-link{font-size:14px;color:var(--accent);text-decoration:none;}
@@ -138,10 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
       data.results.forEach((job, i) => {
         const row = document.createElement('div');
         row.className = 'job-row';
+        const initials = (job.title || 'J')[0].toUpperCase();
         row.innerHTML = `
-          <div class="job-title">${job.title || 'Untitled Job'}</div>
+          <div class="job-header">
+            <div class="job-placeholder" id="logo-${i}">${initials}</div>
+            <div>
+              <div class="job-title">${job.title || 'Untitled Job'}</div>
+              <a href="${job.link}" target="_blank" class="job-link">${job.link}</a>
+            </div>
+          </div>
           <div class="job-snippet">${job.snippet || ''}</div>
-          <a href="${job.link}" target="_blank" class="job-link">${job.link}</a>
           <div class="job-actions">
             <button class="btn small" data-index="${i}">Process & Add to DB with AI</button>
           </div>
@@ -154,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Handle "Process & Add to DB with AI" button clicks
   document.addEventListener('click', async (e) => {
     if (e.target.matches('.job-actions .btn')) {
       const idx = e.target.dataset.index;
@@ -161,10 +172,22 @@ document.addEventListener('DOMContentLoaded', () => {
       e.target.disabled = true;
       try {
         const res = await fetch(`/process_job_with_ai/?index=${idx}`, { method: 'POST' });
-        if (res.ok) e.target.textContent = '✅ Added';
-        else throw new Error();
-      } catch {
-        e.target.textContent = '❌ Failed';
+        const data = await res.json();
+
+        if (data.success) {
+          e.target.textContent = '✅ Added';
+          const logo = document.getElementById(`logo-${idx}`);
+          if (data.logo_url) {
+            logo.outerHTML = `<img src="${data.logo_url}" class="job-logo" alt="Company logo" />`;
+          } else {
+            logo.textContent = '🏢';
+          }
+        } else {
+          e.target.textContent = '❌ Failed';
+        }
+      } catch (err) {
+        e.target.textContent = '❌ Error';
+        console.error(err);
       }
     }
   });

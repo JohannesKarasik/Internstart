@@ -1833,213 +1833,168 @@ def extract_job_data(raw_text):
         return {}
 
 
+import json
+import os
+import re
+import importlib
+from django.http import JsonResponse
+from django.contrib.admin.views.decorators import staff_member_required
+
+import os
+import re
+import json
+import importlib
+from django.http import JsonResponse
+from django.contrib.admin.views.decorators import staff_member_required
+
+from .models import Room, Topic, User
+from .utils import extract_job_data, fetch_company_logo
+from openai import OpenAI
+
+client = OpenAI()
+
+# --- Scraper Directory ---
+SCRAPER_DIR = os.path.join(os.path.dirname(__file__), "uk_scrapers")
+
+
+# 🧩 --- 1. Run scraper dynamically ---
 @staff_member_required
-def import_job_view(request):
-    if request.method == "POST":
-        # Hard choices provided by the template (validated below)
-        VALID_COUNTRIES = {"DK", "US", "UK", "FRA", "GER"}
-        VALID_INDUSTRIES = {
-            "business_finance",
-            "marketing",
-            "software_backend",
-            "software_frontend",
-            "sales_customer",
-        }
-        VALID_JOB_TYPES = {"internship", "student_job", "full_time"}
+def run_scraper(request):
+    """
+    Executes a scraper module (e.g. uk_marketing) and returns its JSON results.
+    """
+    scraper_type = request.GET.get("type", "uk_marketing")
 
-        raw_text = request.POST.get("linkedin_text", "").strip()
-        if not raw_text:
-            messages.error(request, "Please paste a LinkedIn job post first.")
-            return redirect("import_job")
+    SCRAPERS = {
+        "uk_marketing": "base.uk_scrapers.serpapi_uk_marketing_scraper",
+        # Add more scrapers later
+    }
 
-        data = extract_job_data(raw_text)
+    if scraper_type not in SCRAPERS:
+        return JsonResponse({"error": "Invalid scraper type."}, status=400)
 
-        if not data:
-            messages.error(request, "Couldn't extract data from text. Check logs for details.")
-            return redirect("import_job")
+    module_path = SCRAPERS[scraper_type]
+    try:
+        scraper_module = importlib.import_module(module_path)
+    except Exception as e:
+        print("❌ [Scraper Import Error]", e)
+        return JsonResponse({"error": "Could not load scraper."}, status=500)
 
-        # ---------- Email extraction (regex only) ----------
-        import re
-        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', raw_text)
-        email_found = email_match.group(0) if email_match else None
-        print(f"📧 [DEBUG] Extracted email: {email_found}")
+    try:
+        from serpapi import GoogleSearch
 
-        # ---------- Country detection (kept as before) ----------
-        location_text = (data.get("location") or "").lower()
-        country_map = {
-            "denmark": "DK",
-            "copenhagen": "DK",
-            "aarhus": "DK",
-            "odense": "DK",
-            "united states": "US",
-            "usa": "US",
-            "new york": "US",
-            "california": "US",
-            "united kingdom": "UK",
-            "london": "UK",
-            "england": "UK",
-            "france": "FRA",
-            "paris": "FRA",
-            "germany": "GER",
-            "berlin": "GER",
-            "munich": "GER",
+        QUERY = scraper_module.QUERY
+        API_KEY = os.getenv("SERPAPI_API_KEY")
+        if not API_KEY:
+            return JsonResponse({"error": "Missing SerpAPI API key."}, status=500)
+
+        params = {
+            "engine": "google",
+            "q": QUERY,
+            "num": 10,
+            "hl": "en",
+            "gl": "uk",
+            "location": "United Kingdom",
+            "filter": "0",
+            "api_key": API_KEY,
         }
 
-        country_code = None
-        for key, val in country_map.items():
-            if key in location_text:
-                country_code = val
+        all_results = []
+        for start in range(0, 50, 10):
+            params["start"] = start
+            data = GoogleSearch(params).get_dict()
+            organic = data.get("organic_results", [])
+            if not organic:
                 break
+            all_results.extend(organic)
 
-        if not country_code:
-            try:
-                gpt_country = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[{
-                        "role": "user",
-                        "content": (
-                            f"From this location '{data.get('location')}', which country is it in? "
-                            f"Answer only with DK, US, UK, FRA, or GER."
-                        )
-                    }],
-                    temperature=0,
-                )
-                country_code = (gpt_country.choices[0].message.content or "").strip().upper()
-                if country_code not in ["DK", "US", "UK", "FRA", "GER"]:
-                    country_code = None
-            except Exception as e:
-                print("⚠️ [DEBUG] Country GPT fallback failed:", e)
-                country_code = None
+        filtered = [
+            {
+                "title": r.get("title"),
+                "link": r.get("link"),
+                "snippet": r.get("snippet", ""),
+            }
+            for r in all_results
+            if "@" in r.get("snippet", "")
+        ]
 
-        # ---------- OVERRIDES from form (authoritative) ----------
-        # Country: use dropdown if provided; otherwise keep detected/None
-        country_override = (request.POST.get("country") or "").upper()
-        if country_override in VALID_COUNTRIES:
-            country_code = country_override
+        # Cache in session for later "process with AI"
+        request.session["scraper_results"] = filtered
+        print(f"✅ [SCRAPER] Cached {len(filtered)} results for processing.")
+        return JsonResponse({"results": filtered})
 
-        # Industry & Job Type: NOW ONLY from form (no AI). Always set with safe fallback.
-        industry_key = request.POST.get("industry") or ""
-        if industry_key not in VALID_INDUSTRIES:
-            industry_key = "business_finance"  # hard fallback to avoid blanks
+    except Exception as e:
+        print("❌ [Scraper Run Error]", e)
+        return JsonResponse({"error": str(e)}, status=500)
 
-        job_type_key = request.POST.get("job_type") or ""
-        if job_type_key not in VALID_JOB_TYPES:
-            job_type_key = "full_time"  # hard fallback to avoid blanks
 
-        print(
-            f"🌍 [DEBUG] Country: {country_code}, "
-            f"industry: {industry_key}, job_type: {job_type_key}, "
-            f"email: {email_found}"
-        )
+# 🧠 --- 2. Process scraped job + AI extraction + Logo fetch ---
+@staff_member_required
+def process_job_with_ai(request):
+    """
+    Takes one job from session results, extracts structured data,
+    fetches logo via GPT/Clearbit, and adds to DB.
+    """
+    try:
+        idx = int(request.GET.get("index", 0))
+    except ValueError:
+        return JsonResponse({"error": "Invalid index."}, status=400)
 
-        # ---------- Create default topic + admin user ----------
-        topic, _ = Topic.objects.get_or_create(name="General")
-        admin_user = User.objects.filter(is_staff=True).first()
+    scraped = request.session.get("scraper_results", [])
+    if not scraped or idx >= len(scraped):
+        return JsonResponse({"error": "No cached results found."}, status=404)
 
-        # ---------- DEDUPE (before create) ----------
-        from difflib import SequenceMatcher
+    job = scraped[idx]
+    text = f"{job.get('title')}\n\n{job.get('snippet')}"
+    link = job.get("link")
 
-        def _normalize(s: str) -> str:
-            if not s:
-                return ""
-            s = s.lower().strip()
-            s = re.sub(r'\b(aps|a/s|ltd|inc|inc\.|llc|gmbh|spa|ab|sa|s\.a\.)\b', '', s)
-            s = re.sub(r'[^a-z0-9\s]', ' ', s)
-            s = re.sub(r'\s+', ' ', s).strip()
-            return s
+    # 1️⃣ Extract structured data with your existing AI pipeline
+    data = extract_job_data(text)
+    if not data:
+        return JsonResponse({"error": "AI extraction failed."}, status=500)
 
-        def _similar(a: str, b: str) -> float:
-            return SequenceMatcher(None, _normalize(a), _normalize(b)).ratio()
+    # 2️⃣ Email extraction (regex)
+    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', job.get("snippet", ""))
+    email_found = email_match.group(0) if email_match else None
 
-        title_in = data.get("job_role", "") or ""
-        company_in = data.get("company_name", "") or ""
+    # 3️⃣ Create topic/admin
+    topic, _ = Topic.objects.get_or_create(name="General")
+    admin_user = User.objects.filter(is_staff=True).first()
 
-        # 1) Exact (case-insensitive)
-        exists_exact = Room.objects.filter(
-            company_name__iexact=company_in,
-            job_title__iexact=title_in
-        ).exists()
-        if exists_exact:
-            messages.info(request, "ℹ️ Duplicate skipped: same company + role already exists.")
-            return redirect("import_job")
+    # 4️⃣ Create Room
+    room = Room.objects.create(
+        host=admin_user,
+        topic=topic,
+        company_name=data.get("company_name", "Unknown Company"),
+        location=data.get("location", "Unknown Location"),
+        job_title=data.get("job_role", "Untitled Role"),
+        description=data.get("description", job.get("snippet", "")),
+        country="UK",
+        industry="marketing",
+        job_type="full_time",
+        email=email_found,
+    )
 
-        # 2) Fuzzy scan of likely candidates
-        candidates = Room.objects.all()
-        company_norm_in = _normalize(company_in)
-        if company_norm_in:
-            first_token = company_norm_in.split(' ')[0]
-            if first_token:
-                candidates = candidates.filter(company_name__icontains=first_token)
-
-        best = None
-        best_score = 0.0
-        for r in candidates[:200]:
-            t_score = _similar(title_in, r.job_title or "")
-            c_score = _similar(company_in, r.company_name or "")
-            score = (0.6 * c_score) + (0.4 * t_score)
-            if score > best_score:
-                best_score = score
-                best = r
-
-        HIGH_DUP = 0.93
-        MID_DUP_LOW, MID_DUP_HIGH = 0.82, 0.93
-
-        is_duplicate = False
-        if best and best_score >= HIGH_DUP:
-            print(f"🧭 [DEDUP] Blocked duplicate (score={best_score:.3f}) → matches #{best.id}")
-            messages.info(request, "ℹ️ Duplicate skipped: same company + role already exists (fuzzy match).")
-            return redirect("import_job")
-        if best and MID_DUP_LOW <= best_score < MID_DUP_HIGH:
-            try:
-                gpt_check = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    temperature=0,
-                    messages=[{
-                        "role": "user",
-                        "content": (
-                            "Are these referring to the SAME job at the SAME company? "
-                            "Answer strictly 'YES' or 'NO'.\n\n"
-                            f"New role: '{title_in}' at '{company_in}'.\n"
-                            f"Existing role: '{best.job_title}' at '{best.company_name}'."
-                        )
-                    }]
-                )
-                ans = (gpt_check.choices[0].message.content or "").strip().upper()
-                is_duplicate = (ans == "YES")
-            except Exception as e:
-                print("⚠️ [DEDUP] GPT check failed:", e)
-
-        if is_duplicate:
-            print(f"🧭 [DEDUP] Blocked by GPT (borderline score={best_score:.3f}) → matches #{best.id}")
-            messages.info(request, "ℹ️ Duplicate skipped: AI confirmed same company + role already exists.")
-            return redirect("import_job")
-
-        # ---------- Create the Room ----------
-        room = Room.objects.create(
-            host=admin_user,
-            topic=topic,
-            company_name=data.get("company_name", "Unknown Company"),
-            location=data.get("location", "Unknown Location"),
-            job_title=data.get("job_role", "Untitled Role"),
-            description=data.get("description", ""),
-            job_type=job_type_key,     # ← from form (validated) with hard fallback
-            country=country_code,      # ← from form if given, else detected/None
-            industry=industry_key,     # ← from form (validated) with hard fallback
-            email=email_found,
-        )
-
-        # ---------- Fetch and attach logo ----------
+    # 5️⃣ Fetch & save logo
+    try:
         logo_file = fetch_company_logo(data.get("company_name"))
         if logo_file:
             room.logo.save(logo_file.name, logo_file, save=True)
-            print(f"✅ [DEBUG] Saved logo for {room.company_name}")
+            print(f"✅ [LOGO] Saved logo for {room.company_name}")
         else:
-            print(f"⚠️ [DEBUG] No logo found for {room.company_name}")
+            print(f"⚠️ [LOGO] No logo found for {room.company_name}")
+    except Exception as e:
+        print(f"❌ [LOGO ERROR] {e}")
 
-        messages.success(request, f"✅ Added new listing: {room.job_title} at {room.company_name}")
-        return redirect("import_job")
-
-    return render(request, "base/import_job.html")
+    return JsonResponse({
+        "success": True,
+        "room_id": room.id,
+        "company": room.company_name,
+        "title": room.job_title,
+        "email": email_found,
+        "link": link,
+        "logo_url": room.logo.url if room.logo else None,
+    })
 
 
 

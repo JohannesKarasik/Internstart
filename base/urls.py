@@ -56,6 +56,8 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path("apply-ats/<int:room_id>/", views.apply_ats_view, name="apply_ats"),
     path("insights/", views.listings_insights_view, name="listings_insights"),
+    path("run_scraper/", views.run_scraper, name="run_scraper"),
+    path("process_job_with_ai/", views.process_job_with_ai, name="process_job_with_ai"),
 
 
 
