@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from serpapi import GoogleSearch
 
-# 🧩 --- Configuration ---
+# 🧩 --- Query: target UK jobs only ---
 QUERY = (
     'site:linkedin.com/jobs ('
     'intitle:marketing OR intitle:"digital marketing" OR intitle:"social media" OR intitle:SEO OR intitle:advertising OR '
@@ -13,33 +13,34 @@ QUERY = (
     'intitle:"performance" OR intitle:"influencer" OR intitle:"paid media") '
     '("send your CV" OR "apply by email" OR "email your application") '
     '("@gmail.com" OR "@outlook.com" OR "@hotmail.com" OR "@company.co.uk" OR "@co.uk" OR "@") '
-    '("United Kingdom" OR "UK") ("1 day ago" OR "24 hours ago")'
+    '("United Kingdom" OR "UK" OR "England" OR "London" OR "Manchester" OR "Birmingham" OR "Leeds" OR "Liverpool") '
+    '("1 day ago" OR "24 hours ago")'
 )
 
 
 def main():
-    """Fetch recent (past 24h) UK marketing jobs with visible emails (max 50)."""
+    """Fetch up to 50 LinkedIn UK marketing jobs (past 24h, email visible)."""
     API_KEY = os.getenv("SERPAPI_API_KEY")
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-    print("🔍 Fetching up to 50 UK marketing listings from SerpAPI (past 24 hours)...")
+    print("🔍 Fetching UK-only marketing listings from SerpAPI (past 24h)...")
 
     params = {
         "engine": "google",
         "q": QUERY,
-        "num": 10,                # SerpAPI limit per page
+        "num": 10,
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
         "filter": "0",
-        "tbs": "qdr:d1",          # limit to last 24 hours
+        "tbs": "qdr:d1",   # last 24 hours
         "api_key": API_KEY,
     }
 
     all_results = []
 
-    # 🌀 --- Paginate up to 5 pages (≈ 50 results max) ---
+    # 🌀 paginate up to 5 pages (~50 listings)
     for start in range(0, 50, 10):
         params["start"] = start
         print(f"📄 Fetching page starting at {start}...")
@@ -47,7 +48,7 @@ def main():
             search = GoogleSearch(params)
             data = search.get_dict()
         except Exception as e:
-            print(f"⚠️ Request failed at start={start}: {e}")
+            print(f"⚠️ Request failed on page {start//10 + 1}: {e}")
             break
 
         results = data.get("organic_results", [])
@@ -56,17 +57,18 @@ def main():
             break
 
         all_results.extend(results)
-
-        # Stop early if we already have enough
         if len(all_results) >= 50:
             break
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🧹 --- Filter results with visible emails ---
+    # 🧹 --- Filter visible emails + confirm UK relevance ---
     filtered = []
+    uk_keywords = ["uk", "united kingdom", "england", "scotland", "wales", "london", "manchester",
+                   "birmingham", "leeds", "liverpool", ".co.uk"]
+
     for r in all_results:
-        snippet = r.get("snippet", "")
+        snippet = r.get("snippet", "").lower()
         title = r.get("title", "")
         link = r.get("link", "")
 
@@ -74,14 +76,17 @@ def main():
         if "@" not in snippet:
             continue
 
-        # Clean up listing
+        # Must clearly relate to UK
+        if not any(k in snippet or k in link for k in uk_keywords):
+            continue
+
         filtered.append({
             "title": title.strip(),
             "link": link.strip(),
             "snippet": snippet.strip(),
         })
 
-    # Trim to 50 just in case
+    # Limit to 50 listings
     filtered = filtered[:50]
 
     # 💾 --- Save results ---
@@ -92,7 +97,7 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(filtered, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(filtered)} listings (past 24h, email-visible) to {filename}")
+    print(f"✅ Saved {len(filtered)} UK listings (past 24h, email-visible) to {filename}")
 
 
 if __name__ == "__main__":
