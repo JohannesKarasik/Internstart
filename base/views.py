@@ -1865,75 +1865,69 @@ client = OpenAI()
 SCRAPER_DIR = os.path.join(os.path.dirname(__file__), "uk_scrapers")
 
 
-# 🧩 --- 1. Run scraper dynamically ---
 @staff_member_required
 def run_scraper(request):
     """
-    Executes a scraper module (e.g. uk_marketing) and returns its JSON results.
+    Dynamically executes one of the scraper scripts (e.g. serpapi_uk_marketing_scraper.py)
+    and returns its generated JSON results.
+    Each scraper is fully self-contained with its own filters & freshness logic.
     """
+    import importlib, os, io, json
+    from django.http import JsonResponse
+    from contextlib import redirect_stdout
+
     scraper_type = request.GET.get("type", "uk_marketing")
 
     SCRAPERS = {
         "uk_marketing": "base.uk_scrapers.serpapi_uk_marketing_scraper",
-        # Add more scrapers later
+        # You can add more later: "dk_software": "base.dk_scrapers.serpapi_dk_software_scraper"
     }
 
     if scraper_type not in SCRAPERS:
         return JsonResponse({"error": "Invalid scraper type."}, status=400)
 
     module_path = SCRAPERS[scraper_type]
+
     try:
         scraper_module = importlib.import_module(module_path)
+        print(f"🧠 Running scraper module: {scraper_module.__name__}")
     except Exception as e:
         print("❌ [Scraper Import Error]", e)
-        return JsonResponse({"error": "Could not load scraper."}, status=500)
+        return JsonResponse({"error": f"Could not load scraper: {e}"}, status=500)
 
-    try:
-        from serpapi import GoogleSearch
+    # ✅ Capture the scraper’s printed output (since it saves JSON file)
+    f = io.StringIO()
+    with redirect_stdout(f):
+        try:
+            scraper_module.main() if hasattr(scraper_module, "main") else None
+        except Exception as e:
+            print("❌ [Scraper Execution Error]", e)
 
-        QUERY = scraper_module.QUERY
-        API_KEY = os.getenv("SERPAPI_API_KEY")
-        if not API_KEY:
-            return JsonResponse({"error": "Missing SerpAPI API key."}, status=500)
+    output = f.getvalue()
+    print("📜 Scraper Output Log:\n", output)
 
-        params = {
-            "engine": "google",
-            "q": QUERY,
-            "num": 10,
-            "hl": "en",
-            "gl": "uk",
-            "location": "United Kingdom",
-            "filter": "0",
-            "api_key": API_KEY,
-        }
+    # ✅ Find the latest JSON file created by the scraper
+    scraper_dir = os.path.join(os.path.dirname(scraper_module.__file__))
+    json_files = sorted(
+        [f for f in os.listdir(scraper_dir) if f.startswith("linkedin_") and f.endswith(".json")],
+        key=lambda x: os.path.getmtime(os.path.join(scraper_dir, x)),
+        reverse=True,
+    )
 
-        all_results = []
-        for start in range(0, 50, 10):
-            params["start"] = start
-            data = GoogleSearch(params).get_dict()
-            organic = data.get("organic_results", [])
-            if not organic:
-                break
-            all_results.extend(organic)
+    if not json_files:
+        return JsonResponse({"error": "No scraper results found."}, status=404)
 
-        filtered = [
-            {
-                "title": r.get("title"),
-                "link": r.get("link"),
-                "snippet": r.get("snippet", ""),
-            }
-            for r in all_results
-            if "@" in r.get("snippet", "")
-        ]
+    latest_file = os.path.join(scraper_dir, json_files[0])
+    print(f"📦 Loading latest scraper results: {latest_file}")
 
-        # Cache in session for later "process with AI"
-        request.session["scraper_results"] = filtered
-        print(f"✅ [SCRAPER] Cached {len(filtered)} results for processing.")
-        return JsonResponse({"results": filtered})
+    with open(latest_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-    except Exception as e:
-        print("❌ [Scraper Run Error]", e)
-        return JsonResponse({"error": str(e)}, status=500)
+    # Cache in session for next step (AI processing)
+    request.session["scraper_results"] = data
+    print(f"✅ Cached {len(data)} results for processing.")
+    return JsonResponse({"results": data})
+
 
 
 @csrf_exempt
