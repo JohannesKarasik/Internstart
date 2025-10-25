@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Internstart Scraper</title>
   <style>
-    /* --- Existing Styles --- */
     :root {
       --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324;
       --card:rgba(18,22,36,.72); --stroke:rgba(255,255,255,.08);
@@ -17,26 +16,11 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:linear-gradient(180deg,var(--bg),var(--bg-2));color:var(--text);font:500 16px/1.5 Inter,system-ui}
     .ai-shell{position:relative;min-height:100dvh;overflow-x:hidden}
-    .bg, .orb, .grid, .card::after {pointer-events:none !important;}
-    .bg .orb{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(70px);opacity:.35;}
-    .orb-1{background:radial-gradient(closest-side,var(--accent),transparent 70%);top:-120px;left:-120px;}
-    .orb-2{background:radial-gradient(closest-side,#7B61FF,transparent 70%);right:-140px;bottom:-140px;}
-    .bg .grid{position:absolute;inset:0;background-image:
-      linear-gradient(to right,var(--stroke)1px,transparent 1px),
-      linear-gradient(to bottom,var(--stroke)1px,transparent 1px);
-      background-size:36px 36px;
-      mask-image:radial-gradient(60% 60% at 50% 40%,black 60%,transparent 100%);
-    }
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px clamp(20px,6vw,56px);
-      background:linear-gradient(180deg,rgba(12,16,28,.7),rgba(12,16,28,.35));
-      border-bottom:1px solid var(--stroke);}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
-    .brand-name{font-size:18px}.logo-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
     .wrap{max-width:1000px;margin:clamp(24px,5vw,60px) auto;padding:0 clamp(20px,5vw,32px);}
-    .card{background:var(--card);border:1px solid var(--stroke);border-radius:calc(var(--radius) + 4px);
+    .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;
       box-shadow:var(--shadow);padding:clamp(18px,3vw,28px);}
     .title{display:flex;align-items:center;gap:10px;font-size:clamp(22px,3.2vw,28px);}
-    .subtitle{color:var(--muted);}
+    .subtitle{color:var(--muted);margin-bottom:12px;}
     .select{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--stroke);
       background:rgba(255,255,255,.06);color:var(--text);font-weight:600;margin-bottom:8px;}
     .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;}
@@ -44,54 +28,54 @@
       font-weight:700;cursor:pointer;}
     .btn:hover{filter:brightness(1.05);}
     .results-container{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
-    .job-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;
-      padding:16px 18px;}
+    .job-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;padding:16px 18px;}
     .muted{text-align:center;color:var(--muted);}
   </style>
 </head>
 <body>
   <div class="ai-shell">
-    <div class="bg"><span class="orb orb-1"></span><span class="orb orb-2"></span><span class="grid"></span></div>
-
     <main class="wrap">
       <section class="card">
-        <header class="card-head">
+        <header>
           <h1 class="title">Import Jobs from Scraper</h1>
-          <p class="subtitle">Run a scraper, review results, then add to database with AI.</p>
+          <p class="subtitle">Run a scraper, review results, then import each listing with AI-powered company detection.</p>
         </header>
 
-        <!-- Scraper + Filters -->
-        <form id="scraperForm" class="form">
-          <div class="filters">
-            <label>Country</label>
-            <select id="countrySelect" class="select">
-              <option value="UK">🇬🇧 United Kingdom</option>
-              <option value="US">🇺🇸 United States</option>
-              <option value="DK">🇩🇰 Denmark</option>
-            </select>
+        <!-- Filters -->
+        <div class="filters">
+          <label>Country</label>
+          <select id="countrySelect" class="select">
+            <option value="DK">🇩🇰 Denmark</option>
+            <option value="US">🇺🇸 United States</option>
+            <option value="UK">🇬🇧 United Kingdom</option>
+            <option value="FRA">🇫🇷 France</option>
+            <option value="GER">🇩🇪 Germany</option>
+          </select>
 
-            <label>Job Type</label>
-            <select id="jobTypeSelect" class="select">
-              <option value="full_time">Full-time</option>
-              <option value="internship">Internship</option>
-              <option value="part_time">Part-time</option>
-            </select>
+          <label>Industry</label>
+          <select id="industrySelect" class="select">
+            <option value="business_finance">Business & Finance</option>
+            <option value="marketing">Marketing & Communications</option>
+            <option value="software_backend">Software Development (Backend)</option>
+            <option value="software_frontend">Software Development (Frontend)</option>
+            <option value="sales_customer">Sales & Customer Relations</option>
+          </select>
 
-            <label>Industry</label>
-            <select id="industrySelect" class="select">
-              <option value="marketing">Marketing</option>
-              <option value="technology">Technology</option>
-              <option value="sales">Sales</option>
-              <option value="design">Design</option>
-            </select>
-          </div>
+          <label>Job Type</label>
+          <select id="jobTypeSelect" class="select">
+            <option value="internship">Internship</option>
+            <option value="student_job">Student Job</option>
+            <option value="full_time">Full Time Job</option>
+          </select>
+        </div>
 
-          <div class="actions">
-            <button type="button" id="scrapeBtn" class="btn">Run Scraper</button>
-            <button type="button" id="addToDBBtn" class="btn" style="background:#7B61FF;">Add Results to Database</button>
-          </div>
-        </form>
+        <!-- Action Buttons -->
+        <div class="actions">
+          <button type="button" id="scrapeBtn" class="btn">Run Scraper</button>
+          <button type="button" id="addToDBBtn" class="btn" style="background:#7B61FF;">Add Results to Database</button>
+        </div>
 
+        <!-- Results -->
         <div id="resultsContainer" class="results-container">
           <p class="muted">No results yet — run a scraper first.</p>
         </div>
@@ -100,93 +84,94 @@
   </div>
 
   <script>
-    window.addEventListener("load", () => {
-      const scrapeBtn = document.getElementById("scrapeBtn");
-      const addBtn = document.getElementById("addToDBBtn");
-      const resultsContainer = document.getElementById("resultsContainer");
-    
-      let cachedResults = [];
-    
-      scrapeBtn.addEventListener("click", async () => {
-        resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
-        const res = await fetch("/run_scraper/?type=uk_marketing");
-        const data = await res.json();
-        cachedResults = data.results || [];
-    
-        if (!cachedResults.length) {
-          resultsContainer.innerHTML = "<p class='muted'>No jobs found.</p>";
-          return;
-        }
-    
-        resultsContainer.innerHTML = cachedResults.map((job, i) => `
-          <div class="job-row" id="job-${i}">
-            <strong>${job.title || "Untitled Job"}</strong><br>
-            <a href="${job.link}" target="_blank">${job.link}</a><br>
-            <small>${job.snippet}</small><br>
-            <span class="status muted">⏸ Waiting...</span>
-          </div>
-        `).join("");
-      });
-    
-      addBtn.addEventListener("click", async () => {
-        if (!cachedResults.length) {
-          alert("Please run the scraper first.");
-          return;
-        }
-    
-        const country = document.getElementById("countrySelect").value;
-        const jobType = document.getElementById("jobTypeSelect").value;
-        const industry = document.getElementById("industrySelect").value;
-    
-        addBtn.textContent = "Processing...";
-        addBtn.disabled = true;
-    
-        for (let i = 0; i < cachedResults.length; i++) {
-          const job = cachedResults[i];
-          const jobEl = document.getElementById(`job-${i}`);
-          const statusEl = jobEl.querySelector(".status");
-    
-          statusEl.textContent = "🤖 Processing...";
-          statusEl.style.color = "#7B61FF";
-    
-          try {
-            const res = await fetch("/process_job_with_ai_bulk/", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: job.title,
-                link: job.link,
-                snippet: job.snippet,
-                country,
-                job_type: jobType,
-                industry
-              })
-            });
-    
-            const data = await res.json();
-    
-            if (data.success) {
-              statusEl.textContent = `✅ Added: ${data.company}`;
-              statusEl.style.color = "#4CAF50";
-            } else {
-              statusEl.textContent = "❌ Failed";
-              statusEl.style.color = "#ff2f5a";
-            }
-          } catch (err) {
-            console.error("❌ Error on job", i + 1, err);
-            statusEl.textContent = "❌ Network Error";
+  window.addEventListener("load", () => {
+    const scrapeBtn = document.getElementById("scrapeBtn");
+    const addBtn = document.getElementById("addToDBBtn");
+    const resultsContainer = document.getElementById("resultsContainer");
+
+    let cachedResults = [];
+
+    // 1️⃣ Run Scraper
+    scrapeBtn.addEventListener("click", async () => {
+      resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
+      const res = await fetch("/run_scraper/?type=uk_marketing");
+      const data = await res.json();
+      cachedResults = data.results || [];
+
+      if (!cachedResults.length) {
+        resultsContainer.innerHTML = "<p class='muted'>No jobs found.</p>";
+        return;
+      }
+
+      resultsContainer.innerHTML = cachedResults.map((job, i) => `
+        <div class="job-row" id="job-${i}">
+          <strong>${job.title || "Untitled Job"}</strong><br>
+          <a href="${job.link}" target="_blank">${job.link}</a><br>
+          <small>${job.snippet}</small><br>
+          <span class="status muted">⏸ Waiting...</span>
+        </div>
+      `).join("");
+    });
+
+    // 2️⃣ Sequentially process each job
+    addBtn.addEventListener("click", async () => {
+      if (!cachedResults.length) {
+        alert("Run the scraper first.");
+        return;
+      }
+
+      const country = document.getElementById("countrySelect").value;
+      const jobType = document.getElementById("jobTypeSelect").value;
+      const industry = document.getElementById("industrySelect").value;
+
+      addBtn.textContent = "Processing...";
+      addBtn.disabled = true;
+
+      for (let i = 0; i < cachedResults.length; i++) {
+        const job = cachedResults[i];
+        const jobEl = document.getElementById(`job-${i}`);
+        const statusEl = jobEl.querySelector(".status");
+
+        statusEl.textContent = "🤖 Processing...";
+        statusEl.style.color = "#7B61FF";
+
+        try {
+          const res = await fetch("/process_job_with_ai_bulk/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: job.title,
+              link: job.link,
+              snippet: job.snippet,
+              country,
+              job_type: jobType,
+              industry
+            })
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            statusEl.textContent = `✅ Added: ${data.company}`;
+            statusEl.style.color = "#4CAF50";
+          } else {
+            statusEl.textContent = "❌ Failed";
             statusEl.style.color = "#ff2f5a";
           }
-    
-          // 🔹 Wait 2 seconds between each job to avoid overloading AI API
-          await new Promise(r => setTimeout(r, 2000));
+        } catch (err) {
+          console.error("❌ Error on job", i + 1, err);
+          statusEl.textContent = "❌ Error";
+          statusEl.style.color = "#ff2f5a";
         }
-    
-        addBtn.textContent = "✅ Done";
-        addBtn.disabled = false;
-      });
+
+        // 🕐 Wait between each job (for stability)
+        await new Promise(r => setTimeout(r, 2000));
+      }
+
+      addBtn.textContent = "✅ Done";
+      addBtn.disabled = false;
     });
-    </script>
-    
+  });
+  </script>
 </body>
 </html>
