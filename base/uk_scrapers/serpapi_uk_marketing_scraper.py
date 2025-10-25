@@ -1,10 +1,8 @@
 import os
 import json
-import time
 import re
 from datetime import datetime
 from serpapi import GoogleSearch
-
 
 # 🧩 --- Configuration ---
 QUERY = (
@@ -15,89 +13,76 @@ QUERY = (
     'intitle:"performance" OR intitle:"influencer" OR intitle:"paid media") '
     '("send your CV" OR "apply by email" OR "email your application") '
     '("@gmail.com" OR "@outlook.com" OR "@hotmail.com" OR "@company.co.uk" OR "@co.uk" OR "@") '
-    '("United Kingdom" OR "UK") ("1 day ago" OR "2 days ago" OR "3 days ago" OR "4 days ago" OR "5 days ago" OR "6 days ago" OR "7 days ago")'
+    '("United Kingdom" OR "UK") ("1 day ago" OR "24 hours ago")'
 )
 
 
 def main():
-    """Fetch up to 200 recent LinkedIn job listings (past 7 days, UK marketing) using SerpAPI."""
+    """Fetch recent (past 24h) UK marketing jobs with visible emails (max 50)."""
     API_KEY = os.getenv("SERPAPI_API_KEY")
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-    print("🔍 Fetching up to 200 UK marketing listings from SerpAPI (past 7 days)...")
+    print("🔍 Fetching up to 50 UK marketing listings from SerpAPI (past 24 hours)...")
 
-    base_params = {
+    params = {
         "engine": "google",
         "q": QUERY,
-        "num": 10,
+        "num": 10,                # SerpAPI limit per page
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
         "filter": "0",
-        "tbs": "qdr:w",
+        "tbs": "qdr:d1",          # limit to last 24 hours
         "api_key": API_KEY,
     }
 
     all_results = []
 
-    # 🌀 --- Paginate safely through up to 20 pages ---
-    for start in range(0, 200, 10):
-        params = base_params.copy()
+    # 🌀 --- Paginate up to 5 pages (≈ 50 results max) ---
+    for start in range(0, 50, 10):
         params["start"] = start
-        print(f"\n📄 Fetching page starting at {start}...")
-
+        print(f"📄 Fetching page starting at {start}...")
         try:
             search = GoogleSearch(params)
-            data = search.get_dict(timeout=25)  # ⏱ shorter timeout
+            data = search.get_dict()
         except Exception as e:
-            print(f"⚠️ Request failed on page {start//10 + 1}: {e}")
-            time.sleep(3)
-            continue
-
-        if not data:
-            print("⚠️ No data returned — stopping pagination.")
-            break
-
-        if "error" in data:
-            print(f"⚠️ SerpAPI error: {data['error']}")
+            print(f"⚠️ Request failed at start={start}: {e}")
             break
 
         results = data.get("organic_results", [])
         if not results:
-            print("⏹️ No more results found — stopping pagination.")
+            print("⏹️ No more results found.")
             break
 
-        print(f"✅ Page fetched successfully with {len(results)} results.")
         all_results.extend(results)
 
-        # 💤 polite delay between requests to avoid hitting rate limit
-        time.sleep(2)
+        # Stop early if we already have enough
+        if len(all_results) >= 50:
+            break
 
-    print(f"\n🌍 Total raw results fetched: {len(all_results)}")
+    print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🧹 --- Filter results with visible emails + freshness check ---
+    # 🧹 --- Filter results with visible emails ---
     filtered = []
     for r in all_results:
         snippet = r.get("snippet", "")
         title = r.get("title", "")
         link = r.get("link", "")
 
+        # Require an email
         if "@" not in snippet:
             continue
 
-        old_match = re.search(r"(\d+)\s+(day|days|week|weeks|month|months|year|years)\s+ago", snippet.lower())
-        if old_match:
-            num = int(old_match.group(1))
-            unit = old_match.group(2)
-            if unit.startswith(("week", "month", "year")) or num > 7:
-                continue
-
+        # Clean up listing
         filtered.append({
-            "title": title,
-            "link": link,
-            "snippet": snippet,
+            "title": title.strip(),
+            "link": link.strip(),
+            "snippet": snippet.strip(),
         })
+
+    # Trim to 50 just in case
+    filtered = filtered[:50]
 
     # 💾 --- Save results ---
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
@@ -107,7 +92,7 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(filtered, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(filtered)} listings (past 7 days, email-visible) to {filename}")
+    print(f"✅ Saved {len(filtered)} listings (past 24h, email-visible) to {filename}")
 
 
 if __name__ == "__main__":
