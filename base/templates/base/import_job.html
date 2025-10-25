@@ -80,7 +80,19 @@
 
         <!-- Results -->
         <div id="resultsContainer" class="results-container">
-          <p class="muted">No results yet — run a scraper first.</p>
+          {% if results %}
+            {% for job in results %}
+              <div class="job-row">
+                <strong>{{ job.title }}</strong><br>
+                <a href="{{ job.link }}" target="_blank">{{ job.link }}</a><br>
+                <small>{{ job.snippet }}</small>
+              </div>
+            {% endfor %}
+          {% elif error %}
+            <p class="muted">⚠️ {{ error }}</p>
+          {% else %}
+            <p class="muted">No results yet — run a scraper first.</p>
+          {% endif %}
         </div>
       </section>
     </main>
