@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from serpapi import GoogleSearch
 import re
 
@@ -13,7 +13,7 @@ QUERY = (
     'intitle:"performance" OR intitle:"influencer" OR intitle:"paid media") '
     '("send your CV" OR "apply by email" OR "email your application") '
     '("@gmail.com" OR "@outlook.com" OR "@hotmail.com" OR "@company.co.uk" OR "@co.uk" OR "@") '
-    '("United Kingdom" OR "UK") "posted within the last week"'
+    '("United Kingdom" OR "UK") "posted within the last 3 days"'
 )
 
 # 🔑 --- API Key ---
@@ -21,18 +21,18 @@ API_KEY = os.getenv("SERPAPI_API_KEY")
 if not API_KEY:
     raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-print("🔍 Fetching UK marketing listings from SerpAPI (past week only) ...")
+print("🔍 Fetching UK marketing listings from SerpAPI (past 3 days) ...")
 
 # 🌍 --- Search Parameters ---
 params = {
     "engine": "google",
     "q": QUERY,
-    "num": 10,               # 10 per run
+    "num": 10,  # limit to 10 for testing
     "hl": "en",
     "gl": "uk",
     "location": "United Kingdom",
     "filter": "0",
-    "tbs": "qdr:w",          # filter past week
+    "tbs": "qdr:d3",  # past 3 days
     "api_key": API_KEY,
 }
 
@@ -49,7 +49,7 @@ else:
 
 print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-# 🧹 --- Filter results with visible emails + recent postings ---
+# 🧹 --- Filter results with visible emails + fresh postings ---
 filtered = []
 for r in all_results:
     snippet = r.get("snippet", "")
@@ -59,16 +59,14 @@ for r in all_results:
     if "@" not in snippet:
         continue
 
-    # 🕒 Skip old results if snippet mentions time older than 1 week
-    if re.search(r"(\b\d+\s+(month|months|year|years|week|weeks)\b)", snippet.lower()):
-        # Extract the numeric value
-        match = re.search(r"\b(\d+)\s+(month|months|year|years|week|weeks)\b", snippet.lower())
-        if match:
-            num = int(match.group(1))
-            unit = match.group(2)
-            if unit.startswith("month") or unit.startswith("year") or num > 1:
-                print(f"⏭️ Skipping old listing: '{title}' ({match.group(0)})")
-                continue
+    # 🕒 Remove listings mentioning "month(s)", "week(s)", or "4+ days ago"
+    old_match = re.search(r"(\d+)\s+(day|days|week|weeks|month|months|year|years)\s+ago", snippet.lower())
+    if old_match:
+        num = int(old_match.group(1))
+        unit = old_match.group(2)
+        if unit.startswith(("week", "month", "year")) or num > 3:
+            print(f"⏭️ Skipping old listing: '{title}' ({old_match.group(0)})")
+            continue
 
     filtered.append({
         "title": title,
@@ -84,4 +82,4 @@ output_path = os.path.join(os.path.dirname(__file__), filename)
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(filtered, f, indent=2, ensure_ascii=False)
 
-print(f"✅ Saved {len(filtered)} fresh listings (past week) with visible emails to {filename}")
+print(f"✅ Saved {len(filtered)} fresh listings (past 3 days) with visible emails to {filename}")
