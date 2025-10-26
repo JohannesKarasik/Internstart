@@ -11,80 +11,83 @@ from base.ai.field_interpreter import map_fields_to_answers
 
 # ---------- helpers ----------
 
-
-def _ai_fill_leftovers(page, inventory, user):
-    """
-    Second AI pass for complex or semantic fields.
-    Uses the UserProfile JSON generated at signup.
-    """
+def _ai_fill_leftovers(page, user):
+    """Debug AI field mapping — logs what fields are being detected, which are unfilled, and what is sent to AI."""
     try:
-        # ✅ Load the user’s JSON profile
         profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
         if not os.path.exists(profile_path):
             print(f"⚠️ No profile JSON found for user {user.id} at {profile_path}")
             return 0
 
         with open(profile_path, "r", encoding="utf-8") as f:
-            profile = json.load(f)
+            user_profile = json.load(f)
 
-        # Collect unfilled fields
-        ai_fields = []
-        for f in inventory:
-            if not f.get("label"):  # skip unlabeled
-                continue
-            if f.get("current_value") and f["current_value"].strip():
-                continue
-            ai_fields.append({
-                "field_id": f"{f['frame_index']}_{f['nth']}",
-                "label": f["label"],
-                "type": f["type"],
-                # Optionally you can include select options if known later
-            })
+        # 1️⃣ Scan all fields
+        inv = scan_all_fields(page)
+        print(f"🔍 DEBUG: total scanned fields = {len(inv)}")
 
-        print(f"🤖 AI pass: sending {len(ai_fields)} fields for interpretation…")
-        if not ai_fields:
+        # Log a preview of what scan_all_fields() actually sees
+        for i, fdata in enumerate(inv[:10]):  # show first 10 fields
+            print(f"   [{i}] label='{fdata.get('label')}' placeholder='{fdata.get('placeholder')}' value='{fdata.get('current_value')}'")
+
+        # 2️⃣ Collect only unfilled fields
+        fields_to_ai = []
+        for i, fdata in enumerate(inv):
+            val = fdata.get("current_value") or ""
+            label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
+            if not val.strip():  # empty fields only
+                fields_to_ai.append({
+                    "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
+                    "label": label
+                })
+
+        print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields found")
+
+        # Show 5 examples of what will be sent to GPT
+        for i, f in enumerate(fields_to_ai[:5]):
+            print(f"   → {f}")
+
+        # 3️⃣ If none found, skip
+        if not fields_to_ai:
+            print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
             return 0
 
-        # 🔍 Call your field_interpreter AI
-        answers = map_fields_to_answers(ai_fields, profile) or {}
-        print("\n============== 🧠 AI RAW OUTPUT ==============")
-        print(json.dumps(answers, indent=2, ensure_ascii=False))
-        print("=============================================\n")
+        # 4️⃣ Send to AI
+        print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
+        answers = map_fields_to_answers(fields_to_ai, user_profile)
 
+        print("============== 🧠 AI RAW OUTPUT ==============")
+        print(json.dumps(answers, indent=2, ensure_ascii=False))
+        print("=============================================")
+
+        # 5️⃣ Try filling the AI’s answers
         filled = 0
         frames = list(page.frames)
-
-        # Apply answers
-        for f in ai_fields:
-            fid = f["field_id"]
-            ans = answers.get(fid)
-            if not ans or ans == "skip":
+        for fdata in inv:
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+            val = answers.get(fid)
+            if not val or val.lower() == "skip":
                 continue
 
-            fr = frames[f["frame_index"]]
-            el = fr.locator(f["query"]).nth(f["nth"])
-            if not el.count() or not el.first.is_visible():
+            fr = frames[fdata["frame_index"]]
+            el = fr.locator(fdata["query"]).nth(fdata["nth"])
+            if not el.is_visible():
                 continue
-
-            val = ans["value"] if isinstance(ans, dict) and "value" in ans else ans
 
             try:
-                el.first.scroll_into_view_if_needed()
-                el.first.fill(val)
-                fr.evaluate(
-                    "el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}",
-                    el.first,
-                )
-                print(f"✅ AI filled “{f['label'][:60]}” → {val}")
+                el.scroll_into_view_if_needed(timeout=1500)
+                el.fill(val)
+                fr.evaluate("el=>{el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", el)
+                print(f"✅ AI filled “{fdata.get('label','(no label)')[:60]}” → {val}")
                 filled += 1
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"⚠️ Could not fill field {fid}: {e}")
 
         print(f"🤖 AI pass completed — filled {filled} fields.")
         return filled
 
     except Exception as e:
-        print(f"❌ _ai_fill_leftovers failed: {e}")
+        print(f"⚠️ AI leftovers pass failed: {e}")
         return 0
 
 
