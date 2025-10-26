@@ -1,330 +1,83 @@
 from playwright.sync_api import sync_playwright
 from django.conf import settings
 from .models import ATSRoom, User
-from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler (kept)
-import time, traceback, random, json
+from .ats_filler import fill_dynamic_fields  # 🧠 optional mop-up
+import time, traceback, random, json, os, tempfile, re
 from urllib.parse import urlparse
-import os, tempfile
 from datetime import datetime
-import re
 
-# --- helper: write a small temp text file (used if ATS only accepts file upload for CL) ---
+# ---------- helpers ----------
 def write_temp_cover_letter_file(text, suffix=".txt"):
     fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(text)
     return path
 
-
-def _debug_force_ipg_no(page, frame, company="test", ts=""):
-    """
-    Debug + force the 'Are you currently/ever employed by IPG...' combobox to 'No'.
-    Prints granular diagnostics at each step and takes micro-screens when useful.
-    Returns True if the visible shell shows 'No'; False otherwise.
-    """
-    import re, os
-    log_dir = "/home/clinton/Internstart/media"
-    os.makedirs(log_dir, exist_ok=True)
-
-    def shot(tag):
-        try:
-            path = os.path.join(log_dir, f"ipg_no_{company}_{tag}_{ts}.png")
-            page.screenshot(path=path, full_page=True)
-            print(f"📸 [{tag}] {path}")
-        except Exception as e:
-            print(f"📸 [{tag}] screenshot failed: {e}")
-
-    print("🔎 IPG combo: locating label by text…")
-    # ⚠️ The numeric id can change per render, so prefer text match
-    lab = frame.locator("label[for]").filter(
-        has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)
-    ).first
-    if not (lab and lab.is_visible()):
-        print("❌ Label not found/visible via text.")
-        shot("no_label")
-        return False
-
-    label_text = (lab.inner_text() or "").strip()
-    label_id   = lab.get_attribute("id") or ""
-    label_for  = lab.get_attribute("for") or ""
-    print(f"✔️ Found label: id='{label_id}' for='{label_for}' text='{label_text[:80]}'")
-
-    # Dump aria-labelledby consumers near the label
-    print("🔎 Searching for root via aria-labelledby token match…")
-    roots = []
-    if label_id:
-        try:
-            roots = frame.locator(f"[aria-labelledby~='{label_id}']").all()
-        except Exception:
-            roots = []
-    print(f"…found {len(roots)} elements with aria-labelledby~='{label_id}'")
-
-    root = None
-    for r in roots:
-        try:
-            if r.is_visible():
-                root = r
-                break
-        except Exception:
-            continue
-
-    # Sibling .select-shell fallback seen in your DOM
-    if not root:
-        print("🔁 Trying sibling .select-shell after the label…")
-        try:
-            sib = lab.locator("xpath=following-sibling::*[1]").locator(".select-shell, .select__container, [role='combobox']")
-            if sib.count() and sib.first.is_visible():
-                root = sib.first
-        except Exception:
-            pass
-
-    # ID 'for' fallback (if backing element is visible)
-    if (not root) and label_for:
-        try:
-            el = frame.locator(f"#{label_for}")
-            if el.count() and el.first.is_visible():
-                root = el.first
-        except Exception:
-            pass
-
-    if not root:
-        print("❌ No visible root/combobox found near label.")
-        shot("no_root")
-        return False
-
+def _safe_press(page, target_locator, key: str):
+    """Press a key on a target if possible; else fall back to page.keyboard."""
     try:
-        descr = root.evaluate(
-            """(el)=>({
-                 tag: el.tagName, role: el.getAttribute('role'),
-                 haspopup: el.getAttribute('aria-haspopup'),
-                 labelledby: el.getAttribute('aria-labelledby'),
-                 classes: el.className
-            })"""
-        )
-        print(f"✔️ Root found: {descr}")
-    except Exception:
-        print("✔️ Root found (could not introspect).")
-
-    # Open the dropdown
-    try:
-        root.scroll_into_view_if_needed()
+        if target_locator:
+            target_locator.press(key)
+            return True
     except Exception:
         pass
     try:
-        root.click(force=True)
-        frame.wait_for_timeout(150)
-    except Exception as e:
-        print(f"⚠️ Root click failed: {e}")
-
-    # Try typing into inner input (React/Remix often uses this)
-    inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
-    if inner and inner.is_visible():
-        print("⌨️ Typing into inner input…")
-        try:
-            inner.fill("")
-        except Exception:
-            pass
-        try:
-            inner.type("No", delay=15)
-        except Exception as e:
-            print(f"⚠️ Type into inner input failed: {e}")
-    else:
-        print("⌨️ Typing into root…")
-        try:
-            root.type("No", delay=15)
-        except Exception as e:
-            print(f"⚠️ Type into root failed: {e}")
-
-    # Enter to commit, then blur with Tab (commonly required)
-    try:
-        frame.keyboard.press("Enter")
-        frame.wait_for_timeout(140)
-        frame.keyboard.press("Tab")
-    except Exception as e:
-        print(f"⚠️ Enter/Tab failed: {e}")
-
-    # Verify commit by visible shell text
-    def committed():
-        try:
-            txt = root.inner_text().lower()
-        except Exception:
-            try:
-                txt = frame.evaluate(
-                    """(id)=>{const r=document.querySelector(`[aria-labelledby~='${id}']`);
-                              return r?(r.innerText||'').toLowerCase():'';}""",
-                    label_id
-                )
-            except Exception:
-                txt = ""
-        ok = ("no" in (txt or ""))
-        print(f"🔍 Commit check (shell text contains 'no'): {ok} — text='{(txt or '')[:60]}'")
-        return ok
-
-    if committed():
+        page.keyboard.press(key)
         return True
-
-    # If not committed: try clicking the option in whichever DOM it mounted (frame or page portal)
-    print("🧭 Looking for option menus (frame+page)…")
-    for scope_name, scope in (("frame", frame), ("page", page)):
-        try:
-            menu = scope.locator(":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, .MuiPaper-root, .MuiPopover-paper, ul[role='listbox'])")
-            cnt = menu.count()
-            print(f"… {scope_name} menus count: {cnt}")
-            if cnt:
-                opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)", has_text="No").first
-                if opt and opt.is_visible():
-                    print(f"✔️ Clicking 'No' in {scope_name} portal/menu…")
-                    opt.click(force=True)
-                    scope.wait_for_timeout(140)
-                    if committed():
-                        return True
-        except Exception as e:
-            print(f"⚠️ Searching menus in {scope_name} failed: {e}")
-
-    # Final fallback: set hidden backing element & dispatch events (if 'for' exists)
-    if label_for:
-        print("🪄 Fallback: set backing element by id + fire events…")
-        try:
-            ok = frame.evaluate(
-                """(elId) => {
-                    const el = document.getElementById(elId);
-                    if (!el) return false;
-                    const tag = (el.tagName||'').toLowerCase();
-                    if (tag==='select') {
-                      const opts = Array.from(el.options||[]);
-                      const m = opts.find(o => /\\bno\\b/i.test((o.textContent||'')));
-                      if (!m) return false;
-                      el.value = m.value;
-                    } else {
-                      el.value = 'No';
-                      el.setAttribute('value','No');
-                    }
-                    el.dispatchEvent(new Event('input', {bubbles:true}));
-                    el.dispatchEvent(new Event('change',{bubbles:true}));
-                    return true;
-                }""",
-                label_for
-            )
-            print(f"… backing set result: {ok}")
-            # nudge UI
-            try: lab.click(force=True)
-            except Exception: pass
-            frame.wait_for_timeout(100)
-            if committed():
-                return True
-        except Exception as e:
-            print(f"⚠️ Backing set failed: {e}")
-
-    shot("not_committed")
-    return False
-
-
-
-# --- universal cookie/consent dismiss ---
-def dismiss_privacy_overlays(page, timeout_ms=8000):
-    import re, time as _time
-    start = _time.time()
-
-    known_selectors = [
-        "#onetrust-accept-btn-handler",
-        "button#onetrust-accept-btn-handler",
-        "#CybotCookiebotDialogBodyLevelButtonAccept",
-        "#CybotCookiebotDialogBodyButtonAccept",
-        "button:has-text('Accept All')",
-        "button:has-text('ACCEPT ALL')",
-        "button:has-text('Allow all')",
-        "button:has-text('Enable All')",
-        "button:has-text('Enable all')",
-        "button:has-text('Got it')",
-        # Danish
-        "button:has-text('Accepter alle')",
-        "button:has-text('Tillad alle')",
-        "button:has-text('Aktiver alle')",
-        "button:has-text('OK')",
-        "button:has-text('Forstået')",
-        # generic fallbacks
-        "button[aria-label*='accept' i]",
-        "button:has-text('accept' i)",
-        "[role='button']:has-text('accept' i)",
-        "input[type='button'][value*='accept' i]",
-        "input[type='submit'][value*='accept' i]",
-    ]
-
-    POSITIVE = re.compile(r"(accept|agree|allow|enable|ok|got it|continue|save.*(preferences|settings))", re.I)
-    NEGATIVE = re.compile(r"(reject|deny|decline|manage|settings|preferences|options|custom|kun nødvendige|strictly necessary)", re.I)
-
-    def try_click_in_frame(frame):
-        for sel in known_selectors:
-            try:
-                btns = frame.locator(sel)
-                if btns.count() > 0:
-                    for i in range(min(btns.count(), 3)):
-                        b = btns.nth(i)
-                        if b.is_visible():
-                            b.click(force=True)
-                            return True
-            except Exception:
-                pass
-        try:
-            containers = frame.locator(":is([id*='cookie' i],[class*='cookie' i],[id*='consent' i],[class*='consent' i],[id*='gdpr' i],[class*='gdpr' i],div[role='dialog'], .modal, .overlay, .cmp-container)")
-            btns = containers.locator(":is(button,[role='button'],a,input[type='button'],input[type='submit'])")
-            n = btns.count()
-            for i in range(n):
-                el = btns.nth(i)
-                if not el.is_visible():
-                    continue
-                txt = (el.inner_text() or el.get_attribute("value") or "").strip()
-                if POSITIVE.search(txt) and not NEGATIVE.search(txt):
-                    el.click(force=True)
-                    return True
-        except Exception:
-            pass
+    except Exception:
         return False
 
-    while (_time.time() - start) * 1000 < timeout_ms:
+def dismiss_privacy_overlays(page, timeout_ms=8000):
+    import time as _t
+    start = _t.time()
+    known = [
+        "#onetrust-accept-btn-handler", "button#onetrust-accept-btn-handler",
+        "#CybotCookiebotDialogBodyLevelButtonAccept", "#CybotCookiebotDialogBodyButtonAccept",
+        "button:has-text('Accept All')", "button:has-text('Allow all')",
+        "button:has-text('Enable All')", "button:has-text('Got it')",
+        "button:has-text('Accepter alle')", "button:has-text('Tillad alle')",
+        "button:has-text('Aktiver alle')", "button:has-text('OK')", "button:has-text('Forstået')",
+        "button[aria-label*='accept' i]", "button:has-text('accept' i)",
+        "[role='button']:has-text('accept' i)", "input[type='button'][value*='accept' i]",
+        "input[type='submit'][value*='accept' i]"
+    ]
+    while (_t.time() - start) * 1000 < timeout_ms:
         clicked = False
         for fr in page.frames:
             try:
-                if try_click_in_frame(fr):
-                    clicked = True
+                for sel in known:
+                    loc = fr.locator(sel)
+                    if loc.count() and loc.first.is_visible():
+                        loc.first.click(force=True)
+                        clicked = True
+                        break
             except Exception:
-                continue
+                pass
         if clicked:
-            page.wait_for_timeout(500)
+            page.wait_for_timeout(400)
             continue
         page.wait_for_timeout(250)
-
-    # last-resort close button
     try:
         xbtn = page.locator(":is(button,[role='button'],a)[aria-label*='close' i], :is(button,a):has-text('×')")
-        if xbtn.count() > 0 and xbtn.first.is_visible():
+        if xbtn.count() and xbtn.first.is_visible():
             xbtn.first.click(force=True)
     except Exception:
         pass
-# --- end consent helper ---
 
-
+# ---------- dropdown helpers ----------
 def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
-    """Find the clickable root for a custom dropdown using the label's for/id relationships."""
-    # 1) Element referenced by label's 'for'
     try:
         if label_for_id:
             el = frame.locator(f"#{label_for_id}")
             if el.count() and el.first.is_visible():
                 return el.first
-    except Exception:
-        pass
-
-    # 2) aria-labelledby token match (space-separated list)
+    except Exception: pass
     try:
         if label_id:
             el = frame.locator(f"[aria-labelledby~='{label_id}']")
             if el.count() and el.first.is_visible():
                 return el.first
-    except Exception:
-        pass
-
-    # 3) Sibling shell after the label (common for Greenhouse/Remix)
+    except Exception: pass
     try:
         if label_for_id:
             el = frame.locator(f"label[for='{label_for_id}'] + .select-shell, label[for='{label_for_id}'] + * .select-shell")
@@ -334,1636 +87,523 @@ def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
             el = frame.locator(f"#{label_id} + .select-shell, #{label_id} + * .select-shell")
             if el.count() and el.first.is_visible():
                 return el.first
-    except Exception:
-        pass
-
-    # 4) Last resort: nearest shell/combobox in same container
+    except Exception: pass
     try:
-        base = None
-        if label_id:
-            base = frame.locator(f"#{label_id}")
-        if not (base and base.count()):
-            base = frame.locator(f"label[for='{label_for_id}']")
-        if base and base.count():
-            wrapper = base.first.locator("xpath=ancestor::*[self::div or self::section][1]")
-            el = wrapper.locator(
-                ".select-shell, .select__container, .select__control, [role='combobox'], [aria-haspopup='listbox']"
-            )
+        base = frame.locator(f"#{label_id}") if label_id else frame.locator(f"label[for='{label_for_id}']")
+        if base.count():
+            wr = base.first.locator("xpath=ancestor::*[self::div or self::section][1]")
+            el = wr.locator(".select-shell, .select__container, .select__control, [role='combobox'], [aria-haspopup='listbox']")
             if el.count() and el.first.is_visible():
                 return el.first
-    except Exception:
-        pass
-
+    except Exception: pass
     return None
 
-
-def _click_and_choose_option(page, frame, want_text: str) -> bool:
-    """
-    After a dropdown is opened, pick an option by visible text.
-    Search both inside the frame and in portals mounted on <body>.
-    Retry for a short period because some menus mount with a delay.
-    """
-    selectors_menu = (
-        ":is("
-        "[role='listbox'], [role='menu'], "
-        ".MuiPaper-root, .MuiPopover-paper, "
-        ".select__menu, .dropdown-menu, "
-        "[class*='menu' i], [class*='options' i], "
-        "ul[role='listbox'], ul"
-        ")"
-    )
-    selectors_opt = ":is([role='option'], [role='menuitem'], li, div, button, span)"
-
-    want = (want_text or "").strip()
-    deadline = time.time() + 2.5  # up to ~2.5s
-
-    while time.time() < deadline:
-        for scope in (frame, page):
-            try:
-                menu = scope.locator(selectors_menu)
-                if menu.count():
-                    opt = menu.locator(selectors_opt).filter(has_text=want).first
-                    if opt and opt.is_visible():
-                        opt.click(force=True)
-                        try:
-                            frame.wait_for_timeout(120)
-                        except Exception:
-                            pass
-                        return True
-            except Exception:
-                pass
-        try:
-            frame.wait_for_timeout(120)
-        except Exception:
-            pass
+def _click_and_choose_option(page, scope, text: str) -> bool:
+    try:
+        menu = scope.locator(
+            ":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, .MuiPaper-root, .MuiPopover-paper, ul[role='listbox'])"
+        )
+        if not menu.count():
+            return False
+        opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)").filter(has_text=text).first
+        if opt and opt.is_visible():
+            opt.click(force=True)
+            return True
+    except Exception:
+        pass
     return False
 
-
-
-def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bool:
+def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool:
     try:
-        label_id  = label_el.get_attribute("id") or ""
-        label_for = label_el.get_attribute("for") or ""
-        root = _closest_dropdown_root(frame, label_for, label_id)
+        lab_id  = label_el.get_attribute("id") or ""
+        lab_for = label_el.get_attribute("for") or ""
+        root = _closest_dropdown_root(frame, lab_for, lab_id)
         if not root:
             return False
 
-        want = (prefer_text or "").strip()
+        want = (want_text or "").strip()
 
-        for _ in range(4):
-            # open
-            try:
-                root.scroll_into_view_if_needed()
-            except Exception:
-                pass
+        for _ in range(3):
+            try: root.scroll_into_view_if_needed()
+            except Exception: pass
             try:
                 root.click(force=True)
                 frame.wait_for_timeout(120)
             except Exception:
                 continue
 
-            # ➊ Type the value and press Enter (most reliable for React-Select)
+            # type + Enter + Tab
             try:
-                root.type(want, delay=20)
-                frame.keyboard.press("Enter")
-                frame.wait_for_timeout(120)
-                # blur to commit
-                try: frame.keyboard.press("Tab")
-                except Exception: pass
+                inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
+                if inner and inner.is_visible():
+                    inner.fill("")
+                    inner.type(want, delay=18)
+                    _safe_press(page, inner, "Enter")
+                    _safe_press(page, inner, "Tab")
+                else:
+                    root.type(want, delay=18)
+                    _safe_press(page, root, "Enter")
+                    _safe_press(page, root, "Tab")
             except Exception:
                 pass
 
-            # verify
-            committed = False
+            # verify by shell text using token-match aria-labelledby
             try:
-                committed = frame.evaluate("""
-                    (labId, want) => {
-                      const lower = (want||'').toLowerCase();
-                      // token match aria-labelledby
-                      const root = document.querySelector(`[aria-labelledby~="${labId}"]`)
-                               || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
-                      const txt  = root ? (root.innerText || '').toLowerCase() : '';
-                      return txt.includes(lower);
-                    }
-                """, label_id, want)
-            except Exception:
-                committed = False
-
-            if committed:
-                return True
-
-            # ➋ Fallback: click a visible option in the open menu (frame or page portal)
-            if _click_and_choose_option(page, frame, want):
-                try:
-                    frame.keyboard.press("Tab")
-                except Exception:
-                    pass
-                # verify again
-                try:
-                    committed = frame.evaluate("""
-                        (labId, want) => {
-                          const lower = (want||'').toLowerCase();
-                          const root = document.querySelector(`[aria-labelledby~="${labId}"]`)
+                committed = frame.evaluate(
+                    """(labId,w)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
                                    || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
-                          const txt  = root ? (root.innerText || '').toLowerCase() : '';
-                          return txt.includes(lower);
-                        }
-                    """, label_id, want)
-                except Exception:
-                    committed = False
-                if committed:
-                    return True
-
-        # last resort: if the label's "for" points to a hidden <select>/<input>, set it directly
-        try:
-            return frame.evaluate("""
-                (elId, want) => {
-                  const el = document.getElementById(elId);
-                  if (!el) return false;
-                  const lower = (want||'').toLowerCase();
-                  if (el.tagName && el.tagName.toLowerCase() === 'select') {
-                    const opts = Array.from(el.options||[]);
-                    const m = opts.find(o => ((o.textContent||'').trim().toLowerCase()===lower)
-                                          || ((o.textContent||'').toLowerCase().includes(lower)));
-                    if (m) {
-                      el.value = m.value;
-                      el.dispatchEvent(new Event('input', {bubbles:true}));
-                      el.dispatchEvent(new Event('change',{bubbles:true}));
-                      return true;
-                    }
-                  }
-                  if (el.tagName && el.tagName.toLowerCase() === 'input') {
-                    el.value = want;
-                    el.setAttribute('value', want);
-                    el.dispatchEvent(new Event('input', {bubbles:true}));
-                    el.dispatchEvent(new Event('change',{bubbles:true}));
-                    return true;
-                  }
-                  return false;
-                }
-            """, label_for, want)
-        except Exception:
-            return False
-    except Exception:
-        return False
-    
-
-def _force_ipg_employment_no(page, frame) -> bool:
-    """Force the 'Are you currently/ever employed by IPG...' question to 'No'."""
-    try:
-        lab = frame.locator("#question_10380494007-label")
-        if not (lab and lab.count() and lab.first.is_visible()):
-            return False
-        lab = lab.first
-
-        # Find clickable root via aria-labelledby token or sibling .select-shell
-        root = frame.locator("[aria-labelledby~='question_10380494007-label']").first
-        if not (root and root.is_visible()):
-            root = frame.locator("#question_10380494007-label + .select-shell").first
-        if not (root and root.is_visible()):
-            return False
-
-        # Open dropdown
-        try: root.scroll_into_view_if_needed()
-        except Exception: pass
-        root.click(force=True)
-        frame.wait_for_timeout(120)
-
-        # Type No into inner input when present, else into root; then Enter to commit, Tab to blur
-        try:
-            inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
-            if inner and inner.is_visible():
-                inner.fill("")
-                inner.type("No", delay=15)
-            else:
-                root.type("No", delay=15)
-        except Exception:
-            root.type("No", delay=15)
-
-        frame.keyboard.press("Enter")
-        try: frame.keyboard.press("Tab")
-        except Exception: pass
-        frame.wait_for_timeout(140)
-
-        # Verify by visible text on the shell
-        def committed() -> bool:
-            try:
-                return frame.evaluate("""
-                    () => {
-                      const root = document.querySelector("[aria-labelledby~='question_10380494007-label']") ||
-                                   document.querySelector("#question_10380494007-label + .select-shell");
-                      const txt = root ? (root.innerText || "").toLowerCase() : "";
-                      return txt.includes("no");
-                    }
-                """)
-            except Exception:
-                return False
-
-        if committed():
-            return True
-
-        # Portal-rendered menu fallback: click “No” wherever it mounted
-        for scope in (frame, page):
-            menu = scope.locator(":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, .MuiPaper-root, .MuiPopover-paper, ul[role='listbox'])")
-            opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)", has_text="No").first
-            if opt and opt.is_visible():
-                opt.click(force=True)
-                scope.wait_for_timeout(140)
-                if committed():
-                    return True
-
-        # Final fallback: set hidden backing element and fire events
-        try:
-            ok = frame.evaluate("""
-                () => {
-                  const el = document.getElementById("question_10380494007");
-                  if (!el) return false;
-                  const tag = (el.tagName||"").toLowerCase();
-                  if (tag === "select") {
-                    const opts = Array.from(el.options||[]);
-                    const m = opts.find(o => /\\bno\\b/i.test((o.textContent||"")));
-                    if (!m) return false;
-                    el.value = m.value;
-                  } else {
-                    el.value = "No";
-                    el.setAttribute("value", "No");
-                  }
-                  el.dispatchEvent(new Event("input",{bubbles:true}));
-                  el.dispatchEvent(new Event("change",{bubbles:true}));
-                  return true;
-                }
-            """)
-            if ok:
-                # small nudge to refresh shell text
-                try: lab.click(force=True)
-                except Exception: pass
-                frame.wait_for_timeout(80)
-                return committed()
-        except Exception:
-            pass
-
-        return False
-    except Exception:
-        return False
-
-
-
-def _force_select_value_for_label(page, frame, lab, value: str) -> bool:
-    """
-    For GH/Remix 'select-shell' controls bound to a <label for="...">,
-    force-select `value` by: open → type → Enter → blur → verify,
-    and if still not committed, set the hidden backing input and fire events.
-    """
-    try:
-        lab_id  = lab.get_attribute("id") or ""
-        lab_for = lab.get_attribute("for") or ""
-        want    = (value or "").strip()
-
-        # Find clickable root near this label
-        root = None
-        if lab_for:
-            el = frame.locator(f"#{lab_for}")
-            if el.count() and el.first.is_visible():
-                root = el.first
-        if not root and lab_id:
-            el = frame.locator(f"[aria-labelledby~='{lab_id}']")
-            if el.count() and el.first.is_visible():
-                root = el.first
-        if not root:
-            root = lab.locator("xpath=following::*[1]").locator(
-                ":is([role='combobox'], [aria-haspopup='listbox'], .select__control, .select-shell, .select__container, button, div)"
-            ).first
-        if not (root and root.is_visible()):
-            return False
-
-        # Open
-        try:
-            root.scroll_into_view_if_needed()
-        except Exception:
-            pass
-        root.click(force=True)
-        frame.wait_for_timeout(120)
-
-        # Type + Enter (some widgets only commit on Enter + blur)
-        try:
-            inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
-            if inner and inner.is_visible():
-                inner.fill("")
-                inner.type(want, delay=15)
-            else:
-                root.type(want, delay=15)
-        except Exception:
-            root.type(want, delay=15)
-
-        frame.keyboard.press("Enter")
-        # blur to commit
-        try:
-            frame.keyboard.press("Tab")
-        except Exception:
-            try:
-                lab.click(force=True)
+                                   const t=(r?.innerText||'').toLowerCase(); return t.includes((w||'').toLowerCase());}""",
+                    lab_id, want
+                )
+                if committed: return True
             except Exception:
                 pass
-        frame.wait_for_timeout(120)
 
-        # Verify commit by reading the shell’s visible text
-        def _committed() -> bool:
-            try:
-                return frame.evaluate("""
-                    (labId, want) => {
-                      const lower = (want||'').toLowerCase();
-                      const root = document.querySelector(`[aria-labelledby~="${labId}"]`)
-                                || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
-                      const txt = root ? (root.innerText || '').toLowerCase() : '';
-                      return txt.includes(lower);
-                    }
-                """, lab_id, want)
-            except Exception:
-                return False
-
-        if _committed():
-            return True
-
-        # Last resort: set the hidden backing element that the label points to
-        forced = False
-        if lab_for:
-            try:
-                forced = frame.evaluate("""
-                    (elId, want) => {
-                      const el = document.getElementById(elId);
-                      if (!el) return false;
-                      const tag = (el.tagName||'').toLowerCase();
-                      if (tag === 'select') {
-                        const opts = Array.from(el.options||[]);
-                        const lower = (want||'').toLowerCase();
-                        const m = opts.find(o => ((o.textContent||'').trim().toLowerCase()===lower)
-                                              || ((o.textContent||'').toLowerCase().includes(lower)));
-                        if (!m) return false;
-                        el.value = m.value;
-                      } else {
-                        el.value = want;
-                        el.setAttribute('value', want);
-                      }
-                      el.dispatchEvent(new Event('input',  {bubbles:true}));
-                      el.dispatchEvent(new Event('change', {bubbles:true}));
-                      return true;
-                    }
-                """, lab_for, want)
-            except Exception:
-                forced = False
-
-            if forced:
-                # nudge UI/validators
+            # menu fallback (frame then page)
+            if _click_and_choose_option(page, frame, want) or _click_and_choose_option(page, page, want):
                 try:
-                    lab.click(force=True)
+                    committed = frame.evaluate(
+                        """(labId,w)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
+                                       || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                                       const t=(r?.innerText||'').toLowerCase(); return t.includes((w||'').toLowerCase());}""",
+                        lab_id, want
+                    )
+                    if committed: return True
                 except Exception:
                     pass
-                frame.wait_for_timeout(80)
 
-        return _committed()
+        # last resort: set hidden backing (label for=id)
+        if lab_for:
+            try:
+                ok = frame.evaluate(
+                    """(id,w)=>{const el=document.getElementById(id); if(!el) return false;
+                        const tag=(el.tagName||'').toLowerCase();
+                        if (tag==='select'){const o=[...el.options||[]];
+                          const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===(w||'').toLowerCase())
+                                  || o.find(x=>(x.textContent||'').toLowerCase().includes((w||'').toLowerCase()));
+                          if(!m) return false; el.value=m.value;}
+                        else {el.value=w; el.setAttribute('value',w);}
+                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                        return true;}""",
+                    lab_for, want
+                )
+                if ok:
+                    try: label_el.click(force=True)
+                    except Exception: pass
+                    frame.wait_for_timeout(80)
+                    return True
+            except Exception:
+                pass
     except Exception:
-        return False
+        pass
+    return False
 
+# ---------- metadata + scan/fill ----------
+DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
 
-# ---------- Phase 1: Scan (inventory every field first) ----------
+AUTO_YES_RE = re.compile(
+    r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|terms|gdpr|agree)", re.I
+)
+AUTO_NO_RE = re.compile(
+    r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed)?\s*by|subsidiar(y|ies)|conflict\s*of\s*interest)", re.I
+)
+
+def _yesno_preference(label_text: str) -> str:
+    L = (label_text or "").lower()
+    if AUTO_YES_RE.search(L): return "Yes"
+    if AUTO_NO_RE.search(L):  return "No"
+    return ""
+
 def _accessible_label(frame, el):
     try:
         return frame.evaluate(
-            """
-            (el) => {
-              const byLabel = (el.labels && el.labels[0] && el.labels[0].innerText) || "";
-              const aria    = el.getAttribute("aria-label") || "";
-              const ph      = el.getAttribute("placeholder") || "";
-              const byId    = (() => {
-                 const ids = (el.getAttribute("aria-labelledby") || "").trim().split(/\\s+/).filter(Boolean);
-                 return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
-              })();
-              const near = (() => {
-                 const lab = el.closest("label");
-                 if (lab) return lab.innerText || "";
-                 const wrapper = el.closest("div, section, fieldset, .form-group, .field");
-                 return wrapper ? (wrapper.querySelector("legend,h1,h2,h3,h4,span,small,label,.label,.title")?.innerText || "") : "";
-              })();
-              return [byLabel, aria, ph, byId, near].join(" ").replace(/\\s+/g," ").trim();
-            }
-            """,
-            el,
+            """(el)=>{const lab=(el.labels&&el.labels[0]&&el.labels[0].innerText)||'';
+                      const aria=el.getAttribute('aria-label')||'';
+                      const ph=el.getAttribute('placeholder')||'';
+                      const byId=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/)
+                         .map(id=>document.getElementById(id)?.innerText||'').join(' ');
+                      const near=el.closest('label')?.innerText
+                        || el.closest('div,section,fieldset,.form-group,.field')
+                             ?.querySelector('legend,h1,h2,h3,h4,span,small,label,.label,.title')?.innerText || '';
+                      return [lab,aria,ph,byId,near].join(' ').replace(/\s+/g,' ').trim();}""",
+            el
         ) or ""
     except Exception:
         return ""
 
-
 def scan_all_fields(page):
-    """
-    Build an inventory of all visible input-like fields across every frame.
-    Returns a list of dicts with stable (query + nth) locators to re-find elements later.
-    """
     selectors = [
         "input:not([type='hidden']):not([disabled])",
         "textarea:not([disabled])",
         "select:not([disabled])",
         "[contenteditable='true']",
     ]
-    inventory = []
-    frame_idx_map = {frame: idx for idx, frame in enumerate(page.frames)}
-
+    inventory, frame_idx = [], {fr: i for i, fr in enumerate(page.frames)}
     total = 0
-    for frame in page.frames:
-        for query in selectors:
-            loc = frame.locator(query)
-            n = loc.count()
-            for i in range(n):
+    for fr in page.frames:
+        for q in selectors:
+            loc = fr.locator(q)
+            for i in range(loc.count()):
                 el = loc.nth(i)
                 try:
-                    if not el.is_visible():
-                        continue
-                    etype = (el.get_attribute("type") or "").lower()
-                    label = _accessible_label(frame, el)
-                    req = bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True]))
-
-                    # current value
+                    if not el.is_visible(): continue
+                    et = (el.get_attribute("type") or "").lower()
                     curr = ""
                     try:
-                        if query == "[contenteditable='true']":
-                            curr = el.inner_text().strip()
-                        else:
-                            curr = el.input_value().strip()
-                    except Exception:
-                        pass
-
-                    item = {
-                        "frame_index": frame_idx_map[frame],
-                        "query": query,
-                        "nth": i,
-                        "type": etype or ("contenteditable" if query == "[contenteditable='true']" else ""),
-                        "name": el.get_attribute("name") or "",
-                        "id": el.get_attribute("id") or "",
+                        curr = el.inner_text().strip() if q == "[contenteditable='true']" else el.input_value().strip()
+                    except Exception: pass
+                    inventory.append({
+                        "frame_index": frame_idx[fr], "query": q, "nth": i, "type": et,
+                        "name": el.get_attribute("name") or "", "id": el.get_attribute("id") or "",
                         "placeholder": el.get_attribute("placeholder") or "",
                         "aria_label": el.get_attribute("aria-label") or "",
-                        "label": label,
-                        "required": req,
+                        "label": _accessible_label(fr, el),
+                        "required": bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True])),
                         "current_value": curr,
-                    }
-                    inventory.append(item)
+                    })
                     total += 1
                 except Exception:
-                    continue
-
+                    pass
     print(f"🧩 Field scan complete — detected {total} fields across {len(page.frames)} frames.")
     return inventory
 
-
 def _country_human(code: str) -> str:
-    return {
-        "DK": "Denmark",
-        "US": "United States",
-        "UK": "United Kingdom",
-        "FRA": "France",
-        "GER": "Germany",
-    }.get((code or "").upper(), "")
+    return {"DK":"Denmark","US":"United States","UK":"United Kingdom","FRA":"France","GER":"Germany"}.get((code or "").upper(), "")
 
+def _attrs_blob(**kw):
+    return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
 
-# --- NEW: smarter value resolver (uses label + name + id + placeholder + aria) ---
-DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
-
-
-# --- Auto-Yes/No intent detection + helpers ---
-AUTO_YES_RE = re.compile(
-    r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|"
-    r"terms\s*(and\s*conditions)?|gdpr|policy\s*ack|read\s*the\s*privacy|"
-    r"agree\s*to\s*the\s*policy)", re.I
-)
-
-AUTO_NO_RE = re.compile(
-    r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed)?\s*by|"
-    r"previous(ly)?\s*employ(ed)?\s*by|worked\s*for\s*(us|this\s*company)|"
-    r"subsidiar(y|ies)|conflict\s*of\s*interest)", re.I
-)
-
-def _yesno_preference(label_text: str) -> str:
-    """Return 'Yes' or 'No' if the question clearly matches our intent, else ''."""
-    L = (label_text or "").lower()
-    if AUTO_YES_RE.search(L):
-        return "Yes"
-    if AUTO_NO_RE.search(L):
-        return "No"
-    return ""
-
-def _select_by_label_text(frame, select_el, want_text: str) -> bool:
-    """Choose an option in a <select> by visible text (exact or contains)."""
-    try:
-        return bool(frame.evaluate("""
-            (el, want) => {
-              if (!el || el.tagName.toLowerCase() !== 'select') return false;
-              const w = (want || '').toLowerCase();
-              const opts = Array.from(el.options || []);
-              const exact = opts.find(o => (o.textContent||'').trim().toLowerCase() === w);
-              const match = exact || opts.find(o => (o.textContent||'').toLowerCase().includes(w));
-              if (match) {
-                el.value = match.value;
-                el.dispatchEvent(new Event('change', { bubbles: true }));
-                return true;
-              }
-              return false;
-            }
-        """, select_el, want_text))
-    except Exception:
-        return False
-
-
-def _attrs_blob(label="", name="", id_="", placeholder="", aria_label="", type_=""):
-    """Combine all useful attributes/labels into one lowercased string for matching."""
-    return " ".join([
-        str(label or ""),
-        str(name or ""),
-        str(id_ or ""),
-        str(placeholder or ""),
-        str(aria_label or ""),
-        str(type_ or "")
-    ]).lower().strip()
-
-def _value_from_meta(user, meta_text: str):
-    """Decide value using the combined metadata string."""
-    L = (meta_text or "").lower()
-
-    linkedin = (getattr(user, "linkedin_url", "") or "").strip()
-    country_code = (getattr(user, "country", "") or "").upper()
-    phone_raw = (getattr(user, "phone_number", "") or "").strip()
-    country_h = _country_human(country_code)
-
-    # Prefer phone with dial prefix when asked for phone/mobile/tel
-    phone = phone_raw
-    dial = DIAL.get(country_code, "")
-    if any(k in L for k in ["phone", "mobile", "tel"]) and phone_raw and dial and not phone_raw.startswith("+"):
-        phone = f"{dial} {phone_raw}"
-
+def _value_from_meta(user, meta: str):
+    L = (meta or "").lower()
+    linkedin = (getattr(user,"linkedin_url","") or "").strip()
+    cc = (getattr(user,"country","") or "").upper()
+    phone_raw = (getattr(user,"phone_number","") or "").strip()
+    phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
     mapping = [
-        (["first", "fname", "given", "forename"],          user.first_name or ""),
-        (["last", "lname", "surname", "family"],           user.last_name or ""),
-        (["email", "e-mail", "mail"],                      user.email or ""),
-        (["phone", "mobile", "tel"],                       phone),
-        (["linkedin", "profile url", "profile_url"],       linkedin),
-        (["country", "nationality"],                       country_h),
-        (["city", "town"],                                 getattr(user, "location", "") or ""),
-        (["job title", "title", "position", "role"],       getattr(user, "occupation", "") or ""),
-        (["company", "employer", "organization", "organisation", "current company"], getattr(user, "category", "") or ""),
+        (["first","fname","given","forename"], user.first_name or ""),
+        (["last","lname","surname","family"],  user.last_name or ""),
+        (["email","e-mail","mail"],            user.email or ""),
+        (["phone","mobile","tel"],             phone),
+        (["linkedin","profile url","profile_url"], linkedin),
+        (["country","nationality"],            _country_human(cc)),
+        (["city","town"],                      getattr(user,"location","") or ""),
+        (["job title","title","position","role"], getattr(user,"occupation","") or ""),
+        (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
     ]
-    for keys, val in mapping:
-        if any(k in L for k in keys) and val:
-            return val
-
-    # Generic URL → only if clearly LinkedIn
-    if ("url" in L or "website" in L) and "linkedin" in L and linkedin:
-        return linkedin
-
+    for keys,val in mapping:
+        if any(k in L for k in keys) and val: return val
+    if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
     return ""
-
-
 
 def fill_from_inventory(page, user, inventory):
-    """
-    Re-find each scanned element via (frame_index, query, nth),
-    decide the right value from user data, and fill it (no 'N/A' anywhere).
-    """
     filled = 0
     frames = list(page.frames)
-    for item in inventory:
-        # Resolve frame & element
+    for it in inventory:
         try:
-            frame = frames[item["frame_index"]]
-            el = frame.locator(item["query"]).nth(item["nth"])
-        except Exception:
-            continue
-
-        try:
-            if not el.is_visible():
-                continue
-
-            # Current value
-            curr = ""
+            fr = frames[it["frame_index"]]
+            el = fr.locator(it["query"]).nth(it["nth"])
+            if not el.is_visible(): continue
             try:
-                curr = (el.inner_text().strip() if item["query"] == "[contenteditable='true']"
-                        else el.input_value().strip())
+                curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
-                pass
-            if curr and curr.upper() != "N/A":
-                continue  # already has a real value
+                curr = ""
+            if curr and curr.upper()!="N/A": continue
 
-            # Build combined metadata & decide a value
             meta = _attrs_blob(
-                label=item.get("label", ""),
-                name=item.get("name", ""),
-                id_=item.get("id", ""),
-                placeholder=item.get("placeholder", ""),
-                aria_label=item.get("aria_label", ""),
-                type_=item.get("type", "")
+                label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
+                placeholder=it.get("placeholder",""), aria_label=it.get("aria_label",""),
+                type_=it.get("type","")
             )
             val = _value_from_meta(user, meta)
+            if not val: continue
 
-            # If field currently has "N/A" but we now have a real value, clear first
-            if val and curr.upper() == "N/A":
-                try:
-                    el.fill("")
-                except Exception:
-                    pass
-
-            if not val:
-                continue  # nothing appropriate to fill
-
-            # Scroll & fill
-            try:
-                el.scroll_into_view_if_needed(timeout=2000)
-            except Exception:
-                pass
+            try: el.scroll_into_view_if_needed(timeout=1500)
+            except Exception: pass
 
             is_select = False
-            try:
-                is_select = el.evaluate("el => el.tagName && el.tagName.toLowerCase() === 'select'")
-            except Exception:
-                pass
+            try: is_select = el.evaluate("el => el.tagName && el.tagName.toLowerCase()==='select'")
+            except Exception: pass
 
             if is_select:
-                try:
-                    el.select_option(label=val)
+                try: el.select_option(label=val)
                 except Exception:
-                    frame.evaluate("""
-                        (el, want) => {
-                          const opts = Array.from(el.options || []);
-                          const t = (want||'').toLowerCase();
-                          const match = opts.find(o => (o.textContent||'').trim().toLowerCase()===t)
-                                      || opts.find(o => (o.textContent||'').toLowerCase().includes(t));
-                          if (match) { el.value = match.value; el.dispatchEvent(new Event('change',{bubbles:true})); }
-                        }
-                    """, el, val)
+                    fr.evaluate("""(el,w)=>{const o=[...el.options||[]];const t=(w||'').toLowerCase();
+                                    const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
+                                         || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
+                                    if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""", el, val)
             else:
                 el.fill(val)
                 try: el.press("Tab")
                 except Exception: pass
-                try:
-                    frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
-                except Exception:
-                    pass
+                try: fr.evaluate("el=>{el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", el)
+                except Exception: pass
 
             print(f"✅ Filled “{meta[:60]}” → {val}")
             filled += 1
-
         except Exception:
-            continue
-
+            pass
     print(f"✅ Post-scan fill completed — filled {filled} fields from inventory.")
     return filled
 
+# ---------- special Yes/No forcings ----------
+def _force_ipg_employment_no(page, frame) -> bool:
+    """Specifically force the IPG employment question to 'No'."""
+    lab = frame.locator("label[for]").filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
+    if not (lab and lab.is_visible()): return False
+    lab_id  = lab.get_attribute("id") or ""
+    lab_for = lab.get_attribute("for") or ""
+    root = _closest_dropdown_root(frame, lab_for, lab_id)
+    if not root: return False
 
+    try: root.scroll_into_view_if_needed()
+    except Exception: pass
+    try: root.click(force=True); frame.wait_for_timeout(120)
+    except Exception: pass
+
+    inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
+    try:
+        if inner and inner.is_visible():
+            inner.fill(""); inner.type("No", delay=18)
+            _safe_press(page, inner, "Enter"); _safe_press(page, inner, "Tab")
+        else:
+            root.type("No", delay=18)
+            _safe_press(page, root, "Enter"); _safe_press(page, root, "Tab")
+    except Exception:
+        pass
+
+    def committed():
+        try:
+            return frame.evaluate("""(labId)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
+                       || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                       const t=(r?.innerText||'').toLowerCase(); return t.includes('no');}""", lab_id)
+        except Exception:
+            return False
+
+    if committed(): return True
+    if _click_and_choose_option(page, frame, "No") or _click_and_choose_option(page, page, "No"):
+        return committed()
+    if lab_for:
+        try:
+            ok = frame.evaluate("""(id)=>{const el=document.getElementById(id); if(!el) return False;
+                 if (el.tagName.toLowerCase()==='select'){const m=[...el.options||[]].find(o=>/\\bno\\b/i.test(o.textContent||'')); if(!m) return false; el.value=m.value;}
+                 else {el.value='No'; el.setAttribute('value','No');}
+                 el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;}""",
+                 lab_for)
+            if ok:
+                try: lab.click(force=True)
+                except Exception: pass
+                frame.wait_for_timeout(80)
+                return committed()
+        except Exception:
+            pass
+    return False
+
+def _force_privacy_yes_if_needed(page, frame):
+    """Find privacy/consent dropdowns and ensure they are 'Yes'."""
+    labels = []
+    try:
+        labels = frame.locator("label[for]").all()
+    except Exception:
+        return 0
+    changed = 0
+    for lab in labels:
+        try:
+            if not lab.is_visible(): continue
+            txt = (lab.inner_text() or "").strip()
+            pref = _yesno_preference(txt)
+            if not pref: continue
+            ok = _set_custom_dropdown_by_label(page, frame, lab, pref)
+            if ok:
+                print(f"🟢 Set '{txt[:70]}' → {pref}")
+                changed += 1
+        except Exception:
+            pass
+    return changed
+
+# ---------- main ----------
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True):
-    """
-    Robust ATS automation handler.
-    Detects and fills dynamic, iframe-based forms (Workday, Lever, Greenhouse, etc.).
-    If dry_run=True, it fills but does not submit.
-
-    NEW FLOW:
-      - Reveal form (consent + safe apply)
-      - Detect iframe, scroll/expand
-      - PHASE 1: Scan all fields -> inventory
-      - PHASE 2: Fill from inventory
-      - Required-completeness pass
-      - Upload resume
-      - Paste static cover letter ("test coverletter")
-    """
-
     room = ATSRoom.objects.get(id=room_id)
     user = User.objects.get(id=user_id)
 
-    # ✅ Automatically pull resume from user model if not provided
     if not resume_path:
         try:
             if hasattr(user, "resume") and user.resume:
-                resume_path = user.resume.path  # local filesystem path
+                resume_path = user.resume.path
                 print(f"📄 Loaded resume from user model: {resume_path}")
-            else:
-                print("⚠️ User has no resume uploaded in their profile.")
         except Exception as e:
             print(f"⚠️ Could not load resume from user model: {e}")
 
     print(f"🌐 Starting ATS automation for: {room.company_name} ({room.apply_url})")
     print(f"🧪 Dry-run mode: {dry_run}")
 
-    # For saving inventories & screenshots
     log_dir = "/home/clinton/Internstart/media"
     os.makedirs(log_dir, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_company = "".join(c if c.isalnum() else "_" for c in (room.company_name or "company"))
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=["--disable-blink-features=AutomationControlled"]
-        )
+        browser = p.chromium.launch(headless=True, args=["--disable-blink-features=AutomationControlled"])
         page = browser.new_page()
 
         try:
             print(f"🌍 Visiting {room.apply_url} ...")
             page.goto(room.apply_url, timeout=120000, wait_until="domcontentloaded")
             page.wait_for_load_state("load", timeout=20000)
-            page.wait_for_timeout(4000)
-
-            # 1️⃣ Kill cookie/consent overlays globally (main page + iframes)
+            page.wait_for_timeout(1200)
             dismiss_privacy_overlays(page)
 
-            # Some pages need a reload after consent
-            page.goto(room.apply_url, timeout=120000, wait_until="domcontentloaded")
-            page.wait_for_load_state("load", timeout=20000)
-            page.wait_for_timeout(2000)
-            dismiss_privacy_overlays(page)
-
-            # 2️⃣ Trigger “Apply” or open hidden form modals (SAFE)
+            # try clicking a safe "Apply"
             try:
-                existing_fields = page.locator("input, textarea, select").count()
-                if existing_fields >= 3:
-                    print("🛑 Form fields already visible; skipping any 'apply' clicks.")
-                else:
-                    print("🔎 Looking for a SAFE apply/continue trigger...")
+                if page.locator("input, textarea, select").count() < 3:
+                    buttons = page.locator("button, a")
+                    for i in range(buttons.count()):
+                        b = buttons.nth(i)
+                        if not b.is_visible(): continue
+                        t = (b.inner_text() or "").lower()
+                        if any(w in t for w in ["apply","start application","start your application","continue","get started","begin","proceed"]) \
+                           and not any(bad in t for bad in ["quick apply","linkedin","indeed","glassdoor","jobindex","login","sign in","create account","external"]):
+                            b.click()
+                            print(f"🖱️ Safely clicked '{(t or '')[:40]}'")
+                            page.wait_for_timeout(1200)
+                            break
+            except Exception:
+                pass
 
-                    trigger_words = [
-                        "apply", "continue", "start application", "start your application",
-                        "next", "get started", "begin", "proceed"
-                    ]
-                    block_words = [
-                        "quick apply", "jobindex", "linkedin", "indeed", "glassdoor", "xing",
-                        "external", "login", "log ind", "sign in", "create account"
-                    ]
-
-                    candidates = page.locator("button, a")
-
-                    def looks_blocked(txt: str) -> bool:
-                        t = (txt or "").lower()
-                        return any(b in t for b in block_words)
-
-                    def looks_allowed(txt: str) -> bool:
-                        t = (txt or "").lower()
-                        return any(w in t for w in trigger_words)
-
-                    url_host = urlparse(page.url).netloc
-
-                    safe_clicked = False
-                    for i in range(candidates.count()):
-                        el = candidates.nth(i)
-                        try:
-                            if not el.is_visible():
-                                continue
-                            text = (el.inner_text() or "").strip()
-                            if not looks_allowed(text) or looks_blocked(text):
-                                continue
-
-                            in_form = el.evaluate("e => !!e.closest('form')")
-                            href = (el.get_attribute("href") or "").strip()
-                            same_origin = True
-                            if href.startswith("http"):
-                                same_origin = (urlparse(href).netloc == url_host)
-                            is_submit_type = (el.get_attribute("type") or "").lower() == "submit"
-
-                            if in_form or is_submit_type or (same_origin and not href.lower().startswith("mailto:")):
-                                before_url = page.url
-                                before_field_count = page.locator("input, textarea, select").count()
-                                el.click()
-                                print(f"🖱️ Safely clicked '{text[:40]}'")
-                                page.wait_for_timeout(1500)
-                                dismiss_privacy_overlays(page, timeout_ms=5000)
-
-                                after_url = page.url
-                                after_field_count = page.locator("input, textarea, select").count()
-
-                                if (after_url != before_url and after_field_count <= before_field_count):
-                                    print("↩️ Navigation didn’t expose more fields; going back.")
-                                    try:
-                                        page.go_back(timeout=10000)
-                                        page.wait_for_timeout(1000)
-                                        dismiss_privacy_overlays(page, timeout_ms=3000)
-                                    except Exception:
-                                        pass
-                                    continue
-
-                                safe_clicked = True
-                                break
-                        except Exception:
-                            continue
-
-                    if not safe_clicked:
-                        print("⚠️ No safe apply/continue trigger found; proceeding without clicking.")
-            except Exception as e:
-                print(f"⚠️ Safe apply trigger failed: {e}")
-
-            # Ensure nothing is blocking before we scan/fill
             dismiss_privacy_overlays(page, timeout_ms=3000)
 
-            # 3️⃣ Detect iframe context (used later for uploads/CL)
+            # choose context (iframe hosting the form)
             context = page
             try:
-                for frame in page.frames:
-                    if frame == page.main_frame:
-                        continue
-                    try:
-                        count = frame.locator("input, textarea, select").count()
-                        if count > 3:
-                            context = frame
-                            print(f"🔄 Switched context to ATS iframe containing form ({count} elements detected)")
-                            break
-                    except Exception:
-                        continue
-            except Exception as e:
-                print(f"⚠️ Could not detect iframe: {e}")
-
-            # 4️⃣ Wait for fields + expand + scroll to render dynamic inputs
-            try:
-                context.wait_for_selector("input, textarea, select", timeout=12000)
-                print("⏳ Form fields detected and ready.")
-            except Exception:
-                print("⚠️ No visible fields yet; continuing with scan.")
-            try:
-                expanders = context.locator("button:has-text('Expand'), button:has-text('Show more'), div[role='button']")
-                if expanders.count() > 0:
-                    for i in range(min(expanders.count(), 3)):
-                        expanders.nth(i).click()
-                        page.wait_for_timeout(700)
-                    print("📂 Expanded collapsible sections.")
-            except Exception:
-                pass
-            try:
-                for _ in range(0, 1800, 360):
-                    page.mouse.wheel(0, 360)
-                    page.wait_for_timeout(350 + random.randint(80, 220))
-                print("🧭 Scrolled through page to reveal hidden inputs.")
-            except Exception:
-                pass
-
-            # ========== PHASE 1: SCAN ==========
-            inventory = scan_all_fields(page)
-
-            # Save inventory snapshot (useful for debugging / dashboard)
-            try:
-                inv_path = os.path.join(log_dir, f"ats_field_inventory_{safe_company}_{ts}.json")
-                with open(inv_path, "w", encoding="utf-8") as f:
-                    json.dump(inventory, f, ensure_ascii=False, indent=2)
-                print(f"📝 Saved field inventory → {inv_path}")
-            except Exception as e:
-                print(f"⚠️ Could not save inventory JSON: {e}")
-
-            # ========== PHASE 2: FILL ==========
-            try:
-                fill_count = fill_from_inventory(page, user, inventory)
-            except Exception as e:
-                print(f"⚠️ Post-scan fill failed: {e}")
-                fill_count = 0
-
-            # 7️⃣ REQUIRED COMPLETENESS PASS — fill requireds still empty (N/A where needed)
-            try:
-                print("🧹 Running required-completeness pass (text/select/radio/checkbox/phone code)…")
-
-                # Small helpers
-                DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
-                user_cc = DIAL.get((getattr(user, "country", "") or "").upper(), "")
-
-                PLACEHOLDER_WORDS = ["select", "vælg", "choose", "chose", "pick", "—", "-", "–", "please"]
-                AVOID_CHECKBOX = ["newsletter", "marketing", "samarbejde", "marketingsføring", "updates", "promotion"]
-                REQUIRED_MARKERS = ["*", "required", "obligatorisk", "påkrævet", "mandatory"]
-
-                def looks_required(text: str) -> bool:
-                    t = (text or "").lower()
-                    return any(m in t for m in REQUIRED_MARKERS)
-
-                def near_text(frame, el):
-                    try:
-                        return frame.evaluate("""
-                        (el) => {
-                            const lab  = (el.labels && el.labels[0]) ? el.labels[0].innerText : "";
-                            const aria = el.getAttribute("aria-label") || "";
-                            const ph   = el.getAttribute("placeholder") || "";
-                            const byId = (() => {
-                            const ids = (el.getAttribute("aria-labelledby") || "").split(/\\s+/).filter(Boolean);
-                            return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
-                            })();
-                            const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section, fieldset");
-                            const near = wrap ? (wrap.querySelector("legend, label, h1, h2, h3, h4, span, .label, .title")?.innerText || "") : "";
-                            const tr = el.closest("tr");
-                            const leftCell = tr ? (tr.querySelector("td,th")?.innerText || "") : "";
-                            return [lab, aria, ph, byId, near, leftCell].join(" ").replace(/\\s+/g," ").trim();
-                        }
-                        """, el) or ""
-                    except Exception:
-                        return ""
-
-
-                # Phone code widgets
-                for frame in page.frames:
-                    if not user_cc:
+                for fr in page.frames:
+                    if fr == page.main_frame: continue
+                    if fr.locator("input, textarea, select").count() > 3:
+                        context = fr
+                        print("🔄 Switched to ATS iframe")
                         break
-                    try:
-                        phone_rows = frame.locator("select, [role='combobox']").filter(has_text="+")
-                        for i in range(min(6, phone_rows.count())):
-                            sel = phone_rows.nth(i)
-                            if not sel.is_visible():
-                                continue
-                            txt = near_text(frame, sel).lower()
-                            if "phone" in txt or "mobil" in txt or "telefon" in txt:
-                                try:
-                                    sel.select_option(label=user_cc)
-                                except Exception:
-                                    frame.evaluate("""
-                                        (el, want) => {
-                                          const opts = Array.from((el.tagName==='SELECT' ? el.options : []));
-                                          const match = opts.find(o => (o.textContent||'').trim()===want)
-                                                      || opts.find(o => (o.textContent||'').includes(want));
-                                          if (match) { el.value = match.value; el.dispatchEvent(new Event('change',{bubbles:true})); }
-                                        }
-                                    """, sel, user_cc)
-                                print(f"📞 Selected phone country code {user_cc}")
-                                break
-                    except Exception:
-                        pass
+            except Exception: pass
 
-                # Required text-like inputs
-              # Required text-like inputs (NO 'N/A' writes; try metadata-based fill only)
-                        for frame in page.frames:
-                            try:
-                                inputs = frame.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])")
-                                for i in range(inputs.count()):
-                                    el = inputs.nth(i)
-                                    try:
-                                        if not el.is_visible():
-                                            continue
-                                        t = (el.get_attribute("type") or "").lower()
-                                        if t in ["checkbox", "radio", "file"]:
-                                            continue
+            # reveal fields
+            try: context.wait_for_selector("input, textarea, select", timeout=12000)
+            except Exception: pass
+            try:
+                for _ in range(6):
+                    page.mouse.wheel(0, 420)
+                    page.wait_for_timeout(220 + random.randint(0,120))
+            except Exception: pass
 
-                                        # current value
-                                        curr = ""
-                                        try:
-                                            curr = el.input_value().strip()
-                                        except Exception:
-                                            try:
-                                                curr = el.inner_text().strip()
-                                            except Exception:
-                                                curr = ""
+            # scan + fill
+            inv = scan_all_fields(page)
+            try:
+                with open(os.path.join(log_dir, f"ats_field_inventory_{safe_company}_{ts}.json"), "w", encoding="utf-8") as f:
+                    json.dump(inv, f, ensure_ascii=False, indent=2)
+            except Exception: pass
 
-                                        if curr and curr.upper() != "N/A":
-                                            continue
+            fill_from_inventory(page, user, inv)
 
-                                        # required?
-                                        lbl = near_text(frame, el)
-                                        req_attr = el.get_attribute("required") is not None or el.get_attribute("aria-required") in ["true", True]
-                                        req_near = looks_required(lbl)
-                                        if not (req_attr or req_near):
-                                            continue
+            # force Yes/No type questions (privacy → Yes; employment → No)
+            _force_privacy_yes_if_needed(page, context)
+            if _force_ipg_employment_no(page, context):
+                print("🟢 IPG employment → No (forced & verified)")
+            else:
+                print("🟡 IPG employment not confirmed — continuing; ATS validation may catch it")
 
-                                        # Build metadata blob and try to fill with a real value
-                                        blob = _attrs_blob(
-                                            label=lbl,
-                                            name=el.get_attribute("name") or "",
-                                            id_=el.get_attribute("id") or "",
-                                            placeholder=el.get_attribute("placeholder") or "",
-                                            aria_label=el.get_attribute("aria-label") or "",
-                                            type_=t
-                                        )
-
-                                        # Hard guard: never overwrite these with placeholders
-                                        if any(k in blob for k in ["first","fname","given","forename",
-                                                                "last","lname","surname","family",
-                                                                "email","e-mail","mail",
-                                                                "phone","mobile","tel",
-                                                                "linkedin"]):
-                                            # Try to fill with real value only
-                                            real = _value_from_meta(user, blob)
-                                            if real:
-                                                el.fill(real)
-                                                try: el.press("Tab")
-                                                except Exception: pass
-                                                try:
-                                                    frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
-                                                except Exception: pass
-                                                print(f"🧩 Completed required field (guarded) → {real} ({lbl[:60]})")
-                                            continue
-
-                                        # Non-guarded required fields → try real value; if none, skip (no 'N/A')
-                                        real = _value_from_meta(user, blob)
-                                        if real:
-                                            el.fill(real)
-                                            try: el.press("Tab")
-                                            except Exception: pass
-                                            try:
-                                                frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
-                                            except Exception: pass
-                                            print(f"🧩 Completed required field → {real} ({lbl[:60]})")
-                                        # else: leave blank; do NOT write 'N/A'
-                                    except Exception:
-                                        continue
-                            except Exception:
-                                pass
-
-                            except Exception:
-                                continue
-                    except Exception:
-                        pass
-
-
-                # --- Custom dropdowns driven by <label for="..."> (auto Yes/No) ---
-                try:
-                    for frame in page.frames:
-                        try:
-                            labels = frame.locator("label[for]").all()
-                        except Exception:
-                            labels = []
-
-                        for lab in labels:
-                            try:
-                                if not lab.is_visible():
-                                    continue
-                                q_text = (lab.inner_text() or "").strip()
-
-                                # existing generic intent
-                                pref = _yesno_preference(q_text)  # 'Yes' for privacy, 'No' for prior employment
-
-                                qL = q_text.lower()
-                                if ("ever been employed by ipg" in qL
-                                        or "currently employed" in qL
-                                        or "subsidiar" in qL):
-                                    pref = "No"
-                                # ▲▲ ADD THESE LINES HERE ▲▲
-
-                                if not pref:
-                                    continue
-
-                                if _set_custom_dropdown_by_label(page, frame, lab, pref):
-                                    print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
-                                    ok = _set_custom_dropdown_by_label(page, frame, lab, pref)
-                                    if ok:
-                                        # verify the visible value actually changed
-                                        label_id  = lab.get_attribute("id") or ""
-                                        label_for = lab.get_attribute("for") or ""
-                                        committed = False
-                                        try:
-                                            committed = frame.evaluate("""
-                                                (labId, want) => {
-                                                const root =
-                                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
-                                                    (document.getElementById(labId)?.closest('.select__container'));
-                                                const txt = root ? (root.innerText || '').toLowerCase() : '';
-                                                return txt.includes((want || '').toLowerCase());
-                                                }
-                                            """, label_id, pref)
-                                        except Exception:
-                                            committed = False
-
-                                        if not committed:
-                                            # last-resort: set the underlying element the label points to
-                                            try:
-                                                committed = frame.evaluate("""
-                                                    (elId, want) => {
-                                                    const el = document.getElementById(elId);
-                                                    if (!el) return false;
-                                                    const lower = (want || '').toLowerCase();
-                                                    if (el.tagName && el.tagName.toLowerCase() === 'select') {
-                                                        const opts = Array.from(el.options || []);
-                                                        const m = opts.find(o =>
-                                                        ((o.textContent||'').trim().toLowerCase() === lower) ||
-                                                        ((o.textContent||'').toLowerCase().includes(lower))
-                                                        );
-                                                        if (m) {
-                                                        el.value = m.value;
-                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
-                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                                        return true;
-                                                        }
-                                                    }
-                                                    if (el.tagName && el.tagName.toLowerCase() === 'input') {
-                                                        el.value = want;
-                                                        el.setAttribute('value', want);
-                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
-                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                                        return true;
-                                                    }
-                                                    return false;
-                                                    }
-                                                """, label_for, pref)
-                                            except Exception:
-                                                committed = False
-
-                                        if committed:
-                                            print(f"🟢 Confirmed dropdown set → {pref} ({q_text[:80]})")
-                                        else:
-                                            print(f"🟡 Dropdown click landed but value didn’t commit; fallback failed ({q_text[:80]})")
-
-                            except Exception:
-                                continue
-                except Exception:
-                    pass
-
-
-
-                # --- Hard-case: IPG "ever/currently employed" combobox — force type+Enter + verify ---
-                try:
-                    for frame in page.frames:
-                        # 1) Find the specific label
-                        lab = frame.locator(
-                            "label[for]",
-                        ).filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
-                        if not (lab and lab.is_visible()):
-                            continue
-
-                        lab_id  = (lab.get_attribute("id") or "")
-                        lab_for = (lab.get_attribute("for") or "")
-
-                        # 2) Find the clickable root/combobox near the label
-                        root = None
-                        # element referenced by label's "for"
-                        if lab_for:
-                            el = frame.locator(f"#{lab_for}")
-                            if el.count() and el.first.is_visible():
-                                root = el.first
-
-                        # aria-labelledby binding
-                        if not root and lab_id:
-                            el = frame.locator(f"[aria-labelledby='{lab_id}']")
-                            if el.count() and el.first.is_visible():
-                                root = el.first
-
-                        # common shells
-                        if not root:
-                            root = lab.locator("xpath=following::*[1]").locator(
-                                ":is([role='combobox'], [aria-haspopup='listbox'], .select__control, .select-shell, .select__container)"
-                            ).first
-
-                        if not (root and root.is_visible()):
-                            continue
-
-                        # 3) Open and type "No", then Enter
-                        try:
-                            root.scroll_into_view_if_needed()
-                        except Exception:
-                            pass
-                        root.click(force=True)
-                        frame.wait_for_timeout(120)
-
-                        # Some widgets need the inner input focused
-                        try:
-                            inner_input = root.locator("input[role='combobox'], input[aria-autocomplete='list']")
-                            if inner_input.count() and inner_input.first.is_visible():
-                                inner_input.first.fill("")  # clear any filter
-                                inner_input.first.type("No", delay=20)
-                            else:
-                                root.type("No", delay=20)
-                        except Exception:
-                            root.type("No", delay=20)
-
-                        frame.keyboard.press("Enter")
-                        frame.wait_for_timeout(180)
-
-                        # 4) Verify; if not committed, try portal click on the visible “No” option
-                        committed = False
-                        try:
-                            committed = frame.evaluate("""
-                                (labId) => {
-                                const root =
-                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
-                                    (labId && document.getElementById(labId)?.closest('.select__container'));
-                                const txt = (root && root.innerText) ? root.innerText.toLowerCase() : "";
-                                return txt.includes("no");
-                                }
-                            """, lab_id)
-                        except Exception:
-                            committed = False
-
-                        if not committed:
-                            # Click the menu option wherever it was rendered (inside frame or in a body portal)
-                            for scope in (frame, page):
-                                menu = scope.locator(
-                                    ":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, "
-                                    ".MuiPaper-root, .MuiPopover-paper, ul[role='listbox'], ul)"
-                                )
-                                opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)").filter(has_text="No").first
-                                if opt and opt.is_visible():
-                                    opt.click(force=True)
-                                    scope.wait_for_timeout(160)
-                                    break
-
-                        # 5) Final verify; log result
-                        try:
-                            committed = frame.evaluate("""
-                                (labId) => {
-                                const root =
-                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
-                                    (labId && document.getElementById(labId)?.closest('.select__container'));
-                                const txt = (root && root.innerText) ? root.innerText.toLowerCase() : "";
-                                return txt.includes("no");
-                                }
-                            """, lab_id)
-                        except Exception:
-                            committed = False
-
-                        if committed:
-                            print("🟢 Forced commit: IPG prior/current employment → No")
-                        else:
-                            print("🟡 Still not committed after force; will rely on later validation")
-                except Exception as e:
-                    print(f"⚠️ Hard-case handler failed: {e}")
-
-
-
-
-                # Required selects (with auto Yes/No for policy/employment questions)
-                for frame in page.frames:
-                    try:
-                        selects = frame.locator("select:not([disabled])")
-                        for i in range(selects.count()):
-                            sel = selects.nth(i)
-                            try:
-                                if not sel.is_visible():
-                                    continue
-                                has_val = frame.evaluate("(el) => !!el.value", sel)
-                                if has_val:
-                                    continue
-
-                                lbl = near_text(frame, sel)
-                                req_attr = sel.get_attribute("required") is not None or sel.get_attribute("aria-required") in ["true", True]
-                                req_near = looks_required(lbl)
-                                if not (req_attr or req_near):
-                                    continue
-
-                                # ➊ Prefer our auto Yes/No rules
-                                pref = _yesno_preference(lbl)
-                                if pref and _select_by_label_text(frame, sel, pref):
-                                    print(f"✅ Auto-answered select → {pref} ({lbl[:80]})")
-                                    continue
-
-                                # ➋ Country heuristic (user model)
-                                user_country_human = _country_human(getattr(user, "country", ""))
-                                if "country" in lbl.lower() and user_country_human:
-                                    try:
-                                        sel.select_option(label=user_country_human)
-                                        print(f"🌍 Completed required Country select → {user_country_human}")
-                                        continue
-                                    except Exception:
-                                        pass
-
-                                # ➌ Generic: choose first non-placeholder option
-                                chose = frame.evaluate("""
-                                    (el) => {
-                                    const opts = Array.from(el.options || []);
-                                    const good = opts.find(o => {
-                                        const t = (o.textContent||'').trim();
-                                        return t && !/^(select|vælg|choose|please|—|–|-|select\.\.\.)$/i.test(t);
-                                    });
-                                    if (good) { el.value = good.value; el.dispatchEvent(new Event('change',{bubbles:true})); return good.textContent.trim(); }
-                                    return "";
-                                    }
-                                """, sel)
-                                if chose:
-                                    print(f"✅ Required select filled → {chose[:40]} ({lbl[:80]})")
-                            except Exception:
-                                continue
-                    except Exception:
-                        pass
-
-
-                        # --- Fallback for custom dropdowns that are not <select> ---
-                        try:
-                            combos = frame.locator("[role='combobox'], [aria-haspopup='listbox']")
-                            for i in range(min(30, combos.count())):
-                                root = combos.nth(i)
-                                if not root.is_visible():
-                                    continue
-                                lbl = near_text(frame, root)
-                                pref = _yesno_preference(lbl)  # "Yes" for privacy; "No" for prior employment
-                                if not pref:
-                                    continue
-
-                                # open the dropdown
-                                try:
-                                    root.click(force=True)
-                                    frame.wait_for_timeout(150)
-                                except Exception:
-                                    continue
-
-                                # pick option that contains our pref text
-                                try:
-                                    menu = frame.locator(":is([role='listbox'], .MuiPaper-root, .select__menu, .dropdown-menu, ul[role='listbox'])")
-                                    opt  = menu.locator(f":is([role='option'], li, div):has-text('{pref}')").first
-                                    if opt and opt.is_visible():
-                                        opt.click(force=True)
-                                        frame.wait_for_timeout(100)
-                                        print(f"🟢 Set custom dropdown “{lbl[:80]}” → {pref}")
-                                except Exception:
-                                    # close if nothing chosen
-                                    try: frame.keyboard.press("Escape")
-                                    except Exception: pass
-                        except Exception:
-                            pass
-
-
-                # Required radios (with auto Yes/No for policy/employment questions)
-                for frame in page.frames:
-                    try:
-                        radios = frame.locator("input[type='radio']:not([disabled])")
-                        processed = set()
-                        for i in range(radios.count()):
-                            r = radios.nth(i)
-                            try:
-                                name = r.get_attribute("name") or f"__idx{i}"
-                                if name in processed:
-                                    continue
-                                group = frame.locator(f"input[type='radio'][name='{name}']")
-                                if group.count() == 0:
-                                    continue
-
-                                # Is the group required?
-                                any_req = False
-                                for j in range(group.count()):
-                                    g = group.nth(j)
-                                    if g.get_attribute("required") is not None or g.get_attribute("aria-required") in ["true", True]:
-                                        any_req = True
-                                        break
-                                if not any_req:
-                                    continue
-
-                                # Pull a group-level label/question
-                                group_label = near_text(frame, r)
-                                pref = _yesno_preference(group_label)
-
-                                chosen = False
-                                if pref:
-                                    want = pref.lower()
-                                    # Try to pick the radio whose nearby/sibling label contains Yes/No
-                                    for j in range(group.count()):
-                                        g = group.nth(j)
-                                        try:
-                                            lab = (frame.evaluate(
-                                                "(el)=> el.closest('label, .radio, .form-check, td, th, div')?.innerText || ''", g
-                                            ) or "").lower()
-                                        except Exception:
-                                            lab = ""
-                                        if want in lab:
-                                            g.check(force=True)
-                                            print(f"🔘 Auto-answered radio → {pref} ({group_label[:80]})")
-                                            chosen = True
-                                            break
-
-                                    # Fallback: check first visible if text labels not found
-                                    if not chosen:
-                                        for j in range(group.count()):
-                                            g = group.nth(j)
-                                            if g.is_visible():
-                                                g.check(force=True)
-                                                print(f"🔘 Radio fallback pick (pref {pref}) for group '{name}'")
-                                                chosen = True
-                                                break
-
-                                # If no preference matched, leave to other passes (don’t guess)
-                                if chosen:
-                                    processed.add(name)
-                            except Exception:
-                                continue
-                    except Exception:
-                        pass
-
-
-                # Required checkboxes (skip marketing)
-                for frame in page.frames:
-                    try:
-                        checks = frame.locator("input[type='checkbox']:not([disabled])")
-                        for i in range(checks.count()):
-                            c = checks.nth(i)
-                            try:
-                                lbl = (c.get_attribute("aria-label") or "").lower()
-                                req = c.get_attribute("required") is not None or c.get_attribute("aria-required") in ["true", True]
-                                if not lbl:
-                                    try:
-                                        lbl = frame.evaluate("(el)=> el.closest('label,div,section,fieldset')?.innerText || ''", c).lower()
-                                    except Exception:
-                                        lbl = ""
-                                is_marketing = any(w in lbl for w in ["newsletter", "marketing", "samarbejde", "marketingsføring", "updates", "promotion"])
-                                if req and not is_marketing:
-                                    c.check(force=True)
-                                    print(f"☑️ Checked required checkbox ({lbl[:60]})")
-                            except Exception:
-                                continue
-                    except Exception:
-                        pass
-
-                print("✅ Required-completeness pass finished.")
-            except Exception as e:
-                print(f"⚠️ Required-completeness pass failed: {e}")
-
-                try:
-                    if _debug_force_ipg_no(page, context, company=safe_company, ts=ts):
-                        print("🟢 IPG employment question committed to 'No'")
-                    else:
-                        print("🟡 IPG employment question still not committed — see 📸 logs for clues")
-                except Exception as e:
-                    print(f"⚠️ Debug force errored: {e}")
-
-            # 🧠 AI dynamic field filling (optional mop-up; still kept)
+            # AI mop-up
             try:
                 fill_dynamic_fields(context, user)
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
-                traceback.print_exc()
 
-            # 9️⃣ Resume upload (robust for hidden inputs)
+            # resume upload
             try:
                 if resume_path:
-                    print(f"📎 Attempting to upload resume from: {resume_path}")
-
+                    print(f"📎 Uploading resume: {resume_path}")
+                    # some flows show 'Attach' button
                     try:
-                        all_buttons = context.locator("button, label")
-                        attach_btn = all_buttons.filter(has_text="Attach")
-                        manual_btn = all_buttons.filter(has_text="Enter manually")
-
-                        if attach_btn.count() > 0:
-                            print("🧠 Decision: Choosing 'Attach' option for resume upload.")
-                            attach_btn.first.click()
-                            page.wait_for_timeout(2500)
-                        elif manual_btn.count() > 0:
-                            print("⚠️ Only 'Enter manually' found — skipping upload.")
-                        else:
-                            print("⚠️ No resume option buttons found.")
-                    except Exception as e:
-                        print(f"⚠️ Could not click attach button: {e}")
-
+                        btn = context.locator(":is(button,label,a):has-text('Attach')")
+                        if btn.count() and btn.first.is_visible():
+                            btn.first.click(); page.wait_for_timeout(800)
+                    except Exception: pass
                     file_input = None
-                    for _ in range(10):
+                    for fr in page.frames:
                         try:
-                            for frame in page.frames:
-                                locator = frame.locator("input[type='file']")
-                                if locator.count() > 0:
-                                    file_input = locator.first
-                                    context = frame
-                                    print("✅ Found file input (possibly hidden) in frame")
-                                    break
-                            if file_input:
-                                break
-                        except Exception:
-                            pass
-                        page.wait_for_timeout(1000)
-
+                            fi = fr.locator("input[type='file']")
+                            if fi.count():
+                                file_input = fi.first; context = fr; break
+                        except Exception: pass
                     if file_input:
                         try:
-                            frame = context
-                            frame.evaluate("""
-                                () => {
-                                  const input = document.querySelector('input[type=file]');
-                                  if (input) {
-                                    input.style.display = 'block';
-                                    input.style.visibility = 'visible';
-                                    input.style.position = 'static';
-                                    input.style.width = '200px';
-                                    input.style.height = '40px';
-                                    input.classList.remove('visually-hidden');
-                                    input.removeAttribute('hidden');
-                                  }
-                                }
-                            """)
-                            file_input.set_input_files(resume_path)
-                            print("📄 Successfully uploaded resume via forced visibility fix.")
-                        except Exception as e:
-                            print(f"⚠️ Upload attempt failed even after unhide: {e}")
-                    else:
-                        print("⚠️ Could not find any input[type='file'] after retries.")
-
-                    try:
-                        uploaded = context.locator("text=.docx, text=.pdf, text=Attached, text=uploaded")
-                        if uploaded.count() > 0:
-                            print("✅ Resume visibly uploaded on page.")
-                        else:
-                            print("⚠️ Could not visually verify upload (might still be attached internally).")
-                    except Exception:
-                        pass
-
+                            context.evaluate("""()=>{const i=document.querySelector('input[type=file]'); if(!i) return;
+                                i.style.display='block'; i.style.visibility='visible'; i.style.position='static';
+                                i.removeAttribute('hidden'); i.classList?.remove('visually-hidden'); }""")
+                        except Exception: pass
+                        file_input.set_input_files(resume_path)
+                        print("✅ Resume uploaded")
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
 
-            # 🔟 Cover letter (STATIC): paste "test coverletter" or upload as file if needed
+            # cover letter
             try:
-                letter_text = cover_letter_text or "test coverletter"
-
+                letter = cover_letter_text or "test coverletter"
                 inserted = False
-                try:
-                    manual_btn = context.locator(
-                        ":is(button,label,a):has-text('Enter manually'), :is(button,label,a):has-text('Skriv manuelt')"
-                    )
-                    if manual_btn.count() > 0 and manual_btn.first.is_visible():
-                        manual_btn.first.click()
-                        page.wait_for_timeout(600)
-                except Exception:
-                    pass
-
-                # textarea route
-                try:
-                    ta = context.locator(
-                        "textarea[name*='cover' i], textarea[id*='cover' i], textarea[aria-label*='cover' i]"
-                    )
-                    if ta.count() == 0:
-                        ta = context.locator("textarea")
-                    for i in range(min(6, ta.count())):
-                        el = ta.nth(i)
-                        if el.is_visible():
-                            el.fill(letter_text)
-                            try: el.press("Tab")
-                            except Exception: pass
-                            print("💬 Pasted static cover letter into textarea.")
-                            inserted = True
-                            break
-                except Exception:
-                    pass
-
-                # contenteditable route
+                ta = context.locator("textarea[name*='cover' i], textarea[id*='cover' i], textarea[aria-label*='cover' i]")
+                if not ta.count(): ta = context.locator("textarea")
+                for i in range(min(6, ta.count())):
+                    t = ta.nth(i)
+                    if t.is_visible():
+                        t.fill(letter); inserted = True; print("💬 Cover letter pasted"); break
                 if not inserted:
-                    try:
-                        ce = context.locator("[contenteditable='true']")
-                        for i in range(min(6, ce.count())):
-                            el = ce.nth(i)
-                            if el.is_visible():
-                                el.click()
-                                el.fill(letter_text)
-                                print("💬 Pasted static cover letter into contenteditable.")
-                                inserted = True
-                                break
-                    except Exception:
-                        pass
-
-                # file attach fallback
+                    ce = context.locator("[contenteditable='true']")
+                    for i in range(min(6, ce.count())):
+                        c = ce.nth(i)
+                        if c.is_visible():
+                            c.click(); c.fill(letter); inserted = True; print("💬 Cover letter pasted (contenteditable)"); break
                 if not inserted:
-                    print("📎 No text field found — uploading static cover letter as file.")
-                    file_path = write_temp_cover_letter_file(letter_text, suffix=".txt")
-
-                    try:
-                        attach_btn = context.locator(
-                            ":is(button,label,a):has-text('Attach'), :is(button,label,a):has-text('Vedhæft')"
-                        )
-                        if attach_btn.count() > 0 and attach_btn.first.is_visible():
-                            attach_btn.first.click()
-                            page.wait_for_timeout(600)
-                    except Exception:
-                        pass
-
+                    print("📎 Uploading cover letter as file fallback")
+                    fp = write_temp_cover_letter_file(letter)
                     file_input = None
-                    for frame in page.frames:
+                    for fr in page.frames:
                         try:
-                            fi = frame.locator("input[type='file']")
-                            if fi.count() > 0:
-                                file_input = fi.first
-                                context = frame
-                                break
-                        except Exception:
-                            continue
-
-                    if file_input:
-                        file_input.set_input_files(file_path)
-                        print("📄 Uploaded static cover letter file.")
-                    else:
-                        print("⚠️ Could not locate cover letter file input.")
+                            fi = fr.locator("input[type='file']")
+                            if fi.count(): file_input = fi.first; context = fr; break
+                        except Exception: pass
+                    if file_input: file_input.set_input_files(fp)
             except Exception as e:
                 print(f"⚠️ Cover letter step failed: {e}")
 
-            # 11️⃣ Dry run
+            # dry run or submit
             screenshot_path = os.path.join(log_dir, f"ats_preview_{safe_company}_{ts}.png")
             if dry_run:
-                print("🧪 Dry run active — skipping submit.")
+                print("🧪 Dry run — skipping submit")
                 try:
                     page.screenshot(path=screenshot_path, full_page=True)
-                    print(f"📸 Saved preview screenshot as {screenshot_path}")
-                except Exception as e:
-                    print(f"⚠️ Could not save screenshot: {e}")
+                    print(f"📸 Saved preview → {screenshot_path}")
+                except Exception: pass
                 browser.close()
                 return "dry-run"
 
-            # 12️⃣ Submit form
             try:
-                submit_btn = context.locator("button:has-text('Submit'), button:has-text('Apply'), input[type='submit']")
-                if submit_btn.count() > 0:
-                    submit_btn.first.click()
-                    print("🚀 Submitted form")
-                    time.sleep(5)
-                else:
-                    print("⚠️ No submit button found.")
+                sb = context.locator("button:has-text('Submit'), button:has-text('Apply'), input[type='submit']")
+                if sb.count(): sb.first.click(); print("🚀 Submitted"); time.sleep(5)
+                else: print("⚠️ No submit button found")
             except Exception as e:
-                print(f"⚠️ Could not click submit: {e}")
+                print(f"⚠️ Submit failed: {e}")
 
-            # 13️⃣ Verify success
             html = page.content().lower()
             browser.close()
-
-            if any(kw in html for kw in ["thank", "confirmation", "submitted", "successfully", "application received"]):
+            if any(k in html for k in ["thank", "confirmation", "submitted", "successfully", "application received"]):
                 print(f"✅ Application for {room.company_name} submitted successfully!")
                 return True
-            else:
-                print(f"⚠️ Application submission for {room.company_name} could not be verified.")
-                return False
+            print(f"⚠️ Submission for {room.company_name} not verified")
+            return False
 
         except Exception as e:
-            print(f"❌ Fatal error during automation: {e}")
+            print(f"❌ Fatal error: {e}")
             traceback.print_exc()
             try:
                 err_shot = os.path.join(log_dir, f"error_screenshot_{safe_company}_{ts}.png")
                 page.screenshot(path=err_shot, full_page=True)
-                print(f"📸 Saved error screenshot for debugging → {err_shot}")
+                print(f"📸 Saved error screenshot → {err_shot}")
             except Exception:
                 pass
             browser.close()
