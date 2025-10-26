@@ -2,12 +2,11 @@ from playwright.sync_api import sync_playwright
 from django.conf import settings
 from .models import ATSRoom, User
 from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler
-import time, traceback, random
+import time, traceback, random, json
 from urllib.parse import urlparse
 import os, tempfile
-import os
+from datetime import datetime
 from openai import OpenAI
-
 
 
 # ✅ Load both API key and optional project ID
@@ -19,13 +18,14 @@ if openai_project:
     client = OpenAI(api_key=openai_key, project=openai_project)
 else:
     client = OpenAI(api_key=openai_key)
-    
+
+
 def generate_cover_letter_text(user, company="", role="", job_text=""):
     """
     Generate a short, personalized cover letter using the user's data and job context.
     Relies solely on OpenAI's API — no local template fallback.
     """
-    full_name = f"{(user.first_name or '').strip()} {(user.last_name or '').strip()}".strip()
+    full_name = f"{(user.first_name or '').strip()} {(user.last_name or '') .strip()}".strip()
     resume_summary = []
     if getattr(user, "occupation", ""): resume_summary.append(f"Occupation: {user.occupation}")
     if getattr(user, "category", ""):   resume_summary.append(f"Field: {user.category}")
@@ -54,19 +54,18 @@ def generate_cover_letter_text(user, company="", role="", job_text=""):
 
     return response.output_text.strip()
 
+
 def write_temp_cover_letter_file(text, suffix=".txt"):
     fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(text)
     return path
-# --- end OpenAI helper ---
-
 
 
 # --- universal cookie/consent dismiss ---
 def dismiss_privacy_overlays(page, timeout_ms=8000):
-    import re, time
-    start = time.time()
+    import re, time as _time
+    start = _time.time()
 
     known_selectors = [
         "#onetrust-accept-btn-handler",
@@ -124,7 +123,7 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
             pass
         return False
 
-    while (time.time() - start) * 1000 < timeout_ms:
+    while (_time.time() - start) * 1000 < timeout_ms:
         clicked = False
         for fr in page.frames:
             try:
@@ -147,12 +146,270 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
 # --- end consent helper ---
 
 
+# ---------- Phase 1: Scan (inventory every field first) ----------
+def _accessible_label(frame, el):
+    try:
+        return frame.evaluate(
+            """
+            (el) => {
+              const byLabel = (el.labels && el.labels[0] && el.labels[0].innerText) || "";
+              const aria    = el.getAttribute("aria-label") || "";
+              const ph      = el.getAttribute("placeholder") || "";
+              const byId    = (() => {
+                 const ids = (el.getAttribute("aria-labelledby") || "").trim().split(/\\s+/).filter(Boolean);
+                 return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
+              })();
+              const near = (() => {
+                 const lab = el.closest("label");
+                 if (lab) return lab.innerText || "";
+                 const wrapper = el.closest("div, section, fieldset, .form-group, .field");
+                 return wrapper ? (wrapper.querySelector("legend,h1,h2,h3,h4,span,small,label,.label,.title")?.innerText || "") : "";
+              })();
+              return [byLabel, aria, ph, byId, near].join(" ").replace(/\\s+/g," ").trim();
+            }
+            """,
+            el,
+        ) or ""
+    except Exception:
+        return ""
+
+
+def scan_all_fields(page):
+    """
+    Build an inventory of all visible input-like fields across every frame.
+    Returns a list of dicts with stable (query + nth) locators to re-find elements later.
+    """
+    selectors = [
+        "input:not([type='hidden']):not([disabled])",
+        "textarea:not([disabled])",
+        "select:not([disabled])",
+        "[contenteditable='true']",
+    ]
+    inventory = []
+    frame_idx_map = {frame: idx for idx, frame in enumerate(page.frames)}
+    total = 0
+
+    for frame in page.frames:
+        for query in selectors:
+            loc = frame.locator(query)
+            n = loc.count()
+            for i in range(n):
+                el = loc.nth(i)
+                try:
+                    if not el.is_visible():
+                        continue
+                    etype = (el.get_attribute("type") or "").lower()
+                    label = _accessible_label(frame, el)
+                    req = bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True]))
+
+                    # current value
+                    curr = ""
+                    try:
+                        if query == "[contenteditable='true']":
+                            curr = el.inner_text().strip()
+                        else:
+                            curr = el.input_value().strip()
+                    except Exception:
+                        pass
+
+                    item = {
+                        "frame_index": frame_idx_map[frame],
+                        "query": query,
+                        "nth": i,
+                        "type": etype or ("contenteditable" if query == "[contenteditable='true']" else ""),
+                        "name": el.get_attribute("name") or "",
+                        "id": el.get_attribute("id") or "",
+                        "placeholder": el.get_attribute("placeholder") or "",
+                        "aria_label": el.get_attribute("aria-label") or "",
+                        "label": label,
+                        "required": req,
+                        "current_value": curr,
+                    }
+                    inventory.append(item)
+                    total += 1
+                except Exception:
+                    continue
+
+    print(f"🧩 Field scan complete — detected {total} fields across {len(page.frames)} frames.")
+    return inventory
+
+
+def _country_human(code: str) -> str:
+    return {
+        "DK": "Denmark",
+        "US": "United States",
+        "UK": "United Kingdom",
+        "FRA": "France",
+        "GER": "Germany",
+    }.get((code or "").upper(), "")
+
+
+def _value_from_label(user, label: str, el_type: str):
+    # Build user data on demand
+    linkedin = (getattr(user, "linkedin_url", "") or "").strip()
+    user_data = {
+        "first_name": user.first_name or "",
+        "last_name": user.last_name or "",
+        "email": user.email or "",
+        "phone": getattr(user, "phone_number", "") or "",
+        "linkedin": linkedin,
+        "country": _country_human(getattr(user, "country", "")),
+        "city": getattr(user, "location", "") or "",
+        "occupation": getattr(user, "occupation", "") or "",
+        "company": getattr(user, "category", "") or "",
+    }
+
+    L = (label or "").lower()
+
+    if "first" in L or "given" in L or "forename" in L:
+        return user_data["first_name"]
+    if "last" in L or "surname" in L or "family name" in L:
+        return user_data["last_name"]
+    if "email" in L or el_type == "email":
+        return user_data["email"]
+    if "phone" in L or "mobile" in L or "tel" in L or el_type == "tel":
+        return user_data["phone"]
+    if "linkedin" in L or ("profile" in L and "url" in L) or ("url" in L and "linkedin" in L):
+        return user_data["linkedin"]
+    if "country" in L:
+        return user_data["country"]
+    if "city" in L or "town" in L:
+        return user_data["city"]
+    if "job title" in L or ("title" in L and "job" in L) or "position" in L or "role" in L:
+        return user_data["occupation"]
+    if "company" in L or "employer" in L or "organization" in L or "organisation" in L:
+        return user_data["company"]
+
+    # generic URL fields: only fill if clearly LinkedIn
+    if ("url" in L or "website" in L) and "linkedin" in L:
+        return user_data["linkedin"]
+
+    return ""
+
+
+# ---------- Phase 2: Fill (after scan) ----------
+def fill_from_inventory(page, user, inventory):
+    """
+    Re-find each scanned element via (frame_index, query, nth),
+    decide the right value from user data, and fill it.
+    """
+    filled = 0
+    frames = list(page.frames)
+    for item in inventory:
+        try:
+            frame = frames[item["frame_index"]]
+        except Exception:
+            continue
+
+        try:
+            el = frame.locator(item["query"]).nth(item["nth"])
+        except Exception:
+            continue
+
+        try:
+            if not el.is_visible():
+                continue
+
+            # Skip if already filled with a non-placeholder value
+            curr = ""
+            try:
+                if item["query"] == "[contenteditable='true']":
+                    curr = el.inner_text().strip()
+                else:
+                    curr = el.input_value().strip()
+            except Exception:
+                pass
+            if curr and curr.upper() != "N/A":
+                continue
+
+            # Build best label (re-check in case DOM changed)
+            label = item.get("label") or _accessible_label(frame, el)
+            etype = (item.get("type") or "").lower()
+
+            val = _value_from_label(user, label, etype)
+
+            # Clear stray 'N/A' if we now have a real val
+            if (not val) and (curr.upper() == "N/A"):
+                try:
+                    if item["query"] == "[contenteditable='true']":
+                        el.fill("")  # contenteditable supports fill in Playwright
+                    else:
+                        el.fill("")
+                except Exception:
+                    pass
+                continue
+
+            if not val:
+                continue
+
+            # Scroll into view
+            try:
+                el.scroll_into_view_if_needed(timeout=2000)
+            except Exception:
+                pass
+
+            # Perform fill / select
+            is_select = False
+            try:
+                is_select = el.evaluate("el => el.tagName && el.tagName.toLowerCase() === 'select'")
+            except Exception:
+                pass
+
+            if is_select:
+                try:
+                    el.select_option(label=val)  # exact match first
+                except Exception:
+                    # fallback: lower-case contains
+                    frame.evaluate(
+                        """
+                        (el, want) => {
+                          const opts = Array.from(el.options || []);
+                          const target = opts.find(o => (o.textContent||'').trim().toLowerCase() === want.toLowerCase())
+                                       || opts.find(o => (o.textContent||'').toLowerCase().includes(want.toLowerCase()));
+                          if (target) el.value = target.value;
+                          el.dispatchEvent(new Event('change', {bubbles:true}));
+                        }
+                        """,
+                        el, val
+                    )
+            else:
+                el.fill(val)
+                try:
+                    el.press("Tab")
+                except Exception:
+                    pass
+                try:
+                    frame.evaluate(
+                        "el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }",
+                        el
+                    )
+                except Exception:
+                    pass
+
+            print(f"✅ Filled “{(label or item.get('name') or item.get('id') or 'field')[:60]}” → {val}")
+            filled += 1
+
+        except Exception:
+            continue
+
+    print(f"✅ Post-scan fill completed — filled {filled} fields from inventory.")
+    return filled
+
 
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True):
     """
     Robust ATS automation handler.
     Detects and fills dynamic, iframe-based forms (Workday, Lever, Greenhouse, etc.).
     If dry_run=True, it fills but does not submit.
+
+    NEW FLOW:
+      - Reveal form (consent + safe apply)
+      - Detect iframe, scroll/expand
+      - PHASE 1: Scan all fields -> inventory
+      - PHASE 2: Fill from inventory
+      - Required-completeness pass
+      - Upload resume
+      - Generate/paste cover letter
     """
 
     room = ATSRoom.objects.get(id=room_id)
@@ -172,6 +429,12 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
     print(f"🌐 Starting ATS automation for: {room.company_name} ({room.apply_url})")
     print(f"🧪 Dry-run mode: {dry_run}")
 
+    # For saving inventories & screenshots
+    log_dir = "/home/clinton/Internstart/media"
+    os.makedirs(log_dir, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_company = "".join(c if c.isalnum() else "_" for c in room.company_name or "company")
+
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
@@ -184,20 +447,15 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             page.goto(room.apply_url, timeout=120000, wait_until="domcontentloaded")
             page.wait_for_load_state("load", timeout=20000)
             page.wait_for_timeout(4000)
-            page.wait_for_timeout(4000)
 
             # 1️⃣ Kill cookie/consent overlays globally (main page + iframes)
             dismiss_privacy_overlays(page)
 
-
+            # Some pages need a reload after consent
             page.goto(room.apply_url, timeout=120000, wait_until="domcontentloaded")
             page.wait_for_load_state("load", timeout=20000)
-            page.wait_for_timeout(4000)
-
-            # NEW: clear any privacy modal that appears right after load
+            page.wait_for_timeout(2000)
             dismiss_privacy_overlays(page)
-
-            page.wait_for_timeout(4000)
 
             # 2️⃣ Trigger “Apply” or open hidden form modals (SAFE)
             try:
@@ -252,9 +510,8 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 el.click()
                                 print(f"🖱️ Safely clicked '{text[:40]}'")
                                 page.wait_for_timeout(1500)
-                            # NEW: some sites open consent again after first interaction
+                                # re-consent if it pops again
                                 dismiss_privacy_overlays(page, timeout_ms=5000)
-
 
                                 after_url = page.url
                                 after_field_count = page.locator("input, textarea, select").count()
@@ -265,9 +522,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                     try:
                                         page.go_back(timeout=10000)
                                         page.wait_for_timeout(1000)
-                                    # NEW: after going back, overlays may render again
                                         dismiss_privacy_overlays(page, timeout_ms=3000)
-
                                     except Exception:
                                         pass
                                     continue
@@ -282,10 +537,10 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Safe apply trigger failed: {e}")
 
-        # NEW: ensure nothing is blocking inputs before we scan/fill
+            # Ensure nothing is blocking before we scan/fill
             dismiss_privacy_overlays(page, timeout_ms=3000)
 
-            # 3️⃣ Detect iframe context
+            # 3️⃣ Detect iframe context (used later for uploads/CL)
             context = page
             try:
                 for frame in page.frames:
@@ -302,140 +557,49 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Could not detect iframe: {e}")
 
-            # 4️⃣ Wait for form fields (handle React render delays)
+            # 4️⃣ Wait for fields + expand + scroll to render dynamic inputs
             try:
                 context.wait_for_selector("input, textarea, select", timeout=12000)
                 print("⏳ Form fields detected and ready.")
             except Exception:
                 print("⚠️ No visible fields yet; continuing with scan.")
-
-            # 5️⃣ Expand collapsed / hidden sections
             try:
                 expanders = context.locator("button:has-text('Expand'), button:has-text('Show more'), div[role='button']")
                 if expanders.count() > 0:
                     for i in range(min(expanders.count(), 3)):
                         expanders.nth(i).click()
-                        page.wait_for_timeout(1000)
+                        page.wait_for_timeout(700)
                     print("📂 Expanded collapsible sections.")
             except Exception:
                 pass
-
-            # 6️⃣ Scroll to render dynamic fields
             try:
-                for y in range(0, 2000, 400):
-                    page.mouse.wheel(0, 400)
-                    page.wait_for_timeout(400 + random.randint(100, 300))
+                for _ in range(0, 1800, 360):
+                    page.mouse.wheel(0, 360)
+                    page.wait_for_timeout(350 + random.randint(80, 220))
                 print("🧭 Scrolled through page to reveal hidden inputs.")
             except Exception:
                 pass
 
-            # 7️⃣ Fill deterministic fields
-            fields = {
-                "first": user.first_name,
-                "last": user.last_name,
-                "email": user.email,
-                "phone": getattr(user, "phone_number", ""),
-            }
+            # ========== PHASE 1: SCAN ==========
+            inventory = scan_all_fields(page)
 
-            for key, value in fields.items():
-                if not value:
-                    continue
-                try:
-                    locator = context.locator(
-                        f"input[name*='{key}'], input[placeholder*='{key}'], input[id*='{key}']"
-                    )
-                    if locator.count() > 0:
-                        locator.first.fill(value)
-                        print(f"✍️ Filled {key} field")
-                except Exception as e:
-                    print(f"⚠️ Could not fill {key}: {e}")
-
-                # ✅ LinkedIn URL — sourced automatically from user model
-                try:
-                    # Pull LinkedIn URL from user model like resume
-                    linkedin_url = getattr(user, "linkedin_url", "") or ""
-                    if linkedin_url:
-                        print(f"🔗 Loaded LinkedIn URL from user profile: {linkedin_url}")
-                    else:
-                        print("⚠️ No LinkedIn URL found in user model.")
-
-                    # First attempt — fill any visible LinkedIn/Profile/URL fields
-                    linkedin_fields = context.locator(
-                        "input[name*='linkedin'], input[id*='linkedin'], input[placeholder*='linkedin'], "
-                        "input[aria-label*='linkedin'], input[placeholder*='profile'], input[aria-label*='profile'], "
-                        "input[name*='url'], input[id*='url']"
-                    )
-                    if linkedin_fields.count() > 0:
-                        linkedin_fields.first.fill(linkedin_url or "N/A")
-                        print("🔗 Filled LinkedIn URL field (initial pass).")
-                    else:
-                        print("⚠️ No LinkedIn field visible yet — will retry globally after resume upload.")
-
-                except Exception as e:
-                    print(f"⚠️ LinkedIn pre-fill failed: {e}")
-
-
-            # 7.1️⃣ Country field (dropdown or input)
+            # Save inventory snapshot (useful for debugging / dashboard)
             try:
-                user_country = getattr(user, "country", "") or ""
-                if user_country:
-                    country_map = {
-                        "DK": "Denmark",
-                        "US": "United States",
-                        "UK": "United Kingdom",
-                        "FRA": "France",
-                        "GER": "Germany",
-                    }
-                    country_name = country_map.get(user_country, user_country)
-                    print(f"🧩 Looking for country field to fill with '{country_name}'")
-
-                    # Handle normal Greenhouse dropdowns
-                    container = context.locator(".select__container")
-                    if container.count() > 0:
-                        container.first.click()
-                        page.wait_for_timeout(1000)
-                        menu = page.locator(".select__menu, .select__menu-list")
-                        if menu.count() > 0:
-                            option = menu.locator(f"text={country_name}")
-                            if option.count() > 0:
-                                option.first.click()
-                                print(f"🌍 Selected country from Greenhouse menu: {country_name}")
-                                page.mouse.click(10, 10)
-                                page.wait_for_timeout(1000)
-                            else:
-                                print(f"⚠️ Could not find '{country_name}' in dropdown.")
-                        else:
-                            print("⚠️ No .select__menu found after opening dropdown.")
-                    else:
-                        # Handle <select> or text fields (skip phone country widgets)
-                        select = context.locator("select[name*='country'], select[id*='country']")
-                        if select.count() > 0:
-                            options = select.first.locator("option")
-                            for i in range(options.count()):
-                                text = options.nth(i).inner_text().strip().lower()
-                                if country_name.lower() in text:
-                                    value = options.nth(i).get_attribute("value")
-                                    select.first.select_option(value=value)
-                                    print(f"🌍 Selected country from <select>: {country_name}")
-                                    break
-                        else:
-                            # Try text input (not phone prefix)
-                            country_inputs = context.locator("input[placeholder*='Country'], input[aria-label*='Country']")
-                            for i in range(country_inputs.count()):
-                                el = country_inputs.nth(i)
-                                parent = el.evaluate("el => el.closest('div')?.innerText || ''")
-                                if "+" in parent or "Phone" in parent:
-                                    continue
-                                el.fill(country_name)
-                                print(f"🌍 Filled standalone country text field: {country_name}")
-                                break
-                            else:
-                                print("⚠️ No valid country field found.")
+                inv_path = os.path.join(log_dir, f"ats_field_inventory_{safe_company}_{ts}.json")
+                with open(inv_path, "w", encoding="utf-8") as f:
+                    json.dump(inventory, f, ensure_ascii=False, indent=2)
+                print(f"📝 Saved field inventory → {inv_path}")
             except Exception as e:
-                print(f"⚠️ Could not select country: {e}")
+                print(f"⚠️ Could not save inventory JSON: {e}")
 
+            # ========== PHASE 2: FILL ==========
+            try:
+                fill_count = fill_from_inventory(page, user, inventory)
+            except Exception as e:
+                print(f"⚠️ Post-scan fill failed: {e}")
+                fill_count = 0
 
-            # 7.2️⃣ REQUIRED COMPLETENESS PASS — fill every remaining required field
+            # 7️⃣ REQUIRED COMPLETENESS PASS — fill requireds still empty (N/A where needed)
             try:
                 print("🧹 Running required-completeness pass (text/select/radio/checkbox/phone code)…")
 
@@ -447,9 +611,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 AVOID_CHECKBOX = ["newsletter", "marketing", "samarbejde", "marketingsføring", "updates", "promotion"]
                 REQUIRED_MARKERS = ["*", "required", "obligatorisk", "påkrævet", "mandatory"]
 
-                def is_placeholder(text: str) -> bool:
-                    t = (text or "").strip().lower()
-                    return (t == "" or any(w in t for w in PLACEHOLDER_WORDS))
+                def looks_required(text: str) -> bool:
+                    t = (text or "").lower()
+                    return any(m in t for m in REQUIRED_MARKERS)
 
                 def near_text(frame, el):
                     try:
@@ -458,156 +622,50 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             const lab  = (el.labels && el.labels[0]) ? el.labels[0].innerText : "";
                             const aria = el.getAttribute("aria-label") || "";
                             const ph   = el.getAttribute("placeholder") || "";
-
-                            // aria-labelledby chain
                             const byId = (() => {
-                            const ids = (el.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean);
-                            return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
+                              const ids = (el.getAttribute("aria-labelledby") || "").split(/\\s+/).filter(Boolean);
+                              return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
                             })();
-
-                            // generic wrapper text
                             const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section");
                             const near = wrap ? (wrap.querySelector("legend, label, span, small, .label, .title")?.innerText || "") : "";
-
-                            // 🔴 HR-Manager: table layout — take the text from the first cell in the same row
                             const tr = el.closest("tr");
                             const leftCell = tr ? (tr.querySelector("td,th")?.innerText || "") : "";
-
-                            // also look at immediate previous sibling cell (some pages repeat cols)
-                            const prevCell = tr ? (tr.previousElementSibling?.innerText || "") : "";
-
-                            return [lab, aria, ph, byId, near, leftCell, prevCell]
-                                    .join(" ").replace(/\\s+/g," ").trim();
+                            return [lab, aria, ph, byId, near, leftCell].join(" ").replace(/\\s+/g," ").trim();
                         }
                         """, el) or ""
                     except Exception:
                         return ""
-                    
 
-                    # 7.3️⃣ HR-Manager/table fallback: fill any still-empty selects and common Danish fields
-                try:
-                    print("🧰 Table-aware fallback (HR-Manager-style)…")
-
-                    dk = {
-                        "first_name": user.first_name or "",
-                        "last_name":  user.last_name or "",
-                        "email":      user.email or "",
-                        "phone":      getattr(user, "phone_number", "") or "",
-                        "city":       getattr(user, "location", "") or "",
-                        "address":    getattr(user, "address", "") or "N/A",
-                        "zip":        getattr(user, "postal_code", "") or "0000",
-                    }
-
-                    PLACEHOLDER = r"(select|vælg|choose|please|—|–|-)"
-
-                    for frame in page.frames:
-                        # A) Any <select> without a value → choose first non-placeholder option
-                        selects = frame.locator("select:not([disabled])")
-                        for i in range(selects.count()):
-                            sel = selects.nth(i)
-                            try:
-                                if not sel.is_visible():
-                                    continue
-                                has_val = frame.evaluate("(el) => !!el.value", sel)
-                                if has_val:
-                                    continue
-                                chosen = frame.evaluate(f"""
-                                (el) => {{
-                                    const re = new RegExp("{PLACEHOLDER}", "i");
-                                    const opts = Array.from(el.options || []);
-                                    const good = opts.find(o => {{
-                                    const t = (o.textContent||'').trim();
-                                    return t && !re.test(t);
-                                    }});
-                                    if (good) {{
-                                    el.value = good.value;
-                                    el.dispatchEvent(new Event('change', {{bubbles:true}}));
-                                    return good.textContent.trim();
-                                    }}
-                                    return "";
-                                }}
-                                """, sel)
-                                if chosen:
-                                    # log with the left cell label if available
-                                    label = near_text(frame, sel)
-                                    print(f"✅ Select filled → {chosen[:40]} ({label[:40]})")
-                            except Exception:
-                                continue
-
-                        # B) Common Danish text fields by row label (Adresse / Postnr./by / Køn handled above as select)
-                        inputs = frame.locator("input[type='text'], input:not([type]), textarea")
-                        for i in range(inputs.count()):
-                            el = inputs.nth(i)
-                            try:
-                                if not el.is_visible():
-                                    continue
-                                val = ""
-                                try:
-                                    val = el.input_value().strip()
-                                except Exception:
-                                    pass
-                                if val:
-                                    continue
-
-                                label = near_text(frame, el).lower()
-
-                                if "adresse" in label:
-                                    el.fill(dk["address"])
-                                elif "postnr" in label or "post nr" in label or "zip" in label:
-                                    el.fill(dk["zip"])
-                                elif ("/by" in label) or (" by" in label) or ("city" in label):
-                                    el.fill(dk["city"] or "Copenhagen")
-                                else:
-                                    continue
-
-                                try: el.press("Tab")
-                                except Exception: pass
-                                frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
-                                print(f"🏷️ Table text field filled ({label[:60]})")
-                            except Exception:
-                                continue
-
-                    print("✅ Table-aware fallback complete.")
-                except Exception as e:
-                    print(f"⚠️ Table-aware fallback failed: {e}")
-
-
-
-                def looks_required(text: str) -> bool:
-                    t = (text or "").lower()
-                    return any(m in t for m in REQUIRED_MARKERS)
-
-                # Scan every frame for still-empty required fields
+                # Phone code widgets
                 for frame in page.frames:
-                    # --- Phone country split widgets (select with +code next to phone input) ---
-                    if user_cc:
-                        try:
-                            phone_rows = frame.locator("select, [role='combobox']").filter(has_text="+")
-                            for i in range(min(6, phone_rows.count())):
-                                sel = phone_rows.nth(i)
-                                if not sel.is_visible():
-                                    continue
-                                # heuristic: sibling/nearby contains 'phone' text
-                                txt = near_text(frame, sel).lower()
-                                if "phone" in txt or "mobil" in txt or "telefon" in txt:
-                                    # try exact option match, then contains
-                                    try:
-                                        sel.select_option(label=user_cc)
-                                    except Exception:
-                                        frame.evaluate("""
-                                            (el, want) => {
-                                            const opts = Array.from((el.tagName==='SELECT' ? el.options : []));
-                                            const match = opts.find(o => (o.textContent||'').trim()===want)
-                                                        || opts.find(o => (o.textContent||'').includes(want));
-                                            if (match) { el.value = match.value; el.dispatchEvent(new Event('change',{bubbles:true})); }
-                                            }
-                                        """, sel, user_cc)
-                                    print(f"📞 Selected phone country code {user_cc}")
-                                    break
-                        except Exception:
-                            pass
+                    if not user_cc:
+                        break
+                    try:
+                        phone_rows = frame.locator("select, [role='combobox']").filter(has_text="+")
+                        for i in range(min(6, phone_rows.count())):
+                            sel = phone_rows.nth(i)
+                            if not sel.is_visible():
+                                continue
+                            txt = near_text(frame, sel).lower()
+                            if "phone" in txt or "mobil" in txt or "telefon" in txt:
+                                try:
+                                    sel.select_option(label=user_cc)
+                                except Exception:
+                                    frame.evaluate("""
+                                        (el, want) => {
+                                          const opts = Array.from((el.tagName==='SELECT' ? el.options : []));
+                                          const match = opts.find(o => (o.textContent||'').trim()===want)
+                                                      || opts.find(o => (o.textContent||'').includes(want));
+                                          if (match) { el.value = match.value; el.dispatchEvent(new Event('change',{bubbles:true})); }
+                                        }
+                                    """, sel, user_cc)
+                                print(f"📞 Selected phone country code {user_cc}")
+                                break
+                    except Exception:
+                        pass
 
-                    # --- Required text-like fields ---
+                # Required text-like inputs
+                for frame in page.frames:
                     try:
                         inputs = frame.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])")
                         for i in range(inputs.count()):
@@ -617,7 +675,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                     continue
                                 t = (el.get_attribute("type") or "").lower()
                                 if t in ["checkbox", "radio", "file"]:
-                                    continue  # handled below
+                                    continue
 
                                 curr = ""
                                 try:
@@ -635,18 +693,12 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 req_attr = el.get_attribute("required") is not None or el.get_attribute("aria-required") in ["true", True]
                                 req_near = looks_required(lbl)
                                 if not (req_attr or req_near):
-                                    continue  # only mop up requireds
+                                    continue
 
-                                # Don't auto-fill emails/phones here (those were handled earlier)
                                 L = lbl.lower()
-                                if any(k in L for k in ["email", "e-mail", "mail"]):
-                                    continue
-                                if any(k in L for k in ["phone", "mobil", "telefon", "tel"]):
-                                    continue
-                                if "linkedin" in L:
-                                    continue  # already handled by dedicated logic
+                                if any(k in L for k in ["email", "e-mail", "mail", "phone", "mobil", "telefon", "tel", "linkedin"]):
+                                    continue  # already addressed in inventory fill
 
-                                # Last resort: drop N/A so the field isn’t left blank
                                 el.fill("N/A")
                                 try: el.press("Tab")
                                 except Exception: pass
@@ -657,7 +709,8 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
-                    # --- Required <select> dropdowns ---
+                # Required selects
+                for frame in page.frames:
                     try:
                         selects = frame.locator("select:not([disabled])")
                         for i in range(selects.count()):
@@ -665,8 +718,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             try:
                                 if not sel.is_visible():
                                     continue
-
-                                # already has value?
                                 has_val = frame.evaluate("(el) => !!el.value", sel)
                                 if has_val:
                                     continue
@@ -677,15 +728,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 if not (req_attr or req_near):
                                     continue
 
-                                # If label hints 'country' and we know the user's country text, try that first
-                                user_country_human = {
-                                    "DK": "Denmark",
-                                    "US": "United States",
-                                    "UK": "United Kingdom",
-                                    "FRA": "France",
-                                    "GER": "Germany",
-                                }.get((getattr(user, "country", "") or "").upper(), "")
-
+                                user_country_human = _country_human(getattr(user, "country", ""))
                                 if "country" in lbl.lower() and user_country_human:
                                     try:
                                         sel.select_option(label=user_country_human)
@@ -694,16 +737,15 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                     except Exception:
                                         pass
 
-                                # Otherwise choose the first non-placeholder option
                                 chose = frame.evaluate("""
                                     (el) => {
-                                    const opts = Array.from(el.options || []);
-                                    const good = opts.find(o => {
+                                      const opts = Array.from(el.options || []);
+                                      const good = opts.find(o => {
                                         const t = (o.textContent||'').trim();
                                         return t && !/select|vælg|choose|please|—|–|-/i.test(t);
-                                    });
-                                    if (good) { el.value = good.value; el.dispatchEvent(new Event('change',{bubbles:true})); return good.textContent.trim(); }
-                                    return "";
+                                      });
+                                      if (good) { el.value = good.value; el.dispatchEvent(new Event('change',{bubbles:true})); return good.textContent.trim(); }
+                                      return "";
                                     }
                                 """, sel)
                                 if chose:
@@ -713,7 +755,8 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
-                    # --- Radio groups (pick a safe default if required) ---
+                # Required radios
+                for frame in page.frames:
                     try:
                         radios = frame.locator("input[type='radio']:not([disabled])")
                         processed = set()
@@ -724,7 +767,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 if name in processed:
                                     continue
                                 group = frame.locator(f"input[type='radio'][name='{name}']")
-                                # required?
                                 any_req = False
                                 for j in range(group.count()):
                                     g = group.nth(j)
@@ -732,7 +774,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                         any_req = True; break
                                 if not any_req:
                                     continue
-                                # pick the first visible option
                                 for j in range(group.count()):
                                     g = group.nth(j)
                                     if g.is_visible():
@@ -745,21 +786,25 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
-                    # --- Checkboxes (required only; avoid marketing/newsletters) ---
+                # Required checkboxes (skip marketing)
+                for frame in page.frames:
                     try:
                         checks = frame.locator("input[type='checkbox']:not([disabled])")
                         for i in range(checks.count()):
                             c = checks.nth(i)
                             try:
-                                lbl = near_text(frame, c).lower()
-                                req = c.get_attribute("required") is not None or c.get_attribute("aria-required") in ["true", True] or looks_required(lbl)
-                                if not req:
-                                    continue
-                                if any(w in lbl for w in AVOID_CHECKBOX):
-                                    print(f"🚫 Skipping nonessential checkbox: {lbl[:50]}")
-                                    continue
-                                c.check(force=True)
-                                print(f"☑️ Checked required checkbox ({lbl[:60]})")
+                                lbl = (c.get_attribute("aria-label") or "").lower()
+                                req = c.get_attribute("required") is not None or c.get_attribute("aria-required") in ["true", True]
+                                # Try to augment label from nearby text if empty
+                                if not lbl:
+                                    try:
+                                        lbl = frame.evaluate("(el)=> el.closest('label,div,section,fieldset')?.innerText || ''", c).lower()
+                                    except Exception:
+                                        lbl = ""
+                                is_marketing = any(w in lbl for w in ["newsletter", "marketing", "samarbejde", "marketingsføring", "updates", "promotion"])
+                                if req and not is_marketing:
+                                    c.check(force=True)
+                                    print(f"☑️ Checked required checkbox ({lbl[:60]})")
                             except Exception:
                                 continue
                     except Exception:
@@ -769,266 +814,26 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Required-completeness pass failed: {e}")
 
-            
-
-            # ✅ EXTRA: Global scan for any unfilled fields (outside iframe or below form)
-            # 🔁 LinkedIn URL from user (single source)
-            linkedin_url = (getattr(user, "linkedin_url", "") or "").strip()
-
-            # 🚫 REMOVE the old "Global scan" that filled "N/A" before this point.
-
-            # 🌐 UNIVERSAL ACCESSIBLE-NAME FIELD SCANNER (dynamic, user-only)
-            try:
-                print("🌐 Running dynamic universal field scanner (accessible-name aware)...")
-
-                def _country_human(code: str) -> str:
-                    return {
-                        "DK": "Denmark",
-                        "US": "United States",
-                        "UK": "United Kingdom",
-                        "FRA": "France",
-                        "GER": "Germany",
-                    }.get((code or "").upper(), "")
-
-                user_data = {
-                    "first_name": user.first_name or "",
-                    "last_name": user.last_name or "",
-                    "email": user.email or "",
-                    "phone": getattr(user, "phone_number", "") or "",
-                    "linkedin": linkedin_url,
-                    "country": _country_human(getattr(user, "country", "")),
-                    "city": getattr(user, "location", "") or "",
-                    "occupation": getattr(user, "occupation", "") or "",
-                    "company": getattr(user, "category", "") or "",
-                }
-
-                # Helper that returns an element's best label using several strategies
-                def accessible_label(frame, el):
-                    try:
-                        return frame.evaluate(
-                            """
-                            (el) => {
-                            const byLabel = (el.labels && el.labels[0] && el.labels[0].innerText) || "";
-                            const aria = el.getAttribute("aria-label") || "";
-                            const ph = el.getAttribute("placeholder") || "";
-                            const byId = (() => {
-                                const ids = (el.getAttribute("aria-labelledby") || "").trim().split(/\s+/).filter(Boolean);
-                                return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
-                            })();
-                            // Nearby header/text container as fallback
-                            const near = (() => {
-                                const lab = el.closest("label");
-                                if (lab) return lab.innerText || "";
-                                const wrapper = el.closest("div, section, fieldset");
-                                return wrapper ? (wrapper.querySelector("legend,h1,h2,h3,h4,span,small,label")?.innerText || "") : "";
-                            })();
-                            return [byLabel, aria, ph, byId, near].join(" ").replace(/\\s+/g, " ").trim();
-                            }
-                            """,
-                            el,
-                        ) or ""
-                    except Exception:
-                        return ""
-
-                # Mapping predicate → user value, ordered by specificity
-                def value_for(label: str, el_type: str) -> str:
-                    L = label.lower()
-
-                    if "first" in L or "given" in L or "forename" in L:
-                        return user_data["first_name"]
-                    if "last" in L or "surname" in L or "family name" in L:
-                        return user_data["last_name"]
-                    if "email" in L or el_type == "email":
-                        return user_data["email"]
-                    if "phone" in L or "mobile" in L or "tel" in L or el_type == "tel":
-                        return user_data["phone"]
-                    if "linkedin" in L or ("profile" in L and "url" in L) or ("url" in L and "linkedin" in L):
-                        return user_data["linkedin"]
-                    if "country" in L:
-                        return user_data["country"]
-                    if "city" in L or "town" in L:
-                        return user_data["city"]
-                    if "job title" in L or ("title" in L and "job" in L) or "position" in L or "role" in L:
-                        return user_data["occupation"]
-                    if "company" in L or "employer" in L or "organization" in L or "organisation" in L:
-                        return user_data["company"]
-
-                    # generic URL fields: only fill if clearly LinkedIn
-                    if ("url" in L or "website" in L) and "linkedin" in L:
-                        return user_data["linkedin"]
-
-                    return ""
-
-                filled = 0
-
-                # Scan inputs, textareas, selects, and React comboboxes
-                selectors = [
-                    "input:not([type='hidden']):not([disabled])",
-                    "textarea:not([disabled])",
-                    "select:not([disabled])",
-                    "[role='combobox'] input",   # common for react-select & MUI
-                ]
-
-                for frame in page.frames:
-                    print(f"🔎 Scanning frame: {frame.name or 'main'}")
-                    for sel in selectors:
-                        loc = frame.locator(sel)
-                        n = loc.count()
-                        for i in range(n):
-                            el = loc.nth(i)
-                            try:
-                                if not el.is_visible():
-                                    continue
-
-                                # Determine element type & current value
-                                etype = (el.get_attribute("type") or "").lower()
-                                curr = ""
-                                try:
-                                    curr = el.input_value().strip()
-                                except Exception:
-                                    try:
-                                        curr = el.inner_text().strip()
-                                    except Exception:
-                                        curr = ""
-
-                                # Skip if already non-empty and not "N/A"
-                                if curr and curr.upper() != "N/A":
-                                    continue
-
-                                # Build best label
-                                label = accessible_label(frame, el)
-                                if not label:
-                                    # last-ditch: use name/id
-                                    label = " ".join(filter(None, [
-                                        el.get_attribute("name") or "",
-                                        el.get_attribute("id") or "",
-                                        etype
-                                    ])).strip()
-
-                                # Decide value from user data
-                                val = value_for(label, etype)
-
-                                # If field currently says "N/A" but we have a user value, clear then fill
-                                if (not val) and curr.upper() == "N/A":
-                                    # we don't want to leave N/A anywhere; clear it
-                                    try:
-                                        el.fill("")
-                                    except Exception:
-                                        pass
-                                    continue
-
-                                if not val:
-                                    continue  # nothing to fill from user
-
-                                # Scroll into view + fill + commit (helps controlled inputs)
-                                try:
-                                    el.scroll_into_view_if_needed(timeout=2000)
-                                except Exception:
-                                    pass
-
-                                if el.evaluate("el => el.tagName.toLowerCase() === 'select'"):
-                                    # select dropdown: choose matching option
-                                    # primarily used for Country etc.
-                                    try:
-                                        # exact text match first
-                                        el.select_option(label=val)
-                                    except Exception:
-                                        # fallback: partial match (lowercase contains)
-                                        frame.evaluate(
-                                            """
-                                            (el, want) => {
-                                            const opts = Array.from(el.options || []);
-                                            const target = opts.find(o => (o.textContent||'').trim().toLowerCase() === want.toLowerCase())
-                                                        || opts.find(o => (o.textContent||'').toLowerCase().includes(want.toLowerCase()));
-                                            if (target) el.value = target.value;
-                                            el.dispatchEvent(new Event('change', {bubbles:true}));
-                                            }
-                                            """,
-                                            el,
-                                            val,
-                                        )
-                                else:
-                                    # text-like fields
-                                    el.fill(val)
-                                    try:
-                                        el.press("Tab")
-                                    except Exception:
-                                        pass
-                                    # fire input/change for frameworks
-                                    try:
-                                        frame.evaluate(
-                                            "el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }",
-                                            el,
-                                        )
-                                    except Exception:
-                                        pass
-
-                                print(f"✅ Filled “{label[:60]}” → {val}")
-                                filled += 1
-
-                            except Exception:
-                                continue
-
-                print(f"✅ Dynamic universal scanner filled {filled} fields.")
-
-                # 🔁 Robust LinkedIn retry anywhere (after dynamic fill & any late-render)
-                if linkedin_url:
-                    try:
-                        print("🔎 Extra LinkedIn scan across all frames...")
-                        for frame in page.frames:
-                            ln = frame.locator(
-                                "input[name*='linkedin' i], input[id*='linkedin' i], input[placeholder*='linkedin' i], "
-                                "input[aria-label*='linkedin' i], input[name*='profile' i][name*='url' i], "
-                                "input[id*='profile' i][id*='url' i]"
-                            )
-                            if ln.count() > 0:
-                                for j in range(ln.count()):
-                                    el = ln.nth(j)
-                                    if el.is_visible():
-                                        cur = ""
-                                        try:
-                                            cur = el.input_value().strip()
-                                        except Exception:
-                                            pass
-                                        if not cur or cur.upper() == "N/A":
-                                            el.fill(linkedin_url)
-                                            try:
-                                                el.press("Tab")
-                                            except Exception:
-                                                pass
-                                            print("🔗 LinkedIn field filled via extra scan.")
-                                            break
-                    except Exception:
-                        pass
-
-            except Exception as e:
-                print(f"⚠️ Dynamic universal field scanner failed: {e}")
-
-
-            # 🧠 AI dynamic field filling
+            # 🧠 AI dynamic field filling (kept, to mop up any custom fields)
             try:
                 fill_dynamic_fields(context, user)
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
 
-            # Resume upload + rest of function unchanged...
-
-
-
             # 9️⃣ Resume upload (Greenhouse robust fix for visually-hidden inputs)
             try:
                 if resume_path:
                     print(f"📎 Attempting to upload resume from: {resume_path}")
 
-                    # 🧠 Step 1: Prefer "Attach" button if available
+                    # Prefer an "Attach" option if available
                     try:
                         all_buttons = context.locator("button, label")
                         attach_btn = all_buttons.filter(has_text="Attach")
                         manual_btn = all_buttons.filter(has_text="Enter manually")
 
                         if attach_btn.count() > 0:
-                            print("🧠 AI decision: Choosing 'Attach' option for resume upload.")
+                            print("🧠 Decision: Choosing 'Attach' option for resume upload.")
                             attach_btn.first.click()
                             page.wait_for_timeout(2500)
                         elif manual_btn.count() > 0:
@@ -1038,16 +843,16 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception as e:
                         print(f"⚠️ Could not click attach button: {e}")
 
-                    # 🕵️ Step 2: Find <input type="file"> even if hidden
+                    # Find <input type='file'>
                     file_input = None
-                    for i in range(10):  # retry 10s
+                    for _ in range(10):
                         try:
                             for frame in page.frames:
                                 locator = frame.locator("input[type='file']")
                                 if locator.count() > 0:
                                     file_input = locator.first
                                     context = frame
-                                    print(f"✅ Found file input (possibly hidden) in frame after {i+1}s")
+                                    print("✅ Found file input (possibly hidden) in frame")
                                     break
                             if file_input:
                                 break
@@ -1055,29 +860,24 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             pass
                         page.wait_for_timeout(1000)
 
-                    # 🧱 Step 3: Force unhide input and upload
+                    # Force unhide & upload
                     if file_input:
                         try:
-                            # Force visibility using direct JS
                             frame = context
                             frame.evaluate("""
                                 () => {
-                                    const input = document.querySelector('input[type=file]');
-                                    if (input) {
-                                        input.style.display = 'block';
-                                        input.style.visibility = 'visible';
-                                        input.style.position = 'static';
-                                        input.style.width = '200px';
-                                        input.style.height = '40px';
-                                        input.classList.remove('visually-hidden');
-                                        input.removeAttribute('hidden');
-                                        console.log("🎯 File input forcibly unhidden.");
-                                    } else {
-                                        console.warn("⚠️ No file input found in DOM for unhide.");
-                                    }
+                                  const input = document.querySelector('input[type=file]');
+                                  if (input) {
+                                    input.style.display = 'block';
+                                    input.style.visibility = 'visible';
+                                    input.style.position = 'static';
+                                    input.style.width = '200px';
+                                    input.style.height = '40px';
+                                    input.classList.remove('visually-hidden');
+                                    input.removeAttribute('hidden');
+                                  }
                                 }
                             """)
-                            # Set file
                             file_input.set_input_files(resume_path)
                             print("📄 Successfully uploaded resume via forced visibility fix.")
                         except Exception as e:
@@ -1085,7 +885,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     else:
                         print("⚠️ Could not find any input[type='file'] after retries.")
 
-                    # ✅ Step 4: Verify attachment (text or filename visible)
+                    # Verify attachment text/filename
                     try:
                         uploaded = context.locator("text=.docx, text=.pdf, text=Attached, text=uploaded")
                         if uploaded.count() > 0:
@@ -1098,110 +898,8 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
 
-
-
-            # 🔍 UNIVERSAL FIELD SCANNER (fills all visible input-like fields dynamically from user data)
-            try:
-                print("🌐 Running user-based universal field scan (no static values)...")
-
-                selectors = [
-                    "input:not([type='hidden']):not([disabled])",
-                    "textarea:not([disabled])",
-                    "div[contenteditable='true']"
-                ]
-                filled_fields = []
-
-                for frame in page.frames:
-                    print(f"🔎 Scanning frame: {frame.name or 'main'}")
-
-                    for selector in selectors:
-                        elements = frame.locator(selector)
-                        count = elements.count()
-
-                        for i in range(count):
-                            el = elements.nth(i)
-                            try:
-                                if not el.is_visible():
-                                    continue
-
-                                # --- Collect identifiers ---
-                                attrs = {
-                                    "name": el.get_attribute("name") or "",
-                                    "id": el.get_attribute("id") or "",
-                                    "placeholder": el.get_attribute("placeholder") or "",
-                                    "aria": el.get_attribute("aria-label") or "",
-                                }
-                                nearby = el.evaluate("""
-                                    el => {
-                                        const label = el.closest('label');
-                                        const parent = el.closest('div');
-                                        return (label?.innerText || parent?.innerText || '').toLowerCase();
-                                    }
-                                """)
-                                joined = " ".join([attrs["name"], attrs["id"], attrs["placeholder"], attrs["aria"], nearby]).lower()
-
-                                # Skip filled fields
-                                current_val = (
-                                    el.inner_text().strip()
-                                    if selector == "div[contenteditable='true']"
-                                    else el.input_value().strip()
-                                )
-                                if current_val:
-                                    continue
-
-                                # --- Smart mapping from user model ---
-                                fill_value = None
-
-                                if any(k in joined for k in ["first", "fname", "given"]):
-                                    fill_value = user.first_name
-                                elif any(k in joined for k in ["last", "lname", "surname", "family"]):
-                                    fill_value = user.last_name
-                                elif "email" in joined:
-                                    fill_value = user.email
-                                elif any(k in joined for k in ["phone", "mobile", "tel"]):
-                                    fill_value = getattr(user, "phone_number", "")
-                                elif any(k in joined for k in ["linkedin", "profile", "url"]):
-                                    fill_value = getattr(user, "linkedin_url", "")
-                                elif "country" in joined:
-                                    # Convert DK → Denmark etc.
-                                    country_map = dict(
-                                        DK="Denmark",
-                                        US="United States",
-                                        UK="United Kingdom",
-                                        FRA="France",
-                                        GER="Germany",
-                                    )
-                                    fill_value = country_map.get(getattr(user, "country", ""), "")
-                                elif any(k in joined for k in ["city"]):
-                                    fill_value = getattr(user, "location", "")
-                                elif any(k in joined for k in ["job", "title", "position", "role"]):
-                                    fill_value = getattr(user, "occupation", "")
-                                elif any(k in joined for k in ["company", "employer"]):
-                                    fill_value = getattr(user, "category", "")
-
-                                # Skip if no value found in user model
-                                if not fill_value:
-                                    continue
-
-                                # Fill dynamically
-                                el.fill(str(fill_value))
-                                filled_fields.append((joined[:70], fill_value))
-                                print(f"✅ Filled '{joined[:60]}' → {fill_value}")
-
-                            except Exception:
-                                continue
-
-                print(f"✅ Universal field scan complete. Dynamically filled {len(filled_fields)} fields.")
-            except Exception as e:
-                print(f"⚠️ Universal field scan failed: {e}")
-
-
-
-
-
             # 🔟 Cover letter: generate via OpenAI → paste or attach file
             try:
-                # Extract some job text context
                 job_text = ""
                 try:
                     job_container = page.locator("main, #content, article").first
@@ -1216,8 +914,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception:
                     pass
 
-                # 🧠 Generate cover letter text directly from OpenAI
-                letter_text = generate_cover_letter_text(
+                letter_text = cover_letter_text or generate_cover_letter_text(
                     user=user,
                     company=room.company_name,
                     role=role_guess,
@@ -1225,8 +922,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 )
 
                 filled = False
-
-                # Prefer “Enter manually” if present
                 try:
                     manual_btn = context.locator(
                         ":is(button,label,a):has-text('Enter manually'), :is(button,label,a):has-text('Skriv manuelt')"
@@ -1237,7 +932,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception:
                     pass
 
-                # Try to paste into textarea
+                # textarea route
                 try:
                     ta = context.locator(
                         "textarea[name*='cover' i], textarea[id*='cover' i], textarea[aria-label*='cover' i]"
@@ -1256,7 +951,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 except Exception:
                     pass
 
-                # Some ATS use contenteditable instead of textarea
+                # contenteditable route
                 if not filled:
                     try:
                         ce = context.locator("[contenteditable='true']")
@@ -1271,7 +966,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
-                # Fallback: upload as file
+                # file attach fallback
                 if not filled:
                     print("📎 No text field found — uploading AI-generated cover letter as file.")
                     file_path = write_temp_cover_letter_file(letter_text, suffix=".txt")
@@ -1286,7 +981,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
-                    # Look for file input
                     file_input = None
                     for frame in page.frames:
                         try:
@@ -1303,17 +997,18 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         print("📄 Uploaded AI-generated cover letter file.")
                     else:
                         print("⚠️ Could not locate cover letter file input.")
-
             except Exception as e:
                 print(f"⚠️ Cover letter step failed: {e}")
 
-
             # 11️⃣ Dry run
-            screenshot_path = f"/home/clinton/Internstart/media/ats_preview_{room.company_name.replace(' ', '_')}.png"
+            screenshot_path = os.path.join(log_dir, f"ats_preview_{safe_company}_{ts}.png")
             if dry_run:
                 print("🧪 Dry run active — skipping submit.")
-                page.screenshot(path=screenshot_path, full_page=True)
-                print(f"📸 Saved preview screenshot as {screenshot_path}")
+                try:
+                    page.screenshot(path=screenshot_path, full_page=True)
+                    print(f"📸 Saved preview screenshot as {screenshot_path}")
+                except Exception as e:
+                    print(f"⚠️ Could not save screenshot: {e}")
                 browser.close()
                 return "dry-run"
 
@@ -1344,8 +1039,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             print(f"❌ Fatal error during automation: {e}")
             traceback.print_exc()
             try:
-                page.screenshot(path=f"/home/clinton/Internstart/media/error_screenshot.png", full_page=True)
-                print("📸 Saved error screenshot for debugging.")
+                err_shot = os.path.join(log_dir, f"error_screenshot_{safe_company}_{ts}.png")
+                page.screenshot(path=err_shot, full_page=True)
+                print(f"📸 Saved error screenshot for debugging → {err_shot}")
             except Exception:
                 pass
             browser.close()
