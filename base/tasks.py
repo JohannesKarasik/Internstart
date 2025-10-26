@@ -902,6 +902,64 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
                                 if _set_custom_dropdown_by_label(page, frame, lab, pref):
                                     print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
+                                    ok = _set_custom_dropdown_by_label(page, frame, lab, pref)
+                                    if ok:
+                                        # verify the visible value actually changed
+                                        label_id  = lab.get_attribute("id") or ""
+                                        label_for = lab.get_attribute("for") or ""
+                                        committed = False
+                                        try:
+                                            committed = frame.evaluate("""
+                                                (labId, want) => {
+                                                const root =
+                                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
+                                                    (document.getElementById(labId)?.closest('.select__container'));
+                                                const txt = root ? (root.innerText || '').toLowerCase() : '';
+                                                return txt.includes((want || '').toLowerCase());
+                                                }
+                                            """, label_id, pref)
+                                        except Exception:
+                                            committed = False
+
+                                        if not committed:
+                                            # last-resort: set the underlying element the label points to
+                                            try:
+                                                committed = frame.evaluate("""
+                                                    (elId, want) => {
+                                                    const el = document.getElementById(elId);
+                                                    if (!el) return false;
+                                                    const lower = (want || '').toLowerCase();
+                                                    if (el.tagName && el.tagName.toLowerCase() === 'select') {
+                                                        const opts = Array.from(el.options || []);
+                                                        const m = opts.find(o =>
+                                                        ((o.textContent||'').trim().toLowerCase() === lower) ||
+                                                        ((o.textContent||'').toLowerCase().includes(lower))
+                                                        );
+                                                        if (m) {
+                                                        el.value = m.value;
+                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
+                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                                        return true;
+                                                        }
+                                                    }
+                                                    if (el.tagName && el.tagName.toLowerCase() === 'input') {
+                                                        el.value = want;
+                                                        el.setAttribute('value', want);
+                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
+                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                                        return true;
+                                                    }
+                                                    return false;
+                                                    }
+                                                """, label_for, pref)
+                                            except Exception:
+                                                committed = False
+
+                                        if committed:
+                                            print(f"🟢 Confirmed dropdown set → {pref} ({q_text[:80]})")
+                                        else:
+                                            print(f"🟡 Dropdown click landed but value didn’t commit; fallback failed ({q_text[:80]})")
+
                             except Exception:
                                 continue
                 except Exception:
