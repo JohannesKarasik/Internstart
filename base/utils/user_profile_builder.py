@@ -1,5 +1,12 @@
 import json
 from django.forms.models import model_to_dict
+from datetime import datetime, date
+
+def safe_json(obj):
+    """Handle non-serializable types like datetime."""
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    return str(obj)
 
 def build_user_profile(user):
     """Convert user model into structured profile JSON."""
@@ -27,4 +34,5 @@ def build_user_profile(user):
         "job_type": user.job_type,
     }
 
-    return profile
+    # Use safe JSON encoding for all values
+    return json.loads(json.dumps(profile, default=safe_json))
