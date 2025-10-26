@@ -14,9 +14,13 @@ def main():
         '("send your CV" OR "apply by email" OR "email your application" OR "send your application to") '
         '("@co.uk" OR "@gmail.com" OR "@outlook.com") '
         '(accounting OR finance OR "financial analyst" OR "financial controller" OR "investment analyst" '
-        'OR "accountant" OR "bookkeeper" OR "auditor" OR "tax consultant" OR "banking" OR "treasury analyst" '
-        'OR "finance manager" OR "FP&A" OR "financial planning" OR "CFO" OR "finance director" '
-        'OR "finance assistant" OR "payroll" OR "financial advisor" OR "compliance" OR "risk analyst")'
+        'OR "accountant" OR "bookkeeper" OR "auditor" OR "audit assistant" OR "assistant accountant" '
+        'OR "tax consultant" OR "tax assistant" OR "banking" OR "treasury analyst" OR "finance manager" '
+        'OR "financial planning" OR "FP&A" OR "finance director" OR "CFO" OR "financial services" '
+        'OR "credit analyst" OR "financial advisor" OR "compliance" OR "risk analyst" '
+        'OR "mortgage advisor" OR "insurance" OR "corporate finance" OR "fund accountant" '
+        'OR "payroll" OR "bookkeeping" OR "reconciliation" OR "controller" OR "treasurer" '
+        'OR "accounting assistant" OR "audit trainee" OR "finance graduate" OR "financial administrator")'
     )
 
     # 🔑 --- API Key ---
@@ -67,55 +71,49 @@ def main():
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🎯 --- Finance title filters ---
-    FINANCE_TITLE_RE = re.compile(
-        r"""(?ix)
-        \b(
-           finance|financial|accounting|accountant|auditor|analyst|
-           controller|treasury|banking|investment|payroll|cfo|
-           "fp&a"|tax|risk|compliance|credit|wealth|equity|treasurer|
-           advisor|consultant|bookkeeping|fund|portfolio
-        )\b
-        """,
-        re.IGNORECASE,
-    )
+    # 🎯 --- Finance filters (broader but still relevant) ---
+    FINANCE_KEYWORDS = [
+        "finance", "financial", "accounting", "accountant", "auditor", "audit",
+        "analyst", "controller", "treasury", "banking", "investment", "payroll",
+        "cfo", "fp&a", "tax", "risk", "compliance", "credit", "wealth", "equity",
+        "treasurer", "advisor", "consultant", "bookkeeping", "fund", "portfolio",
+        "mortgage", "insurance", "corporate finance", "reconciliation",
+        "finance assistant", "assistant accountant", "financial administrator",
+        "audit trainee", "finance graduate", "financial services"
+    ]
 
-    # Exclude titles that are clearly not finance
-    EXCLUDE_TITLE_RE = re.compile(
-        r"""(?ix)
-        \b(
-           marketing|developer|engineer|technician|nurse|teacher|chef|sales|
-           social\s+media|copywriter|pr|public\s+relations|construction|
-           warehouse|driver|operator|designer|ux|ui|graphics|customer\s+service
-        )\b
-        """,
-        re.IGNORECASE,
-    )
+    EXCLUDE_KEYWORDS = [
+        "marketing", "developer", "engineer", "technician", "nurse", "teacher",
+        "chef", "sales", "recruiter", "designer", "social media", "pr",
+        "construction", "warehouse", "driver", "operator", "customer service",
+        "hospitality", "bartender", "barista", "retail", "cleaner", "graphic",
+        "web", "it ", "software", "frontend", "backend"
+    ]
 
-    # 🧹 --- Filter results (EMAIL + UK + TITLE must match finance keywords) ---
+    # 🧹 --- Filter results ---
     filtered = []
     for r in all_results:
         title = r.get("title", "") or ""
         snippet = r.get("snippet", "") or ""
         link = r.get("link", "") or ""
 
-        # Must contain email
         if "@" not in snippet:
             continue
 
-        # Must be UK
         text = (title + " " + snippet + " " + link).lower()
-        if not (" uk " in f" {text} " or "united kingdom" in text or ".co.uk" in text or "/uk/" in link):
+
+        # Must be UK
+        if not any(x in text for x in [" uk ", "united kingdom", ".co.uk", "/uk/"]):
             continue
 
-        # Must have finance-related keyword in title
-        if not FINANCE_TITLE_RE.search(title):
-            print(f"🚫 Non-finance title (skipped): {title}")
-            continue
-
-        # Exclude unrelated jobs
-        if EXCLUDE_TITLE_RE.search(title):
+        # Skip obvious non-finance roles
+        if any(bad in text for bad in EXCLUDE_KEYWORDS):
             print(f"🚫 Excluded non-finance role: {title}")
+            continue
+
+        # Include if either title OR snippet has finance-related term
+        if not any(fin in text for fin in FINANCE_KEYWORDS):
+            print(f"🚫 No finance keyword found: {title}")
             continue
 
         filtered.append({
@@ -124,9 +122,9 @@ def main():
             "snippet": snippet.strip(),
         })
 
-    print(f"✅ Filtered down to {len(filtered)} finance titles before closure check.")
+    print(f"✅ Filtered down to {len(filtered)} finance-related listings before closure check.")
 
-    # 🔎 --- Remove closed listings (page check) ---
+    # 🔎 --- Remove closed listings ---
     CLOSED_PATTERNS = [
         "no longer accepting applications",
         "this job is no longer available",
@@ -157,7 +155,6 @@ def main():
 
             open_listings.append(job)
             print(f"✅ Open: {job['title']}")
-
         except requests.RequestException as e:
             print(f"⚠️ Request failed for {url}: {e}")
             continue
@@ -175,8 +172,8 @@ def main():
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
     print(f"✅ Saved {len(open_listings)} open UK finance listings to {filename}")
-
     return open_listings
+
 
 if __name__ == "__main__":
     main()
