@@ -34,12 +34,12 @@ def main():
             "gl": "uk",
             "location": "United Kingdom",
             "filter": "0",
-            "tbs": "qdr:w",
+            "tbs": "qdr:m",  # past month for more variety
             "api_key": API_KEY,
         }
 
         all_results = []
-        for start in range(0, 30, 10):
+        for start in range(0, 100, 10):
             params = base_params.copy()
             params["start"] = start
 
@@ -103,6 +103,19 @@ def main():
                 "snippet": snippet.strip(),
             })
 
+        # 🔁 --- Deduplication setup ---
+        seen_emails = set()
+        seen_links = set()
+        seen_companies = set()
+
+        def extract_email(text):
+            match = re.search(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
+            return match.group(0).lower() if match else None
+
+        def extract_company(title):
+            match = re.search(r"at ([A-Za-z0-9&.,' -]+)", title)
+            return match.group(1).strip().lower() if match else None
+
         CLOSED_PATTERNS = [
             "no longer accepting applications",
             "no longer taking applications",
@@ -125,6 +138,24 @@ def main():
 
         for job in filtered:
             url = job["link"]
+            snippet = job["snippet"].lower()
+            title = job["title"]
+
+            email = extract_email(snippet)
+            company = extract_company(title)
+            link_root = re.sub(r"\?.*$", "", url).strip().lower()
+
+            # Skip duplicates
+            if (email and email in seen_emails) or link_root in seen_links or (company and company in seen_companies):
+                continue
+
+            # Record seen identifiers
+            if email:
+                seen_emails.add(email)
+            seen_links.add(link_root)
+            if company:
+                seen_companies.add(company)
+
             try:
                 resp = requests.get(url, headers=headers, timeout=8)
                 html = resp.text.lower()
@@ -139,7 +170,8 @@ def main():
 
             time.sleep(0.8)
 
-        open_listings = open_listings[:30]
+        # Limit to 100 max (safeguard)
+        open_listings = open_listings[:100]
 
         # 💾 --- Save to JSON (for local debugging) ---
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
