@@ -311,6 +311,121 @@ def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bo
         return False
 
 
+def _force_select_value_for_label(page, frame, lab, value: str) -> bool:
+    """
+    For GH/Remix 'select-shell' controls bound to a <label for="...">,
+    force-select `value` by: open → type → Enter → blur → verify,
+    and if still not committed, set the hidden backing input and fire events.
+    """
+    try:
+        lab_id  = lab.get_attribute("id") or ""
+        lab_for = lab.get_attribute("for") or ""
+        want    = (value or "").strip()
+
+        # Find clickable root near this label
+        root = None
+        if lab_for:
+            el = frame.locator(f"#{lab_for}")
+            if el.count() and el.first.is_visible():
+                root = el.first
+        if not root and lab_id:
+            el = frame.locator(f"[aria-labelledby~='{lab_id}']")
+            if el.count() and el.first.is_visible():
+                root = el.first
+        if not root:
+            root = lab.locator("xpath=following::*[1]").locator(
+                ":is([role='combobox'], [aria-haspopup='listbox'], .select__control, .select-shell, .select__container, button, div)"
+            ).first
+        if not (root and root.is_visible()):
+            return False
+
+        # Open
+        try:
+            root.scroll_into_view_if_needed()
+        except Exception:
+            pass
+        root.click(force=True)
+        frame.wait_for_timeout(120)
+
+        # Type + Enter (some widgets only commit on Enter + blur)
+        try:
+            inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
+            if inner and inner.is_visible():
+                inner.fill("")
+                inner.type(want, delay=15)
+            else:
+                root.type(want, delay=15)
+        except Exception:
+            root.type(want, delay=15)
+
+        frame.keyboard.press("Enter")
+        # blur to commit
+        try:
+            frame.keyboard.press("Tab")
+        except Exception:
+            try:
+                lab.click(force=True)
+            except Exception:
+                pass
+        frame.wait_for_timeout(120)
+
+        # Verify commit by reading the shell’s visible text
+        def _committed() -> bool:
+            try:
+                return frame.evaluate("""
+                    (labId, want) => {
+                      const lower = (want||'').toLowerCase();
+                      const root = document.querySelector(`[aria-labelledby~="${labId}"]`)
+                                || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                      const txt = root ? (root.innerText || '').toLowerCase() : '';
+                      return txt.includes(lower);
+                    }
+                """, lab_id, want)
+            except Exception:
+                return False
+
+        if _committed():
+            return True
+
+        # Last resort: set the hidden backing element that the label points to
+        forced = False
+        if lab_for:
+            try:
+                forced = frame.evaluate("""
+                    (elId, want) => {
+                      const el = document.getElementById(elId);
+                      if (!el) return false;
+                      const tag = (el.tagName||'').toLowerCase();
+                      if (tag === 'select') {
+                        const opts = Array.from(el.options||[]);
+                        const lower = (want||'').toLowerCase();
+                        const m = opts.find(o => ((o.textContent||'').trim().toLowerCase()===lower)
+                                              || ((o.textContent||'').toLowerCase().includes(lower)));
+                        if (!m) return false;
+                        el.value = m.value;
+                      } else {
+                        el.value = want;
+                        el.setAttribute('value', want);
+                      }
+                      el.dispatchEvent(new Event('input',  {bubbles:true}));
+                      el.dispatchEvent(new Event('change', {bubbles:true}));
+                      return true;
+                    }
+                """, lab_for, want)
+            except Exception:
+                forced = False
+
+            if forced:
+                # nudge UI/validators
+                try:
+                    lab.click(force=True)
+                except Exception:
+                    pass
+                frame.wait_for_timeout(80)
+
+        return _committed()
+    except Exception:
+        return False
 
 
 # ---------- Phase 1: Scan (inventory every field first) ----------
@@ -960,87 +1075,37 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         except Exception:
                             labels = []
 
-                        for lab in labels:
-                            try:
-                                if not lab.is_visible():
-                                    continue
-                                q_text = (lab.inner_text() or "").strip()
-
-                                # existing generic intent
-                                pref = _yesno_preference(q_text)  # 'Yes' for privacy, 'No' for prior employment
-
-                                qL = q_text.lower()
-                                if ("ever been employed by ipg" in qL
-                                        or "currently employed" in qL
-                                        or "subsidiar" in qL):
-                                    pref = "No"
-                                # ▲▲ ADD THESE LINES HERE ▲▲
-
-                                if not pref:
-                                    continue
-
-                                if _set_custom_dropdown_by_label(page, frame, lab, pref):
-                                    print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
-                                    ok = _set_custom_dropdown_by_label(page, frame, lab, pref)
-                                    if ok:
-                                        # verify the visible value actually changed
-                                        label_id  = lab.get_attribute("id") or ""
-                                        label_for = lab.get_attribute("for") or ""
-                                        committed = False
-                                        try:
-                                            committed = frame.evaluate("""
-                                                (labId, want) => {
-                                                const root =
-                                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
-                                                    (document.getElementById(labId)?.closest('.select__container'));
-                                                const txt = root ? (root.innerText || '').toLowerCase() : '';
-                                                return txt.includes((want || '').toLowerCase());
-                                                }
-                                            """, label_id, pref)
-                                        except Exception:
-                                            committed = False
-
-                                        if not committed:
-                                            # last-resort: set the underlying element the label points to
-                                            try:
-                                                committed = frame.evaluate("""
-                                                    (elId, want) => {
-                                                    const el = document.getElementById(elId);
-                                                    if (!el) return false;
-                                                    const lower = (want || '').toLowerCase();
-                                                    if (el.tagName && el.tagName.toLowerCase() === 'select') {
-                                                        const opts = Array.from(el.options || []);
-                                                        const m = opts.find(o =>
-                                                        ((o.textContent||'').trim().toLowerCase() === lower) ||
-                                                        ((o.textContent||'').toLowerCase().includes(lower))
-                                                        );
-                                                        if (m) {
-                                                        el.value = m.value;
-                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
-                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                                        return true;
-                                                        }
-                                                    }
-                                                    if (el.tagName && el.tagName.toLowerCase() === 'input') {
-                                                        el.value = want;
-                                                        el.setAttribute('value', want);
-                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
-                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                                        return true;
-                                                    }
-                                                    return false;
-                                                    }
-                                                """, label_for, pref)
-                                            except Exception:
-                                                committed = False
-
-                                        if committed:
-                                            print(f"🟢 Confirmed dropdown set → {pref} ({q_text[:80]})")
-                                        else:
-                                            print(f"🟡 Dropdown click landed but value didn’t commit; fallback failed ({q_text[:80]})")
-
-                            except Exception:
+                    for lab in labels:
+                        try:
+                            if not lab.is_visible():
                                 continue
+                            q_text = (lab.inner_text() or "").strip()
+
+                            # Default yes/no intent
+                            pref = _yesno_preference(q_text)
+
+                            # Force NO for the IPG prior/current employment question
+                            qL = q_text.lower()
+                            if ("ever been employed by ipg" in qL
+                                    or "currently employed" in qL
+                                    or "subsidiar" in qL):
+                                pref = "No"
+                                if _force_select_value_for_label(page, frame, lab, "No"):
+                                    print("🟢 Forced commit: IPG prior/current employment → No")
+                                    continue
+                                else:
+                                    print("🟡 Force-select attempt failed for IPG employment question")
+
+                            if not pref:
+                                continue
+
+                            # your normal path for other yes/no dropdowns
+                            if _set_custom_dropdown_by_label(page, frame, lab, pref):
+                                print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
+                                # (optional keep your existing verification logs)
+                        except Exception:
+                            continue
+
                 except Exception:
                     pass
 
