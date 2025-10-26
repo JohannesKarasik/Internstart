@@ -27,47 +27,68 @@
   </div>
 
   <script>
-    document.getElementById("processBtn").addEventListener("click", async () => {
-      const text = document.getElementById("jobText").value.trim();
+    document.addEventListener("DOMContentLoaded", () => {
+      const processBtn = document.getElementById("processBtn");
       const resultBox = document.getElementById("result");
-      if (!text) return alert("Please paste job text first.");
-
-      resultBox.innerHTML = "⏳ Processing...";
-      const payload = {
-        text,
-        industry: "marketing",
-        job_type: "internship",
-        country: "DK"
-      };
-
-      try {
-        const res = await fetch("/process-text/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (!data.success) {
-          resultBox.innerHTML = `❌ Error: ${data.error || "Failed"}`;
-          return;
+      const jobText = document.getElementById("jobText");
+    
+      processBtn.addEventListener("click", async (e) => {
+        e.preventDefault(); // 🚫 Prevent default form or button behavior
+        const text = jobText.value.trim();
+        if (!text) return alert("Please paste job text first.");
+    
+        resultBox.innerHTML = "⏳ Processing...";
+    
+        const payload = {
+          text,
+          industry: "marketing",
+          job_type: "internship",
+          country: "DK"
+        };
+    
+        try {
+          // ✅ Always use POST and ensure JSON headers are sent
+          const res = await fetch("/process-text/", {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+    
+          // 👀 If backend fails, Django might send HTML — handle that
+          const contentType = res.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            const html = await res.text();
+            console.error("Server returned HTML instead of JSON:", html.slice(0, 200));
+            resultBox.innerHTML = "❌ Server returned HTML instead of JSON (check console).";
+            return;
+          }
+    
+          const data = await res.json();
+          if (!data.success) {
+            resultBox.innerHTML = `❌ Error: ${data.error || "Failed"}`;
+            return;
+          }
+    
+          resultBox.innerHTML = `
+            ✅ <b>${data.company_name}</b><br>
+            <b>Description:</b> ${data.company_description}<br>
+            <b>Location:</b> ${data.location}<br>
+            <b>Logo:</b> <img src="${data.logo_url}" width="60" style="vertical-align:middle;border-radius:6px;"><br>
+            <b>Industry:</b> ${data.industry}<br>
+            <b>Job Type:</b> ${data.job_type}<br>
+            <b>Country:</b> ${data.country}<br>
+            <p style="color:#4CAF50;">✅ Added to database successfully.</p>
+          `;
+        } catch (err) {
+          console.error("Fetch failed:", err);
+          resultBox.innerHTML = "❌ Failed to process request (see console).";
         }
-
-        resultBox.innerHTML = `
-          ✅ <b>${data.company_name}</b><br>
-          <b>Description:</b> ${data.company_description}<br>
-          <b>Location:</b> ${data.location}<br>
-          <b>Logo:</b> <img src="${data.logo_url}" width="60" style="vertical-align:middle;border-radius:6px;"><br>
-          <b>Industry:</b> ${data.industry}<br>
-          <b>Job Type:</b> ${data.job_type}<br>
-          <b>Country:</b> ${data.country}<br>
-          <p style="color:#4CAF50;">✅ Added to database successfully.</p>
-        `;
-      } catch (err) {
-        console.error(err);
-        resultBox.innerHTML = "❌ Failed to process request.";
-      }
+      });
     });
-  </script>
+    </script>
+    
 </body>
 </html>
