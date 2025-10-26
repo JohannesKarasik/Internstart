@@ -15,33 +15,32 @@ def main():
         '(marketing OR "digital marketing" OR SEO OR "content marketing" OR "social media" OR PR OR "public relations" '
         'OR communications OR "email marketing" OR "copywriter" OR "brand manager" OR "advertising" OR "growth marketing" '
         'OR "marketing assistant" OR "marketing coordinator" OR "media buyer" OR "campaign manager" OR "community manager" '
-        'OR "marketing executive" OR "marketing manager" OR "head of marketing" OR "CMO" OR "performance marketing" OR "demand generation" OR "crm" OR "marcom")'
+        'OR "marketing executive" OR "account manager" OR "marketing intern" OR "performance marketing")'
     )
 
-    API_KEY = "6ecc501d2af38d445f1766ba7f169eac80355198994c221128cde05ef76f9d28"
-    print(f"✅ Using hardcoded SerpAPI key: {API_KEY[:8]}********...")
+    API_KEY = os.getenv("SERPAPI_API_KEY")
+    if not API_KEY:
+        raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
+    print("🔍 Fetching up to 30 UK marketing listings from SerpAPI ...")
 
-    # 🌍 --- Base Search Parameters ---
     base_params = {
         "engine": "google",
         "q": QUERY,
-        "num": 10,  # 10 results per page (SerpAPI limit)
+        "num": 10,
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
         "filter": "0",
-        "tbs": "qdr:w",  # past week
+        "tbs": "qdr:w",
         "api_key": API_KEY,
     }
 
-    # 🌀 --- Fetch up to 30 results (3 pages) ---
     all_results = []
     for start in range(0, 30, 10):
         params = base_params.copy()
         params["start"] = start
         print(f"📄 Fetching page starting at {start}...")
-
         try:
             data = GoogleSearch(params).get_dict()
         except Exception as e:
@@ -55,7 +54,6 @@ def main():
 
         organic = data.get("organic_results", [])
         if not organic:
-            print("⏹️ No more results found.")
             break
 
         all_results.extend(organic)
@@ -63,56 +61,59 @@ def main():
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🎯 --- Strict title filters (regex with word boundaries) ---
-    # Allow (must be present in TITLE)
-    # 🎯 --- Strict marketing inclusion pattern ---
-    MARKETING_TITLE_RE = re.compile(
-        r"""(?ix)
-        \b(marketing|digital|seo|sem|ppc|social\s+media|content|copywriter|copywriting|
-        pr|public\s+relations|communications|brand|advertising|creative|growth|
-        email|campaign|media|community|influencer|affiliate|crm|performance|
-        ecommerce|demand\s+gen|account\s+manager|marcom|branding|paid\s+ads|
-        digital\s+strategy|marketing\s+assistant|marketing\s+intern|marketing\s+manager)
-        \b
-        """,
-    )
+    # 🎯 --- Keyword logic ---
+    MARKETING_KEYWORDS = [
+        "marketing", "seo", "sem", "ppc", "content", "copywriter", "advertising",
+        "branding", "growth", "campaign", "communications", "pr", "public relations",
+        "email", "media", "digital", "social", "brand", "community", "performance",
+        "influencer", "affiliate", "creative", "ecommerce", "paid search",
+        "account manager", "engagement", "customer acquisition"
+    ]
 
-    # 🚫 --- Exclude unrelated manual/service/technical jobs ---
-    EXCLUDE_TITLE_RE = re.compile(
-        r"""(?ix)
-        \b(roofer|plumber|electrician|carpenter|construction|warehouse|driver|nurse|
-        teacher|chef|cook|mechanic|operator|installer|laborer|labourer|caretaker|
-        handyman|foreman|cleaner|janitor|waiter|barista|server|porter|delivery|
-        security|maintenance|technician|developer|engineer|it|software)
-        \b
-        """,
-    )
+    EXCLUDE_KEYWORDS = [
+        "engineer", "developer", "roofer", "technician", "plumber",
+        "construction", "warehouse", "driver", "nurse", "teacher",
+        "chef", "accountant", "finance", "hr", "recruiter", "maintenance",
+        "installer", "operator", "mechanic", "laborer", "caretaker",
+        "electrician", "cleaner", "joiner", "welder", "foreman"
+    ]
 
+    def is_marketing_job(title, snippet):
+        """
+        Returns True if title or snippet clearly indicates a marketing-related role.
+        Filters out blue-collar, technical, or unrelated jobs.
+        """
+        title_lower = title.lower()
+        snippet_lower = snippet.lower()
 
-    # 🧹 --- Filter results (EMAIL + UK + TITLE must match marketing & not excluded) ---
+        # ❌ Exclude immediately if title contains irrelevant terms
+        if any(ex in title_lower for ex in EXCLUDE_KEYWORDS):
+            return False
+
+        # ✅ Require at least one marketing term in title (strong signal)
+        if any(mk in title_lower for mk in MARKETING_KEYWORDS):
+            return True
+
+        # ⚙️ Weak fallback: snippet mentions marketing keywords (but not excluded)
+        if any(mk in snippet_lower for mk in MARKETING_KEYWORDS) and not any(ex in snippet_lower for ex in EXCLUDE_KEYWORDS):
+            return True
+
+        return False
+
+    # 🧹 --- Filtering phase ---
     filtered = []
     for r in all_results:
-        title = r.get("title", "") or ""
-        snippet = r.get("snippet", "") or ""
-        link = r.get("link", "") or ""
+        title = r.get("title", "")
+        snippet = r.get("snippet", "")
+        link = r.get("link", "")
 
-        # Must show an email in snippet
+        text = (title + " " + snippet).lower()
         if "@" not in snippet:
             continue
-
-        # Keep only UK (cheap heuristics)
-        text = (title + " " + snippet + " " + link).lower()
-        if not (" uk " in f" {text} " or "united kingdom" in text or "/uk/" in link.lower() or ".uk/" in link.lower() or ".co.uk" in text):
+        if not ("uk" in text or "united kingdom" in text or "/uk/" in link.lower()):
             continue
-
-        # STRICT: title MUST contain a marketing keyword
-        if not MARKETING_TITLE_RE.search(title):
-            print(f"🚫 Non-marketing title (skipped): {title}")
-            continue
-
-        # STRICT: title MUST NOT contain any excluded job term
-        if EXCLUDE_TITLE_RE.search(title):
-            print(f"🚫 Excluded title (skipped): {title}")
+        if not is_marketing_job(title, snippet):
+            print(f"🚫 Skipped non-marketing: {title}")
             continue
 
         filtered.append({
@@ -121,9 +122,9 @@ def main():
             "snippet": snippet.strip(),
         })
 
-    print(f"✅ Filtered down to {len(filtered)} marketing titles before closure check.")
+    print(f"✅ Filtered down to {len(filtered)} marketing-relevant listings before closure check.")
 
-    # 🔎 --- Remove closed listings (page check) ---
+    # 🔎 --- Remove closed listings ---
     CLOSED_PATTERNS = [
         "no longer accepting applications",
         "no longer taking applications",
@@ -136,32 +137,23 @@ def main():
 
     open_listings = []
     headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/126.0 Safari/537.36"
-        ),
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/126.0 Safari/537.36",
         "Accept-Language": "en-GB,en;q=0.9",
     }
 
     print(f"🧠 Checking {len(filtered)} listings for closure text...")
     for job in filtered:
-        url = job["link"]
         try:
-            resp = requests.get(url, headers=headers, timeout=8)
-            html = resp.text.lower()
-
+            html = requests.get(job["link"], headers=headers, timeout=8).text.lower()
             if any(p in html for p in CLOSED_PATTERNS):
                 print(f"⛔ Closed: {job['title']}")
                 continue
-
             open_listings.append(job)
             print(f"✅ Open: {job['title']}")
-
-        except requests.RequestException as e:
-            print(f"⚠️ Request failed for {url}: {e}")
-            continue
-
+        except Exception as e:
+            print(f"⚠️ Request failed: {e}")
         time.sleep(1.0)
 
     open_listings = open_listings[:30]
@@ -170,14 +162,8 @@ def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"linkedin_uk_marketing_jobs_{timestamp}.json"
     output_path = os.path.join(os.path.dirname(__file__), filename)
-
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
     print(f"✅ Saved {len(open_listings)} open UK marketing listings to {filename}")
-
     return open_listings
-
-if __name__ == "__main__":
-    results = main()
-    print(json.dumps(results, ensure_ascii=False))

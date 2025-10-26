@@ -105,197 +105,197 @@
     </main>
   </div>
 
-  <script>
-    window.addEventListener("load", () => {
-      const scrapeBtn = document.getElementById("scrapeBtn");
-      const addBtn = document.getElementById("addToDBBtn");
-      const resultsContainer = document.getElementById("resultsContainer");
-      const scraperSelect = document.getElementById("scraperSelect");
-    
-      let cachedResults = [];
-    
-      function validateSelections() {
-        const country = document.getElementById("countrySelect").value;
-        const industry = document.getElementById("industrySelect").value;
-        const jobType = document.getElementById("jobTypeSelect").value;
-    
-        if (!country || !industry || !jobType) {
-          alert("Please select Country, Industry, and Job Type before running the scraper.");
-          return false;
-        }
-        return true;
+<script>
+window.addEventListener("load", () => {
+  const scrapeBtn = document.getElementById("scrapeBtn");
+  const addBtn = document.getElementById("addToDBBtn");
+  const resultsContainer = document.getElementById("resultsContainer");
+  const scraperSelect = document.getElementById("scraperSelect");
+
+  let cachedResults = [];
+
+  function validateSelections() {
+    const country = document.getElementById("countrySelect").value;
+    const industry = document.getElementById("industrySelect").value;
+    const jobType = document.getElementById("jobTypeSelect").value;
+
+    if (!country || !industry || !jobType) {
+      alert("Please select Country, Industry, and Job Type before running the scraper.");
+      return false;
+    }
+    return true;
+  }
+
+  // 1️⃣ Run Scraper (with dynamic filters)
+  scrapeBtn.addEventListener("click", async () => {
+    if (!validateSelections()) return;
+
+    const scraperType = scraperSelect.value || "uk_marketing";
+
+    resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
+    scrapeBtn.disabled = true;
+
+    try {
+      const res = await fetch(`/run_scraper/?type=${scraperType}`);
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? await res.json() : { error: "Non-JSON response from server." };
+
+      console.log("[run_scraper] response:", data);
+
+      if (!res.ok || data.error) {
+        resultsContainer.innerHTML = `
+          <div class="job-row">
+            <strong>⚠️ Scraper error</strong><br>
+            <small>${(data.error || "Unknown error").toString().replace(/</g,"&lt;")}</small>
+          </div>
+        `;
+        scrapeBtn.disabled = false;
+        return;
       }
-    
-      // 1️⃣ Run Scraper (with dynamic filters)
-      scrapeBtn.addEventListener("click", async () => {
-        if (!validateSelections()) return;
-    
-        const scraperType = scraperSelect.value || "uk_marketing";
-    
-        resultsContainer.innerHTML = "<p class='muted'>🔄 Running scraper...</p>";
-        scrapeBtn.disabled = true;
-    
-        try {
-          const res = await fetch(`/run_scraper/?type=${scraperType}`);
-          const isJson = res.headers.get("content-type")?.includes("application/json");
-          const data = isJson ? await res.json() : { error: "Non-JSON response from server." };
-    
-          console.log("[run_scraper] response:", data);
-    
-          if (!res.ok || data.error) {
-            resultsContainer.innerHTML = `
-              <div class="job-row">
-                <strong>⚠️ Scraper error</strong><br>
-                <small>${(data.error || "Unknown error").toString().replace(/</g,"&lt;")}</small>
-              </div>
-            `;
-            scrapeBtn.disabled = false;
-            return;
-          }
-    
-          cachedResults = Array.isArray(data.results) ? data.results : [];
-          const totalCount = data.count ?? cachedResults.length;
-    
-          if (!cachedResults.length) {
-            resultsContainer.innerHTML = `
-              <div class="job-row">
-                <strong>No jobs found.</strong><br>
-                <small>Latest file: ${data.latest_file || "—"}</small>
-              </div>
-            `;
-            scrapeBtn.disabled = false;
-            return;
-          }
-    
-          // 🎯 Apply filters depending on scraper type
-          if (scraperType === "uk_marketing") {
-            const MARKETING_KEYWORDS = [
-              "marketing", "digital", "seo", "sem", "ppc", "social media",
-              "content", "copywriter", "copywriting", "pr", "public relations",
-              "communications", "brand", "advertising", "creative", "growth",
-              "email", "campaign", "media", "community", "influencer",
-              "affiliate", "crm", "performance", "ecommerce", "demand gen",
-              "account manager", "marcom"
-            ];
-            const lower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
-    
-            cachedResults = cachedResults.filter(job => {
-              const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
-              return lower.some(k => text.includes(k));
-            });
-            console.log(`🎯 Filtered to ${cachedResults.length} marketing-related listings`);
-          }
-    
-          if (scraperType === "uk_finance") {
-            const FINANCE_KEYWORDS = [
-              "finance", "financial", "accounting", "accountant", "auditor", "audit",
-              "bookkeeper", "bookkeeping", "treasury", "controller", "cfo", "banking",
-              "investment", "analyst", "fp&a", "fp and a", "compliance", "risk",
-              "credit", "loan", "underwriter", "treasurer", "fund", "asset",
-              "wealth", "valuation", "tax", "reconciliation", "ledger", "budgeting"
-            ];
-            const lower = FINANCE_KEYWORDS.map(k => k.toLowerCase());
-    
-            cachedResults = cachedResults.filter(job => {
-              const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
-              return lower.some(k => text.includes(k));
-            });
-            console.log(`💰 Filtered to ${cachedResults.length} finance-related listings`);
-          }
-    
-          // 🧾 Display listings
-          const list = cachedResults.map((job, i) => `
-            <div class="job-row" id="job-${i}">
-              <strong>${job.title || "Untitled Job"}</strong><br>
-              <a href="${job.link}" target="_blank">${job.link}</a><br>
-              <small>${job.snippet || ""}</small><br>
-              <span class="status muted">⏸ Waiting...</span>
-            </div>
-          `).join("");
-    
-          resultsContainer.innerHTML = `
-            <div class="job-row">
-              <strong>✅ Found ${cachedResults.length} valid listings (${scraperType})</strong><br>
-              <small>${
-                scraperType === "uk_marketing"
-                  ? "Filtered by marketing-related keywords"
-                  : scraperType === "uk_finance"
-                  ? "Filtered by finance-related keywords"
-                  : "No keyword filter applied"
-              }</small>
-            </div>
-            ${list}
-          `;
-        } catch (err) {
-          console.error("run_scraper failed:", err);
-          resultsContainer.innerHTML = `<p class='muted'>❌ Failed to call /run_scraper — check console/network tab.</p>`;
-        } finally {
-          scrapeBtn.disabled = false;
+
+      cachedResults = Array.isArray(data.results) ? data.results : [];
+      const totalCount = data.count ?? cachedResults.length;
+
+      if (!cachedResults.length) {
+        resultsContainer.innerHTML = `
+          <div class="job-row">
+            <strong>No jobs found.</strong><br>
+            <small>Latest file: ${data.latest_file || "—"}</small>
+          </div>
+        `;
+        scrapeBtn.disabled = false;
+        return;
+      }
+
+      // 🎯 Apply filters depending on scraper type
+      if (scraperType === "uk_marketing") {
+        const MARKETING_KEYWORDS = [
+          "marketing", "digital", "seo", "sem", "ppc", "social media",
+          "content", "copywriter", "copywriting", "pr", "public relations",
+          "communications", "brand", "advertising", "creative", "growth",
+          "email", "campaign", "media", "community", "influencer",
+          "affiliate", "crm", "performance", "ecommerce", "demand gen",
+          "account manager", "marcom"
+        ];
+        const lower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
+
+        cachedResults = cachedResults.filter(job => {
+          const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
+          return lower.some(k => text.includes(k));
+        });
+        console.log(`🎯 Filtered to ${cachedResults.length} marketing-related listings`);
+      }
+
+      if (scraperType === "uk_finance") {
+        const FINANCE_KEYWORDS = [
+          "finance", "financial", "accounting", "accountant", "auditor", "audit",
+          "bookkeeper", "bookkeeping", "treasury", "controller", "cfo", "banking",
+          "investment", "analyst", "fp&a", "fp and a", "compliance", "risk",
+          "credit", "loan", "underwriter", "treasurer", "fund", "asset",
+          "wealth", "valuation", "tax", "reconciliation", "ledger", "budgeting"
+        ];
+        const lower = FINANCE_KEYWORDS.map(k => k.toLowerCase());
+
+        cachedResults = cachedResults.filter(job => {
+          const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
+          return lower.some(k => text.includes(k));
+        });
+        console.log(`💰 Filtered to ${cachedResults.length} finance-related listings`);
+      }
+
+      // 🧾 Display listings
+      const list = cachedResults.map((job, i) => `
+        <div class="job-row" id="job-${i}">
+          <strong>${job.title || "Untitled Job"}</strong><br>
+          <a href="${job.link}" target="_blank">${job.link}</a><br>
+          <small>${job.snippet || ""}</small><br>
+          <span class="status muted">⏸ Waiting...</span>
+        </div>
+      `).join("");
+
+      resultsContainer.innerHTML = `
+        <div class="job-row">
+          <strong>✅ Found ${cachedResults.length} valid listings (${scraperType})</strong><br>
+          <small>${
+            scraperType === "uk_marketing"
+              ? "Filtered by marketing-related keywords"
+              : scraperType === "uk_finance"
+              ? "Filtered by finance-related keywords"
+              : "No keyword filter applied"
+          }</small>
+        </div>
+        ${list}
+      `;
+    } catch (err) {
+      console.error("run_scraper failed:", err);
+      resultsContainer.innerHTML = `<p class='muted'>❌ Failed to call /run_scraper — check console/network tab.</p>`;
+    } finally {
+      scrapeBtn.disabled = false;
+    }
+  });
+
+  // 2️⃣ Add to Database
+  addBtn.addEventListener("click", async () => {
+    if (!cachedResults.length) {
+      alert("Run the scraper first.");
+      return;
+    }
+
+    const country = document.getElementById("countrySelect").value;
+    const jobType = document.getElementById("jobTypeSelect").value;
+    const industry = document.getElementById("industrySelect").value;
+
+    addBtn.textContent = "Processing...";
+    addBtn.disabled = true;
+
+    for (let i = 0; i < cachedResults.length; i++) {
+      const job = cachedResults[i];
+      const jobEl = document.getElementById(`job-${i}`);
+      const statusEl = jobEl.querySelector(".status");
+
+      statusEl.textContent = "🤖 Processing...";
+      statusEl.style.color = "#7B61FF";
+
+      try {
+        const res = await fetch("/process_job_with_ai_bulk/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: job.title,
+            link: job.link,
+            snippet: job.snippet,
+            country,
+            job_type: jobType,
+            industry
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          statusEl.textContent = `✅ Added: ${data.company}`;
+          statusEl.style.color = "#4CAF50";
+        } else if (data.duplicate) {
+          statusEl.textContent = `⚠️ Duplicate — skipped (${data.message || ""})`;
+          statusEl.style.color = "#FFA500";
+        } else {
+          statusEl.textContent = "❌ Failed";
+          statusEl.style.color = "#ff2f5a";
         }
-      });
-    
-      // 2️⃣ Add to Database
-      addBtn.addEventListener("click", async () => {
-        if (!cachedResults.length) {
-          alert("Run the scraper first.");
-          return;
-        }
-    
-        const country = document.getElementById("countrySelect").value;
-        const jobType = document.getElementById("jobTypeSelect").value;
-        const industry = document.getElementById("industrySelect").value;
-    
-        addBtn.textContent = "Processing...";
-        addBtn.disabled = true;
-    
-        for (let i = 0; i < cachedResults.length; i++) {
-          const job = cachedResults[i];
-          const jobEl = document.getElementById(`job-${i}`);
-          const statusEl = jobEl.querySelector(".status");
-    
-          statusEl.textContent = "🤖 Processing...";
-          statusEl.style.color = "#7B61FF";
-    
-          try {
-            const res = await fetch("/process_job_with_ai_bulk/", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: job.title,
-                link: job.link,
-                snippet: job.snippet,
-                country,
-                job_type: jobType,
-                industry
-              })
-            });
-    
-            const data = await res.json();
-    
-            if (data.success) {
-              statusEl.textContent = `✅ Added: ${data.company}`;
-              statusEl.style.color = "#4CAF50";
-            } else if (data.duplicate) {
-              statusEl.textContent = `⚠️ Duplicate — skipped (${data.message || ""})`;
-              statusEl.style.color = "#FFA500";
-            } else {
-              statusEl.textContent = "❌ Failed";
-              statusEl.style.color = "#ff2f5a";
-            }
-          } catch (err) {
-            console.error("❌ Error on job", i + 1, err);
-            statusEl.textContent = "❌ Error";
-            statusEl.style.color = "#ff2f5a";
-          }
-    
-          await new Promise(r => setTimeout(r, 2000));
-        }
-    
-        addBtn.textContent = "✅ Done";
-        addBtn.disabled = false;
-      });
-    });
-    </script>
-    
+      } catch (err) {
+        console.error("❌ Error on job", i + 1, err);
+        statusEl.textContent = "❌ Error";
+        statusEl.style.color = "#ff2f5a";
+      }
+
+      await new Promise(r => setTimeout(r, 2000));
+    }
+
+    addBtn.textContent = "✅ Done";
+    addBtn.disabled = false;
+  });
+});
+</script>
+
 </body>
 </html>
