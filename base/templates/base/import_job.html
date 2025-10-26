@@ -133,7 +133,8 @@
         scrapeBtn.disabled = true;
     
         try {
-          const res = await fetch("/run_scraper/?type=uk_marketing");
+          const scraperType = document.getElementById("scraperSelect").value || "uk_marketing";
+          const res = await fetch(`/run_scraper/?type=${scraperType}`);
           const isJson = res.headers.get("content-type")?.includes("application/json");
           const data = isJson ? await res.json() : { error: "Non-JSON response from server." };
     
@@ -198,9 +199,10 @@
           }
     
           // Render jobs + debug header
+          const scraperLabel = scraperType.includes("finance") ? "finance-related" : "marketing-related";
           const header = `
             <div class="job-row">
-              <strong>✅ Found ${count} marketing-related jobs</strong><br>
+              <strong>✅ Found ${count} ${scraperLabel} jobs</strong><br>
               <small>Filtered from ${totalCount} total results</small>
               ${data.latest_file ? `<br><small>Latest file: ${data.latest_file}</small>` : ""}
               ${data.stdout ? `<details style="margin-top:8px;"><summary>Show scraper log</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stdout.replace(/</g,"&lt;")}</pre></details>` : ""}
