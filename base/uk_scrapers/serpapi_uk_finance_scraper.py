@@ -6,11 +6,12 @@ import requests
 from datetime import datetime
 from serpapi import GoogleSearch
 
+
 def main():
     # 🧩 --- Configuration ---
     QUERY = (
         'site:linkedin.com/jobs inurl:uk '
-        '("send your CV" OR "apply by email" OR "email your application") '
+        '("send your CV" OR "apply by email" OR "email your application" OR "send your application to") '
         '("@co.uk" OR "@gmail.com" OR "@outlook.com") '
         '(accounting OR finance OR "financial analyst" OR "financial controller" OR "investment analyst" '
         'OR "accountant" OR "bookkeeper" OR "auditor" OR "tax consultant" OR "banking" OR "treasury analyst" '
@@ -29,7 +30,7 @@ def main():
     base_params = {
         "engine": "google",
         "q": QUERY,
-        "num": 10,  # 10 results per page (SerpAPI limit)
+        "num": 10,
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
@@ -66,57 +67,55 @@ def main():
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🎯 --- Strict title filters (regex with word boundaries) ---
-    # Allow (must be present in TITLE)
-    MARKETING_TITLE_RE = re.compile(
+    # 🎯 --- Finance title filters ---
+    FINANCE_TITLE_RE = re.compile(
         r"""(?ix)
-        \b(marketing|marketer|marcom|crm|demand\s+gen(eration)?|growth|brand(ing)?|
-           digital\s+marketing|performance\s+marketing|content(\s+marketing)?|
-           copywrit(er|ing)|email(\s+marketing)?|retention|lifecycle|
-           seo|sem|ppc|paid(\s+search|\s+social)?|social\s+media|community\s+manager|
-           media\s+buyer|campaign\s+manager|pr|public\s+relations|
-           communications?|comms|influencer|affiliate|e[-\s]?commerce
-          )
+        \b(
+           finance|financial|accounting|accountant|auditor|analyst|
+           controller|treasury|banking|investment|payroll|cfo|
+           "fp&a"|tax|risk|compliance|credit|wealth|equity|treasurer|
+           advisor|consultant|bookkeeping|fund|portfolio
+        )\b
         """,
         re.IGNORECASE,
     )
 
-    # Block (if present in TITLE -> drop)
+    # Exclude titles that are clearly not finance
     EXCLUDE_TITLE_RE = re.compile(
         r"""(?ix)
-        \b(roofer|engineer|developer|technician|plumber|electrician|welder|carpenter|
-           construction|warehouse|driver|nurse|teacher|chef|cook|mechanic|operator|
-           installer|laborer|labourer|caretaker|handyman|foreman|cleaner|janitor|
-           solicitor|paralegal|lawyer|accountant|auditor|bookkeeper|receptionist|
-           security|guard|porter|surveyor|estimator|site\s+manager|bricklayer
-          )\b
+        \b(
+           marketing|developer|engineer|technician|nurse|teacher|chef|sales|
+           social\s+media|copywriter|pr|public\s+relations|construction|
+           warehouse|driver|operator|designer|ux|ui|graphics|customer\s+service
+        )\b
         """,
+        re.IGNORECASE,
     )
 
-    # 🧹 --- Filter results (EMAIL + UK + TITLE must match marketing & not excluded) ---
+    # 🧹 --- Filter results (EMAIL + UK + TITLE must match finance keywords) ---
     filtered = []
     for r in all_results:
         title = r.get("title", "") or ""
         snippet = r.get("snippet", "") or ""
         link = r.get("link", "") or ""
 
-        # Must show an email in snippet
+        # Must contain email
         if "@" not in snippet:
             continue
 
-        # Keep only UK (cheap heuristics)
+        # Must be UK
         text = (title + " " + snippet + " " + link).lower()
-        if not (" uk " in f" {text} " or "united kingdom" in text or "/uk/" in link.lower() or ".uk/" in link.lower() or ".co.uk" in text):
+        if not (" uk " in f" {text} " or "united kingdom" in text or ".co.uk" in text or "/uk/" in link):
             continue
 
-        # STRICT: title MUST contain a marketing keyword
-        if not MARKETING_TITLE_RE.search(title):
-            print(f"🚫 Non-marketing title (skipped): {title}")
+        # Must have finance-related keyword in title
+        if not FINANCE_TITLE_RE.search(title):
+            print(f"🚫 Non-finance title (skipped): {title}")
             continue
 
-        # STRICT: title MUST NOT contain any excluded job term
+        # Exclude unrelated jobs
         if EXCLUDE_TITLE_RE.search(title):
-            print(f"🚫 Excluded title (skipped): {title}")
+            print(f"🚫 Excluded non-finance role: {title}")
             continue
 
         filtered.append({
@@ -125,17 +124,14 @@ def main():
             "snippet": snippet.strip(),
         })
 
-    print(f"✅ Filtered down to {len(filtered)} marketing titles before closure check.")
+    print(f"✅ Filtered down to {len(filtered)} finance titles before closure check.")
 
     # 🔎 --- Remove closed listings (page check) ---
     CLOSED_PATTERNS = [
         "no longer accepting applications",
-        "no longer taking applications",
-        "no longer accepting applicants",
         "this job is no longer available",
         "applications are closed",
         "position filled",
-        "you can no longer apply",
     ]
 
     open_listings = []
@@ -178,6 +174,6 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(open_listings)} open UK marketing listings to {filename}")
+    print(f"✅ Saved {len(open_listings)} open UK finance listings to {filename}")
 
     return open_listings
