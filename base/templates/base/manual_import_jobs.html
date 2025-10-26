@@ -37,7 +37,6 @@
       <h1>Manual Job Import (Paste JSON objects)</h1>
       <p class="lead">Paste a full JSON array or multiple objects below. Each job will appear in its own editable box.</p>
 
-      <!-- 🔹 Bulk Paste Area -->
       <label for="bulkInput">Bulk JSON Input</label>
       <textarea id="bulkInput" class="full mono" placeholder='Paste JSON array or objects here… Example:
 [
@@ -48,7 +47,6 @@
         <button id="splitJSON" class="btn alt">Split JSON into Rows</button>
       </div>
 
-      <!-- Global selectors -->
       <div class="cols-3">
         <div>
           <label>Country</label>
@@ -89,7 +87,6 @@
         <button id="clearAll" class="btn ghost">Clear All</button>
       </div>
 
-      <!-- Rows container -->
       <div id="rows" class="grid full"></div>
 
       <div class="help">
@@ -144,17 +141,12 @@
       };
     }
 
-    function validateGlobals() {
-      const g = getGlobals();
-      if (!g.country || !g.industry || !g.job_type) {
-        alert("Please select Country, Industry, and Job Type before processing.");
-        return false;
-      }
-      return true;
-    }
-
     async function processAll() {
-      if (!validateGlobals()) return;
+      if (!getGlobals().country || !getGlobals().industry || !getGlobals().job_type) {
+        alert("Please select Country, Industry, and Job Type before processing.");
+        return;
+      }
+
       processAllBtn.disabled = true;
       processAllBtn.textContent = "Processing…";
 
@@ -172,74 +164,62 @@
         try { obj = JSON.parse(raw); }
         catch { status.textContent = "❌ Invalid JSON"; status.className = "status bad"; continue; }
 
-        if (!obj.title || !obj.link) {
-          status.textContent = "❌ Missing title/link";
-          status.className = "status bad"; continue;
-        }
-
         status.textContent = "🤖 Processing…";
         status.className = "status work";
         try {
           const res = await fetch(PROCESS_ENDPOINT, {
-            method: "POST", headers: { "Content-Type": "application/json" },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...obj, ...globals })
           });
           const data = await res.json();
           if (data.success) { status.textContent = `✅ ${data.company || "Done"}`; status.className = "status ok"; }
           else { status.textContent = `❌ ${data.error || "Failed"}`; status.className = "status bad"; }
         } catch (err) {
-          status.textContent = "❌ Network/Error"; status.className = "status bad";
+          status.textContent = "❌ Network/Error";
+          status.className = "status bad";
         }
         await new Promise(r => setTimeout(r, 1000));
       }
+
       processAllBtn.disabled = false;
       processAllBtn.textContent = "Process All (Top → Bottom)";
     }
 
+    // ✅ Fixed Split Function
     function splitJSON() {
-  const text = bulkInput.value.trim();
-  if (!text) return alert("Please paste JSON first.");
+      const text = bulkInput.value.trim();
+      if (!text) return alert("Please paste JSON first.");
 
-  let objects = [];
+      let objects = [];
 
-  // --- Try full JSON array ---
-  try {
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed)) {
-      objects = parsed;
-    } else if (typeof parsed === "object") {
-      objects = [parsed];
-    }
-  } catch (err) {
-    // --- Try extracting all {...} blocks inside text ---
-    const matches = text.match(/\{[\s\S]*?\}(?=\s*[,\]]|\s*$)/g); // find all { ... } blocks
-    if (matches) {
-      for (const m of matches) {
-        try {
-          objects.push(JSON.parse(m));
-        } catch (e) {
-          console.warn("⚠️ Skipped invalid JSON block:", e);
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          objects = parsed;
+        } else if (parsed.results && Array.isArray(parsed.results)) {
+          objects = parsed.results;
+        } else if (typeof parsed === "object") {
+          objects = [parsed];
         }
+      } catch (err) {
+        console.error("⚠️ JSON parse failed:", err);
+        return alert("Invalid JSON format — please paste a valid JSON array or object.");
       }
+
+      if (!objects.length) {
+        alert("No listings found in JSON.");
+        return;
+      }
+
+      rowsEl.innerHTML = "";
+      objects.forEach((obj, i) => {
+        const pretty = JSON.stringify(obj, null, 2);
+        rowsEl.appendChild(makeRow(i + 1, pretty));
+      });
+      renumberRows();
+      console.log(`✅ Created ${objects.length} rows from JSON.`);
     }
-  }
-
-  if (!objects.length) {
-    alert("No valid JSON objects found.");
-    return;
-  }
-
-  // --- Build rows dynamically ---
-  rowsEl.innerHTML = "";
-  objects.forEach((obj, i) => {
-    const pretty = JSON.stringify(obj, null, 2);
-    rowsEl.appendChild(makeRow(i + 1, pretty));
-  });
-
-  renumberRows();
-  console.log(`✅ Split into ${objects.length} JSON objects`);
-}
-
 
     splitBtn.addEventListener("click", splitJSON);
     addRowBtn.addEventListener("click", () => { addRow(); renumberRows(); });
