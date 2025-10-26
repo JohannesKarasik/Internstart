@@ -119,9 +119,29 @@ def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
         pass
 
     # 3) Try anything bound to this label id via aria-labelledby
-    try:
-        el = frame.locator(f"[aria-labelledby='{label_id}']")
-        if el.count() and el.first.is_visible():
+# 3) Anything bound to this label id via aria-labelledby (token match)
+        try:
+            el = frame.locator(f"[aria-labelledby~='{label_id}']")
+            if el.count() and el.first.is_visible():
+                return el.first
+        except Exception:
+            pass
+
+        # 4) Last resort: nearest “shell” under the same container
+        try:
+            wrapper = frame.locator(f"#{label_id}, label[for='{label_for_id}']").first
+            if wrapper:
+                el = wrapper.locator(
+                    "xpath=ancestor::*[self::div or self::section][1]"
+                ).locator(
+                    ".select__control, .select__container, .select-shell, "
+                    "[role='combobox'], [aria-haspopup='listbox'], button, div"
+                )
+                if el.count() and el.first.is_visible():
+                    return el.first
+        except Exception:
+            pass
+
             return el.first
     except Exception:
         pass
@@ -184,10 +204,6 @@ def _click_and_choose_option(page, frame, want_text: str) -> bool:
 
 
 def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bool:
-    """
-    Using a <label> element, open and set its custom dropdown to prefer_text (e.g., 'Yes'/'No').
-    Tries the inner input (type-ahead) path first, then the click-an-option path.
-    """
     try:
         label_id  = label_el.get_attribute("id") or ""
         label_for = label_el.get_attribute("for") or ""
@@ -195,102 +211,102 @@ def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bo
         if not root:
             return False
 
-        # open/focus
-        try:
-            root.scroll_into_view_if_needed()
-        except Exception:
-            pass
-        try:
-            root.click(force=True)
-            frame.wait_for_timeout(120)
-        except Exception:
-            return False
+        want = (prefer_text or "").strip()
 
-        # 1) TYPE-AHEAD PATH (most reliable for React/Remix selects)
-        try:
-            # find the real editable part inside the shell
-            inp = root.locator("input, [contenteditable='true'], [role='combobox'] input, [role='textbox']").first
-            if inp and inp.is_visible():
-                try:
-                    inp.fill("")           # clear any placeholder text
-                except Exception:
-                    pass
-                inp.type(prefer_text, delay=20)
-            else:
-                # fallback: type on the root
-                root.type(prefer_text, delay=20)
-
-            # commit selection
-            frame.keyboard.press("Enter")
-            frame.wait_for_timeout(120)
-            # blur to force React onBlur/onChange
+        for _ in range(4):
+            # open
             try:
-                frame.keyboard.press("Tab")
-                frame.wait_for_timeout(60)
+                root.scroll_into_view_if_needed()
             except Exception:
                 pass
-        except Exception:
-            pass
+            try:
+                root.click(force=True)
+                frame.wait_for_timeout(120)
+            except Exception:
+                continue
 
-        # 2) If text typing didn't visibly set it, try the click-an-option path
-        if not _click_and_choose_option(page, frame, prefer_text):
-            # may already be selected by Enter; that's fine
-            pass
+            # ➊ Type the value and press Enter (most reliable for React-Select)
+            try:
+                root.type(want, delay=20)
+                frame.keyboard.press("Enter")
+                frame.wait_for_timeout(120)
+                # blur to commit
+                try: frame.keyboard.press("Tab")
+                except Exception: pass
+            except Exception:
+                pass
 
-        # 3) verification: read visible text on the labelled shell
-        try:
-            committed = frame.evaluate("""
-                (labId, want) => {
-                  const root =
-                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
-                    document.getElementById(labId)?.closest('.select__container') ||
-                    document.getElementById(labId)?.parentElement;
-                  if (!root) return false;
-                  const txt = (root.innerText || '').toLowerCase();
-                  return txt.includes((want || '').toLowerCase());
-                }
-            """, label_id, prefer_text)
-        except Exception:
+            # verify
             committed = False
+            try:
+                committed = frame.evaluate("""
+                    (labId, want) => {
+                      const lower = (want||'').toLowerCase();
+                      // token match aria-labelledby
+                      const root = document.querySelector(`[aria-labelledby~="${labId}"]`)
+                               || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                      const txt  = root ? (root.innerText || '').toLowerCase() : '';
+                      return txt.includes(lower);
+                    }
+                """, label_id, want)
+            except Exception:
+                committed = False
 
-        if committed:
-            return True
+            if committed:
+                return True
 
-        # 4) last-resort: try to set the underlying labelled control directly
+            # ➋ Fallback: click a visible option in the open menu (frame or page portal)
+            if _click_and_choose_option(page, frame, want):
+                try:
+                    frame.keyboard.press("Tab")
+                except Exception:
+                    pass
+                # verify again
+                try:
+                    committed = frame.evaluate("""
+                        (labId, want) => {
+                          const lower = (want||'').toLowerCase();
+                          const root = document.querySelector(`[aria-labelledby~="${labId}"]`)
+                                   || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                          const txt  = root ? (root.innerText || '').toLowerCase() : '';
+                          return txt.includes(lower);
+                        }
+                    """, label_id, want)
+                except Exception:
+                    committed = False
+                if committed:
+                    return True
+
+        # last resort: if the label's "for" points to a hidden <select>/<input>, set it directly
         try:
-            ok = frame.evaluate("""
+            return frame.evaluate("""
                 (elId, want) => {
                   const el = document.getElementById(elId);
                   if (!el) return false;
-                  const lower = (want || '').toLowerCase();
-
+                  const lower = (want||'').toLowerCase();
                   if (el.tagName && el.tagName.toLowerCase() === 'select') {
-                    const opts = Array.from(el.options || []);
-                    const m = opts.find(o => ((o.textContent||'').trim().toLowerCase() === lower) ||
-                                             ((o.textContent||'').toLowerCase().includes(lower)));
+                    const opts = Array.from(el.options||[]);
+                    const m = opts.find(o => ((o.textContent||'').trim().toLowerCase()===lower)
+                                          || ((o.textContent||'').toLowerCase().includes(lower)));
                     if (m) {
                       el.value = m.value;
-                      el.dispatchEvent(new Event('input', { bubbles: true }));
-                      el.dispatchEvent(new Event('change', { bubbles: true }));
+                      el.dispatchEvent(new Event('input', {bubbles:true}));
+                      el.dispatchEvent(new Event('change',{bubbles:true}));
                       return true;
                     }
                   }
                   if (el.tagName && el.tagName.toLowerCase() === 'input') {
                     el.value = want;
                     el.setAttribute('value', want);
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                    el.dispatchEvent(new Event('change',{bubbles:true}));
                     return true;
                   }
                   return false;
                 }
-            """, label_for, prefer_text)
-            if ok:
-                return True
+            """, label_for, want)
         except Exception:
-            pass
-
-        return False
+            return False
     except Exception:
         return False
 
