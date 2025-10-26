@@ -1030,6 +1030,115 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
 
+                # --- Hard-case: IPG "ever/currently employed" combobox — force type+Enter + verify ---
+                try:
+                    for frame in page.frames:
+                        # 1) Find the specific label
+                        lab = frame.locator(
+                            "label[for]",
+                        ).filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
+                        if not (lab and lab.is_visible()):
+                            continue
+
+                        lab_id  = (lab.get_attribute("id") or "")
+                        lab_for = (lab.get_attribute("for") or "")
+
+                        # 2) Find the clickable root/combobox near the label
+                        root = None
+                        # element referenced by label's "for"
+                        if lab_for:
+                            el = frame.locator(f"#{lab_for}")
+                            if el.count() and el.first.is_visible():
+                                root = el.first
+
+                        # aria-labelledby binding
+                        if not root and lab_id:
+                            el = frame.locator(f"[aria-labelledby='{lab_id}']")
+                            if el.count() and el.first.is_visible():
+                                root = el.first
+
+                        # common shells
+                        if not root:
+                            root = lab.locator("xpath=following::*[1]").locator(
+                                ":is([role='combobox'], [aria-haspopup='listbox'], .select__control, .select-shell, .select__container)"
+                            ).first
+
+                        if not (root and root.is_visible()):
+                            continue
+
+                        # 3) Open and type "No", then Enter
+                        try:
+                            root.scroll_into_view_if_needed()
+                        except Exception:
+                            pass
+                        root.click(force=True)
+                        frame.wait_for_timeout(120)
+
+                        # Some widgets need the inner input focused
+                        try:
+                            inner_input = root.locator("input[role='combobox'], input[aria-autocomplete='list']")
+                            if inner_input.count() and inner_input.first.is_visible():
+                                inner_input.first.fill("")  # clear any filter
+                                inner_input.first.type("No", delay=20)
+                            else:
+                                root.type("No", delay=20)
+                        except Exception:
+                            root.type("No", delay=20)
+
+                        frame.keyboard.press("Enter")
+                        frame.wait_for_timeout(180)
+
+                        # 4) Verify; if not committed, try portal click on the visible “No” option
+                        committed = False
+                        try:
+                            committed = frame.evaluate("""
+                                (labId) => {
+                                const root =
+                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
+                                    (labId && document.getElementById(labId)?.closest('.select__container'));
+                                const txt = (root && root.innerText) ? root.innerText.toLowerCase() : "";
+                                return txt.includes("no");
+                                }
+                            """, lab_id)
+                        except Exception:
+                            committed = False
+
+                        if not committed:
+                            # Click the menu option wherever it was rendered (inside frame or in a body portal)
+                            for scope in (frame, page):
+                                menu = scope.locator(
+                                    ":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, "
+                                    ".MuiPaper-root, .MuiPopover-paper, ul[role='listbox'], ul)"
+                                )
+                                opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)").filter(has_text="No").first
+                                if opt and opt.is_visible():
+                                    opt.click(force=True)
+                                    scope.wait_for_timeout(160)
+                                    break
+
+                        # 5) Final verify; log result
+                        try:
+                            committed = frame.evaluate("""
+                                (labId) => {
+                                const root =
+                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
+                                    (labId && document.getElementById(labId)?.closest('.select__container'));
+                                const txt = (root && root.innerText) ? root.innerText.toLowerCase() : "";
+                                return txt.includes("no");
+                                }
+                            """, lab_id)
+                        except Exception:
+                            committed = False
+
+                        if committed:
+                            print("🟢 Forced commit: IPG prior/current employment → No")
+                        else:
+                            print("🟡 Still not committed after force; will rely on later validation")
+                except Exception as e:
+                    print(f"⚠️ Hard-case handler failed: {e}")
+
+
+
 
                 # Required selects (with auto Yes/No for policy/employment questions)
                 for frame in page.frames:
