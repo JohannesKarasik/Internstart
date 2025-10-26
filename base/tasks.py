@@ -128,7 +128,7 @@ def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
 
     # 4) Last resort: the nearest “shell” looking div under the same container
     try:
-        wrapper = frame.locator(f"#${label_id}, label[for='{label_for_id}']").first
+        wrapper = frame.locator(f"#{label_id}, label[for='{label_for_id}']").first
         if wrapper:
             el = wrapper.locator("xpath=ancestor::*[self::div or self::section][1]").locator(
                 ".select__control, .select__container, .select-shell, [role='combobox'], [aria-haspopup='listbox'], div"
@@ -144,27 +144,49 @@ def _click_and_choose_option(page, frame, want_text: str) -> bool:
     """
     After a dropdown is opened, pick an option by visible text.
     Search both inside the frame and in portals mounted on <body>.
+    Retry for a short period because some menus mount with a delay.
     """
-    selectors_menu = ":is([role='listbox'], [role='menu'], [class*='menu' i], [class*='options' i], ul, .select__menu, .dropdown-menu)"
-    selectors_opt  = ":is([role='option'], [role='menuitem'], li, div, button, span)"
+    selectors_menu = (
+        ":is("
+        "[role='listbox'], [role='menu'], "
+        ".MuiPaper-root, .MuiPopover-paper, "
+        ".select__menu, .dropdown-menu, "
+        "[class*='menu' i], [class*='options' i], "
+        "ul[role='listbox'], ul"
+        ")"
+    )
+    selectors_opt = ":is([role='option'], [role='menuitem'], li, div, button, span)"
 
-    for scope in (frame, page):
+    want = (want_text or "").strip()
+    deadline = time.time() + 2.5  # up to ~2.5s
+
+    while time.time() < deadline:
+        for scope in (frame, page):
+            try:
+                menu = scope.locator(selectors_menu)
+                if menu.count():
+                    opt = menu.locator(selectors_opt).filter(has_text=want).first
+                    if opt and opt.is_visible():
+                        opt.click(force=True)
+                        try:
+                            frame.wait_for_timeout(120)
+                        except Exception:
+                            pass
+                        return True
+            except Exception:
+                pass
         try:
-            menu = scope.locator(selectors_menu)
-            if menu.count():
-                opt = menu.locator(selectors_opt).filter(has_text=want_text).first
-                if opt and opt.is_visible():
-                    opt.click(force=True)
-                    frame.wait_for_timeout(120)
-                    return True
+            frame.wait_for_timeout(120)
         except Exception:
-            continue
+            pass
     return False
+
 
 
 def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bool:
     """
     Using a <label> element, open and set its custom dropdown to prefer_text (e.g., 'Yes'/'No').
+    Retries because some menus mount with a delay.
     """
     try:
         label_id  = label_el.get_attribute("id") or ""
@@ -173,32 +195,42 @@ def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bo
         if not root:
             return False
 
-        # Focus/open
-        try:
-            root.scroll_into_view_if_needed()
-        except Exception:
-            pass
-        try:
-            root.click(force=True)
-            frame.wait_for_timeout(150)
-        except Exception:
-            return False
+        # Open & try to choose with small retries
+        for _ in range(4):
+            try:
+                try:
+                    root.scroll_into_view_if_needed()
+                except Exception:
+                    pass
 
-        # Choose the option
-        if _click_and_choose_option(page, frame, prefer_text):
-            return True
+                root.click(force=True)
+                try:
+                    frame.wait_for_timeout(180)
+                except Exception:
+                    pass
 
-        # Fallback: type to filter and try again
-        try:
-            root.type(prefer_text, delay=20)
-            frame.wait_for_timeout(120)
-            if _click_and_choose_option(page, frame, prefer_text):
-                return True
-        except Exception:
-            pass
+                # try choose straight away
+                if _click_and_choose_option(page, frame, prefer_text):
+                    return True
+
+                # type to filter then try again
+                try:
+                    root.type(prefer_text, delay=25)
+                except Exception:
+                    pass
+                try:
+                    frame.wait_for_timeout(150)
+                except Exception:
+                    pass
+
+                if _click_and_choose_option(page, frame, prefer_text):
+                    return True
+            except Exception:
+                continue
+        return False
     except Exception:
-        pass
-    return False
+        return False
+
 
 
 # ---------- Phase 1: Scan (inventory every field first) ----------
@@ -853,15 +885,28 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 if not lab.is_visible():
                                     continue
                                 q_text = (lab.inner_text() or "").strip()
+
+                                # existing generic intent
                                 pref = _yesno_preference(q_text)  # 'Yes' for privacy, 'No' for prior employment
+
+                                # ▼▼ ADD THESE LINES HERE ▼▼
+                                qL = q_text.lower()
+                                if ("ever been employed by ipg" in qL
+                                        or "currently employed" in qL
+                                        or "subsidiar" in qL):  # catches 'subsidiary/subsidiaries'
+                                    pref = "No"
+                                # ▲▲ ADD THESE LINES HERE ▲▲
+
                                 if not pref:
                                     continue
+
                                 if _set_custom_dropdown_by_label(page, frame, lab, pref):
                                     print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
                             except Exception:
                                 continue
                 except Exception:
                     pass
+
 
 
 
