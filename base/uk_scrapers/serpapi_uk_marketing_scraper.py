@@ -18,12 +18,9 @@ def main():
         'OR "marketing executive" OR "marketing manager" OR "head of marketing" OR "CMO" OR "performance marketing" OR "demand generation" OR "crm" OR "marcom")'
     )
 
-    # 🔑 --- API Key ---
-    API_KEY = os.getenv("SERPAPI_API_KEY")
-    if not API_KEY:
-        raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
+    API_KEY = "6ecc501d2af38d445f1766ba7f169eac80355198994c221128cde05ef76f9d28"
+    print(f"✅ Using hardcoded SerpAPI key: {API_KEY[:8]}********...")
 
-    print("🔍 Fetching up to 30 UK marketing listings from SerpAPI ...")
 
     # 🌍 --- Base Search Parameters ---
     base_params = {
