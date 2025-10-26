@@ -6,6 +6,7 @@ import time, traceback, random, json
 from urllib.parse import urlparse
 import os, tempfile
 from datetime import datetime
+import re
 
 # --- helper: write a small temp text file (used if ATS only accepts file upload for CL) ---
 def write_temp_cover_letter_file(text, suffix=".txt"):
@@ -199,6 +200,51 @@ def _country_human(code: str) -> str:
 
 # --- NEW: smarter value resolver (uses label + name + id + placeholder + aria) ---
 DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
+
+
+# --- Auto-Yes/No intent detection + helpers ---
+AUTO_YES_RE = re.compile(
+    r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|"
+    r"terms\s*(and\s*conditions)?|gdpr|policy\s*ack|read\s*the\s*privacy|"
+    r"agree\s*to\s*the\s*policy)", re.I
+)
+
+AUTO_NO_RE = re.compile(
+    r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed)?\s*by|"
+    r"previous(ly)?\s*employ(ed)?\s*by|worked\s*for\s*(us|this\s*company)|"
+    r"subsidiar(y|ies)|conflict\s*of\s*interest)", re.I
+)
+
+def _yesno_preference(label_text: str) -> str:
+    """Return 'Yes' or 'No' if the question clearly matches our intent, else ''."""
+    L = (label_text or "").lower()
+    if AUTO_YES_RE.search(L):
+        return "Yes"
+    if AUTO_NO_RE.search(L):
+        return "No"
+    return ""
+
+def _select_by_label_text(frame, select_el, want_text: str) -> bool:
+    """Choose an option in a <select> by visible text (exact or contains)."""
+    try:
+        return bool(frame.evaluate("""
+            (el, want) => {
+              if (!el || el.tagName.toLowerCase() !== 'select') return false;
+              const w = (want || '').toLowerCase();
+              const opts = Array.from(el.options || []);
+              const exact = opts.find(o => (o.textContent||'').trim().toLowerCase() === w);
+              const match = exact || opts.find(o => (o.textContent||'').toLowerCase().includes(w));
+              if (match) {
+                el.value = match.value;
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+                return true;
+              }
+              return false;
+            }
+        """, select_el, want_text))
+    except Exception:
+        return False
+
 
 def _attrs_blob(label="", name="", id_="", placeholder="", aria_label="", type_=""):
     """Combine all useful attributes/labels into one lowercased string for matching."""
@@ -691,7 +737,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception:
                         pass
 
-                # Required selects
+                # Required selects (with auto Yes/No for policy/employment questions)
                 for frame in page.frames:
                     try:
                         selects = frame.locator("select:not([disabled])")
@@ -710,6 +756,13 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 if not (req_attr or req_near):
                                     continue
 
+                                # ➊ Prefer our auto Yes/No rules
+                                pref = _yesno_preference(lbl)
+                                if pref and _select_by_label_text(frame, sel, pref):
+                                    print(f"✅ Auto-answered select → {pref} ({lbl[:80]})")
+                                    continue
+
+                                # ➋ Country heuristic (user model)
                                 user_country_human = _country_human(getattr(user, "country", ""))
                                 if "country" in lbl.lower() and user_country_human:
                                     try:
@@ -719,25 +772,27 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                     except Exception:
                                         pass
 
+                                # ➌ Generic: choose first non-placeholder option
                                 chose = frame.evaluate("""
                                     (el) => {
-                                      const opts = Array.from(el.options || []);
-                                      const good = opts.find(o => {
+                                    const opts = Array.from(el.options || []);
+                                    const good = opts.find(o => {
                                         const t = (o.textContent||'').trim();
-                                        return t && !/select|vælg|choose|please|—|–|-/i.test(t);
-                                      });
-                                      if (good) { el.value = good.value; el.dispatchEvent(new Event('change',{bubbles:true})); return good.textContent.trim(); }
-                                      return "";
+                                        return t && !/^(select|vælg|choose|please|—|–|-|select\.\.\.)$/i.test(t);
+                                    });
+                                    if (good) { el.value = good.value; el.dispatchEvent(new Event('change',{bubbles:true})); return good.textContent.trim(); }
+                                    return "";
                                     }
                                 """, sel)
                                 if chose:
-                                    print(f"✅ Required select filled → {chose[:40]} ({lbl[:40]})")
+                                    print(f"✅ Required select filled → {chose[:40]} ({lbl[:80]})")
                             except Exception:
                                 continue
                     except Exception:
                         pass
 
-                # Required radios
+
+                # Required radios (with auto Yes/No for policy/employment questions)
                 for frame in page.frames:
                     try:
                         radios = frame.locator("input[type='radio']:not([disabled])")
@@ -749,24 +804,59 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 if name in processed:
                                     continue
                                 group = frame.locator(f"input[type='radio'][name='{name}']")
+                                if group.count() == 0:
+                                    continue
+
+                                # Is the group required?
                                 any_req = False
                                 for j in range(group.count()):
                                     g = group.nth(j)
                                     if g.get_attribute("required") is not None or g.get_attribute("aria-required") in ["true", True]:
-                                        any_req = True; break
+                                        any_req = True
+                                        break
                                 if not any_req:
                                     continue
-                                for j in range(group.count()):
-                                    g = group.nth(j)
-                                    if g.is_visible():
-                                        g.check(force=True)
-                                        print(f"🔘 Checked required radio group '{name}'")
-                                        break
-                                processed.add(name)
+
+                                # Pull a group-level label/question
+                                group_label = near_text(frame, r)
+                                pref = _yesno_preference(group_label)
+
+                                chosen = False
+                                if pref:
+                                    want = pref.lower()
+                                    # Try to pick the radio whose nearby/sibling label contains Yes/No
+                                    for j in range(group.count()):
+                                        g = group.nth(j)
+                                        try:
+                                            lab = (frame.evaluate(
+                                                "(el)=> el.closest('label, .radio, .form-check, td, th, div')?.innerText || ''", g
+                                            ) or "").lower()
+                                        except Exception:
+                                            lab = ""
+                                        if want in lab:
+                                            g.check(force=True)
+                                            print(f"🔘 Auto-answered radio → {pref} ({group_label[:80]})")
+                                            chosen = True
+                                            break
+
+                                    # Fallback: check first visible if text labels not found
+                                    if not chosen:
+                                        for j in range(group.count()):
+                                            g = group.nth(j)
+                                            if g.is_visible():
+                                                g.check(force=True)
+                                                print(f"🔘 Radio fallback pick (pref {pref}) for group '{name}'")
+                                                chosen = True
+                                                break
+
+                                # If no preference matched, leave to other passes (don’t guess)
+                                if chosen:
+                                    processed.add(name)
                             except Exception:
                                 continue
                     except Exception:
                         pass
+
 
                 # Required checkboxes (skip marketing)
                 for frame in page.frames:
