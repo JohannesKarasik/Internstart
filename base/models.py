@@ -70,12 +70,10 @@ class User(AbstractUser):
     subscription_tier = models.CharField(
         max_length=20,
         choices=SUBSCRIPTION_CHOICES,
-        default='starter'  # default to starter instead of free
+        default='starter'
     )
 
-    # ✅ New total swipe system
     swipes_used = models.PositiveIntegerField(default=0)
-
 
     # 🔹 Stripe integration fields
     stripe_customer_id = models.CharField(max_length=100, null=True, blank=True)
@@ -107,13 +105,57 @@ class User(AbstractUser):
     ]
     student_industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
-    # 🔹 Job type choices
     JOB_TYPE_CHOICES = [
         ('internship', 'Internship'),
         ('student_job', 'Student job'),
         ('full_time', 'Full-time job'),
     ]
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, null=True, blank=True)
+
+    # ---------------------------------------------------
+    # 🔹 NEW: Education setup fields for "Finish Account"
+    # ---------------------------------------------------
+    UNDER_EDUCATION_CHOICES = [
+        ('yes', 'Yes'),
+        ('no', 'No'),
+    ]
+    under_education = models.CharField(
+        max_length=3,
+        choices=UNDER_EDUCATION_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Indicates whether the user is currently studying."
+    )
+
+    EDUCATION_LEVEL_CHOICES = [
+        ('high_school', 'High School'),
+        ('bachelor', 'Bachelor’s Degree'),
+        ('master', 'Master’s Degree'),
+        ('phd', 'PhD'),
+        ('other', 'Other'),
+    ]
+    highest_education_level = models.CharField(
+        max_length=30,
+        choices=EDUCATION_LEVEL_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Highest completed education level (if not under education)."
+    )
+
+    # Field used in both cases (past or current studies)
+    field_of_study = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        help_text="What did you study or what are you studying?"
+    )
+
+    current_education_name = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        help_text="Name of your current or last educational institution (optional)."
+    )
 
 
 
