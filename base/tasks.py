@@ -186,7 +186,7 @@ def _click_and_choose_option(page, frame, want_text: str) -> bool:
 def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bool:
     """
     Using a <label> element, open and set its custom dropdown to prefer_text (e.g., 'Yes'/'No').
-    Retries because some menus mount with a delay.
+    Tries the inner input (type-ahead) path first, then the click-an-option path.
     """
     try:
         label_id  = label_el.get_attribute("id") or ""
@@ -195,41 +195,105 @@ def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bo
         if not root:
             return False
 
-        # Open & try to choose with small retries
-        for _ in range(4):
+        # open/focus
+        try:
+            root.scroll_into_view_if_needed()
+        except Exception:
+            pass
+        try:
+            root.click(force=True)
+            frame.wait_for_timeout(120)
+        except Exception:
+            return False
+
+        # 1) TYPE-AHEAD PATH (most reliable for React/Remix selects)
+        try:
+            # find the real editable part inside the shell
+            inp = root.locator("input, [contenteditable='true'], [role='combobox'] input, [role='textbox']").first
+            if inp and inp.is_visible():
+                try:
+                    inp.fill("")           # clear any placeholder text
+                except Exception:
+                    pass
+                inp.type(prefer_text, delay=20)
+            else:
+                # fallback: type on the root
+                root.type(prefer_text, delay=20)
+
+            # commit selection
+            frame.keyboard.press("Enter")
+            frame.wait_for_timeout(120)
+            # blur to force React onBlur/onChange
             try:
-                try:
-                    root.scroll_into_view_if_needed()
-                except Exception:
-                    pass
-
-                root.click(force=True)
-                try:
-                    frame.wait_for_timeout(180)
-                except Exception:
-                    pass
-
-                # try choose straight away
-                if _click_and_choose_option(page, frame, prefer_text):
-                    return True
-
-                # type to filter then try again
-                try:
-                    root.type(prefer_text, delay=25)
-                except Exception:
-                    pass
-                try:
-                    frame.wait_for_timeout(150)
-                except Exception:
-                    pass
-
-                if _click_and_choose_option(page, frame, prefer_text):
-                    return True
+                frame.keyboard.press("Tab")
+                frame.wait_for_timeout(60)
             except Exception:
-                continue
+                pass
+        except Exception:
+            pass
+
+        # 2) If text typing didn't visibly set it, try the click-an-option path
+        if not _click_and_choose_option(page, frame, prefer_text):
+            # may already be selected by Enter; that's fine
+            pass
+
+        # 3) verification: read visible text on the labelled shell
+        try:
+            committed = frame.evaluate("""
+                (labId, want) => {
+                  const root =
+                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
+                    document.getElementById(labId)?.closest('.select__container') ||
+                    document.getElementById(labId)?.parentElement;
+                  if (!root) return false;
+                  const txt = (root.innerText || '').toLowerCase();
+                  return txt.includes((want || '').toLowerCase());
+                }
+            """, label_id, prefer_text)
+        except Exception:
+            committed = False
+
+        if committed:
+            return True
+
+        # 4) last-resort: try to set the underlying labelled control directly
+        try:
+            ok = frame.evaluate("""
+                (elId, want) => {
+                  const el = document.getElementById(elId);
+                  if (!el) return false;
+                  const lower = (want || '').toLowerCase();
+
+                  if (el.tagName && el.tagName.toLowerCase() === 'select') {
+                    const opts = Array.from(el.options || []);
+                    const m = opts.find(o => ((o.textContent||'').trim().toLowerCase() === lower) ||
+                                             ((o.textContent||'').toLowerCase().includes(lower)));
+                    if (m) {
+                      el.value = m.value;
+                      el.dispatchEvent(new Event('input', { bubbles: true }));
+                      el.dispatchEvent(new Event('change', { bubbles: true }));
+                      return true;
+                    }
+                  }
+                  if (el.tagName && el.tagName.toLowerCase() === 'input') {
+                    el.value = want;
+                    el.setAttribute('value', want);
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    return true;
+                  }
+                  return false;
+                }
+            """, label_for, prefer_text)
+            if ok:
+                return True
+        except Exception:
+            pass
+
         return False
     except Exception:
         return False
+
 
 
 
@@ -889,11 +953,10 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 # existing generic intent
                                 pref = _yesno_preference(q_text)  # 'Yes' for privacy, 'No' for prior employment
 
-                                # ▼▼ ADD THESE LINES HERE ▼▼
                                 qL = q_text.lower()
                                 if ("ever been employed by ipg" in qL
                                         or "currently employed" in qL
-                                        or "subsidiar" in qL):  # catches 'subsidiary/subsidiaries'
+                                        or "subsidiar" in qL):
                                     pref = "No"
                                 # ▲▲ ADD THESE LINES HERE ▲▲
 
