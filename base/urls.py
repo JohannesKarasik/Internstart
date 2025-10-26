@@ -5,7 +5,6 @@ from django.urls import path
 from .forms import EmployerCompanyForm, EmployerPersonalForm
 from django.urls import path, include
 from django.shortcuts import redirect
-from django.urls import re_path
 
 
 
@@ -42,8 +41,6 @@ urlpatterns = [
     path("swipe/jobs/", views.swipe_jobs_api, name="swipe_jobs_api"),
     path('welcome', views.landing_page, name=''),   # ✅ root
     path('import-job/', views.import_job_view, name='import_job'),
-    re_path(r"^process[-_]?text/?$", views.process_text, name="process_text"),
-
 
 
 
@@ -63,6 +60,7 @@ urlpatterns = [
     path("process_job_with_ai_bulk/", views.process_job_with_ai_bulk, name="process_job_with_ai_bulk"),
     path("manual-import/", views.manual_import_jobs, name="manual_import_jobs"),
     path("process_manual_job/", views.process_manual_job, name="process_manual_job"),
+    path("process-text/", views.process_text_page, name="process_text_page"),
 
 
 

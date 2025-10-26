@@ -16,79 +16,35 @@
     <h1>Process Job Text</h1>
     <p>Paste a job description or posting below, then process it into structured data.</p>
 
-    <p><b>Industry</b>: Marketing & Communications</p>
-    <p><b>Job Type</b>: Internship</p>
-    <p><b>Country</b>: 🇩🇰 Denmark</p>
+    {% if error %}
+      <p style="color:#f55;">❌ {{ error }}</p>
+    {% endif %}
 
-    <textarea id="jobText" placeholder="Paste job description here..."></textarea>
-    <button id="processBtn">Process Text</button>
+    <form method="POST">
+      {% csrf_token %}
+      <p><b>Industry</b>: Marketing & Communications</p>
+      <p><b>Job Type</b>: Internship</p>
+      <p><b>Country</b>: 🇩🇰 Denmark</p>
 
-    <div id="result" class="result"></div>
+      <textarea name="text" placeholder="Paste job description here..."></textarea>
+      <input type="hidden" name="industry" value="marketing">
+      <input type="hidden" name="job_type" value="internship">
+      <input type="hidden" name="country" value="DK">
+      <button type="submit">Process Text</button>
+    </form>
+
+    {% if success %}
+      <div class="result">
+        ✅ <b>{{ company_name }}</b><br>
+        <b>Description:</b> {{ company_description }}<br>
+        <b>Location:</b> {{ location }}<br>
+        <b>Logo:</b> <img src="{{ logo_url }}" width="60" style="border-radius:6px;"><br>
+        <b>Industry:</b> {{ industry }}<br>
+        <b>Job Type:</b> {{ job_type }}<br>
+        <b>Country:</b> {{ country }}<br>
+        <p style="color:#4CAF50;">✅ Added to database successfully.</p>
+      </div>
+    {% endif %}
   </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const processBtn = document.getElementById("processBtn");
-      const resultBox = document.getElementById("result");
-      const jobText = document.getElementById("jobText");
-    
-      processBtn.addEventListener("click", async (e) => {
-        e.preventDefault(); // 🚫 Prevent default form or button behavior
-        const text = jobText.value.trim();
-        if (!text) return alert("Please paste job text first.");
-    
-        resultBox.innerHTML = "⏳ Processing...";
-    
-        const payload = {
-          text,
-          industry: "marketing",
-          job_type: "internship",
-          country: "DK"
-        };
-    
-        try {
-          // ✅ Always use POST and ensure JSON headers are sent
-          const res = await fetch("/process-text/", {
-            method: "POST",
-            headers: {
-              "Accept": "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-          });
-    
-          // 👀 If backend fails, Django might send HTML — handle that
-          const contentType = res.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            const html = await res.text();
-            console.error("Server returned HTML instead of JSON:", html.slice(0, 200));
-            resultBox.innerHTML = "❌ Server returned HTML instead of JSON (check console).";
-            return;
-          }
-    
-          const data = await res.json();
-          if (!data.success) {
-            resultBox.innerHTML = `❌ Error: ${data.error || "Failed"}`;
-            return;
-          }
-    
-          resultBox.innerHTML = `
-            ✅ <b>${data.company_name}</b><br>
-            <b>Description:</b> ${data.company_description}<br>
-            <b>Location:</b> ${data.location}<br>
-            <b>Logo:</b> <img src="${data.logo_url}" width="60" style="vertical-align:middle;border-radius:6px;"><br>
-            <b>Industry:</b> ${data.industry}<br>
-            <b>Job Type:</b> ${data.job_type}<br>
-            <b>Country:</b> ${data.country}<br>
-            <p style="color:#4CAF50;">✅ Added to database successfully.</p>
-          `;
-        } catch (err) {
-          console.error("Fetch failed:", err);
-          resultBox.innerHTML = "❌ Failed to process request (see console).";
-        }
-      });
-    });
-    </script>
-    
 </body>
 </html>
