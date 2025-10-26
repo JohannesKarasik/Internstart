@@ -56,12 +56,12 @@ def _extract_dropdown_options(frame, query, nth):
     """Read visible option texts for a specific <select> using the same locator query/nth."""
     try:
         return frame.evaluate(
-            """(q, n) => {
-                const el = document.querySelectorAll(q)[n];
+            """(a) => {
+                const el = document.querySelectorAll(a.q)[a.n];
                 if (!el || el.tagName.toLowerCase() !== 'select') return [];
                 return [...el.options].map(o => (o.textContent || '').trim()).filter(Boolean).slice(0, 200);
             }""",
-            query, nth
+            {"q": query, "n": nth}
         ) or []
     except Exception:
         return []
@@ -151,25 +151,22 @@ def _ai_fill_leftovers(page, user):
             ftype = fdata.get("type") or ""
 
             try:
-                # Re-query inside evaluate to avoid stale element handles.
                 if ftype == "select":
-                    # Fetch options again & pick best
                     opts = _extract_dropdown_options(fr, q, n)
                     pick = _best_option_match(opts, str(answer))
                     if not pick:
                         print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {answer}")
                         continue
 
-                    # Try native selection
                     try:
                         el = fr.locator(q).nth(n)
                         el.select_option(label=pick)
                     except Exception:
                         fr.evaluate(
-                            """(q,n,labelText) => {
-                                const el = document.querySelectorAll(q)[n];
+                            """(a) => {
+                                const el = document.querySelectorAll(a.q)[a.n];
                                 if (!el) return;
-                                const want = (labelText || '').trim().toLowerCase();
+                                const want = (a.labelText || '').trim().toLowerCase();
                                 const opt = [...el.options].find(o =>
                                     (o.textContent || '').trim().toLowerCase() === want
                                 ) || [...el.options].find(o =>
@@ -181,20 +178,20 @@ def _ai_fill_leftovers(page, user):
                                     el.dispatchEvent(new Event('change',{bubbles:true}));
                                 }
                             }""",
-                            q, n, pick
+                            {"q": q, "n": n, "labelText": pick}
                         )
                     print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
                 else:
                     fr.evaluate(
-                        """(q,n,v)=>{
-                            const el = document.querySelectorAll(q)[n];
+                        """(a)=>{
+                            const el = document.querySelectorAll(a.q)[a.n];
                             if (!el) return;
-                            if (el.isContentEditable) { el.innerText = v; }
-                            else { el.value = v; }
+                            if (el.isContentEditable) { el.innerText = a.v; }
+                            else { el.value = a.v; }
                             el.dispatchEvent(new Event('input',{bubbles:true}));
                             el.dispatchEvent(new Event('change',{bubbles:true}));
                         }""",
-                        q, n, str(answer)
+                        {"q": q, "n": n, "v": str(answer)}
                     )
                     print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {answer}")
 
@@ -354,10 +351,10 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
 
             try:
                 committed = frame.evaluate(
-                    """(labId,w)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
-                                   || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
-                                   const t=(r?.innerText||'').toLowerCase(); return t.includes((w||'').toLowerCase());}""",
-                    lab_id, want
+                    """(a)=>{const r=document.querySelector(`[aria-labelledby~="${a.labId}"]`)
+                       || (document.getElementById(a.labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                       const t=(r?.innerText||'').toLowerCase(); return t.includes((a.w||'').toLowerCase());}""",
+                    {"labId": lab_id, "w": want}
                 )
                 if committed: return True
             except Exception:
@@ -366,10 +363,10 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
             if _click_and_choose_option(page, frame, want) or _click_and_choose_option(page, page, want):
                 try:
                     committed = frame.evaluate(
-                        """(labId,w)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
-                                       || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
-                                       const t=(r?.innerText||'').toLowerCase(); return t.includes((w||'').toLowerCase());}""",
-                        lab_id, want
+                        """(a)=>{const r=document.querySelector(`[aria-labelledby~="${a.labId}"]`)
+                           || (document.getElementById(a.labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                           const t=(r?.innerText||'').toLowerCase(); return t.includes((a.w||'').toLowerCase());}""",
+                        {"labId": lab_id, "w": want}
                     )
                     if committed: return True
                 except Exception:
@@ -378,17 +375,17 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
         if lab_for:
             try:
                 ok = frame.evaluate(
-                    """(id,w)=>{const el=document.getElementById(id); if(!el) return false;
+                    """(a)=>{const el=document.getElementById(a.id); if(!el) return false;
                         const tag=(el.tagName||'').toLowerCase();
                         if (tag==='select'){const o=[...el.options||[]];
-                          const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===(w||'').toLowerCase())
-                                  || o.find(x=>(x.textContent||'').toLowerCase().includes((w||'').toLowerCase()));
+                          const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===(a.w||'').toLowerCase())
+                                  || o.find(x=>(x.textContent||'').toLowerCase().includes((a.w||'').toLowerCase()));
                           if(!m) return false; el.value=m.value;}
-                        else {el.value=w; el.setAttribute('value',w);}
+                        else {el.value=a.w; el.setAttribute('value',a.w);}
                         el.dispatchEvent(new Event('input',{bubbles:true}));
                         el.dispatchEvent(new Event('change',{bubbles:true}));
                         return true;}""",
-                    lab_for, want
+                    {"id": lab_for, "w": want}
                 )
                 if ok:
                     try: label_el.click(force=True)
@@ -464,10 +461,13 @@ def scan_all_fields(page):
                     if et == "select":
                         try:
                             selected_text = fr.evaluate(
-                                "(q,n) => { const e = document.querySelectorAll(q)[n]; "
-                                "if(!e) return ''; const o = e.options[e.selectedIndex]; "
-                                "return (o && o.textContent || '').trim(); }",
-                                q, i
+                                """(a) => { 
+                                    const e = document.querySelectorAll(a.q)[a.n];
+                                    if(!e) return '';
+                                    const o = e.options[e.selectedIndex];
+                                    return (o && o.textContent || '').trim();
+                                }""",
+                                {"q": q, "n": i}
                             ) or ""
                         except Exception:
                             selected_text = ""
@@ -510,8 +510,8 @@ def _value_from_meta(user, meta: str):
         (["email","e-mail","mail"],            user.email or ""),
         (["phone","mobile","tel"],             phone),
         (["linkedin","profile url","profile_url"], linkedin),
-        (["country","nationality","land"],     _country_human(cc)),  # added 'land' (da)
-        (["city","town","by"],                 getattr(user,"location","") or ""),  # 'by' (da)
+        (["country","nationality","land"],     _country_human(cc)),
+        (["city","town","by"],                 getattr(user,"location","") or ""),
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
     ]
@@ -532,7 +532,7 @@ def fill_from_inventory(page, user, inventory):
                 curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
                 curr = ""
-            if curr and curr.upper()!="N/A":  # leave prefilled fields
+            if curr and curr.upper()!="N/A":
                 continue
 
             meta = _attrs_blob(
@@ -553,21 +553,21 @@ def fill_from_inventory(page, user, inventory):
                     el.select_option(label=val)
                 except Exception:
                     fr.evaluate(
-                        """(q,n,w)=>{const el=document.querySelectorAll(q)[n]; if(!el) return;
-                            const t=(w||'').toLowerCase();
+                        """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
+                            const t=(a.w||'').toLowerCase();
                             const o=[...el.options||[]];
                             const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
                                  || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
                             if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""",
-                        it["query"], it["nth"], val
+                        {"q": it["query"], "n": it["nth"], "w": val}
                     )
             else:
                 fr.evaluate(
-                    """(q,n,v)=>{const el=document.querySelectorAll(q)[n]; if(!el) return;
-                        if (el.isContentEditable){ el.innerText=v; } else { el.value=v; }
+                    """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
+                        if (el.isContentEditable){ el.innerText=a.v; } else { el.value=a.v; }
                         el.dispatchEvent(new Event('input',{bubbles:true}));
                         el.dispatchEvent(new Event('change',{bubbles:true}));}""",
-                    it["query"], it["nth"], val
+                    {"q": it["query"], "n": it["nth"], "v": val}
                 )
 
             print(f"✅ Filled “{meta[:60]}” → {val}")
@@ -606,9 +606,10 @@ def _force_ipg_employment_no(page, frame) -> bool:
 
     def committed():
         try:
-            return frame.evaluate("""(labId)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
-                       || (document.getElementById(labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
-                       const t=(r?.innerText||'').toLowerCase(); return t.includes('no');}""", lab_id)
+            return frame.evaluate("""(a)=>{const r=document.querySelector(`[aria-labelledby~="${a.labId}"]`)
+                       || (document.getElementById(a.labId)?.closest('.select__container,.select-shell,[role="combobox"],div'));
+                       const t=(r?.innerText||'').toLowerCase(); return t.includes('no');}""",
+                       {"labId": lab_id})
         except Exception:
             return False
 
@@ -617,11 +618,11 @@ def _force_ipg_employment_no(page, frame) -> bool:
         return committed()
     if lab_for:
         try:
-            ok = frame.evaluate("""(id)=>{const el=document.getElementById(id); if(!el) return False;
+            ok = frame.evaluate("""(a)=>{const el=document.getElementById(a.id); if(!el) return false;
                  if (el.tagName.toLowerCase()==='select'){const m=[...el.options||[]].find(o=>/\\bno\\b/i.test(o.textContent||'')); if(!m) return false; el.value=m.value;}
                  else {el.value='No'; el.setAttribute('value','No');}
                  el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;}""",
-                 lab_for)
+                 {"id": lab_for})
             if ok:
                 try: lab.click(force=True)
                 except Exception: pass
