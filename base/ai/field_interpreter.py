@@ -59,33 +59,25 @@ def map_fields_to_answers(fields, user_profile):
     if not fields or not user_profile:
         return {}
 
-    # ---- Prompt with strict rules about options & format ----
+        # ---- Prompt with strict rules about options & format ----
     prompt = f"""
-You fill job-application forms **precisely** using the user's profile.
+    You are an assistant filling out job application forms.
 
-UserProfile JSON:
-{json.dumps(user_profile, indent=2, ensure_ascii=False)}
+    User data:
+    {json.dumps(user_profile, indent=2, ensure_ascii=False)}
 
-TASK
-For each field below, provide the best value using the profile. If unknown, return "skip".
+    Below are the fields extracted from the form. Some have available dropdown options.
 
-CRITICAL RULES
-- If a field includes an "options" array, your answer MUST be EXACTLY one of those option strings (case & accents must match).
-- Prefer localized answers that appear in "options" when present (e.g., Danish labels like "Vælg" are placeholders and should not be chosen).
-- For yes/no questions: if options are localized, select the localized option; otherwise use "Yes" or "No".
-- Phone country-code selects: choose the option that matches the user's dial code (e.g., "+45").
-- Dates: if the form asks for a date but none is available, return "skip".
-- Never invent employers, dates, or degrees not present in the profile.
+    Rules:
+    - For dropdowns, pick the single most relevant option from the provided list.
+    - For text inputs, write a concise, factual answer from the user's profile.
+    - If no relevant data exists, respond with "skip".
+    - Output ONLY valid JSON mapping field_id → chosen answer (option text or typed answer).
 
-OUTPUT FORMAT
-- Return ONLY a single JSON object mapping field_id -> answer.
-- Answer may be a plain string, e.g. {{"42": "Bachelor"}}
-  OR an object with a "value" key, e.g. {{"42": {{"value": "Bachelor"}}}}.
-- Do NOT include explanations.
+    Fields:
+    {json.dumps(fields, indent=2, ensure_ascii=False)}
+    """
 
-FIELDS (each item has field_id, label, type, and may include options):
-{json.dumps(fields, indent=2, ensure_ascii=False)}
-"""
 
     try:
         response = client.chat.completions.create(

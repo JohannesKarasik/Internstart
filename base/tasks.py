@@ -30,16 +30,31 @@ def _ai_fill_leftovers(page, user):
         for i, fdata in enumerate(inv[:10]):  # show first 10 fields
             print(f"   [{i}] label='{fdata.get('label')}' placeholder='{fdata.get('placeholder')}' value='{fdata.get('current_value')}'")
 
-        # 2️⃣ Collect only unfilled fields
+                # 2️⃣ Collect only unfilled fields
+        frames = list(page.frames)
         fields_to_ai = []
         for i, fdata in enumerate(inv):
             val = fdata.get("current_value") or ""
             label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
-            if not val.strip():  # empty fields only
-                fields_to_ai.append({
-                    "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
-                    "label": label
-                })
+            if val.strip():
+                continue
+
+            # --- Detect dropdowns (select fields) ---
+            options = []
+            try:
+                el_type = fdata.get("type", "")
+                if el_type == "select":
+                    frame = frames[fdata["frame_index"]]
+                    options = _extract_dropdown_options(frame, fdata["nth"])
+            except Exception:
+                pass
+
+            fields_to_ai.append({
+                "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
+                "label": label,
+                "options": options if options else None
+            })
+
 
         print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields found")
 
@@ -89,6 +104,8 @@ def _ai_fill_leftovers(page, user):
     except Exception as e:
         print(f"⚠️ AI leftovers pass failed: {e}")
         return 0
+    
+
 
 
 def write_temp_cover_letter_file(text, suffix=".txt"):
@@ -147,6 +164,22 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
             xbtn.first.click(force=True)
     except Exception:
         pass
+
+def _extract_dropdown_options(frame, element_index):
+    """Return list of visible option texts for a <select> or dropdown-like field."""
+    try:
+        options = frame.evaluate(
+            """(idx)=>{
+                const el = document.querySelectorAll('select, [role="combobox"], [aria-haspopup="listbox"]')[idx];
+                if(!el) return [];
+                const opts = [...el.querySelectorAll('option')].map(o => o.textContent.trim()).filter(Boolean);
+                return opts.slice(0, 50);
+            }""",
+            element_index
+        )
+        return options or []
+    except Exception:
+        return []
 
 # ---------- dropdown helpers ----------
 def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
