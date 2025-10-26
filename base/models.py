@@ -48,6 +48,10 @@ class User(AbstractUser):
     avatar = models.ImageField(null=True, default="avatar.svg")
     username = models.CharField(max_length=150, unique=True, null=True, blank=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
+    currently_employed = models.BooleanField(null=True, blank=True, help_text="Is the user currently employed?")
+    current_position   = models.CharField(max_length=120, null=True, blank=True)
+    current_employer   = models.CharField(max_length=120, null=True, blank=True)
+    total_years_experience = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Whole years")
     linkedin_url = models.URLField(blank=True, null=True)
     onboarding_shown = models.BooleanField(default=False)
 
