@@ -132,7 +132,6 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
             except Exception:
                 continue
 
-            # type + Enter + Tab
             try:
                 inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
                 if inner and inner.is_visible():
@@ -147,7 +146,6 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
             except Exception:
                 pass
 
-            # verify by shell text using token-match aria-labelledby
             try:
                 committed = frame.evaluate(
                     """(labId,w)=>{const r=document.querySelector(`[aria-labelledby~="${labId}"]`)
@@ -159,7 +157,6 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
             except Exception:
                 pass
 
-            # menu fallback (frame then page)
             if _click_and_choose_option(page, frame, want) or _click_and_choose_option(page, page, want):
                 try:
                     committed = frame.evaluate(
@@ -172,7 +169,6 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
                 except Exception:
                     pass
 
-        # last resort: set hidden backing (label for=id)
         if lab_for:
             try:
                 ok = frame.evaluate(
@@ -202,12 +198,8 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
 # ---------- metadata + scan/fill ----------
 DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
 
-AUTO_YES_RE = re.compile(
-    r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|terms|gdpr|agree)", re.I
-)
-AUTO_NO_RE = re.compile(
-    r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed)?\s*by|subsidiar(y|ies)|conflict\s*of\s*interest)", re.I
-)
+AUTO_YES_RE = re.compile(r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|terms|gdpr|agree)", re.I)
+AUTO_NO_RE  = re.compile(r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed)?\s*by|subsidiar(y|ies)|conflict\s*of\s*interest)", re.I)
 
 def _yesno_preference(label_text: str) -> str:
     L = (label_text or "").lower()
@@ -348,7 +340,6 @@ def fill_from_inventory(page, user, inventory):
 
 # ---------- special Yes/No forcings ----------
 def _force_ipg_employment_no(page, frame) -> bool:
-    """Specifically force the IPG employment question to 'No'."""
     lab = frame.locator("label[for]").filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
     if not (lab and lab.is_visible()): return False
     lab_id  = lab.get_attribute("id") or ""
@@ -400,7 +391,6 @@ def _force_ipg_employment_no(page, frame) -> bool:
     return False
 
 def _force_privacy_yes_if_needed(page, frame):
-    """Find privacy/consent dropdowns and ensure they are 'Yes'."""
     labels = []
     try:
         labels = frame.locator("label[for]").all()
@@ -422,7 +412,11 @@ def _force_privacy_yes_if_needed(page, frame):
     return changed
 
 # ---------- main ----------
-def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True):
+def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True, screenshot_delay_sec=3):
+    """
+    screenshot_delay_sec: wait this many seconds before the dry-run screenshot,
+    so attachments/labels have time to render.
+    """
     room = ATSRoom.objects.get(id=room_id)
     user = User.objects.get(id=user_id)
 
@@ -518,7 +512,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             try:
                 if resume_path:
                     print(f"📎 Uploading resume: {resume_path}")
-                    # some flows show 'Attach' button
                     try:
                         btn = context.locator(":is(button,label,a):has-text('Attach')")
                         if btn.count() and btn.first.is_visible():
@@ -575,6 +568,11 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             screenshot_path = os.path.join(log_dir, f"ats_preview_{safe_company}_{ts}.png")
             if dry_run:
                 print("🧪 Dry run — skipping submit")
+                # NEW: wait a bit so uploads/labels render before screenshot
+                delay_ms = max(int(screenshot_delay_sec * 1000), 0)
+                if delay_ms:
+                    print(f"⏱️ Waiting {screenshot_delay_sec}s before screenshot…")
+                    page.wait_for_timeout(delay_ms)
                 try:
                     page.screenshot(path=screenshot_path, full_page=True)
                     print(f"📸 Saved preview → {screenshot_path}")
