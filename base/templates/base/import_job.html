@@ -110,14 +110,12 @@
       const scrapeBtn = document.getElementById("scrapeBtn");
       const addBtn = document.getElementById("addToDBBtn");
       const resultsContainer = document.getElementById("resultsContainer");
-    
       let cachedResults = [];
     
       function validateSelections() {
         const country = document.getElementById("countrySelect").value;
         const industry = document.getElementById("industrySelect").value;
         const jobType = document.getElementById("jobTypeSelect").value;
-    
         if (!country || !industry || !jobType) {
           alert("Please select Country, Industry, and Job Type before running the scraper.");
           return false;
@@ -125,7 +123,7 @@
         return true;
       }
     
-      // 1️⃣ Run Scraper (improved: show errors + debug info)
+      /* ---------- 1️⃣ Run Scraper ---------- */
       scrapeBtn.addEventListener("click", async () => {
         if (!validateSelections()) return;
     
@@ -161,14 +159,13 @@
               <div class="job-row">
                 <strong>No jobs found.</strong><br>
                 <small>Latest file: ${data.latest_file || "—"}</small>
-                ${data.stdout ? `<pre style="white-space:pre-wrap;margin-top:8px;">STDOUT:\n${data.stdout.replace(/</g,"&lt;")}</pre>` : ""}
               </div>
             `;
             scrapeBtn.disabled = false;
             return;
           }
-
-
+    
+          /* --- Filter + render --- */
           function renderResults(filteredResults, count) {
             const totalCount = cachedResults.length;
             const scraperLabel = scraperType.includes("finance") ? "finance-related" : "marketing-related";
@@ -189,22 +186,14 @@
             `).join("");
             resultsContainer.innerHTML = header + list;
           }
-
-
     
-          // 🎯 Dynamic filtering by scraper type
           let keywordSet = [];
-
-          // 🧠 If finance scraper selected — show all results (no filtering)
           if (scraperType.includes("finance")) {
             console.log("💼 Finance scraper selected — skipping keyword filtering.");
-            const filteredResults = cachedResults;
-            const count = filteredResults.length;
-            console.log(`🎯 Showing all ${count} finance-related jobs (no filtering).`);
-            renderResults(filteredResults, count); // ⬅️ helper we’ll add below
+            renderResults(cachedResults, cachedResults.length);
+            scrapeBtn.disabled = false;
             return;
           } else {
-            // 🪄 Keep normal marketing filters
             keywordSet = [
               "marketing", "digital", "seo", "sem", "ppc", "social media",
               "content", "copywriter", "copywriting", "pr", "public relations",
@@ -214,52 +203,14 @@
               "account manager", "marcom"
             ];
           }
-
-
+    
           const keywordsLower = keywordSet.map(k => k.toLowerCase());
-
           const filteredResults = cachedResults.filter(job => {
             const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
             return keywordsLower.some(keyword => text.includes(keyword));
           });
-
-          const count = filteredResults.length;
-          console.log(`🎯 Filtered ${count} ${scraperType.includes("finance") ? "finance" : "marketing"}-related jobs out of ${cachedResults.length}`);
-
+          renderResults(filteredResults, filteredResults.length);
     
-          if (!count) {
-            resultsContainer.innerHTML = `
-              <div class="job-row">
-                <strong>⚠️ No marketing listings found after keyword filtering.</strong><br>
-                <small>Try rerunning the scraper or broadening the keyword set.</small>
-              </div>
-            `;
-            scrapeBtn.disabled = false;
-            return;
-          }
-    
-          // Render jobs + debug header
-          const scraperLabel = scraperType.includes("finance") ? "finance-related" : "marketing-related";
-          const header = `
-            <div class="job-row">
-              <strong>✅ Found ${count} ${scraperLabel} jobs</strong><br>
-              <small>Filtered from ${totalCount} total results</small>
-              ${data.latest_file ? `<br><small>Latest file: ${data.latest_file}</small>` : ""}
-              ${data.stdout ? `<details style="margin-top:8px;"><summary>Show scraper log</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stdout.replace(/</g,"&lt;")}</pre></details>` : ""}
-              ${data.stderr ? `<details style="margin-top:8px;"><summary>Show errors</summary><pre style="white-space:pre-wrap;margin-top:8px;">${data.stderr.replace(/</g,"&lt;")}</pre></details>` : ""}
-            </div>
-          `;
-    
-          const list = filteredResults.map((job, i) => `
-            <div class="job-row" id="job-${i}">
-              <strong>${job.title || "Untitled Job"}</strong><br>
-              <a href="${job.link}" target="_blank">${job.link}</a><br>
-              <small>${job.snippet || ""}</small><br>
-              <span class="status muted">⏸ Waiting...</span>
-            </div>
-          `).join("");
-    
-          resultsContainer.innerHTML = header + list;
         } catch (err) {
           console.error("run_scraper failed:", err);
           resultsContainer.innerHTML = `<p class='muted'>❌ Failed to call /run_scraper — check console/network tab.</p>`;
@@ -268,7 +219,7 @@
         }
       });
     
-      // 2️⃣ Process loop (unchanged)
+      /* ---------- 2️⃣ Add to DB ---------- */
       addBtn.addEventListener("click", async () => {
         if (!cachedResults.length) {
           alert("Run the scraper first.");
@@ -305,20 +256,28 @@
             });
     
             const data = await res.json();
+            console.log(`[process ${i + 1}] response:`, data);
     
             if (data.success) {
               statusEl.textContent = `✅ Added: ${data.company}`;
               statusEl.style.color = "#4CAF50";
+            } else if (data.duplicate) {
+              statusEl.textContent = `⚠️ Duplicate — skipped${data.message ? ` (${data.message})` : ""}`;
+              statusEl.style.color = "#FFA500";
+            } else if (data.error) {
+              statusEl.textContent = `❌ Failed — ${data.error}`;
+              statusEl.style.color = "#ff2f5a";
             } else {
-              statusEl.textContent = "❌ Failed";
+              statusEl.textContent = "❌ Failed (unknown)";
               statusEl.style.color = "#ff2f5a";
             }
           } catch (err) {
             console.error("❌ Error on job", i + 1, err);
-            statusEl.textContent = "❌ Error";
+            statusEl.textContent = "❌ Network error";
             statusEl.style.color = "#ff2f5a";
           }
     
+          // small delay between requests
           await new Promise(r => setTimeout(r, 2000));
         }
     
