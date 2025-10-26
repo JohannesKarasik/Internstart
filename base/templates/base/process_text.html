@@ -6,9 +6,11 @@
   <style>
     body { font-family: Inter, sans-serif; background:#0b0f1a; color:#fff; padding:40px; }
     .card { background:#121826; border-radius:14px; padding:24px; max-width:800px; margin:auto; }
-    textarea { width:100%; height:300px; padding:12px; border-radius:10px; border:none; font-size:15px; margin-top:10px; }
+    select, textarea { width:100%; padding:12px; border-radius:10px; border:none; font-size:15px; margin-top:10px; }
+    textarea { height:280px; }
     button { background:#FF2F5A; border:none; padding:12px 20px; border-radius:10px; color:#fff; font-weight:700; cursor:pointer; margin-top:10px; }
     .result { margin-top:20px; background:#1a2133; border-radius:10px; padding:16px; }
+    label { font-weight:600; margin-top:12px; display:block; }
   </style>
 </head>
 <body>
@@ -22,14 +24,39 @@
 
     <form method="POST">
       {% csrf_token %}
-      <p><b>Industry</b>: Marketing & Communications</p>
-      <p><b>Job Type</b>: Internship</p>
-      <p><b>Country</b>: 🇩🇰 Denmark</p>
 
-      <textarea name="text" placeholder="Paste job description here..."></textarea>
-      <input type="hidden" name="industry" value="marketing">
-      <input type="hidden" name="job_type" value="internship">
-      <input type="hidden" name="country" value="DK">
+      <!-- Dropdowns for dynamic selection -->
+      <label for="industry">Industry</label>
+      <select name="industry" id="industry" required>
+        <option value="">-- Select Industry --</option>
+        <option value="business_finance">Business & Finance</option>
+        <option value="marketing">Marketing & Communications</option>
+        <option value="software_backend">Software Development (Backend)</option>
+        <option value="software_frontend">Software Development (Frontend)</option>
+        <option value="sales_customer">Sales & Customer Relations</option>
+      </select>
+
+      <label for="job_type">Job Type</label>
+      <select name="job_type" id="job_type" required>
+        <option value="">-- Select Job Type --</option>
+        <option value="internship">Internship</option>
+        <option value="student_job">Student Job</option>
+        <option value="full_time">Full-Time Job</option>
+      </select>
+
+      <label for="country">Country</label>
+      <select name="country" id="country" required>
+        <option value="">-- Select Country --</option>
+        <option value="DK">🇩🇰 Denmark</option>
+        <option value="US">🇺🇸 United States</option>
+        <option value="UK">🇬🇧 United Kingdom</option>
+        <option value="FRA">🇫🇷 France</option>
+        <option value="GER">🇩🇪 Germany</option>
+      </select>
+
+      <label for="text">Paste Job Text</label>
+      <textarea name="text" id="text" placeholder="Paste job description here..." required></textarea>
+
       <button type="submit">Process Text</button>
     </form>
 
