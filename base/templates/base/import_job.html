@@ -168,24 +168,36 @@
             return;
           }
     
-          // 🎯 Filter listings by marketing-related keywords
-          const MARKETING_KEYWORDS = [
-            "marketing", "digital", "seo", "sem", "ppc", "social media",
-            "content", "copywriter", "copywriting", "pr", "public relations",
-            "communications", "brand", "advertising", "creative", "growth",
-            "email", "campaign", "media", "community", "influencer",
-            "affiliate", "crm", "performance", "ecommerce", "demand gen",
-            "account manager", "marcom"
-          ];
-          const keywordsLower = MARKETING_KEYWORDS.map(k => k.toLowerCase());
-    
-          const marketingResults = cachedResults.filter(job => {
+          // 🎯 Dynamic filtering by scraper type
+          let keywordSet = [];
+
+          if (scraperType.includes("finance")) {
+            keywordSet = [
+              "finance", "financial", "accounting", "accountant", "bookkeeper",
+              "auditor", "analyst", "controller", "treasury", "banking", "investments",
+              "cfo", "fp&a", "finance manager", "tax", "risk", "compliance"
+            ];
+          } else {
+            keywordSet = [
+              "marketing", "digital", "seo", "sem", "ppc", "social media",
+              "content", "copywriter", "copywriting", "pr", "public relations",
+              "communications", "brand", "advertising", "creative", "growth",
+              "email", "campaign", "media", "community", "influencer",
+              "affiliate", "crm", "performance", "ecommerce", "demand gen",
+              "account manager", "marcom"
+            ];
+          }
+
+          const keywordsLower = keywordSet.map(k => k.toLowerCase());
+
+          const filteredResults = cachedResults.filter(job => {
             const text = ((job.title || "") + " " + (job.snippet || "")).toLowerCase();
             return keywordsLower.some(keyword => text.includes(keyword));
           });
-    
-          const count = marketingResults.length;
-          console.log(`🎯 Filtered ${count} marketing-related jobs out of ${cachedResults.length}`);
+
+          const count = filteredResults.length;
+          console.log(`🎯 Filtered ${count} ${scraperType.includes("finance") ? "finance" : "marketing"}-related jobs out of ${cachedResults.length}`);
+
     
           if (!count) {
             resultsContainer.innerHTML = `
