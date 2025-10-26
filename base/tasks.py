@@ -1075,37 +1075,87 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         except Exception:
                             labels = []
 
-                    for lab in labels:
-                        try:
-                            if not lab.is_visible():
-                                continue
-                            q_text = (lab.inner_text() or "").strip()
-
-                            # Default yes/no intent
-                            pref = _yesno_preference(q_text)
-
-                            # Force NO for the IPG prior/current employment question
-                            qL = q_text.lower()
-                            if ("ever been employed by ipg" in qL
-                                    or "currently employed" in qL
-                                    or "subsidiar" in qL):
-                                pref = "No"
-                                if _force_select_value_for_label(page, frame, lab, "No"):
-                                    print("🟢 Forced commit: IPG prior/current employment → No")
+                        for lab in labels:
+                            try:
+                                if not lab.is_visible():
                                     continue
-                                else:
-                                    print("🟡 Force-select attempt failed for IPG employment question")
+                                q_text = (lab.inner_text() or "").strip()
 
-                            if not pref:
+                                # existing generic intent
+                                pref = _yesno_preference(q_text)  # 'Yes' for privacy, 'No' for prior employment
+
+                                qL = q_text.lower()
+                                if ("ever been employed by ipg" in qL
+                                        or "currently employed" in qL
+                                        or "subsidiar" in qL):
+                                    pref = "No"
+                                # ▲▲ ADD THESE LINES HERE ▲▲
+
+                                if not pref:
+                                    continue
+
+                                if _set_custom_dropdown_by_label(page, frame, lab, pref):
+                                    print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
+                                    ok = _set_custom_dropdown_by_label(page, frame, lab, pref)
+                                    if ok:
+                                        # verify the visible value actually changed
+                                        label_id  = lab.get_attribute("id") or ""
+                                        label_for = lab.get_attribute("for") or ""
+                                        committed = False
+                                        try:
+                                            committed = frame.evaluate("""
+                                                (labId, want) => {
+                                                const root =
+                                                    document.querySelector(`[aria-labelledby="${labId}"]`) ||
+                                                    (document.getElementById(labId)?.closest('.select__container'));
+                                                const txt = root ? (root.innerText || '').toLowerCase() : '';
+                                                return txt.includes((want || '').toLowerCase());
+                                                }
+                                            """, label_id, pref)
+                                        except Exception:
+                                            committed = False
+
+                                        if not committed:
+                                            # last-resort: set the underlying element the label points to
+                                            try:
+                                                committed = frame.evaluate("""
+                                                    (elId, want) => {
+                                                    const el = document.getElementById(elId);
+                                                    if (!el) return false;
+                                                    const lower = (want || '').toLowerCase();
+                                                    if (el.tagName && el.tagName.toLowerCase() === 'select') {
+                                                        const opts = Array.from(el.options || []);
+                                                        const m = opts.find(o =>
+                                                        ((o.textContent||'').trim().toLowerCase() === lower) ||
+                                                        ((o.textContent||'').toLowerCase().includes(lower))
+                                                        );
+                                                        if (m) {
+                                                        el.value = m.value;
+                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
+                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                                        return true;
+                                                        }
+                                                    }
+                                                    if (el.tagName && el.tagName.toLowerCase() === 'input') {
+                                                        el.value = want;
+                                                        el.setAttribute('value', want);
+                                                        el.dispatchEvent(new Event('input', {bubbles:true}));
+                                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                                        return true;
+                                                    }
+                                                    return false;
+                                                    }
+                                                """, label_for, pref)
+                                            except Exception:
+                                                committed = False
+
+                                        if committed:
+                                            print(f"🟢 Confirmed dropdown set → {pref} ({q_text[:80]})")
+                                        else:
+                                            print(f"🟡 Dropdown click landed but value didn’t commit; fallback failed ({q_text[:80]})")
+
+                            except Exception:
                                 continue
-
-                            # your normal path for other yes/no dropdowns
-                            if _set_custom_dropdown_by_label(page, frame, lab, pref):
-                                print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
-                                # (optional keep your existing verification logs)
-                        except Exception:
-                            continue
-
                 except Exception:
                     pass
 
