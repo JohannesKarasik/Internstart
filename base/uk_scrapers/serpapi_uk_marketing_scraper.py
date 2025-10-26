@@ -1,10 +1,10 @@
 import os
 import json
-import re
 import time
 import requests
 from datetime import datetime
 from serpapi import GoogleSearch
+
 
 def main():
     # 🧩 --- Configuration ---
@@ -22,7 +22,7 @@ def main():
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-    print("🔍 Fetching up to 30 UK marketing listings from SerpAPI ...")
+    print("🔍 Fetching up to 80 UK marketing listings from SerpAPI ...")
 
     base_params = {
         "engine": "google",
@@ -32,12 +32,13 @@ def main():
         "gl": "uk",
         "location": "United Kingdom",
         "filter": "0",
-        "tbs": "qdr:w",
+        "tbs": "qdr:w",  # past week
         "api_key": API_KEY,
     }
 
+    # 🔁 Fetch up to 8 pages (≈80 results)
     all_results = []
-    for start in range(0, 30, 10):
+    for start in range(0, 80, 10):
         params = base_params.copy()
         params["start"] = start
         print(f"📄 Fetching page starting at {start}...")
@@ -57,7 +58,7 @@ def main():
             break
 
         all_results.extend(organic)
-        time.sleep(2)
+        time.sleep(1.5)  # shorter delay to stay efficient
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
@@ -79,41 +80,27 @@ def main():
     ]
 
     def is_marketing_job(title, snippet):
-        """
-        Returns True if title or snippet clearly indicates a marketing-related role.
-        Filters out blue-collar, technical, or unrelated jobs.
-        """
         title_lower = title.lower()
         snippet_lower = snippet.lower()
 
-        # ❌ Exclude immediately if title contains irrelevant terms
         if any(ex in title_lower for ex in EXCLUDE_KEYWORDS):
             return False
-
-        # ✅ Require at least one marketing term in title (strong signal)
         if any(mk in title_lower for mk in MARKETING_KEYWORDS):
             return True
-
-        # ⚙️ Weak fallback: snippet mentions marketing keywords (but not excluded)
-        if any(mk in snippet_lower for mk in MARKETING_KEYWORDS) and not any(ex in snippet_lower for ex in EXCLUDE_KEYWORDS):
+        if any(mk in snippet_lower for mk in MARKETING_KEYWORDS):
             return True
-
         return False
 
-    # 🧹 --- Filtering phase ---
+    # 🧹 --- Filter relevant listings ---
     filtered = []
     for r in all_results:
         title = r.get("title", "")
         snippet = r.get("snippet", "")
         link = r.get("link", "")
 
-        text = (title + " " + snippet).lower()
         if "@" not in snippet:
-            continue
-        if not ("uk" in text or "united kingdom" in text or "/uk/" in link.lower()):
-            continue
+            continue  # must have email
         if not is_marketing_job(title, snippet):
-            print(f"🚫 Skipped non-marketing: {title}")
             continue
 
         filtered.append({
@@ -144,19 +131,18 @@ def main():
     }
 
     print(f"🧠 Checking {len(filtered)} listings for closure text...")
-    for job in filtered:
+    for job in filtered[:100]:  # safety limit
         try:
-            html = requests.get(job["link"], headers=headers, timeout=8).text.lower()
+            html = requests.get(job["link"], headers=headers, timeout=6).text.lower()
             if any(p in html for p in CLOSED_PATTERNS):
-                print(f"⛔ Closed: {job['title']}")
                 continue
             open_listings.append(job)
-            print(f"✅ Open: {job['title']}")
-        except Exception as e:
-            print(f"⚠️ Request failed: {e}")
-        time.sleep(1.0)
+        except Exception:
+            continue
+        time.sleep(0.7)
 
-    open_listings = open_listings[:30]
+    open_listings = open_listings[:60]  # cap to safe JSON size
+    print(f"✅ Found {len(open_listings)} open UK marketing listings.")
 
     # 💾 --- Save to JSON ---
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
@@ -165,5 +151,10 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(open_listings)} open UK marketing listings to {filename}")
+    print(f"✅ Saved {len(open_listings)} open listings to {filename}")
     return open_listings
+
+
+if __name__ == "__main__":
+    results = main()
+    print(json.dumps(results, ensure_ascii=False))
