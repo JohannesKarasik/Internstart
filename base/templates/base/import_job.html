@@ -222,7 +222,7 @@
             </div>
           `;
     
-          const list = marketingResults.map((job, i) => `
+          const list = filteredResults.map((job, i) => `
             <div class="job-row" id="job-${i}">
               <strong>${job.title || "Untitled Job"}</strong><br>
               <a href="${job.link}" target="_blank">${job.link}</a><br>
