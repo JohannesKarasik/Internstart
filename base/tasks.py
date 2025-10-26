@@ -100,6 +100,107 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
 # --- end consent helper ---
 
 
+def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
+    """Find the clickable root for a custom dropdown using the label's for/id relationships."""
+    # 1) Try the element referenced by label's 'for'
+    try:
+        el = frame.locator(f"#{label_for_id}")
+        if el.count() and el.first.is_visible():
+            return el.first
+    except Exception:
+        pass
+
+    # 2) Try a sibling container commonly used by custom selects
+    try:
+        el = frame.locator(f"label[for='{label_for_id}']").locator("xpath=following-sibling::*[1]")
+        if el.count() and el.first.is_visible():
+            return el.first
+    except Exception:
+        pass
+
+    # 3) Try anything bound to this label id via aria-labelledby
+    try:
+        el = frame.locator(f"[aria-labelledby='{label_id}']")
+        if el.count() and el.first.is_visible():
+            return el.first
+    except Exception:
+        pass
+
+    # 4) Last resort: the nearest “shell” looking div under the same container
+    try:
+        wrapper = frame.locator(f"#${label_id}, label[for='{label_for_id}']").first
+        if wrapper:
+            el = wrapper.locator("xpath=ancestor::*[self::div or self::section][1]").locator(
+                ".select__control, .select__container, .select-shell, [role='combobox'], [aria-haspopup='listbox'], div"
+            )
+            if el.count() and el.first.is_visible():
+                return el.first
+    except Exception:
+        pass
+    return None
+
+
+def _click_and_choose_option(page, frame, want_text: str) -> bool:
+    """
+    After a dropdown is opened, pick an option by visible text.
+    Search both inside the frame and in portals mounted on <body>.
+    """
+    selectors_menu = ":is([role='listbox'], [role='menu'], [class*='menu' i], [class*='options' i], ul, .select__menu, .dropdown-menu)"
+    selectors_opt  = ":is([role='option'], [role='menuitem'], li, div, button, span)"
+
+    for scope in (frame, page):
+        try:
+            menu = scope.locator(selectors_menu)
+            if menu.count():
+                opt = menu.locator(selectors_opt).filter(has_text=want_text).first
+                if opt and opt.is_visible():
+                    opt.click(force=True)
+                    frame.wait_for_timeout(120)
+                    return True
+        except Exception:
+            continue
+    return False
+
+
+def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bool:
+    """
+    Using a <label> element, open and set its custom dropdown to prefer_text (e.g., 'Yes'/'No').
+    """
+    try:
+        label_id  = label_el.get_attribute("id") or ""
+        label_for = label_el.get_attribute("for") or ""
+        root = _closest_dropdown_root(frame, label_for, label_id)
+        if not root:
+            return False
+
+        # Focus/open
+        try:
+            root.scroll_into_view_if_needed()
+        except Exception:
+            pass
+        try:
+            root.click(force=True)
+            frame.wait_for_timeout(150)
+        except Exception:
+            return False
+
+        # Choose the option
+        if _click_and_choose_option(page, frame, prefer_text):
+            return True
+
+        # Fallback: type to filter and try again
+        try:
+            root.type(prefer_text, delay=20)
+            frame.wait_for_timeout(120)
+            if _click_and_choose_option(page, frame, prefer_text):
+                return True
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return False
+
+
 # ---------- Phase 1: Scan (inventory every field first) ----------
 def _accessible_label(frame, el):
     try:
@@ -737,6 +838,32 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 continue
                     except Exception:
                         pass
+
+
+                # --- Custom dropdowns driven by <label for="..."> (auto Yes/No) ---
+                try:
+                    for frame in page.frames:
+                        try:
+                            labels = frame.locator("label[for]").all()
+                        except Exception:
+                            labels = []
+
+                        for lab in labels:
+                            try:
+                                if not lab.is_visible():
+                                    continue
+                                q_text = (lab.inner_text() or "").strip()
+                                pref = _yesno_preference(q_text)  # 'Yes' for privacy, 'No' for prior employment
+                                if not pref:
+                                    continue
+                                if _set_custom_dropdown_by_label(page, frame, lab, pref):
+                                    print(f"🟢 Set custom dropdown via <label for=…> → {pref} ({q_text[:80]})")
+                            except Exception:
+                                continue
+                except Exception:
+                    pass
+
+
 
                 # Required selects (with auto Yes/No for policy/employment questions)
                 for frame in page.frames:
