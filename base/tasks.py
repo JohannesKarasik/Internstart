@@ -16,6 +16,210 @@ def write_temp_cover_letter_file(text, suffix=".txt"):
     return path
 
 
+def _debug_force_ipg_no(page, frame, company="test", ts=""):
+    """
+    Debug + force the 'Are you currently/ever employed by IPG...' combobox to 'No'.
+    Prints granular diagnostics at each step and takes micro-screens when useful.
+    Returns True if the visible shell shows 'No'; False otherwise.
+    """
+    import re, os
+    log_dir = "/home/clinton/Internstart/media"
+    os.makedirs(log_dir, exist_ok=True)
+
+    def shot(tag):
+        try:
+            path = os.path.join(log_dir, f"ipg_no_{company}_{tag}_{ts}.png")
+            page.screenshot(path=path, full_page=True)
+            print(f"📸 [{tag}] {path}")
+        except Exception as e:
+            print(f"📸 [{tag}] screenshot failed: {e}")
+
+    print("🔎 IPG combo: locating label by text…")
+    # ⚠️ The numeric id can change per render, so prefer text match
+    lab = frame.locator("label[for]").filter(
+        has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)
+    ).first
+    if not (lab and lab.is_visible()):
+        print("❌ Label not found/visible via text.")
+        shot("no_label")
+        return False
+
+    label_text = (lab.inner_text() or "").strip()
+    label_id   = lab.get_attribute("id") or ""
+    label_for  = lab.get_attribute("for") or ""
+    print(f"✔️ Found label: id='{label_id}' for='{label_for}' text='{label_text[:80]}'")
+
+    # Dump aria-labelledby consumers near the label
+    print("🔎 Searching for root via aria-labelledby token match…")
+    roots = []
+    if label_id:
+        try:
+            roots = frame.locator(f"[aria-labelledby~='{label_id}']").all()
+        except Exception:
+            roots = []
+    print(f"…found {len(roots)} elements with aria-labelledby~='{label_id}'")
+
+    root = None
+    for r in roots:
+        try:
+            if r.is_visible():
+                root = r
+                break
+        except Exception:
+            continue
+
+    # Sibling .select-shell fallback seen in your DOM
+    if not root:
+        print("🔁 Trying sibling .select-shell after the label…")
+        try:
+            sib = lab.locator("xpath=following-sibling::*[1]").locator(".select-shell, .select__container, [role='combobox']")
+            if sib.count() and sib.first.is_visible():
+                root = sib.first
+        except Exception:
+            pass
+
+    # ID 'for' fallback (if backing element is visible)
+    if (not root) and label_for:
+        try:
+            el = frame.locator(f"#{label_for}")
+            if el.count() and el.first.is_visible():
+                root = el.first
+        except Exception:
+            pass
+
+    if not root:
+        print("❌ No visible root/combobox found near label.")
+        shot("no_root")
+        return False
+
+    try:
+        descr = root.evaluate(
+            """(el)=>({
+                 tag: el.tagName, role: el.getAttribute('role'),
+                 haspopup: el.getAttribute('aria-haspopup'),
+                 labelledby: el.getAttribute('aria-labelledby'),
+                 classes: el.className
+            })"""
+        )
+        print(f"✔️ Root found: {descr}")
+    except Exception:
+        print("✔️ Root found (could not introspect).")
+
+    # Open the dropdown
+    try:
+        root.scroll_into_view_if_needed()
+    except Exception:
+        pass
+    try:
+        root.click(force=True)
+        frame.wait_for_timeout(150)
+    except Exception as e:
+        print(f"⚠️ Root click failed: {e}")
+
+    # Try typing into inner input (React/Remix often uses this)
+    inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
+    if inner and inner.is_visible():
+        print("⌨️ Typing into inner input…")
+        try:
+            inner.fill("")
+        except Exception:
+            pass
+        try:
+            inner.type("No", delay=15)
+        except Exception as e:
+            print(f"⚠️ Type into inner input failed: {e}")
+    else:
+        print("⌨️ Typing into root…")
+        try:
+            root.type("No", delay=15)
+        except Exception as e:
+            print(f"⚠️ Type into root failed: {e}")
+
+    # Enter to commit, then blur with Tab (commonly required)
+    try:
+        frame.keyboard.press("Enter")
+        frame.wait_for_timeout(140)
+        frame.keyboard.press("Tab")
+    except Exception as e:
+        print(f"⚠️ Enter/Tab failed: {e}")
+
+    # Verify commit by visible shell text
+    def committed():
+        try:
+            txt = root.inner_text().lower()
+        except Exception:
+            try:
+                txt = frame.evaluate(
+                    """(id)=>{const r=document.querySelector(`[aria-labelledby~='${id}']`);
+                              return r?(r.innerText||'').toLowerCase():'';}""",
+                    label_id
+                )
+            except Exception:
+                txt = ""
+        ok = ("no" in (txt or ""))
+        print(f"🔍 Commit check (shell text contains 'no'): {ok} — text='{(txt or '')[:60]}'")
+        return ok
+
+    if committed():
+        return True
+
+    # If not committed: try clicking the option in whichever DOM it mounted (frame or page portal)
+    print("🧭 Looking for option menus (frame+page)…")
+    for scope_name, scope in (("frame", frame), ("page", page)):
+        try:
+            menu = scope.locator(":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, .MuiPaper-root, .MuiPopover-paper, ul[role='listbox'])")
+            cnt = menu.count()
+            print(f"… {scope_name} menus count: {cnt}")
+            if cnt:
+                opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)", has_text="No").first
+                if opt and opt.is_visible():
+                    print(f"✔️ Clicking 'No' in {scope_name} portal/menu…")
+                    opt.click(force=True)
+                    scope.wait_for_timeout(140)
+                    if committed():
+                        return True
+        except Exception as e:
+            print(f"⚠️ Searching menus in {scope_name} failed: {e}")
+
+    # Final fallback: set hidden backing element & dispatch events (if 'for' exists)
+    if label_for:
+        print("🪄 Fallback: set backing element by id + fire events…")
+        try:
+            ok = frame.evaluate(
+                """(elId) => {
+                    const el = document.getElementById(elId);
+                    if (!el) return false;
+                    const tag = (el.tagName||'').toLowerCase();
+                    if (tag==='select') {
+                      const opts = Array.from(el.options||[]);
+                      const m = opts.find(o => /\\bno\\b/i.test((o.textContent||'')));
+                      if (!m) return false;
+                      el.value = m.value;
+                    } else {
+                      el.value = 'No';
+                      el.setAttribute('value','No');
+                    }
+                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                    el.dispatchEvent(new Event('change',{bubbles:true}));
+                    return true;
+                }""",
+                label_for
+            )
+            print(f"… backing set result: {ok}")
+            # nudge UI
+            try: lab.click(force=True)
+            except Exception: pass
+            frame.wait_for_timeout(100)
+            if committed():
+                return True
+        except Exception as e:
+            print(f"⚠️ Backing set failed: {e}")
+
+    shot("not_committed")
+    return False
+
+
+
 # --- universal cookie/consent dismiss ---
 def dismiss_privacy_overlays(page, timeout_ms=8000):
     import re, time as _time
@@ -1546,6 +1750,14 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 print("✅ Required-completeness pass finished.")
             except Exception as e:
                 print(f"⚠️ Required-completeness pass failed: {e}")
+
+                try:
+                    if _debug_force_ipg_no(page, context, company=safe_company, ts=ts):
+                        print("🟢 IPG employment question committed to 'No'")
+                    else:
+                        print("🟡 IPG employment question still not committed — see 📸 logs for clues")
+                except Exception as e:
+                    print(f"⚠️ Debug force errored: {e}")
 
             # 🧠 AI dynamic field filling (optional mop-up; still kept)
             try:
