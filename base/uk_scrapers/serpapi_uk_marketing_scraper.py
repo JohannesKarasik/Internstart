@@ -7,7 +7,6 @@ from serpapi import GoogleSearch
 
 
 def main():
-    # 🧩 --- Configuration ---
     QUERY = (
         'site:linkedin.com/jobs inurl:uk '
         '("send your CV" OR "apply by email" OR "email your application") '
@@ -22,7 +21,7 @@ def main():
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-    print("🔍 Fetching up to 80 UK marketing listings from SerpAPI ...")
+    print("🔍 Fetching UK marketing listings from SerpAPI ...")
 
     base_params = {
         "engine": "google",
@@ -32,37 +31,46 @@ def main():
         "gl": "uk",
         "location": "United Kingdom",
         "filter": "0",
-        "tbs": "qdr:w",  # past week
+        "tbs": "qdr:w",
         "api_key": API_KEY,
     }
 
-    # 🔁 Fetch up to 8 pages (≈80 results)
     all_results = []
-    for start in range(0, 80, 10):
+    for start in range(0, 40, 10):  # 4 pages → safer but larger
         params = base_params.copy()
         params["start"] = start
         print(f"📄 Fetching page starting at {start}...")
+
         try:
             data = GoogleSearch(params).get_dict()
         except Exception as e:
-            print(f"⚠️ SerpAPI request failed: {e}")
+            print(f"⚠️ SerpAPI exception: {e}")
             time.sleep(3)
+            continue
+
+        if not isinstance(data, dict):
+            print("⚠️ Non-dict response from SerpAPI (HTML or malformed). Skipping page.")
+            time.sleep(2)
             continue
 
         if "error" in data:
             print(f"⚠️ SerpAPI error: {data['error']}")
-            break
+            if "limit" in data["error"].lower():
+                print("⏳ Rate limit reached — stopping early.")
+                break
+            time.sleep(2)
+            continue
 
-        organic = data.get("organic_results", [])
+        organic = data.get("organic_results")
         if not organic:
-            break
+            print("⚠️ No organic results found for this page.")
+            continue
 
         all_results.extend(organic)
-        time.sleep(1.5)  # shorter delay to stay efficient
+        time.sleep(2)
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🎯 --- Keyword logic ---
     MARKETING_KEYWORDS = [
         "marketing", "seo", "sem", "ppc", "content", "copywriter", "advertising",
         "branding", "growth", "campaign", "communications", "pr", "public relations",
@@ -91,15 +99,14 @@ def main():
             return True
         return False
 
-    # 🧹 --- Filter relevant listings ---
     filtered = []
     for r in all_results:
         title = r.get("title", "")
         snippet = r.get("snippet", "")
         link = r.get("link", "")
 
-        if "@" not in snippet:
-            continue  # must have email
+        if not title or "@" not in snippet:
+            continue
         if not is_marketing_job(title, snippet):
             continue
 
@@ -109,13 +116,10 @@ def main():
             "snippet": snippet.strip(),
         })
 
-    print(f"✅ Filtered down to {len(filtered)} marketing-relevant listings before closure check.")
+    print(f"✅ Filtered {len(filtered)} marketing listings before closure check.")
 
-    # 🔎 --- Remove closed listings ---
     CLOSED_PATTERNS = [
         "no longer accepting applications",
-        "no longer taking applications",
-        "no longer accepting applicants",
         "this job is no longer available",
         "applications are closed",
         "position filled",
@@ -127,31 +131,29 @@ def main():
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
                       "Chrome/126.0 Safari/537.36",
-        "Accept-Language": "en-GB,en;q=0.9",
     }
 
-    print(f"🧠 Checking {len(filtered)} listings for closure text...")
-    for job in filtered[:100]:  # safety limit
+    for job in filtered[:50]:  # cap for speed
         try:
             html = requests.get(job["link"], headers=headers, timeout=6).text.lower()
             if any(p in html for p in CLOSED_PATTERNS):
                 continue
             open_listings.append(job)
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Skipped due to request error: {e}")
             continue
-        time.sleep(0.7)
+        time.sleep(0.8)
 
-    open_listings = open_listings[:60]  # cap to safe JSON size
-    print(f"✅ Found {len(open_listings)} open UK marketing listings.")
+    print(f"✅ Found {len(open_listings)} open listings.")
 
-    # 💾 --- Save to JSON ---
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"linkedin_uk_marketing_jobs_{timestamp}.json"
     output_path = os.path.join(os.path.dirname(__file__), filename)
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(open_listings)} open listings to {filename}")
+    print(f"✅ Saved {len(open_listings)} listings to {filename}")
     return open_listings
 
 
