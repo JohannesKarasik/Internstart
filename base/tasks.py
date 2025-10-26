@@ -102,61 +102,54 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
 
 def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
     """Find the clickable root for a custom dropdown using the label's for/id relationships."""
-    # 1) Try the element referenced by label's 'for'
+    # 1) Element referenced by label's 'for'
     try:
-        el = frame.locator(f"#{label_for_id}")
-        if el.count() and el.first.is_visible():
-            return el.first
+        if label_for_id:
+            el = frame.locator(f"#{label_for_id}")
+            if el.count() and el.first.is_visible():
+                return el.first
     except Exception:
         pass
 
-    # 2) Try a sibling container commonly used by custom selects
+    # 2) aria-labelledby token match (space-separated list)
     try:
-        el = frame.locator(f"label[for='{label_for_id}']").locator("xpath=following-sibling::*[1]")
-        if el.count() and el.first.is_visible():
-            return el.first
-    except Exception:
-        pass
-
-    # 3) Try anything bound to this label id via aria-labelledby
-# 3) Anything bound to this label id via aria-labelledby (token match)
-        try:
+        if label_id:
             el = frame.locator(f"[aria-labelledby~='{label_id}']")
             if el.count() and el.first.is_visible():
                 return el.first
-        except Exception:
-            pass
-
-        # 4) Last resort: nearest “shell” under the same container
-        try:
-            wrapper = frame.locator(f"#{label_id}, label[for='{label_for_id}']").first
-            if wrapper:
-                el = wrapper.locator(
-                    "xpath=ancestor::*[self::div or self::section][1]"
-                ).locator(
-                    ".select__control, .select__container, .select-shell, "
-                    "[role='combobox'], [aria-haspopup='listbox'], button, div"
-                )
-                if el.count() and el.first.is_visible():
-                    return el.first
-        except Exception:
-            pass
-
-            return el.first
     except Exception:
         pass
 
-    # 4) Last resort: the nearest “shell” looking div under the same container
+    # 3) Sibling shell after the label (common for Greenhouse/Remix)
     try:
-        wrapper = frame.locator(f"#{label_id}, label[for='{label_for_id}']").first
-        if wrapper:
-            el = wrapper.locator("xpath=ancestor::*[self::div or self::section][1]").locator(
-                ".select__control, .select__container, .select-shell, [role='combobox'], [aria-haspopup='listbox'], div"
+        if label_for_id:
+            el = frame.locator(f"label[for='{label_for_id}'] + .select-shell, label[for='{label_for_id}'] + * .select-shell")
+            if el.count() and el.first.is_visible():
+                return el.first
+        if label_id:
+            el = frame.locator(f"#{label_id} + .select-shell, #{label_id} + * .select-shell")
+            if el.count() and el.first.is_visible():
+                return el.first
+    except Exception:
+        pass
+
+    # 4) Last resort: nearest shell/combobox in same container
+    try:
+        base = None
+        if label_id:
+            base = frame.locator(f"#{label_id}")
+        if not (base and base.count()):
+            base = frame.locator(f"label[for='{label_for_id}']")
+        if base and base.count():
+            wrapper = base.first.locator("xpath=ancestor::*[self::div or self::section][1]")
+            el = wrapper.locator(
+                ".select-shell, .select__container, .select__control, [role='combobox'], [aria-haspopup='listbox']"
             )
             if el.count() and el.first.is_visible():
                 return el.first
     except Exception:
         pass
+
     return None
 
 
@@ -309,6 +302,106 @@ def _set_custom_dropdown_by_label(page, frame, label_el, prefer_text: str) -> bo
             return False
     except Exception:
         return False
+    
+
+def _force_ipg_employment_no(page, frame) -> bool:
+    """Force the 'Are you currently/ever employed by IPG...' question to 'No'."""
+    try:
+        lab = frame.locator("#question_10380494007-label")
+        if not (lab and lab.count() and lab.first.is_visible()):
+            return False
+        lab = lab.first
+
+        # Find clickable root via aria-labelledby token or sibling .select-shell
+        root = frame.locator("[aria-labelledby~='question_10380494007-label']").first
+        if not (root and root.is_visible()):
+            root = frame.locator("#question_10380494007-label + .select-shell").first
+        if not (root and root.is_visible()):
+            return False
+
+        # Open dropdown
+        try: root.scroll_into_view_if_needed()
+        except Exception: pass
+        root.click(force=True)
+        frame.wait_for_timeout(120)
+
+        # Type No into inner input when present, else into root; then Enter to commit, Tab to blur
+        try:
+            inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
+            if inner and inner.is_visible():
+                inner.fill("")
+                inner.type("No", delay=15)
+            else:
+                root.type("No", delay=15)
+        except Exception:
+            root.type("No", delay=15)
+
+        frame.keyboard.press("Enter")
+        try: frame.keyboard.press("Tab")
+        except Exception: pass
+        frame.wait_for_timeout(140)
+
+        # Verify by visible text on the shell
+        def committed() -> bool:
+            try:
+                return frame.evaluate("""
+                    () => {
+                      const root = document.querySelector("[aria-labelledby~='question_10380494007-label']") ||
+                                   document.querySelector("#question_10380494007-label + .select-shell");
+                      const txt = root ? (root.innerText || "").toLowerCase() : "";
+                      return txt.includes("no");
+                    }
+                """)
+            except Exception:
+                return False
+
+        if committed():
+            return True
+
+        # Portal-rendered menu fallback: click “No” wherever it mounted
+        for scope in (frame, page):
+            menu = scope.locator(":is([role='listbox'], [role='menu'], .select__menu, .dropdown-menu, .MuiPaper-root, .MuiPopover-paper, ul[role='listbox'])")
+            opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)", has_text="No").first
+            if opt and opt.is_visible():
+                opt.click(force=True)
+                scope.wait_for_timeout(140)
+                if committed():
+                    return True
+
+        # Final fallback: set hidden backing element and fire events
+        try:
+            ok = frame.evaluate("""
+                () => {
+                  const el = document.getElementById("question_10380494007");
+                  if (!el) return false;
+                  const tag = (el.tagName||"").toLowerCase();
+                  if (tag === "select") {
+                    const opts = Array.from(el.options||[]);
+                    const m = opts.find(o => /\\bno\\b/i.test((o.textContent||"")));
+                    if (!m) return false;
+                    el.value = m.value;
+                  } else {
+                    el.value = "No";
+                    el.setAttribute("value", "No");
+                  }
+                  el.dispatchEvent(new Event("input",{bubbles:true}));
+                  el.dispatchEvent(new Event("change",{bubbles:true}));
+                  return true;
+                }
+            """)
+            if ok:
+                # small nudge to refresh shell text
+                try: lab.click(force=True)
+                except Exception: pass
+                frame.wait_for_timeout(80)
+                return committed()
+        except Exception:
+            pass
+
+        return False
+    except Exception:
+        return False
+
 
 
 def _force_select_value_for_label(page, frame, lab, value: str) -> bool:
