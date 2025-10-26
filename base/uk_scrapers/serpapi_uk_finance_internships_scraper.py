@@ -66,14 +66,6 @@ def main():
             r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
             re.IGNORECASE,
         )
-        CLOSED_PATTERNS = [
-            "no longer accepting applications",
-            "no longer taking applications",
-            "applications are closed",
-            "position filled",
-            "job is no longer available",
-            "no longer accepting applicants",
-        ]
 
         headers = {
             "User-Agent": (
@@ -101,13 +93,23 @@ def main():
                 resp = requests.get(link, headers=headers, timeout=10)
                 html = resp.text.lower()
 
-                # Skip closed/expired listings
-                if any(p in html for p in CLOSED_PATTERNS):
+                # 🚫 Skip hidden or archived listings
+                if "this job is no longer available" in html or "this job has expired" in html:
+                    print(f"🚫 Archived or expired job: {title}")
+                    continue
+
+                # ⛔ Skip closed/expired listings
+                if re.search(
+                    r"no longer (accepting|taking) (applicants|applications)|applications (are )?closed|position filled|no longer available|job (is )?closed",
+                    html,
+                    re.IGNORECASE,
+                ):
                     print(f"⛔ Skipped closed listing: {title}")
                     continue
 
-                # Extract emails from HTML
+                # ✉️ Extract emails from HTML
                 emails_found.update(EMAIL_PATTERN.findall(html))
+
             except Exception as e:
                 print(f"⚠️ Failed to fetch {link}: {e}")
                 continue
@@ -125,7 +127,7 @@ def main():
 
         print(f"✅ Found {len(results)} open internship pages with actual emails.")
 
-        # --- Save results to JSON ---
+        # 💾 --- Save results to JSON ---
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         filename = f"linkedin_uk_finance_internships_{timestamp}.json"
         output_path = os.path.join(os.path.dirname(__file__), filename)
