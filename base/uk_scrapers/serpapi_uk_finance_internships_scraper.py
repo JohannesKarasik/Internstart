@@ -24,7 +24,7 @@ def main():
         if not API_KEY:
             return {"error": "SERPAPI_API_KEY not found in environment variables."}
 
-        print("🔍 Fetching LinkedIn finance internship listings with potential emails...")
+        print("🔍 Fetching LinkedIn finance internship listings (last 4 days) with potential emails...")
 
         # 🌍 --- Base search parameters ---
         base_params = {
@@ -35,7 +35,7 @@ def main():
             "gl": "uk",
             "location": "United Kingdom",
             "filter": "0",
-            "tbs": "qdr:m",
+            "tbs": "qdr:d4",  # ⏰ Last 4 days only
             "api_key": API_KEY,
         }
 
@@ -61,16 +61,9 @@ def main():
 
         print(f"🌍 Total raw results fetched: {len(all_results)}")
 
+        # --- Email pattern ---
         EMAIL_PATTERN = re.compile(
             r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-            re.IGNORECASE,
-        )
-
-        CLOSED_REGEX = re.compile(
-            r"(no\s*longer\s*(accepting|taking)\s*(applications|applicants))|"
-            r"(applications\s*(are)?\s*closed)|"
-            r"(job\s*(is)?\s*(closed|expired|unavailable))|"
-            r"(position\s*(has\s*been)?\s*filled)",
             re.IGNORECASE,
         )
 
@@ -84,7 +77,6 @@ def main():
         }
 
         results = []
-        closed_skipped = 0
 
         for r in all_results:
             title = r.get("title", "").strip()
@@ -99,26 +91,15 @@ def main():
 
             try:
                 resp = requests.get(link, headers=headers, timeout=10)
-                html_raw = resp.text.lower()
+                html = resp.text.lower()
 
-                # 🧹 Clean HTML from tags/spaces
-                html_clean = re.sub(r"<[^>]+>", " ", html_raw)
-                html_clean = re.sub(r"\s+", " ", html_clean).strip()
-
-                # 🚫 Skip hidden/archived listings
-                if "this job is no longer available" in html_clean or "this job has expired" in html_clean:
-                    closed_skipped += 1
-                    print(f"🚫 Archived/expired: {title}")
-                    continue
-
-                # ⛔ Skip closed listings (regex handles all variants)
-                if CLOSED_REGEX.search(html_clean):
-                    closed_skipped += 1
-                    print(f"⛔ Closed listing: {title}")
+                # Skip clearly unavailable listings
+                if "this job is no longer available" in html or "no longer accepting" in html:
+                    print(f"🚫 Closed/archived: {title}")
                     continue
 
                 # ✉️ Extract emails
-                emails_found.update(EMAIL_PATTERN.findall(html_clean))
+                emails_found.update(EMAIL_PATTERN.findall(html))
 
             except Exception as e:
                 print(f"⚠️ Failed to fetch {link}: {e}")
@@ -135,19 +116,18 @@ def main():
             })
             time.sleep(1)
 
-        print(f"✅ Found {len(results)} open internship listings with emails.")
-        print(f"🚫 Skipped {closed_skipped} closed/expired jobs.")
+        print(f"✅ Found {len(results)} internship listings (last 4 days) with emails.")
 
         # 💾 --- Save results ---
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        filename = f"linkedin_uk_finance_internships_{timestamp}.json"
+        filename = f"linkedin_uk_finance_internships_recent_{timestamp}.json"
         output_path = os.path.join(os.path.dirname(__file__), filename)
 
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
 
         print(f"💾 Saved {len(results)} open finance internships with emails to {filename}")
-        return {"count": len(results), "results": results, "skipped_closed": closed_skipped}
+        return {"count": len(results), "results": results}
 
     except Exception as e:
         return {"error": str(e)}
