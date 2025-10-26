@@ -1,3 +1,4 @@
+# base/ai/field_interpreter.py
 import json
 import os
 import re
@@ -5,37 +6,93 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Light-weight synonym/translation hints the model can use when matching to Danish options.
+HINTS = {
+    "education_levels": {
+        "bachelor": ["bachelor", "bachelorgrad", "ba", "b.sc.", "b.eng."],
+        "master": ["kandidat", "master", "cand."],
+        "phd": ["ph.d.", "phd"],
+        "high_school": ["gymnasial", "high school", "studentereksamen"],
+        "other": ["andet", "other", "n/a"]
+    },
+    "fields_of_study": {
+        "marketing": ["marketing", "markedsføring", "kommunikation", "marketing & kommunikation"],
+        "computer_science": ["datalogi", "computer science", "software", "it"],
+        "business": ["business", "økonomi", "finance", "finans", "erhvervsøkonomi"],
+        "design": ["design", "grafisk design", "ux", "ui"],
+        "other": ["andet", "other", "n/a"]
+    },
+    "yes": ["ja", "yes"],
+    "no": ["nej", "no"]
+}
 
-def _extract_json(text: str):
-    """
-    Try to pull a JSON object from the model output reliably.
-    Accepts either a raw JSON object or JSON fenced in code blocks.
-    """
-    if not text:
-        return None
-    text = text.strip()
+FEW_SHOT = [
+    # --- Select with options (field of study) ---
+    {
+        "user": {
+            "under_education": "yes",
+            "field_of_study": "Marketing",
+            "highest_education_level": "Bachelor’s Degree"
+        },
+        "fields": [{
+            "field_id": "A",
+            "label": "Fagområde for uddannelse",
+            "type": "select",
+            "options": ["IT", "Markedsføring", "Andet område"],
+            "required": True
+        }],
+        "answer": {"A": "Markedsføring"}
+    },
+    # --- Degree title select ---
+    {
+        "user": {"highest_education_level": "Bachelor’s Degree"},
+        "fields": [{
+            "field_id": "B",
+            "label": "Titel på uddannelse",
+            "type": "select",
+            "options": ["Bachelor", "Kandidat", "Ph.d.", "Andet"],
+            "required": True
+        }],
+        "answer": {"B": "Bachelor"}
+    },
+    # --- Years of experience select (still studying → 0 År) ---
+    {
+        "user": {"under_education": "yes"},
+        "fields": [{
+            "field_id": "C",
+            "label": "Totalt antal års arbejdserfaring",
+            "type": "select",
+            "options": ["0 År", "1 År", "2-3 År", "4+ År"],
+            "required": True
+        }],
+        "answer": {"C": "0 År"}
+    },
+    # --- Consent style yes/no select ---
+    {
+        "user": {},
+        "fields": [{
+            "field_id": "D",
+            "label": "Venligst besvar, om vi må dele din ansøgning",
+            "type": "select",
+            "options": ["Ja", "Nej"],
+            "required": True
+        }],
+        "answer": {"D": "Ja"}
+    }
+]
 
-    # Remove common markdown fences if present
-    if text.startswith("```"):
-        # strip first fence
-        text = re.sub(r"^```(?:json)?\s*", "", text)
-        # strip trailing fence
-        text = re.sub(r"\s*```$", "", text)
 
-    # First attempt: direct parse
-    try:
-        return json.loads(text)
-    except Exception:
-        pass
-
-    # Fallback: greedy object capture
-    m = re.search(r"\{.*\}", text, re.DOTALL)
-    if m:
-        try:
-            return json.loads(m.group(0))
-        except Exception:
-            return None
-    return None
+def _few_shot_block():
+    # Render few-shot examples inside the prompt as guidance.
+    chunks = []
+    for ex in FEW_SHOT:
+        chunks.append(
+            "Example\n"
+            f"UserProfile:\n{json.dumps(ex['user'], ensure_ascii=False, indent=2)}\n"
+            f"Fields:\n{json.dumps(ex['fields'], ensure_ascii=False, indent=2)}\n"
+            f"Answer:\n{json.dumps(ex['answer'], ensure_ascii=False)}\n"
+        )
+    return "\n".join(chunks)
 
 
 def map_fields_to_answers(fields, user_profile):
@@ -43,41 +100,53 @@ def map_fields_to_answers(fields, user_profile):
     Use AI to decide what values should go in each ATS field.
 
     Args:
-        fields (list): items like
-            {
-              "field_id": "42",
-              "label": "Highest education level",
-              "type": "select" | "text" | "radio" | "checkbox" | "contenteditable",
-              "options": ["Bachelor", "Master", "PhD"]   # may be absent
-            }
+        fields (list): each item may contain:
+          {
+            "field_id": str,
+            "label": str,
+            "type": "text"|"select"|... (optional),
+            "options": [str, ...]    (for select),
+            "required": bool         (optional)
+          }
         user_profile (dict): loaded from user JSON file.
 
     Returns:
-        dict: {"field_id": <answer or {"value": "..."} or "skip">}
+        dict: {"field_id": "answer"} where the answer is EITHER:
+              - a free-text string for text inputs, or
+              - EXACTLY one string from the field's `options` (for selects).
+              Use "skip" only when not required and no safe answer exists.
     """
-
     if not fields or not user_profile:
         return {}
 
-        # ---- Prompt with strict rules about options & format ----
+    # Provide the model with locale and synonym hints so it can align English profile values to Danish options.
     prompt = f"""
-    You are an assistant filling out job application forms.
+Du er en assistent, der udfylder DANSKE jobansøgningsskemaer (locale: da-DK).
+Brug kun oplysningerne i UserProfile til at besvare felter. 
+Hvis et felt har "options", SKAL svaret være PRÆCIS én streng fra den liste.
+Hvis intet passer og feltet er required, vælg en neutral mulighed som "Andet/Other".
+Undgå "skip" på required felter. På ikke-required felter må du returnere "skip" når der reelt ikke er data.
 
-    User data:
-    {json.dumps(user_profile, indent=2, ensure_ascii=False)}
+Oversættelses-/synonymer-hints (hjælp til at mappe engelske udtryk fra profilen til danske valgmuligheder):
+{json.dumps(HINTS, ensure_ascii=False, indent=2)}
 
-    Below are the fields extracted from the form. Some have available dropdown options.
+Nogle retningslinjer:
+- “Bachelor’s Degree” → “Bachelor”; “Master’s Degree” → “Kandidat”; “PhD” → “Ph.d.”
+- “Marketing” kan matche “Markedsføring” eller lignende.
+- Hvis UserProfile siger at brugeren stadig studerer, og der spørges om år af erfaring, så vælg “0 År” hvis det findes.
+- Samtykke-/delingsfelter bør som udgangspunkt være “Ja”, medmindre UserProfile siger andet.
+- Returnér KUN gyldig JSON uden kommentarer, forklaringer eller tekst før/efter.
 
-    Rules:
-    - For dropdowns, pick the single most relevant option from the provided list.
-    - For text inputs, write a concise, factual answer from the user's profile.
-    - If no relevant data exists, respond with "skip".
-    - Output ONLY valid JSON mapping field_id → chosen answer (option text or typed answer).
+UserProfile:
+{json.dumps(user_profile, ensure_ascii=False, indent=2)}
 
-    Fields:
-    {json.dumps(fields, indent=2, ensure_ascii=False)}
-    """
+Fields to fill (each item may include options for selects):
+{json.dumps(fields, ensure_ascii=False, indent=2)}
 
+{_few_shot_block()}
+
+Returnér KUN JSON-objektet: {{"field_id": "answer", ...}}
+"""
 
     try:
         response = client.chat.completions.create(
@@ -86,40 +155,27 @@ def map_fields_to_answers(fields, user_profile):
                 {
                     "role": "system",
                     "content": (
-                        "You are a precise form-filling agent. "
-                        "Always return a single JSON object with field_id -> answer. "
-                        "When options are provided, select exactly one of them."
+                        "You fill Danish ATS forms strictly. "
+                        "When a field provides options, return exactly one of those options as the value. "
+                        "Prefer the closest semantic match; for required selects, never return 'skip'—choose a safe fallback like 'Andet'."
                     ),
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.2,
+            temperature=0.1,  # keep it deterministic
         )
 
-        raw = response.choices[0].message.content.strip()
-        data = _extract_json(raw)
-        if not isinstance(data, dict):
-            print("⚠️ Could not parse model output:", raw)
+        text = (response.choices[0].message.content or "").strip()
+
+        # Parse JSON (with a defensive fallback)
+        try:
+            return json.loads(text)
+        except Exception:
+            m = re.search(r"\{.*\}", text, re.DOTALL)
+            if m:
+                return json.loads(m.group(0))
+            print("⚠️ Could not parse model output:", text)
             return {}
-
-        # Optional light normalization: ensure values are strings or dicts
-        cleaned = {}
-        for k, v in data.items():
-            # Accept "skip" as-is
-            if isinstance(v, str):
-                cleaned[str(k)] = v.strip()
-            elif isinstance(v, dict):
-                # keep only 'value' if present
-                if "value" in v and isinstance(v["value"], str):
-                    cleaned[str(k)] = {"value": v["value"].strip()}
-                else:
-                    # unknown dict shape -> stringify just in case
-                    cleaned[str(k)] = json.dumps(v, ensure_ascii=False)
-            else:
-                # numbers/bools -> stringify
-                cleaned[str(k)] = str(v)
-
-        return cleaned
 
     except Exception as e:
         print(f"❌ AI field mapping failed: {e}")
