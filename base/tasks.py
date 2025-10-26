@@ -504,9 +504,10 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             # AI mop-up
             try:
-                fill_dynamic_fields(context, user)
+                ai_filled = _ai_fill_leftovers(page, inv, user)
+                print(f"🤖 AI filled {ai_filled} additional fields.")
             except Exception as e:
-                print(f"⚠️ AI dynamic field filling failed: {e}")
+                print(f"⚠️ AI leftovers pass failed: {e}")
 
             # resume upload
             try:
