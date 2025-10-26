@@ -21,8 +21,8 @@
     .row-idx{font-weight:700;color:#c8d2ea}
     .status{font-size:13px;color:var(--muted)}
     .status.ok{color:var(--ok)} .status.bad{color:var(--bad)} .status.work{color:var(--accent-2)}
-    .toolbar{display:flex;gap:10px;margin:10px 0 16px}
-    .btn{border:none;cursor:pointer;font-weight:700}
+    .toolbar{display:flex;gap:10px;margin:10px 0 16px;flex-wrap:wrap}
+    .btn{border:none;cursor:pointer;font-weight:700;padding:10px 16px;border-radius:8px}
     .btn.primary{background:var(--accent);color:#0b0f1a}
     .btn.alt{background:var(--accent-2);color:#0b0f1a}
     .btn.ghost{background:transparent;border:1px solid var(--stroke);color:var(--ink)}
@@ -35,9 +35,20 @@
   <div class="wrap">
     <section class="card">
       <h1>Manual Job Import (Paste JSON objects)</h1>
-      <p class="lead">Paste one JSON object per box (keys: <span class="mono">title</span>, <span class="mono">link</span>, <span class="mono">snippet</span>). Then click <b>Process All</b>. AI will detect company name, logo, location, and finalize each listing one-by-one.</p>
+      <p class="lead">Paste a full JSON array or multiple objects below. Each job will appear in its own editable box.</p>
 
-      <!-- Global selectors (applied to all rows) -->
+      <!-- 🔹 Bulk Paste Area -->
+      <label for="bulkInput">Bulk JSON Input</label>
+      <textarea id="bulkInput" class="full mono" placeholder='Paste JSON array or objects here… Example:
+[
+  { "title": "Frontend Developer", "link": "https://linkedin.com/jobs/view/...", "snippet": "Send your CV to..." },
+  { "title": "React Engineer", "link": "https://linkedin.com/jobs/view/...", "snippet": "Email your application..." }
+]'></textarea>
+      <div class="toolbar">
+        <button id="splitJSON" class="btn alt">Split JSON into Rows</button>
+      </div>
+
+      <!-- Global selectors -->
       <div class="cols-3">
         <div>
           <label>Country</label>
@@ -79,32 +90,27 @@
       </div>
 
       <!-- Rows container -->
-      <div id="rows" class="grid full">
-        <!-- Rows are inserted here -->
-      </div>
+      <div id="rows" class="grid full"></div>
 
       <div class="help">
-        Example object to paste (one per box):
+        Example object:
         <pre class="mono" style="white-space:pre-wrap;background:#0f1527;border:1px solid var(--stroke);padding:10px;border-radius:8px;margin-top:8px;">
-{ "title": "Operations Administrator – Electrical & Solar PV",
-  "link": "https://uk.linkedin.com/jobs/view/operations-administrator-%E2%80%93-electrical-solar-pv-at-norcroft-energy-4317358506",
-  "snippet": "To apply send your CV to info@norcroftenergy.co.uk. Show more. Show less..." }
+{ "title": "Frontend Developer", "link": "https://linkedin.com/jobs/view/1234", "snippet": "Apply by email: jobs@company.co.uk" }
         </pre>
       </div>
     </section>
   </div>
 
   <script>
-    // ------- Config -------
-    const PROCESS_ENDPOINT = "/process_manual_job/"; // or your existing /process_job_with_ai_bulk/
-
-    // ------- Helpers -------
+    const PROCESS_ENDPOINT = "/process_manual_job/";
     const rowsEl = document.getElementById("rows");
+    const bulkInput = document.getElementById("bulkInput");
+    const splitBtn = document.getElementById("splitJSON");
     const addRowBtn = document.getElementById("addRow");
     const clearAllBtn = document.getElementById("clearAll");
     const processAllBtn = document.getElementById("processAll");
 
-    function makeRow(index) {
+    function makeRow(index, content="") {
       const el = document.createElement("div");
       el.className = "row full";
       el.innerHTML = `
@@ -112,8 +118,7 @@
           <div class="row-idx">#<span data-role="idx">${index}</span></div>
           <div class="status" data-role="status">⏸ Waiting…</div>
         </div>
-        <textarea data-role="json" placeholder='Paste one JSON object here…
-{ "title": "...", "link": "https://…", "snippet": "…" }'></textarea>
+        <textarea data-role="json" placeholder='Paste one JSON object here…'>${content}</textarea>
       `;
       return el;
     }
@@ -128,7 +133,7 @@
 
     function clearAll() {
       rowsEl.innerHTML = "";
-      for (let i = 0; i < 5; i++) addRow(); // start with 5 empty rows
+      for (let i = 0; i < 5; i++) addRow();
     }
 
     function getGlobals() {
@@ -150,7 +155,6 @@
 
     async function processAll() {
       if (!validateGlobals()) return;
-
       processAllBtn.disabled = true;
       processAllBtn.textContent = "Processing…";
 
@@ -162,72 +166,59 @@
         const status = row.querySelector('[data-role="status"]');
         const box = row.querySelector('[data-role="json"]');
         const raw = box.value.trim();
+        if (!raw) { status.textContent = "⏭️ Skipped (empty)"; continue; }
 
-        if (!raw) { // skip empty rows
-          status.textContent = "⏭️ Skipped (empty)";
-          status.className = "status";
-          continue;
-        }
-
-        // Parse JSON safely
         let obj;
-        try {
-          obj = JSON.parse(raw);
-        } catch (e) {
-          status.textContent = "❌ Invalid JSON";
-          status.className = "status bad";
-          continue;
-        }
+        try { obj = JSON.parse(raw); }
+        catch { status.textContent = "❌ Invalid JSON"; status.className = "status bad"; continue; }
 
         if (!obj.title || !obj.link) {
           status.textContent = "❌ Missing title/link";
-          status.className = "status bad";
-          continue;
+          status.className = "status bad"; continue;
         }
 
         status.textContent = "🤖 Processing…";
         status.className = "status work";
-
         try {
           const res = await fetch(PROCESS_ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: obj.title,
-              link: obj.link,
-              snippet: obj.snippet || "",
-              ...globals
-            })
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...obj, ...globals })
           });
           const data = await res.json();
-
-          if (data && data.success) {
-            status.textContent = `✅ Added: ${data.company || "OK"}`;
-            status.className = "status ok";
-          } else {
-            status.textContent = `❌ Failed${data && data.error ? ": " + data.error : ""}`;
-            status.className = "status bad";
-          }
+          if (data.success) { status.textContent = `✅ ${data.company || "Done"}`; status.className = "status ok"; }
+          else { status.textContent = `❌ ${data.error || "Failed"}`; status.className = "status bad"; }
         } catch (err) {
-          console.error("Row error:", err);
-          status.textContent = "❌ Network/Error";
-          status.className = "status bad";
+          status.textContent = "❌ Network/Error"; status.className = "status bad";
         }
-
-        // Small delay to keep it sequential and stable
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1000));
       }
-
       processAllBtn.disabled = false;
       processAllBtn.textContent = "Process All (Top → Bottom)";
     }
 
-    // ------- Wire up -------
+    function splitJSON() {
+      const text = bulkInput.value.trim();
+      if (!text) return alert("Please paste JSON first.");
+      let objects = [];
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) objects = parsed;
+        else if (typeof parsed === "object") objects = [parsed];
+      } catch (err) {
+        const parts = text.split("\n").filter(l => l.trim().startsWith("{"));
+        objects = parts.map(p => JSON.parse(p));
+      }
+      if (!objects.length) return alert("No valid JSON objects found.");
+      rowsEl.innerHTML = "";
+      objects.forEach((obj, i) => {
+        rowsEl.appendChild(makeRow(i + 1, JSON.stringify(obj, null, 2)));
+      });
+    }
+
+    splitBtn.addEventListener("click", splitJSON);
     addRowBtn.addEventListener("click", () => { addRow(); renumberRows(); });
     clearAllBtn.addEventListener("click", clearAll);
     processAllBtn.addEventListener("click", processAll);
-
-    // initial rows
     clearAll();
   </script>
 </body>
