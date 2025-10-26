@@ -6,6 +6,7 @@ import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
+import difflib
 
 
 # ---------------- util ----------------
@@ -66,6 +67,119 @@ def _extract_dropdown_options(frame, query, nth):
     except Exception:
         return []
 
+# add near the other imports
+import difflib
+
+# ---- tweak: make “share your application” count as an auto-YES
+AUTO_YES_RE = re.compile(
+    r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|terms|gdpr|agree|"
+    r"dele\s+din\s+ansøgning|må\s+dele\s+min\s+ansøgning)", re.I
+)
+
+# ---- helpers for rule-based suggestions -------------------------------------
+
+def _best_option_match(options, want_text):
+    if not options or not want_text:
+        return None
+    want = (want_text or "").strip().lower()
+    # exact
+    for o in options:
+        if (o or "").strip().lower() == want:
+            return o
+    # startswith
+    for o in options:
+        if (o or "").strip().lower().startswith(want):
+            return o
+    # substring
+    for o in options:
+        if want in (o or "").strip().lower():
+            return o
+    # fuzzy
+    best = None
+    score = -1
+    for o in options:
+        s = difflib.SequenceMatcher(None, (o or "").lower(), want).ratio()
+        if s > score:
+            best, score = o, s
+    return best
+
+def _fallback_required_option(options):
+    """Pick a safe option if AI skips a required select."""
+    if not options: 
+        return None
+    lower = [o.lower() for o in options]
+    for want in ("andet", "other", "ikke relevant", "n/a"):
+        for i, o in enumerate(lower):
+            if want in o:
+                return options[i]
+    # first non-placeholder
+    for o in options:
+        if o and o.strip() and o.strip().lower() not in {"vælg", "select", "choose", "-- select --", "- select -"}:
+            return o
+    return options[0]
+
+def _rule_based_value(label, options, user_profile, user):
+    """Return a best-guess string for *this* field label from profile, else None."""
+    L = (label or "").strip().lower()
+
+    # Address block
+    if "adresse" in L:
+        return getattr(user, "address", None) \
+            or user_profile.get("address") \
+            or user_profile.get("contact", {}).get("address")
+    if "postnummer" in L:
+        return getattr(user, "postal_code", None) \
+            or user_profile.get("postal_code") \
+            or user_profile.get("contact", {}).get("postal_code")
+    if re.search(r"\bby\b", L):  # city (Danish)
+        return getattr(user, "city", None) \
+            or user_profile.get("city") \
+            or user_profile.get("contact", {}).get("location")
+
+    # Current position
+    if "nuværende stilling" in L:
+        return getattr(user, "occupation", None) or user_profile.get("occupation")
+
+    # Education – field of study
+    if "fagområde" in L or "fagomraade" in L:
+        return user_profile.get("field_of_study") \
+            or user_profile.get("education", {}).get("field_of_study")
+
+    # Education – degree title
+    if "titel" in L and "uddannelse" in L:
+        deg = user_profile.get("highest_education_level") \
+              or user_profile.get("education", {}).get("highest_level") \
+              or ""
+        # Coerce English -> Danish-ish words if needed; fuzzy match later
+        deg = (deg.replace("Bachelor’s", "Bachelor")
+                  .replace("Bachelor's", "Bachelor")
+                  .replace("Master’s", "Master")
+                  .replace("Master's", "Master")
+                  .replace("PhD", "Ph.d.")
+                  .replace("High School", "Gymnasial"))
+        return deg
+
+    # Years of experience
+    if "totalt antal års arbejdserfaring" in L or "arbejdserfaring" in L:
+        yrs = user_profile.get("years_experience")
+        if yrs is None and str(user_profile.get("under_education", "")).lower() in {"yes", "true", "1"}:
+            yrs = 0
+        if yrs is not None:
+            # Try to format like options (e.g., "0 År", "1 År")
+            if options:
+                # If the list has a "0 år"/"1 år"/ranges, fuzzy-match
+                return f"{yrs} År"
+            return str(yrs)
+        return None
+
+    # Consent type wording (if our auto-YES didn’t catch it)
+    if "må dele" in L or "dele din ansøgning" in L:
+        return "Ja"
+
+    return None
+
+# ---- core: improved AI mop-up with rule-based and required fallbacks ---------
+
 def _ai_fill_leftovers(page, user):
     try:
         profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
@@ -83,55 +197,126 @@ def _ai_fill_leftovers(page, user):
                   f"selected='{fdata.get('selected_text')}' value='{fdata.get('current_value')}'")
 
         frames = list(page.frames)
-        fields_to_ai = []
-        debug_unfilled_lines = []
 
+        # 1) RULE-BASED PREFILL before AI
+        prefilled = 0
+        already_filled_fids = set()
         for fdata in inv:
+            q, n, ftype = fdata["query"], fdata["nth"], fdata.get("type")
+            label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
+            curr = (fdata.get("current_value") or "").strip()
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+
+            # skip if something is already entered
+            if curr:
+                continue
+
+            options = []
+            if ftype == "select":
+                try:
+                    fr = frames[fdata["frame_index"]]
+                    options = _extract_dropdown_options(fr, q, n)
+                except Exception:
+                    options = []
+
+            suggested = _rule_based_value(label, options, user_profile, user)
+
+            if suggested:
+                try:
+                    fr = frames[fdata["frame_index"]]
+                    if ftype == "select":
+                        pick = _best_option_match(options, suggested)
+                        if not pick:  # if still nothing, try a reasonable fallback
+                            pick = _fallback_required_option(options) if fdata.get("required") else None
+                        if pick:
+                            try:
+                                fr.locator(q).nth(n).select_option(label=pick)
+                            except Exception:
+                                fr.evaluate(
+                                    """(a) => {
+                                        const el = document.querySelectorAll(a.q)[a.n];
+                                        if (!el) return;
+                                        const want = (a.labelText || '').trim().toLowerCase();
+                                        const opt = [...el.options].find(o =>
+                                            (o.textContent || '').trim().toLowerCase() === want
+                                        ) || [...el.options].find(o =>
+                                            (o.textContent || '').toLowerCase().includes(want)
+                                        );
+                                        if (opt) {
+                                            el.value = opt.value;
+                                            el.dispatchEvent(new Event('input',{bubbles:true}));
+                                            el.dispatchEvent(new Event('change',{bubbles:true}));
+                                        }
+                                    }""",
+                                    {"q": q, "n": n, "labelText": pick}
+                                )
+                            print(f"✅ RB selected “{label[:70]}” → {pick}")
+                            prefilled += 1
+                            already_filled_fids.add(fid)
+                    else:
+                        fr.evaluate(
+                            """(a)=>{
+                                const el = document.querySelectorAll(a.q)[a.n];
+                                if (!el) return;
+                                if (el.isContentEditable) { el.innerText = a.v; }
+                                else { el.value = a.v; }
+                                el.dispatchEvent(new Event('input',{bubbles:true}));
+                                el.dispatchEvent(new Event('change',{bubbles:true}));
+                            }""",
+                            {"q": q, "n": n, "v": str(suggested)}
+                        )
+                        print(f"✅ RB filled “{label[:70]}” → {suggested}")
+                        prefilled += 1
+                        already_filled_fids.add(fid)
+                except Exception as e:
+                    print(f"⚠️ RB could not fill {fid}: {e}")
+
+        # 2) Build payload for AI (exclude what we already prefilled)
+        fields_to_ai = []
+        select_audit = []
+        for fdata in inv:
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+            if fid in already_filled_fids:
+                continue
+
             ftype = fdata.get("type") or ""
             label = (fdata.get("label") or fdata.get("placeholder") or
                      fdata.get("aria_label") or fdata.get("name") or "")
             val = (fdata.get("current_value") or "").strip()
-
-            send = False
-            options = None
+            required = bool(fdata.get("required"))
 
             if ftype == "select":
                 sel_text = fdata.get("selected_text") or ""
-                send = _select_is_unfilled(sel_text, val)
-                if send:
-                    try:
-                        fr = frames[fdata["frame_index"]]
-                        options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    except Exception:
-                        options = None
-                debug_unfilled_lines.append(
-                    f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled={send}"
-                )
+                unfilled = _select_is_unfilled(sel_text, val)
+                if unfilled:
+                    fr = frames[fdata["frame_index"]]
+                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    fields_to_ai.append({
+                        "field_id": fid, "label": label, "type": "select",
+                        "required": required, "options": options
+                    })
+                    select_audit.append(
+                        f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
+                    )
             else:
-                send = (val == "")
-
-            if send:
-                fields_to_ai.append({
-                    "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
-                    "label": label,
-                    "options": options if options else None,
-                })
+                if not val:
+                    fields_to_ai.append({
+                        "field_id": fid, "label": label, "type": ftype or "text",
+                        "required": required
+                    })
 
         print("🔎 DEBUG (select audit):")
-        for line in debug_unfilled_lines[:15]:
+        for line in select_audit[:15]:
             print(line)
-
-        print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields found")
-        for i, f in enumerate(fields_to_ai[:6]):
-            print(f"   → {f}")
+        print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields for AI")
 
         if not fields_to_ai:
             print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
-            return 0
+            return prefilled
 
+        # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
         answers = map_fields_to_answers(fields_to_ai, user_profile)
-
         print("============== 🧠 AI RAW OUTPUT ==============")
         try:
             print(json.dumps(answers, indent=2, ensure_ascii=False))
@@ -139,73 +324,96 @@ def _ai_fill_leftovers(page, user):
             print(answers)
         print("=============================================")
 
-        filled = 0
+        # 4) Apply AI answers (with required fallback for selects)
+        applied = 0
         for fdata in inv:
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            answer = answers.get(fid)
-            if not answer or str(answer).lower() == "skip":
+            if fid in already_filled_fids:
+                continue
+            ans = answers.get(fid)
+            if ans is None or str(ans).lower() == "skip":
+                # if it's a required select, try a safe fallback
+                if fdata.get("type") == "select" and fdata.get("required"):
+                    fr = frames[fdata["frame_index"]]
+                    opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    pick = _fallback_required_option(opts)
+                    if pick:
+                        try:
+                            fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
+                        except Exception:
+                            fr.evaluate(
+                                """(a) => {
+                                    const el = document.querySelectorAll(a.q)[a.n];
+                                    if (!el) return;
+                                    const want = (a.labelText || '').trim().toLowerCase();
+                                    const opt = [...el.options].find(o =>
+                                        (o.textContent || '').trim().toLowerCase() === want
+                                    ) || [...el.options].find(o =>
+                                        (o.textContent || '').toLowerCase().includes(want)
+                                    );
+                                    if (opt) {
+                                        el.value = opt.value;
+                                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                    }
+                                }""",
+                                {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
+                            )
+                        print(f"✅ Fallback selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+                        applied += 1
                 continue
 
             fr = frames[fdata["frame_index"]]
-            q = fdata["query"]; n = fdata["nth"]
-            ftype = fdata.get("type") or ""
-
-            try:
-                if ftype == "select":
-                    opts = _extract_dropdown_options(fr, q, n)
-                    pick = _best_option_match(opts, str(answer))
-                    if not pick:
-                        print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {answer}")
-                        continue
-
-                    try:
-                        el = fr.locator(q).nth(n)
-                        el.select_option(label=pick)
-                    except Exception:
-                        fr.evaluate(
-                            """(a) => {
-                                const el = document.querySelectorAll(a.q)[a.n];
-                                if (!el) return;
-                                const want = (a.labelText || '').trim().toLowerCase();
-                                const opt = [...el.options].find(o =>
-                                    (o.textContent || '').trim().toLowerCase() === want
-                                ) || [...el.options].find(o =>
-                                    (o.textContent || '').toLowerCase().includes(want)
-                                );
-                                if (opt) {
-                                    el.value = opt.value;
-                                    el.dispatchEvent(new Event('input',{bubbles:true}));
-                                    el.dispatchEvent(new Event('change',{bubbles:true}));
-                                }
-                            }""",
-                            {"q": q, "n": n, "labelText": pick}
-                        )
-                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
-                else:
+            if fdata.get("type") == "select":
+                opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                pick = _best_option_match(opts, str(ans)) or _fallback_required_option(opts)
+                if not pick:
+                    print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {ans}")
+                    continue
+                try:
+                    fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
+                except Exception:
                     fr.evaluate(
-                        """(a)=>{
+                        """(a) => {
                             const el = document.querySelectorAll(a.q)[a.n];
                             if (!el) return;
-                            if (el.isContentEditable) { el.innerText = a.v; }
-                            else { el.value = a.v; }
-                            el.dispatchEvent(new Event('input',{bubbles:true}));
-                            el.dispatchEvent(new Event('change',{bubbles:true}));
+                            const want = (a.labelText || '').trim().toLowerCase();
+                            const opt = [...el.options].find(o =>
+                                (o.textContent || '').trim().toLowerCase() === want
+                            ) || [...el.options].find(o =>
+                                (o.textContent || '').toLowerCase().includes(want)
+                            );
+                            if (opt) {
+                                el.value = opt.value;
+                                el.dispatchEvent(new Event('input',{bubbles:true}));
+                                el.dispatchEvent(new Event('change',{bubbles:true}));
+                            }
                         }""",
-                        {"q": q, "n": n, "v": str(answer)}
+                        {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
                     )
-                    print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {answer}")
+                print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+            else:
+                fr.evaluate(
+                    """(a)=>{
+                        const el = document.querySelectorAll(a.q)[a.n];
+                        if (!el) return;
+                        if (el.isContentEditable) { el.innerText = a.v; }
+                        else { el.value = a.v; }
+                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                    }""",
+                    {"q": fdata["query"], "n": fdata["nth"], "v": str(ans)}
+                )
+                print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {ans}")
+            applied += 1
 
-                filled += 1
-            except Exception as e:
-                print(f"⚠️ Could not fill field {fid}: {e}")
-
-        print(f"🤖 AI pass completed — filled {filled} fields.")
-        return filled
+        total = prefilled + applied
+        print(f"🤖 AI pass completed — filled {total} fields.")
+        return total
 
     except Exception as e:
         print(f"⚠️ AI leftovers pass failed: {e}")
         return 0
-
 
 # ---------------- misc helpers ----------------
 
