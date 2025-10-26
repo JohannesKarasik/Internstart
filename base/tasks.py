@@ -2,17 +2,62 @@ from playwright.sync_api import sync_playwright
 from django.conf import settings
 from .models import ATSRoom, User
 from .ats_filler import fill_dynamic_fields  # 🧠 optional mop-up
-import time, traceback, random, json, os, tempfile, re
+import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
 
 
+# ---------- helpers (AI leftovers with dropdowns) ----------
 
-# ---------- helpers ----------
+def _normalize(s: str) -> str:
+    return (s or "").strip().lower()
+
+def _best_option_match(options, want_text):
+    """
+    Return the single best matching option label given a desired text.
+    Strategy:
+      1) exact (case-insensitive),
+      2) startswith,
+      3) substring,
+      4) highest difflib ratio.
+    """
+    if not options:
+        return None
+    want = _normalize(want_text)
+
+    # 1) exact
+    for o in options:
+        if _normalize(o) == want:
+            return o
+
+    # 2) startswith
+    for o in options:
+        if _normalize(o).startswith(want):
+            return o
+
+    # 3) substring
+    for o in options:
+        if want in _normalize(o):
+            return o
+
+    # 4) fuzzy
+    best = None
+    best_score = -1.0
+    for o in options:
+        score = difflib.SequenceMatcher(None, _normalize(o), want).ratio()
+        if score > best_score:
+            best, best_score = o, score
+    return best
+
 
 def _ai_fill_leftovers(page, user):
-    """Debug AI field mapping — logs what fields are being detected, which are unfilled, and what is sent to AI."""
+    """
+    Debug+fill pass:
+      - scans all fields
+      - builds AI prompt with unfilled fields (+dropdown options)
+      - applies AI answers, including selecting dropdowns
+    """
     try:
         profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
         if not os.path.exists(profile_path):
@@ -22,66 +67,67 @@ def _ai_fill_leftovers(page, user):
         with open(profile_path, "r", encoding="utf-8") as f:
             user_profile = json.load(f)
 
-        # 1️⃣ Scan all fields
+        # 1) Scan
         inv = scan_all_fields(page)
         print(f"🔍 DEBUG: total scanned fields = {len(inv)}")
-
-        # Log a preview of what scan_all_fields() actually sees
-        for i, fdata in enumerate(inv[:10]):  # show first 10 fields
+        for i, fdata in enumerate(inv[:10]):  # preview first 10
             print(f"   [{i}] label='{fdata.get('label')}' placeholder='{fdata.get('placeholder')}' value='{fdata.get('current_value')}'")
 
-                # 2️⃣ Collect only unfilled fields
+        # 2) Collect unfilled fields (include options for selects)
         frames = list(page.frames)
         fields_to_ai = []
-        for i, fdata in enumerate(inv):
-            val = fdata.get("current_value") or ""
-            label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
-            if val.strip():
+        for fdata in inv:
+            val = (fdata.get("current_value") or "").strip()
+            if val:
                 continue
 
-            # --- Detect dropdowns (select fields) ---
-            options = []
+            label = (
+                fdata.get("label")
+                or fdata.get("placeholder")
+                or fdata.get("aria_label")
+                or fdata.get("name")
+                or ""
+            )
+
+            options = None
             try:
-                el_type = fdata.get("type", "")
-                if el_type == "select":
+                if fdata.get("type") == "select":
                     frame = frames[fdata["frame_index"]]
-                    options = _extract_dropdown_options(frame, fdata["nth"])
+                    options = _extract_dropdown_options(frame, fdata["query"], fdata["nth"])
             except Exception:
-                pass
+                options = None
 
             fields_to_ai.append({
                 "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
                 "label": label,
-                "options": options if options else None
+                "options": options if options else None,
             })
 
-
         print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields found")
-
-        # Show 5 examples of what will be sent to GPT
         for i, f in enumerate(fields_to_ai[:5]):
             print(f"   → {f}")
 
-        # 3️⃣ If none found, skip
         if not fields_to_ai:
             print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
             return 0
 
-        # 4️⃣ Send to AI
+        # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
         answers = map_fields_to_answers(fields_to_ai, user_profile)
 
         print("============== 🧠 AI RAW OUTPUT ==============")
-        print(json.dumps(answers, indent=2, ensure_ascii=False))
+        try:
+            print(json.dumps(answers, indent=2, ensure_ascii=False))
+        except Exception:
+            print(answers)
         print("=============================================")
 
-        # 5️⃣ Try filling the AI’s answers
+        # 4) Apply AI answers
         filled = 0
-        frames = list(page.frames)
         for fdata in inv:
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
             val = answers.get(fid)
-            if not val or val.lower() == "skip":
+            if not val or str(val).lower() == "skip":
                 continue
 
             fr = frames[fdata["frame_index"]]
@@ -89,11 +135,62 @@ def _ai_fill_leftovers(page, user):
             if not el.is_visible():
                 continue
 
+            # Is dropdown?
+            is_select = False
+            try:
+                tag_name = fr.evaluate("(el) => el && el.tagName ? el.tagName.toLowerCase() : ''", el)
+                is_select = (tag_name == "select")
+            except Exception:
+                is_select = False
+
             try:
                 el.scroll_into_view_if_needed(timeout=1500)
-                el.fill(val)
-                fr.evaluate("el=>{el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", el)
-                print(f"✅ AI filled “{fdata.get('label','(no label)')[:60]}” → {val}")
+
+                if is_select:
+                    # Fetch options for this specific select again
+                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    best = _best_option_match(options, str(val))
+                    if not best:
+                        print(f"⚠️ No close match in options for “{fdata.get('label','(no label)')}” ← {val}")
+                        continue
+
+                    # Try native selection by label first
+                    try:
+                        el.select_option(label=best)
+                    except Exception:
+                        # Fallback: set by JS to the matched option's value
+                        fr.evaluate(
+                            """(q, n, wantLabel) => {
+                                const el = document.querySelectorAll(q)[n];
+                                if (!el) return;
+                                const want = (wantLabel || '').trim().toLowerCase();
+                                const opts = [...el.options || []];
+                                const hit = opts.find(o => (o.textContent || '').trim().toLowerCase() === want)
+                                         || opts.find(o => (o.textContent || '').toLowerCase().includes(want));
+                                if (hit) {
+                                    el.value = hit.value;
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }""",
+                            fdata["query"], fdata["nth"], best
+                        )
+                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:60]}” → {best}")
+                else:
+                    # Text / textarea / contenteditable
+                    if fdata["query"] == "[contenteditable='true']":
+                        el.click()
+                    el.fill(str(val))
+                    try:
+                        el.press("Tab")
+                    except Exception:
+                        pass
+                    fr.evaluate(
+                        "el=>{el && el.dispatchEvent(new Event('input',{bubbles:true})); el && el.dispatchEvent(new Event('change',{bubbles:true}));}",
+                        el
+                    )
+                    print(f"✅ AI filled “{fdata.get('label','(no label)')[:60]}” → {val}")
+
                 filled += 1
             except Exception as e:
                 print(f"⚠️ Could not fill field {fid}: {e}")
@@ -104,8 +201,6 @@ def _ai_fill_leftovers(page, user):
     except Exception as e:
         print(f"⚠️ AI leftovers pass failed: {e}")
         return 0
-    
-
 
 
 def write_temp_cover_letter_file(text, suffix=".txt"):
@@ -165,23 +260,25 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
     except Exception:
         pass
 
-def _extract_dropdown_options(frame, element_index):
-    """Return list of visible option texts for a <select> or dropdown-like field."""
+
+def _extract_dropdown_options(frame, query, nth):
+    """Return list of visible option texts for a specific <select> matched by the same query/nth we scanned with."""
     try:
         options = frame.evaluate(
-            """(idx)=>{
-                const el = document.querySelectorAll('select, [role="combobox"], [aria-haspopup="listbox"]')[idx];
-                if(!el) return [];
-                const opts = [...el.querySelectorAll('option')].map(o => o.textContent.trim()).filter(Boolean);
-                return opts.slice(0, 50);
+            """(q, n) => {
+                const el = document.querySelectorAll(q)[n];
+                if (!el) return [];
+                const opts = [...el.querySelectorAll('option')].map(o => (o.textContent || '').trim()).filter(Boolean);
+                return opts.slice(0, 100);
             }""",
-            element_index
+            query, nth
         )
         return options or []
     except Exception:
         return []
 
-# ---------- dropdown helpers ----------
+
+# ---------- dropdown helpers (existing) ----------
 def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
     try:
         if label_for_id:
@@ -312,6 +409,7 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
         pass
     return False
 
+
 # ---------- metadata + scan/fill ----------
 DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
 
@@ -357,7 +455,9 @@ def scan_all_fields(page):
                 el = loc.nth(i)
                 try:
                     if not el.is_visible(): continue
-                    et = (el.get_attribute("type") or "").lower()
+                    tag = el.evaluate("el => el.tagName.toLowerCase()")
+                    et = tag if tag == "select" else (el.get_attribute("type") or "").lower()
+
                     curr = ""
                     try:
                         curr = el.inner_text().strip() if q == "[contenteditable='true']" else el.input_value().strip()
@@ -455,6 +555,7 @@ def fill_from_inventory(page, user, inventory):
     print(f"✅ Post-scan fill completed — filled {filled} fields from inventory.")
     return filled
 
+
 # ---------- special Yes/No forcings ----------
 def _force_ipg_employment_no(page, frame) -> bool:
     lab = frame.locator("label[for]").filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
@@ -527,6 +628,7 @@ def _force_privacy_yes_if_needed(page, frame):
         except Exception:
             pass
     return changed
+
 
 # ---------- main ----------
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True, screenshot_delay_sec=3):
@@ -603,7 +705,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     page.wait_for_timeout(220 + random.randint(0,120))
             except Exception: pass
 
-            # scan + fill
+            # scan + fill (rule-based)
             inv = scan_all_fields(page)
             try:
                 with open(os.path.join(log_dir, f"ats_field_inventory_{safe_company}_{ts}.json"), "w", encoding="utf-8") as f:
@@ -619,7 +721,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             else:
                 print("🟡 IPG employment not confirmed — continuing; ATS validation may catch it")
 
-            # AI mop-up
+            # AI mop-up (includes dropdown selection)
             try:
                 _ai_fill_leftovers(page, user)
             except Exception as e:
@@ -685,7 +787,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             screenshot_path = os.path.join(log_dir, f"ats_preview_{safe_company}_{ts}.png")
             if dry_run:
                 print("🧪 Dry run — skipping submit")
-                # NEW: wait a bit so uploads/labels render before screenshot
                 delay_ms = max(int(screenshot_delay_sec * 1000), 0)
                 if delay_ms:
                     print(f"⏱️ Waiting {screenshot_delay_sec}s before screenshot…")
