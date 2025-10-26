@@ -1,60 +1,13 @@
 from playwright.sync_api import sync_playwright
 from django.conf import settings
 from .models import ATSRoom, User
-from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler
+from .ats_filler import fill_dynamic_fields   # 🧠 AI field filler (kept)
 import time, traceback, random, json
 from urllib.parse import urlparse
 import os, tempfile
 from datetime import datetime
-from openai import OpenAI
 
-
-# ✅ Load both API key and optional project ID
-openai_key = os.getenv("OPENAI_API_KEY", getattr(settings, "OPENAI_API_KEY", None))
-openai_project = os.getenv("OPENAI_PROJECT_ID", getattr(settings, "OPENAI_PROJECT_ID", None))
-
-# ✅ Initialize client safely (supports both global and project keys)
-if openai_project:
-    client = OpenAI(api_key=openai_key, project=openai_project)
-else:
-    client = OpenAI(api_key=openai_key)
-
-
-def generate_cover_letter_text(user, company="", role="", job_text=""):
-    """
-    Generate a short, personalized cover letter using the user's data and job context.
-    Relies solely on OpenAI's API — no local template fallback.
-    """
-    full_name = f"{(user.first_name or '').strip()} {(user.last_name or '') .strip()}".strip()
-    resume_summary = []
-    if getattr(user, "occupation", ""): resume_summary.append(f"Occupation: {user.occupation}")
-    if getattr(user, "category", ""):   resume_summary.append(f"Field: {user.category}")
-    if getattr(user, "location", ""):   resume_summary.append(f"Location: {user.location}")
-    if getattr(user, "linkedin_url", ""): resume_summary.append(f"LinkedIn: {user.linkedin_url}")
-
-    prompt = f"""
-    You are a professional career assistant. Write a concise, natural-sounding cover letter
-    (max 250 words) tailored to this role and company.
-
-    Company: {company}
-    Role title: {role or 'unspecified'}
-    Candidate: {full_name}
-    Candidate summary: {' | '.join(resume_summary) or 'Motivated student candidate.'}
-    Job description snippet:
-    {job_text[:1200]}
-
-    The tone should be confident but friendly. Avoid clichés like “fast learner” or “team player”.
-    End with a short thank-you line and the candidate’s name.
-    """
-
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=[{"role": "user", "content": prompt.strip()}]
-    )
-
-    return response.output_text.strip()
-
-
+# --- helper: write a small temp text file (used if ATS only accepts file upload for CL) ---
 def write_temp_cover_letter_file(text, suffix=".txt"):
     fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -187,8 +140,8 @@ def scan_all_fields(page):
     ]
     inventory = []
     frame_idx_map = {frame: idx for idx, frame in enumerate(page.frames)}
-    total = 0
 
+    total = 0
     for frame in page.frames:
         for query in selectors:
             loc = frame.locator(query)
@@ -331,10 +284,7 @@ def fill_from_inventory(page, user, inventory):
             # Clear stray 'N/A' if we now have a real val
             if (not val) and (curr.upper() == "N/A"):
                 try:
-                    if item["query"] == "[contenteditable='true']":
-                        el.fill("")  # contenteditable supports fill in Playwright
-                    else:
-                        el.fill("")
+                    el.fill("")
                 except Exception:
                     pass
                 continue
@@ -409,7 +359,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
       - PHASE 2: Fill from inventory
       - Required-completeness pass
       - Upload resume
-      - Generate/paste cover letter
+      - Paste static cover letter ("test coverletter")
     """
 
     room = ATSRoom.objects.get(id=room_id)
@@ -433,7 +383,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
     log_dir = "/home/clinton/Internstart/media"
     os.makedirs(log_dir, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_company = "".join(c if c.isalnum() else "_" for c in room.company_name or "company")
+    safe_company = "".join(c if c.isalnum() else "_" for c in (room.company_name or "company"))
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -459,7 +409,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             # 2️⃣ Trigger “Apply” or open hidden form modals (SAFE)
             try:
-                # If we already see inputs, don't click anything.
                 existing_fields = page.locator("input, textarea, select").count()
                 if existing_fields >= 3:
                     print("🛑 Form fields already visible; skipping any 'apply' clicks.")
@@ -510,13 +459,11 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 el.click()
                                 print(f"🖱️ Safely clicked '{text[:40]}'")
                                 page.wait_for_timeout(1500)
-                                # re-consent if it pops again
                                 dismiss_privacy_overlays(page, timeout_ms=5000)
 
                                 after_url = page.url
                                 after_field_count = page.locator("input, textarea, select").count()
 
-                                # If we navigated but didn't get more fields, go back.
                                 if (after_url != before_url and after_field_count <= before_field_count):
                                     print("↩️ Navigation didn’t expose more fields; going back.")
                                     try:
@@ -623,7 +570,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             const aria = el.getAttribute("aria-label") || "";
                             const ph   = el.getAttribute("placeholder") || "";
                             const byId = (() => {
-                              const ids = (el.getAttribute("aria-labelledby") || "").split(/\\s+/).filter(Boolean);
+                              const ids = (el.get_attribute?.('aria-labelledby') || el.getAttribute('aria-labelledby') || '').split(/\\s+/).filter(Boolean);
                               return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
                             })();
                             const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section");
@@ -795,7 +742,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             try:
                                 lbl = (c.get_attribute("aria-label") or "").lower()
                                 req = c.get_attribute("required") is not None or c.get_attribute("aria-required") in ["true", True]
-                                # Try to augment label from nearby text if empty
                                 if not lbl:
                                     try:
                                         lbl = frame.evaluate("(el)=> el.closest('label,div,section,fieldset')?.innerText || ''", c).lower()
@@ -814,19 +760,18 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Required-completeness pass failed: {e}")
 
-            # 🧠 AI dynamic field filling (kept, to mop up any custom fields)
+            # 🧠 AI dynamic field filling (optional mop-up; still kept)
             try:
                 fill_dynamic_fields(context, user)
             except Exception as e:
                 print(f"⚠️ AI dynamic field filling failed: {e}")
                 traceback.print_exc()
 
-            # 9️⃣ Resume upload (Greenhouse robust fix for visually-hidden inputs)
+            # 9️⃣ Resume upload (robust for hidden inputs)
             try:
                 if resume_path:
                     print(f"📎 Attempting to upload resume from: {resume_path}")
 
-                    # Prefer an "Attach" option if available
                     try:
                         all_buttons = context.locator("button, label")
                         attach_btn = all_buttons.filter(has_text="Attach")
@@ -843,7 +788,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     except Exception as e:
                         print(f"⚠️ Could not click attach button: {e}")
 
-                    # Find <input type='file'>
                     file_input = None
                     for _ in range(10):
                         try:
@@ -860,7 +804,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             pass
                         page.wait_for_timeout(1000)
 
-                    # Force unhide & upload
                     if file_input:
                         try:
                             frame = context
@@ -885,7 +828,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     else:
                         print("⚠️ Could not find any input[type='file'] after retries.")
 
-                    # Verify attachment text/filename
                     try:
                         uploaded = context.locator("text=.docx, text=.pdf, text=Attached, text=uploaded")
                         if uploaded.count() > 0:
@@ -898,37 +840,18 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
 
-            # 🔟 Cover letter: generate via OpenAI → paste or attach file
+            # 🔟 Cover letter (STATIC): paste "test coverletter" or upload as file if needed
             try:
-                job_text = ""
-                try:
-                    job_container = page.locator("main, #content, article").first
-                    if job_container and job_container.count() > 0:
-                        job_text = (job_container.inner_text() or "")[:1500]
-                except Exception:
-                    pass
+                letter_text = cover_letter_text or "test coverletter"
 
-                role_guess = ""
-                try:
-                    role_guess = (page.title() or "").strip()
-                except Exception:
-                    pass
-
-                letter_text = cover_letter_text or generate_cover_letter_text(
-                    user=user,
-                    company=room.company_name,
-                    role=role_guess,
-                    job_text=job_text
-                )
-
-                filled = False
+                inserted = False
                 try:
                     manual_btn = context.locator(
                         ":is(button,label,a):has-text('Enter manually'), :is(button,label,a):has-text('Skriv manuelt')"
                     )
                     if manual_btn.count() > 0 and manual_btn.first.is_visible():
                         manual_btn.first.click()
-                        page.wait_for_timeout(800)
+                        page.wait_for_timeout(600)
                 except Exception:
                     pass
 
@@ -939,36 +862,36 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     )
                     if ta.count() == 0:
                         ta = context.locator("textarea")
-                    for i in range(min(5, ta.count())):
+                    for i in range(min(6, ta.count())):
                         el = ta.nth(i)
                         if el.is_visible():
                             el.fill(letter_text)
                             try: el.press("Tab")
                             except Exception: pass
-                            print("💬 Pasted AI-generated cover letter into textarea.")
-                            filled = True
+                            print("💬 Pasted static cover letter into textarea.")
+                            inserted = True
                             break
                 except Exception:
                     pass
 
                 # contenteditable route
-                if not filled:
+                if not inserted:
                     try:
                         ce = context.locator("[contenteditable='true']")
-                        for i in range(min(5, ce.count())):
+                        for i in range(min(6, ce.count())):
                             el = ce.nth(i)
                             if el.is_visible():
                                 el.click()
                                 el.fill(letter_text)
-                                print("💬 Pasted AI-generated cover letter into contenteditable.")
-                                filled = True
+                                print("💬 Pasted static cover letter into contenteditable.")
+                                inserted = True
                                 break
                     except Exception:
                         pass
 
                 # file attach fallback
-                if not filled:
-                    print("📎 No text field found — uploading AI-generated cover letter as file.")
+                if not inserted:
+                    print("📎 No text field found — uploading static cover letter as file.")
                     file_path = write_temp_cover_letter_file(letter_text, suffix=".txt")
 
                     try:
@@ -977,7 +900,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         )
                         if attach_btn.count() > 0 and attach_btn.first.is_visible():
                             attach_btn.first.click()
-                            page.wait_for_timeout(800)
+                            page.wait_for_timeout(600)
                     except Exception:
                         pass
 
@@ -994,7 +917,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
                     if file_input:
                         file_input.set_input_files(file_path)
-                        print("📄 Uploaded AI-generated cover letter file.")
+                        print("📄 Uploaded static cover letter file.")
                     else:
                         print("⚠️ Could not locate cover letter file input.")
             except Exception as e:
