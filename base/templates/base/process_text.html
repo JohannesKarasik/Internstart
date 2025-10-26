@@ -2,117 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Internstart Text Processor</title>
+  <title>Process Text</title>
   <style>
-    :root {
-      --accent:#FF2F5A; --bg:#0B0F1A; --bg-2:#0E1324;
-      --card:rgba(18,22,36,.72); --stroke:rgba(255,255,255,.08);
-      --text:#E7ECF3; --muted:#A6B0C3; --radius:16px;
-      --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    body {
+      font-family: Inter, system-ui;
+      background: #0B0F1A;
+      color: #E7ECF3;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 30px;
     }
-    @media(prefers-color-scheme:light){
-      :root{--bg:#F6F8FF;--bg-2:#EEF1FF;--card:#fff;--text:#0B0F1A;--muted:#596177;--stroke:rgba(10,15,30,.08);}
+    select, textarea, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.06);
+      color: #E7ECF3;
+      font-size: 15px;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:linear-gradient(180deg,var(--bg),var(--bg-2));color:var(--text);font:500 16px/1.5 Inter,system-ui}
-    .ai-shell{position:relative;min-height:100dvh;overflow-x:hidden}
-    .wrap{max-width:1000px;margin:clamp(24px,5vw,60px) auto;padding:0 clamp(20px,5vw,32px);}
-    .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;
-      box-shadow:var(--shadow);padding:clamp(18px,3vw,28px);}
-    .title{display:flex;align-items:center;gap:10px;font-size:clamp(22px,3.2vw,28px);}
-    .subtitle{color:var(--muted);margin-bottom:12px;}
-    textarea{width:100%;min-height:200px;padding:14px;border-radius:12px;
-      border:1px solid var(--stroke);background:rgba(255,255,255,.06);
-      color:var(--text);font:500 15px/1.6 Inter,system-ui;margin-top:10px;}
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;}
-    .btn{background:var(--accent);color:#0B0F1A;border:none;border-radius:12px;padding:12px 16px;
-      font-weight:700;cursor:pointer;}
-    .btn:hover{filter:brightness(1.05);}
-    .results-container{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
-    .result-row{background:rgba(255,255,255,.05);border:1px solid var(--stroke);
-      border-radius:14px;padding:16px 18px;white-space:pre-wrap;}
-    .muted{text-align:center;color:var(--muted);}
+    button {
+      background: #FF2F5A;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .result-card {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+    }
+    img.logo {
+      height: 60px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
-  <div class="ai-shell">
-    <main class="wrap">
-      <section class="card">
-        <header>
-          <h1 class="title">Process Text Input</h1>
-          <p class="subtitle">Paste any text below and process it using AI or custom logic.</p>
-        </header>
+  <h1>Process Job Text</h1>
+  <p>Paste a job description or posting below, then process it into structured data.</p>
 
-        <!-- Text Area -->
-        <label for="textInput">Text Input</label>
-        <textarea id="textInput" placeholder="Paste or type your text here..."></textarea>
+  <label>Industry</label>
+  <select id="industry">
+    {% for key, label in industries %}
+      <option value="{{ key }}">{{ label }}</option>
+    {% endfor %}
+  </select>
 
-        <!-- Action Buttons -->
-        <div class="actions">
-          <button type="button" id="processBtn" class="btn">Process Text</button>
-          <button type="button" id="clearBtn" class="btn" style="background:#7B61FF;">Clear</button>
-        </div>
+  <label>Job Type</label>
+  <select id="job_type">
+    {% for key, label in job_types %}
+      <option value="{{ key }}">{{ label }}</option>
+    {% endfor %}
+  </select>
 
-        <!-- Results -->
-        <div id="resultsContainer" class="results-container">
-          <p class="muted">No results yet — paste some text and click “Process Text.”</p>
-        </div>
-      </section>
-    </main>
-  </div>
+  <label>Country</label>
+  <select id="country">
+    {% for key, label in countries %}
+      <option value="{{ key }}">{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Paste Text</label>
+  <textarea id="text" rows="8" placeholder="Paste job text here..."></textarea>
+
+  <button id="processBtn">Process Text</button>
+
+  <div id="result" class="result-card" style="display:none;"></div>
 
   <script>
-    window.addEventListener("load", () => {
-      const processBtn = document.getElementById("processBtn");
-      const clearBtn = document.getElementById("clearBtn");
-      const textInput = document.getElementById("textInput");
-      const resultsContainer = document.getElementById("resultsContainer");
+    document.getElementById("processBtn").addEventListener("click", async () => {
+      const text = document.getElementById("text").value.trim();
+      const industry = document.getElementById("industry").value;
+      const job_type = document.getElementById("job_type").value;
+      const country = document.getElementById("country").value;
 
-      /* ---------- 1️⃣ Process Text ---------- */
-      processBtn.addEventListener("click", async () => {
-        const text = textInput.value.trim();
-        if (!text) {
-          alert("Please enter or paste text before processing.");
-          return;
-        }
+      if (!text) {
+        alert("Please enter text first.");
+        return;
+      }
 
-        resultsContainer.innerHTML = "<p class='muted'>🔄 Processing text...</p>";
-        processBtn.disabled = true;
+      document.getElementById("result").style.display = "block";
+      document.getElementById("result").innerHTML = "⏳ Processing...";
 
-        try {
-          const res = await fetch("/process_text/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text })
-          });
+      try {
+        const res = await fetch("/process_text/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, industry, job_type, country }),
+        });
 
-          const data = await res.json();
-          console.log("Response:", data);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || "Processing failed.");
 
-          if (data.error) {
-            resultsContainer.innerHTML = `<p class='muted'>❌ ${data.error}</p>`;
-          } else {
-            resultsContainer.innerHTML = `
-              <div class="result-row">
-                <strong>✅ Processed Output:</strong><br><br>
-                ${data.corrected_text ? data.corrected_text : JSON.stringify(data, null, 2)}
-              </div>
-            `;
-          }
-
-        } catch (err) {
-          console.error(err);
-          resultsContainer.innerHTML = `<p class='muted'>❌ Failed to process text — check server logs.</p>`;
-        } finally {
-          processBtn.disabled = false;
-        }
-      });
-
-      /* ---------- 2️⃣ Clear ---------- */
-      clearBtn.addEventListener("click", () => {
-        textInput.value = "";
-        resultsContainer.innerHTML = "<p class='muted'>No results yet — paste some text and click “Process Text.”</p>";
-      });
+        document.getElementById("result").innerHTML = `
+          <img src="${data.logo_url}" class="logo" alt="Logo" onerror="this.style.display='none'">
+          <h2>${data.company_name}</h2>
+          <p><strong>Description:</strong> ${data.company_description}</p>
+          <p><strong>Location:</strong> ${data.location}</p>
+          <p><strong>Industry:</strong> ${data.industry}</p>
+          <p><strong>Job Type:</strong> ${data.job_type}</p>
+          <p><strong>Country:</strong> ${data.country}</p>
+        `;
+      } catch (err) {
+        document.getElementById("result").innerHTML = `<p style="color:#ff2f5a;">❌ Error: ${err.message}</p>`;
+      }
     });
   </script>
 </body>
