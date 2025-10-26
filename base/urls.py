@@ -61,7 +61,6 @@ urlpatterns = [
     path("manual-import/", views.manual_import_jobs, name="manual_import_jobs"),
     path("process_manual_job/", views.process_manual_job, name="process_manual_job"),
     path("process-text/", views.process_text, name="process_text"),
-    path("process_text/", views.process_text, name="process_text"),
 
 
 
