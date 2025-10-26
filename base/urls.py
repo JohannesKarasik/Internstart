@@ -62,7 +62,7 @@ urlpatterns = [
     path("process_manual_job/", views.process_manual_job, name="process_manual_job"),
     path("process-text/", views.process_text_page, name="process_text_page"),
     path("process_text/", views.process_text, name="process_text"),
-]
+
 
 
 
