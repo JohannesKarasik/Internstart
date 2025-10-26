@@ -197,64 +197,69 @@ def _country_human(code: str) -> str:
     }.get((code or "").upper(), "")
 
 
-def _value_from_label(user, label: str, el_type: str):
-    # Build user data on demand
+# --- NEW: smarter value resolver (uses label + name + id + placeholder + aria) ---
+DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
+
+def _attrs_blob(label="", name="", id_="", placeholder="", aria_label="", type_=""):
+    """Combine all useful attributes/labels into one lowercased string for matching."""
+    return " ".join([
+        str(label or ""),
+        str(name or ""),
+        str(id_ or ""),
+        str(placeholder or ""),
+        str(aria_label or ""),
+        str(type_ or "")
+    ]).lower().strip()
+
+def _value_from_meta(user, meta_text: str):
+    """Decide value using the combined metadata string."""
+    L = (meta_text or "").lower()
+
     linkedin = (getattr(user, "linkedin_url", "") or "").strip()
-    user_data = {
-        "first_name": user.first_name or "",
-        "last_name": user.last_name or "",
-        "email": user.email or "",
-        "phone": getattr(user, "phone_number", "") or "",
-        "linkedin": linkedin,
-        "country": _country_human(getattr(user, "country", "")),
-        "city": getattr(user, "location", "") or "",
-        "occupation": getattr(user, "occupation", "") or "",
-        "company": getattr(user, "category", "") or "",
-    }
+    country_code = (getattr(user, "country", "") or "").upper()
+    phone_raw = (getattr(user, "phone_number", "") or "").strip()
+    country_h = _country_human(country_code)
 
-    L = (label or "").lower()
+    # Prefer phone with dial prefix when asked for phone/mobile/tel
+    phone = phone_raw
+    dial = DIAL.get(country_code, "")
+    if any(k in L for k in ["phone", "mobile", "tel"]) and phone_raw and dial and not phone_raw.startswith("+"):
+        phone = f"{dial} {phone_raw}"
 
-    if "first" in L or "given" in L or "forename" in L:
-        return user_data["first_name"]
-    if "last" in L or "surname" in L or "family name" in L:
-        return user_data["last_name"]
-    if "email" in L or el_type == "email":
-        return user_data["email"]
-    if "phone" in L or "mobile" in L or "tel" in L or el_type == "tel":
-        return user_data["phone"]
-    if "linkedin" in L or ("profile" in L and "url" in L) or ("url" in L and "linkedin" in L):
-        return user_data["linkedin"]
-    if "country" in L:
-        return user_data["country"]
-    if "city" in L or "town" in L:
-        return user_data["city"]
-    if "job title" in L or ("title" in L and "job" in L) or "position" in L or "role" in L:
-        return user_data["occupation"]
-    if "company" in L or "employer" in L or "organization" in L or "organisation" in L:
-        return user_data["company"]
+    mapping = [
+        (["first", "fname", "given", "forename"],          user.first_name or ""),
+        (["last", "lname", "surname", "family"],           user.last_name or ""),
+        (["email", "e-mail", "mail"],                      user.email or ""),
+        (["phone", "mobile", "tel"],                       phone),
+        (["linkedin", "profile url", "profile_url"],       linkedin),
+        (["country", "nationality"],                       country_h),
+        (["city", "town"],                                 getattr(user, "location", "") or ""),
+        (["job title", "title", "position", "role"],       getattr(user, "occupation", "") or ""),
+        (["company", "employer", "organization", "organisation", "current company"], getattr(user, "category", "") or ""),
+    ]
+    for keys, val in mapping:
+        if any(k in L for k in keys) and val:
+            return val
 
-    # generic URL fields: only fill if clearly LinkedIn
-    if ("url" in L or "website" in L) and "linkedin" in L:
-        return user_data["linkedin"]
+    # Generic URL → only if clearly LinkedIn
+    if ("url" in L or "website" in L) and "linkedin" in L and linkedin:
+        return linkedin
 
     return ""
 
 
-# ---------- Phase 2: Fill (after scan) ----------
+
 def fill_from_inventory(page, user, inventory):
     """
     Re-find each scanned element via (frame_index, query, nth),
-    decide the right value from user data, and fill it.
+    decide the right value from user data, and fill it (no 'N/A' anywhere).
     """
     filled = 0
     frames = list(page.frames)
     for item in inventory:
+        # Resolve frame & element
         try:
             frame = frames[item["frame_index"]]
-        except Exception:
-            continue
-
-        try:
             el = frame.locator(item["query"]).nth(item["nth"])
         except Exception:
             continue
@@ -263,42 +268,43 @@ def fill_from_inventory(page, user, inventory):
             if not el.is_visible():
                 continue
 
-            # Skip if already filled with a non-placeholder value
+            # Current value
             curr = ""
             try:
-                if item["query"] == "[contenteditable='true']":
-                    curr = el.inner_text().strip()
-                else:
-                    curr = el.input_value().strip()
+                curr = (el.inner_text().strip() if item["query"] == "[contenteditable='true']"
+                        else el.input_value().strip())
             except Exception:
                 pass
             if curr and curr.upper() != "N/A":
-                continue
+                continue  # already has a real value
 
-            # Build best label (re-check in case DOM changed)
-            label = item.get("label") or _accessible_label(frame, el)
-            etype = (item.get("type") or "").lower()
+            # Build combined metadata & decide a value
+            meta = _attrs_blob(
+                label=item.get("label", ""),
+                name=item.get("name", ""),
+                id_=item.get("id", ""),
+                placeholder=item.get("placeholder", ""),
+                aria_label=item.get("aria_label", ""),
+                type_=item.get("type", "")
+            )
+            val = _value_from_meta(user, meta)
 
-            val = _value_from_label(user, label, etype)
-
-            # Clear stray 'N/A' if we now have a real val
-            if (not val) and (curr.upper() == "N/A"):
+            # If field currently has "N/A" but we now have a real value, clear first
+            if val and curr.upper() == "N/A":
                 try:
                     el.fill("")
                 except Exception:
                     pass
-                continue
 
             if not val:
-                continue
+                continue  # nothing appropriate to fill
 
-            # Scroll into view
+            # Scroll & fill
             try:
                 el.scroll_into_view_if_needed(timeout=2000)
             except Exception:
                 pass
 
-            # Perform fill / select
             is_select = False
             try:
                 is_select = el.evaluate("el => el.tagName && el.tagName.toLowerCase() === 'select'")
@@ -307,36 +313,27 @@ def fill_from_inventory(page, user, inventory):
 
             if is_select:
                 try:
-                    el.select_option(label=val)  # exact match first
+                    el.select_option(label=val)
                 except Exception:
-                    # fallback: lower-case contains
-                    frame.evaluate(
-                        """
+                    frame.evaluate("""
                         (el, want) => {
                           const opts = Array.from(el.options || []);
-                          const target = opts.find(o => (o.textContent||'').trim().toLowerCase() === want.toLowerCase())
-                                       || opts.find(o => (o.textContent||'').toLowerCase().includes(want.toLowerCase()));
-                          if (target) el.value = target.value;
-                          el.dispatchEvent(new Event('change', {bubbles:true}));
+                          const t = (want||'').toLowerCase();
+                          const match = opts.find(o => (o.textContent||'').trim().toLowerCase()===t)
+                                      || opts.find(o => (o.textContent||'').toLowerCase().includes(t));
+                          if (match) { el.value = match.value; el.dispatchEvent(new Event('change',{bubbles:true})); }
                         }
-                        """,
-                        el, val
-                    )
+                    """, el, val)
             else:
                 el.fill(val)
+                try: el.press("Tab")
+                except Exception: pass
                 try:
-                    el.press("Tab")
-                except Exception:
-                    pass
-                try:
-                    frame.evaluate(
-                        "el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }",
-                        el
-                    )
+                    frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
                 except Exception:
                     pass
 
-            print(f"✅ Filled “{(label or item.get('name') or item.get('id') or 'field')[:60]}” → {val}")
+            print(f"✅ Filled “{meta[:60]}” → {val}")
             filled += 1
 
         except Exception:
@@ -612,45 +609,83 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         pass
 
                 # Required text-like inputs
-                for frame in page.frames:
-                    try:
-                        inputs = frame.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])")
-                        for i in range(inputs.count()):
-                            el = inputs.nth(i)
+              # Required text-like inputs (NO 'N/A' writes; try metadata-based fill only)
+                        for frame in page.frames:
                             try:
-                                if not el.is_visible():
-                                    continue
-                                t = (el.get_attribute("type") or "").lower()
-                                if t in ["checkbox", "radio", "file"]:
-                                    continue
-
-                                curr = ""
-                                try:
-                                    curr = el.input_value().strip()
-                                except Exception:
+                                inputs = frame.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])")
+                                for i in range(inputs.count()):
+                                    el = inputs.nth(i)
                                     try:
-                                        curr = el.inner_text().strip()
-                                    except Exception:
+                                        if not el.is_visible():
+                                            continue
+                                        t = (el.get_attribute("type") or "").lower()
+                                        if t in ["checkbox", "radio", "file"]:
+                                            continue
+
+                                        # current value
                                         curr = ""
+                                        try:
+                                            curr = el.input_value().strip()
+                                        except Exception:
+                                            try:
+                                                curr = el.inner_text().strip()
+                                            except Exception:
+                                                curr = ""
 
-                                if curr and curr.upper() != "N/A":
-                                    continue
+                                        if curr and curr.upper() != "N/A":
+                                            continue
 
-                                lbl = near_text(frame, el)
-                                req_attr = el.get_attribute("required") is not None or el.get_attribute("aria-required") in ["true", True]
-                                req_near = looks_required(lbl)
-                                if not (req_attr or req_near):
-                                    continue
+                                        # required?
+                                        lbl = near_text(frame, el)
+                                        req_attr = el.get_attribute("required") is not None or el.get_attribute("aria-required") in ["true", True]
+                                        req_near = looks_required(lbl)
+                                        if not (req_attr or req_near):
+                                            continue
 
-                                L = lbl.lower()
-                                if any(k in L for k in ["email", "e-mail", "mail", "phone", "mobil", "telefon", "tel", "linkedin"]):
-                                    continue  # already addressed in inventory fill
+                                        # Build metadata blob and try to fill with a real value
+                                        blob = _attrs_blob(
+                                            label=lbl,
+                                            name=el.get_attribute("name") or "",
+                                            id_=el.get_attribute("id") or "",
+                                            placeholder=el.get_attribute("placeholder") or "",
+                                            aria_label=el.get_attribute("aria-label") or "",
+                                            type_=t
+                                        )
 
-                                el.fill("N/A")
-                                try: el.press("Tab")
-                                except Exception: pass
-                                frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
-                                print(f"🧩 Required text field had no value → set 'N/A' ({lbl[:60]})")
+                                        # Hard guard: never overwrite these with placeholders
+                                        if any(k in blob for k in ["first","fname","given","forename",
+                                                                "last","lname","surname","family",
+                                                                "email","e-mail","mail",
+                                                                "phone","mobile","tel",
+                                                                "linkedin"]):
+                                            # Try to fill with real value only
+                                            real = _value_from_meta(user, blob)
+                                            if real:
+                                                el.fill(real)
+                                                try: el.press("Tab")
+                                                except Exception: pass
+                                                try:
+                                                    frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
+                                                except Exception: pass
+                                                print(f"🧩 Completed required field (guarded) → {real} ({lbl[:60]})")
+                                            continue
+
+                                        # Non-guarded required fields → try real value; if none, skip (no 'N/A')
+                                        real = _value_from_meta(user, blob)
+                                        if real:
+                                            el.fill(real)
+                                            try: el.press("Tab")
+                                            except Exception: pass
+                                            try:
+                                                frame.evaluate("el => { el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }", el)
+                                            except Exception: pass
+                                            print(f"🧩 Completed required field → {real} ({lbl[:60]})")
+                                        # else: leave blank; do NOT write 'N/A'
+                                    except Exception:
+                                        continue
+                            except Exception:
+                                pass
+
                             except Exception:
                                 continue
                     except Exception:
