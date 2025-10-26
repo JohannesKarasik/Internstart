@@ -37,7 +37,7 @@ def main():
     }
 
     all_results = []
-    for start in range(0, 30, 10):
+    for start in range(0, 100, 10):  # Fetch 10 pages instead of 3
         params = base_params.copy()
         params["start"] = start
         print(f"📄 Fetching page starting at {start}...")
