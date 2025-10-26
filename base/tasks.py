@@ -5,7 +5,7 @@ from .ats_filler import fill_dynamic_fields  # 🧠 optional mop-up
 import time, traceback, random, json, os, tempfile, re
 from urllib.parse import urlparse
 from datetime import datetime
-from ai.field_interpreter import map_fields_to_answers
+from base.ai.field_interpreter import map_fields_to_answers
 
 
 
