@@ -2,113 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Process Text</title>
+  <title>Process Job Text</title>
   <style>
-    body {
-      font-family: Inter, system-ui;
-      background: #0B0F1A;
-      color: #E7ECF3;
-      max-width: 900px;
-      margin: 50px auto;
-      padding: 30px;
-    }
-    select, textarea, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.06);
-      color: #E7ECF3;
-      font-size: 15px;
-    }
-    button {
-      background: #FF2F5A;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .result-card {
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.08);
-    }
-    img.logo {
-      height: 60px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-    }
+    body { font-family: Inter, sans-serif; background:#0b0f1a; color:#fff; padding:40px; }
+    .card { background:#121826; border-radius:14px; padding:24px; max-width:800px; margin:auto; }
+    textarea { width:100%; height:300px; padding:12px; border-radius:10px; border:none; font-size:15px; margin-top:10px; }
+    button { background:#FF2F5A; border:none; padding:12px 20px; border-radius:10px; color:#fff; font-weight:700; cursor:pointer; margin-top:10px; }
+    .result { margin-top:20px; background:#1a2133; border-radius:10px; padding:16px; }
   </style>
 </head>
 <body>
-  <h1>Process Job Text</h1>
-  <p>Paste a job description or posting below, then process it into structured data.</p>
+  <div class="card">
+    <h1>Process Job Text</h1>
+    <p>Paste a job description or posting below, then process it into structured data.</p>
 
-  <label>Industry</label>
-  <select id="industry">
-    {% for key, label in industries %}
-      <option value="{{ key }}">{{ label }}</option>
-    {% endfor %}
-  </select>
+    <p><b>Industry</b>: Marketing & Communications</p>
+    <p><b>Job Type</b>: Internship</p>
+    <p><b>Country</b>: 🇩🇰 Denmark</p>
 
-  <label>Job Type</label>
-  <select id="job_type">
-    {% for key, label in job_types %}
-      <option value="{{ key }}">{{ label }}</option>
-    {% endfor %}
-  </select>
+    <textarea id="jobText" placeholder="Paste job description here..."></textarea>
+    <button id="processBtn">Process Text</button>
 
-  <label>Country</label>
-  <select id="country">
-    {% for key, label in countries %}
-      <option value="{{ key }}">{{ label }}</option>
-    {% endfor %}
-  </select>
-
-  <label>Paste Text</label>
-  <textarea id="text" rows="8" placeholder="Paste job text here..."></textarea>
-
-  <button id="processBtn">Process Text</button>
-
-  <div id="result" class="result-card" style="display:none;"></div>
+    <div id="result" class="result"></div>
+  </div>
 
   <script>
     document.getElementById("processBtn").addEventListener("click", async () => {
-      const text = document.getElementById("text").value.trim();
-      const industry = document.getElementById("industry").value;
-      const job_type = document.getElementById("job_type").value;
-      const country = document.getElementById("country").value;
+      const text = document.getElementById("jobText").value.trim();
+      const resultBox = document.getElementById("result");
+      if (!text) return alert("Please paste job text first.");
 
-      if (!text) {
-        alert("Please enter text first.");
-        return;
-      }
-
-      document.getElementById("result").style.display = "block";
-      document.getElementById("result").innerHTML = "⏳ Processing...";
+      resultBox.innerHTML = "⏳ Processing...";
+      const payload = {
+        text,
+        industry: "marketing",
+        job_type: "internship",
+        country: "DK"
+      };
 
       try {
-        const res = await fetch("/process_text/", {
+        const res = await fetch("/process-text/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, industry, job_type, country }),
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || "Processing failed.");
+        if (!data.success) {
+          resultBox.innerHTML = `❌ Error: ${data.error || "Failed"}`;
+          return;
+        }
 
-        document.getElementById("result").innerHTML = `
-          <img src="${data.logo_url}" class="logo" alt="Logo" onerror="this.style.display='none'">
-          <h2>${data.company_name}</h2>
-          <p><strong>Description:</strong> ${data.company_description}</p>
-          <p><strong>Location:</strong> ${data.location}</p>
-          <p><strong>Industry:</strong> ${data.industry}</p>
-          <p><strong>Job Type:</strong> ${data.job_type}</p>
-          <p><strong>Country:</strong> ${data.country}</p>
+        resultBox.innerHTML = `
+          ✅ <b>${data.company_name}</b><br>
+          <b>Description:</b> ${data.company_description}<br>
+          <b>Location:</b> ${data.location}<br>
+          <b>Logo:</b> <img src="${data.logo_url}" width="60" style="vertical-align:middle;border-radius:6px;"><br>
+          <b>Industry:</b> ${data.industry}<br>
+          <b>Job Type:</b> ${data.job_type}<br>
+          <b>Country:</b> ${data.country}<br>
+          <p style="color:#4CAF50;">✅ Added to database successfully.</p>
         `;
       } catch (err) {
-        document.getElementById("result").innerHTML = `<p style="color:#ff2f5a;">❌ Error: ${err.message}</p>`;
+        console.error(err);
+        resultBox.innerHTML = "❌ Failed to process request.";
       }
     });
   </script>
