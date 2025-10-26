@@ -5,8 +5,89 @@ from .ats_filler import fill_dynamic_fields  # 🧠 optional mop-up
 import time, traceback, random, json, os, tempfile, re
 from urllib.parse import urlparse
 from datetime import datetime
+from ai.field_interpreter import map_fields_to_answers
+
+
 
 # ---------- helpers ----------
+
+
+def _ai_fill_leftovers(page, inventory, user):
+    """
+    Second AI pass for complex or semantic fields.
+    Uses the UserProfile JSON generated at signup.
+    """
+    try:
+        # ✅ Load the user’s JSON profile
+        profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
+        if not os.path.exists(profile_path):
+            print(f"⚠️ No profile JSON found for user {user.id} at {profile_path}")
+            return 0
+
+        with open(profile_path, "r", encoding="utf-8") as f:
+            profile = json.load(f)
+
+        # Collect unfilled fields
+        ai_fields = []
+        for f in inventory:
+            if not f.get("label"):  # skip unlabeled
+                continue
+            if f.get("current_value") and f["current_value"].strip():
+                continue
+            ai_fields.append({
+                "field_id": f"{f['frame_index']}_{f['nth']}",
+                "label": f["label"],
+                "type": f["type"],
+                # Optionally you can include select options if known later
+            })
+
+        print(f"🤖 AI pass: sending {len(ai_fields)} fields for interpretation…")
+        if not ai_fields:
+            return 0
+
+        # 🔍 Call your field_interpreter AI
+        answers = map_fields_to_answers(ai_fields, profile) or {}
+        print("\n============== 🧠 AI RAW OUTPUT ==============")
+        print(json.dumps(answers, indent=2, ensure_ascii=False))
+        print("=============================================\n")
+
+        filled = 0
+        frames = list(page.frames)
+
+        # Apply answers
+        for f in ai_fields:
+            fid = f["field_id"]
+            ans = answers.get(fid)
+            if not ans or ans == "skip":
+                continue
+
+            fr = frames[f["frame_index"]]
+            el = fr.locator(f["query"]).nth(f["nth"])
+            if not el.count() or not el.first.is_visible():
+                continue
+
+            val = ans["value"] if isinstance(ans, dict) and "value" in ans else ans
+
+            try:
+                el.first.scroll_into_view_if_needed()
+                el.first.fill(val)
+                fr.evaluate(
+                    "el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}",
+                    el.first,
+                )
+                print(f"✅ AI filled “{f['label'][:60]}” → {val}")
+                filled += 1
+            except Exception:
+                pass
+
+        print(f"🤖 AI pass completed — filled {filled} fields.")
+        return filled
+
+    except Exception as e:
+        print(f"❌ _ai_fill_leftovers failed: {e}")
+        return 0
+
+
 def write_temp_cover_letter_file(text, suffix=".txt"):
     fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
