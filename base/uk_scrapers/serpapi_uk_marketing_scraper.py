@@ -9,13 +9,16 @@ from serpapi import GoogleSearch
 def main():
     # 🧩 --- Configuration ---
     QUERY = (
-        'site:linkedin.com/jobs inurl:uk '
-        '("send your CV" OR "apply by email" OR "email your application") '
-        '("@co.uk" OR "@gmail.com" OR "@outlook.com") '
-        '(marketing OR "digital marketing" OR SEO OR "content marketing" OR "social media" OR PR OR "public relations" '
-        'OR communications OR "email marketing" OR "copywriter" OR "brand manager" OR "advertising" OR "growth marketing" '
-        'OR "marketing assistant" OR "marketing coordinator" OR "media buyer" OR "campaign manager" OR "community manager" '
-        'OR "marketing executive" OR "marketing manager" OR "head of marketing" OR "CMO" OR "performance marketing" OR "demand generation" OR "crm" OR "marcom")'
+        'site:uk.linkedin.com/jobs '
+        '("send your CV" OR "apply by email" OR "email your application" OR "send your application to" OR "email your CV to") '
+        '("@gmail.com" OR "@outlook.com" OR "@co.uk" OR "@yahoo.co.uk") '
+        '("finance" OR "financial analyst" OR "accountant" OR "bookkeeper" OR "auditor" OR "tax consultant" OR '
+        '"investment analyst" OR "banking" OR "treasury analyst" OR "finance manager" OR "FP&A" OR '
+        '"financial planning" OR "CFO" OR "finance director" OR "finance assistant" OR "payroll" OR '
+        '"financial advisor" OR "compliance" OR "risk analyst") '
+        'intext:"@" intext:("send your CV" OR "apply by email" OR "email your application") '
+        '-"linkedin.com/company" -"linkedin.com/learning" -"linkedin.com/pulse" -"courses" -"insights" '
+        '-filetype:jpg -filetype:png -filetype:webp'
     )
 
     # 🔑 --- API Key ---
@@ -23,13 +26,13 @@ def main():
     if not API_KEY:
         raise EnvironmentError("❌ SERPAPI_API_KEY not found in environment variables.")
 
-    print("🔍 Fetching up to 30 UK marketing listings from SerpAPI ...")
+    print("🔍 Fetching up to 30 UK finance listings from SerpAPI ...")
 
     # 🌍 --- Base Search Parameters ---
     base_params = {
         "engine": "google",
         "q": QUERY,
-        "num": 10,  # 10 results per page (SerpAPI limit)
+        "num": 10,
         "hl": "en",
         "gl": "uk",
         "location": "United Kingdom",
@@ -66,55 +69,50 @@ def main():
 
     print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-    # 🎯 --- Strict title filters (regex with word boundaries) ---
-    # Allow (must be present in TITLE)
-    MARKETING_TITLE_RE = re.compile(
+    # 🎯 --- Strict title filters (Finance only) ---
+    FINANCE_TITLE_RE = re.compile(
         r"""(?ix)
-        \b(marketing|marketer|marcom|crm|demand\s+gen(eration)?|growth|brand(ing)?|
-           digital\s+marketing|performance\s+marketing|content(\s+marketing)?|
-           copywrit(er|ing)|email(\s+marketing)?|retention|lifecycle|
-           seo|sem|ppc|paid(\s+search|\s+social)?|social\s+media|community\s+manager|
-           media\s+buyer|campaign\s+manager|pr|public\s+relations|
-           communications?|comms|influencer|affiliate|e[-\s]?commerce
-          )
+        \b(
+          finance|financial|analyst|accountant|accounting|
+          bookkeeper|auditor|tax|treasury|banking|
+          cfo|fp&a|controller|payroll|advisor|compliance|risk
+        )\b
         """,
         re.IGNORECASE,
     )
 
-    # Block (if present in TITLE -> drop)
+    # Block unrelated titles
     EXCLUDE_TITLE_RE = re.compile(
         r"""(?ix)
-        \b(roofer|engineer|developer|technician|plumber|electrician|welder|carpenter|
-           construction|warehouse|driver|nurse|teacher|chef|cook|mechanic|operator|
-           installer|laborer|labourer|caretaker|handyman|foreman|cleaner|janitor|
-           solicitor|paralegal|lawyer|accountant|auditor|bookkeeper|receptionist|
-           security|guard|porter|surveyor|estimator|site\s+manager|bricklayer
+        \b(marketing|sales|technician|developer|engineer|teacher|driver|
+           cleaner|warehouse|nurse|chef|plumber|construction|laborer|
+           labourer|mechanic|operator|installer|waiter|barista|cook
           )\b
         """,
+        re.IGNORECASE,
     )
 
-    # 🧹 --- Filter results (EMAIL + UK + TITLE must match marketing & not excluded) ---
+    # 🧹 --- Filter results (EMAIL + UK + TITLE match) ---
     filtered = []
     for r in all_results:
         title = r.get("title", "") or ""
         snippet = r.get("snippet", "") or ""
         link = r.get("link", "") or ""
 
-        # Must show an email in snippet
+        # Require an email in snippet
         if "@" not in snippet:
             continue
 
-        # Keep only UK (cheap heuristics)
-        text = (title + " " + snippet + " " + link).lower()
-        if not (" uk " in f" {text} " or "united kingdom" in text or "/uk/" in link.lower() or ".uk/" in link.lower() or ".co.uk" in text):
+        # Restrict to uk.linkedin domain only (already enforced, but double check)
+        if not link.startswith("https://uk.linkedin.com/jobs"):
             continue
 
-        # STRICT: title MUST contain a marketing keyword
-        if not MARKETING_TITLE_RE.search(title):
-            print(f"🚫 Non-marketing title (skipped): {title}")
+        # Title must be finance-related
+        if not FINANCE_TITLE_RE.search(title):
+            print(f"🚫 Non-finance title (skipped): {title}")
             continue
 
-        # STRICT: title MUST NOT contain any excluded job term
+        # Exclude non-finance roles
         if EXCLUDE_TITLE_RE.search(title):
             print(f"🚫 Excluded title (skipped): {title}")
             continue
@@ -125,9 +123,9 @@ def main():
             "snippet": snippet.strip(),
         })
 
-    print(f"✅ Filtered down to {len(filtered)} marketing titles before closure check.")
+    print(f"✅ Filtered down to {len(filtered)} finance titles before closure check.")
 
-    # 🔎 --- Remove closed listings (page check) ---
+    # 🔎 --- Check for closed jobs ---
     CLOSED_PATTERNS = [
         "no longer accepting applications",
         "no longer taking applications",
@@ -172,12 +170,12 @@ def main():
 
     # 💾 --- Save to JSON ---
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    filename = f"linkedin_uk_marketing_jobs_{timestamp}.json"
+    filename = f"linkedin_uk_finance_jobs_{timestamp}.json"
     output_path = os.path.join(os.path.dirname(__file__), filename)
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(open_listings, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Saved {len(open_listings)} open UK marketing listings to {filename}")
+    print(f"✅ Saved {len(open_listings)} open UK finance listings to {filename}")
 
     return open_listings
