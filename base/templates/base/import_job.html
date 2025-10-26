@@ -167,17 +167,44 @@
             scrapeBtn.disabled = false;
             return;
           }
+
+
+          function renderResults(filteredResults, count) {
+            const totalCount = cachedResults.length;
+            const scraperLabel = scraperType.includes("finance") ? "finance-related" : "marketing-related";
+            const header = `
+              <div class="job-row">
+                <strong>✅ Found ${count} ${scraperLabel} jobs</strong><br>
+                <small>Filtered from ${totalCount} total results</small>
+                ${data.latest_file ? `<br><small>Latest file: ${data.latest_file}</small>` : ""}
+              </div>
+            `;
+            const list = filteredResults.map((job, i) => `
+              <div class="job-row" id="job-${i}">
+                <strong>${job.title || "Untitled Job"}</strong><br>
+                <a href="${job.link}" target="_blank">${job.link}</a><br>
+                <small>${job.snippet || ""}</small><br>
+                <span class="status muted">⏸ Waiting...</span>
+              </div>
+            `).join("");
+            resultsContainer.innerHTML = header + list;
+          }
+
+
     
           // 🎯 Dynamic filtering by scraper type
           let keywordSet = [];
 
+          // 🧠 If finance scraper selected — show all results (no filtering)
           if (scraperType.includes("finance")) {
-            keywordSet = [
-              "finance", "financial", "accounting", "accountant", "bookkeeper",
-              "auditor", "analyst", "controller", "treasury", "banking", "investments",
-              "cfo", "fp&a", "finance manager", "tax", "risk", "compliance"
-            ];
+            console.log("💼 Finance scraper selected — skipping keyword filtering.");
+            const filteredResults = cachedResults;
+            const count = filteredResults.length;
+            console.log(`🎯 Showing all ${count} finance-related jobs (no filtering).`);
+            renderResults(filteredResults, count); // ⬅️ helper we’ll add below
+            return;
           } else {
+            // 🪄 Keep normal marketing filters
             keywordSet = [
               "marketing", "digital", "seo", "sem", "ppc", "social media",
               "content", "copywriter", "copywriting", "pr", "public relations",
@@ -187,6 +214,7 @@
               "account manager", "marcom"
             ];
           }
+
 
           const keywordsLower = keywordSet.map(k => k.toLowerCase());
 
