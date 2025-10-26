@@ -61,17 +61,18 @@
     </form>
 
     {% if success %}
-      <div class="result">
-        ✅ <b>{{ company_name }}</b><br>
-        <b>Description:</b> {{ company_description }}<br>
-        <b>Location:</b> {{ location }}<br>
-        <b>Logo:</b> <img src="{{ logo_url }}" width="60" style="border-radius:6px;"><br>
-        <b>Industry:</b> {{ industry }}<br>
-        <b>Job Type:</b> {{ job_type }}<br>
-        <b>Country:</b> {{ country }}<br>
-        <p style="color:#4CAF50;">✅ Added to database successfully.</p>
-      </div>
-    {% endif %}
+    <div class="result">
+      ✅ <b>{{ company_name }}</b><br>
+      <b>Description:</b> {{ company_description }}<br>
+      <b>Location:</b> {{ location }}<br>
+      <b>Email:</b> {{ email }}<br>
+      <b>Logo:</b> <img src="{{ logo_url }}" width="60" style="border-radius:6px;"><br>
+      <b>Industry:</b> {{ industry }}<br>
+      <b>Job Type:</b> {{ job_type }}<br>
+      <b>Country:</b> {{ country }}<br>
+      <p style="color:#4CAF50;">✅ Added to database successfully.</p>
+    </div>
+  {% endif %}
   </div>
 </body>
 </html>
