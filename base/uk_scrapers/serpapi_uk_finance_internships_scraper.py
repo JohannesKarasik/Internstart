@@ -35,7 +35,7 @@ def main():
             "gl": "uk",
             "location": "United Kingdom",
             "filter": "0",
-            "tbs": "qdr:m",  # Past month
+            "tbs": "qdr:m",
             "api_key": API_KEY,
         }
 
@@ -61,9 +61,16 @@ def main():
 
         print(f"🌍 Total raw results fetched: {len(all_results)}")
 
-        # --- Filters and regex patterns ---
         EMAIL_PATTERN = re.compile(
             r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+            re.IGNORECASE,
+        )
+
+        CLOSED_REGEX = re.compile(
+            r"(no\s*longer\s*(accepting|taking)\s*(applications|applicants))|"
+            r"(applications\s*(are)?\s*closed)|"
+            r"(job\s*(is)?\s*(closed|expired|unavailable))|"
+            r"(position\s*(has\s*been)?\s*filled)",
             re.IGNORECASE,
         )
 
@@ -77,12 +84,13 @@ def main():
         }
 
         results = []
+        closed_skipped = 0
+
         for r in all_results:
             title = r.get("title", "").strip()
             link = r.get("link", "").strip()
             snippet = r.get("snippet", "").strip()
 
-            # Only keep jobs explicitly mentioning "intern" in the title
             if "intern" not in title.lower():
                 continue
 
@@ -91,24 +99,26 @@ def main():
 
             try:
                 resp = requests.get(link, headers=headers, timeout=10)
-                html = resp.text.lower()
+                html_raw = resp.text.lower()
 
-                # 🚫 Skip hidden or archived listings
-                if "this job is no longer available" in html or "this job has expired" in html:
-                    print(f"🚫 Archived or expired job: {title}")
+                # 🧹 Clean HTML from tags/spaces
+                html_clean = re.sub(r"<[^>]+>", " ", html_raw)
+                html_clean = re.sub(r"\s+", " ", html_clean).strip()
+
+                # 🚫 Skip hidden/archived listings
+                if "this job is no longer available" in html_clean or "this job has expired" in html_clean:
+                    closed_skipped += 1
+                    print(f"🚫 Archived/expired: {title}")
                     continue
 
-                # ⛔ Skip closed/expired listings
-                if re.search(
-                    r"no longer (accepting|taking) (applicants|applications)|applications (are )?closed|position filled|no longer available|job (is )?closed",
-                    html,
-                    re.IGNORECASE,
-                ):
-                    print(f"⛔ Skipped closed listing: {title}")
+                # ⛔ Skip closed listings (regex handles all variants)
+                if CLOSED_REGEX.search(html_clean):
+                    closed_skipped += 1
+                    print(f"⛔ Closed listing: {title}")
                     continue
 
-                # ✉️ Extract emails from HTML
-                emails_found.update(EMAIL_PATTERN.findall(html))
+                # ✉️ Extract emails
+                emails_found.update(EMAIL_PATTERN.findall(html_clean))
 
             except Exception as e:
                 print(f"⚠️ Failed to fetch {link}: {e}")
@@ -125,9 +135,10 @@ def main():
             })
             time.sleep(1)
 
-        print(f"✅ Found {len(results)} open internship pages with actual emails.")
+        print(f"✅ Found {len(results)} open internship listings with emails.")
+        print(f"🚫 Skipped {closed_skipped} closed/expired jobs.")
 
-        # 💾 --- Save results to JSON ---
+        # 💾 --- Save results ---
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         filename = f"linkedin_uk_finance_internships_{timestamp}.json"
         output_path = os.path.join(os.path.dirname(__file__), filename)
@@ -136,7 +147,7 @@ def main():
             json.dump(results, f, indent=2, ensure_ascii=False)
 
         print(f"💾 Saved {len(results)} open finance internships with emails to {filename}")
-        return {"count": len(results), "results": results}
+        return {"count": len(results), "results": results, "skipped_closed": closed_skipped}
 
     except Exception as e:
         return {"error": str(e)}
