@@ -197,51 +197,48 @@
     }
 
     function splitJSON() {
-      const text = bulkInput.value.trim();
-      if (!text) return alert("Please paste JSON first.");
+  const text = bulkInput.value.trim();
+  if (!text) return alert("Please paste JSON first.");
 
-      let objects = [];
+  let objects = [];
 
-      try {
-        // Try full JSON array first
-        const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) {
-          objects = parsed;
-        } else if (typeof parsed === "object") {
-          objects = [parsed];
-        }
-      } catch (err) {
-        // If not a valid JSON array, try to split individual JSON objects
-        const chunks = text
-          .split(/\n(?=\s*{)/) // split where new object likely begins
-          .map(x => x.trim())
-          .filter(x => x.startsWith("{") && x.endsWith("}"));
-
-        for (const chunk of chunks) {
-          try {
-            objects.push(JSON.parse(chunk));
-          } catch (e) {
-            console.warn("❌ Skipped invalid object:", e);
-          }
-        }
-      }
-
-      if (!objects.length) {
-        alert("No valid JSON objects found.");
-        return;
-      }
-
-      // 🧹 Clear old rows and rebuild
-      rowsEl.innerHTML = "";
-
-      objects.forEach((obj, i) => {
-        const pretty = JSON.stringify(obj, null, 2);
-        rowsEl.appendChild(makeRow(i + 1, pretty));
-      });
-
-      renumberRows();
-      console.log(`✅ Inserted ${objects.length} JSON objects into rows.`);
+  // --- Try full JSON array ---
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) {
+      objects = parsed;
+    } else if (typeof parsed === "object") {
+      objects = [parsed];
     }
+  } catch (err) {
+    // --- Try extracting all {...} blocks inside text ---
+    const matches = text.match(/\{[\s\S]*?\}(?=\s*[,\]]|\s*$)/g); // find all { ... } blocks
+    if (matches) {
+      for (const m of matches) {
+        try {
+          objects.push(JSON.parse(m));
+        } catch (e) {
+          console.warn("⚠️ Skipped invalid JSON block:", e);
+        }
+      }
+    }
+  }
+
+  if (!objects.length) {
+    alert("No valid JSON objects found.");
+    return;
+  }
+
+  // --- Build rows dynamically ---
+  rowsEl.innerHTML = "";
+  objects.forEach((obj, i) => {
+    const pretty = JSON.stringify(obj, null, 2);
+    rowsEl.appendChild(makeRow(i + 1, pretty));
+  });
+
+  renumberRows();
+  console.log(`✅ Split into ${objects.length} JSON objects`);
+}
 
 
     splitBtn.addEventListener("click", splitJSON);
