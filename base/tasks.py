@@ -1,63 +1,72 @@
 from playwright.sync_api import sync_playwright
 from django.conf import settings
 from .models import ATSRoom, User
-from .ats_filler import fill_dynamic_fields  # 🧠 optional mop-up
+from .ats_filler import fill_dynamic_fields
 import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
 
 
-# ---------- helpers (AI leftovers with dropdowns) ----------
+# ---------------- util ----------------
 
-def _normalize(s: str) -> str:
-    return (s or "").strip().lower()
+_PLACEHOLDER_SELECT_TEXTS = {
+    "vælg", "select", "choose", "please select",
+    "-- select --", "- select -", "vælg...", "(vælg)", "— vælg —"
+}
+_PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg"}
+
+def _norm(s): return (s or "").strip().lower()
+
+def _select_is_unfilled(selected_text, selected_value):
+    st = _norm(selected_text)
+    sv = _norm(selected_value)
+    return (not st and not sv) or (st in _PLACEHOLDER_SELECT_TEXTS) or (sv in _PLACEHOLDER_SELECT_VALUES)
 
 def _best_option_match(options, want_text):
-    """
-    Return the single best matching option label given a desired text.
-    Strategy:
-      1) exact (case-insensitive),
-      2) startswith,
-      3) substring,
-      4) highest difflib ratio.
-    """
-    if not options:
+    if not options or not want_text:
         return None
-    want = _normalize(want_text)
+    want = _norm(want_text)
 
-    # 1) exact
+    # exact
     for o in options:
-        if _normalize(o) == want:
+        if _norm(o) == want:
             return o
-
-    # 2) startswith
+    # startswith
     for o in options:
-        if _normalize(o).startswith(want):
+        if _norm(o).startswith(want):
             return o
-
-    # 3) substring
+    # substring
     for o in options:
-        if want in _normalize(o):
+        if want in _norm(o):
             return o
-
-    # 4) fuzzy
+    # fuzzy
     best = None
-    best_score = -1.0
+    best_score = -1
     for o in options:
-        score = difflib.SequenceMatcher(None, _normalize(o), want).ratio()
-        if score > best_score:
-            best, best_score = o, score
+        s = difflib.SequenceMatcher(None, _norm(o), want).ratio()
+        if s > best_score:
+            best, best_score = o, s
     return best
 
 
+# ---------------- AI leftovers with dropdown support ----------------
+
+def _extract_dropdown_options(frame, query, nth):
+    """Read visible option texts for a specific <select> using the same locator query/nth."""
+    try:
+        return frame.evaluate(
+            """(q, n) => {
+                const el = document.querySelectorAll(q)[n];
+                if (!el || el.tagName.toLowerCase() !== 'select') return [];
+                return [...el.options].map(o => (o.textContent || '').trim()).filter(Boolean).slice(0, 200);
+            }""",
+            query, nth
+        ) or []
+    except Exception:
+        return []
+
 def _ai_fill_leftovers(page, user):
-    """
-    Debug+fill pass:
-      - scans all fields
-      - builds AI prompt with unfilled fields (+dropdown options)
-      - applies AI answers, including selecting dropdowns
-    """
     try:
         profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
         if not os.path.exists(profile_path):
@@ -67,51 +76,59 @@ def _ai_fill_leftovers(page, user):
         with open(profile_path, "r", encoding="utf-8") as f:
             user_profile = json.load(f)
 
-        # 1) Scan
         inv = scan_all_fields(page)
         print(f"🔍 DEBUG: total scanned fields = {len(inv)}")
-        for i, fdata in enumerate(inv[:10]):  # preview first 10
-            print(f"   [{i}] label='{fdata.get('label')}' placeholder='{fdata.get('placeholder')}' value='{fdata.get('current_value')}'")
+        for i, fdata in enumerate(inv[:12]):
+            print(f"   [{i}] type='{fdata.get('type')}' label='{fdata.get('label')}' "
+                  f"selected='{fdata.get('selected_text')}' value='{fdata.get('current_value')}'")
 
-        # 2) Collect unfilled fields (include options for selects)
         frames = list(page.frames)
         fields_to_ai = []
+        debug_unfilled_lines = []
+
         for fdata in inv:
+            ftype = fdata.get("type") or ""
+            label = (fdata.get("label") or fdata.get("placeholder") or
+                     fdata.get("aria_label") or fdata.get("name") or "")
             val = (fdata.get("current_value") or "").strip()
-            if val:
-                continue
 
-            label = (
-                fdata.get("label")
-                or fdata.get("placeholder")
-                or fdata.get("aria_label")
-                or fdata.get("name")
-                or ""
-            )
-
+            send = False
             options = None
-            try:
-                if fdata.get("type") == "select":
-                    frame = frames[fdata["frame_index"]]
-                    options = _extract_dropdown_options(frame, fdata["query"], fdata["nth"])
-            except Exception:
-                options = None
 
-            fields_to_ai.append({
-                "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
-                "label": label,
-                "options": options if options else None,
-            })
+            if ftype == "select":
+                sel_text = fdata.get("selected_text") or ""
+                send = _select_is_unfilled(sel_text, val)
+                if send:
+                    try:
+                        fr = frames[fdata["frame_index"]]
+                        options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    except Exception:
+                        options = None
+                debug_unfilled_lines.append(
+                    f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled={send}"
+                )
+            else:
+                send = (val == "")
+
+            if send:
+                fields_to_ai.append({
+                    "field_id": f"{fdata['frame_index']}_{fdata['nth']}",
+                    "label": label,
+                    "options": options if options else None,
+                })
+
+        print("🔎 DEBUG (select audit):")
+        for line in debug_unfilled_lines[:15]:
+            print(line)
 
         print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields found")
-        for i, f in enumerate(fields_to_ai[:5]):
+        for i, f in enumerate(fields_to_ai[:6]):
             print(f"   → {f}")
 
         if not fields_to_ai:
             print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
             return 0
 
-        # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
         answers = map_fields_to_answers(fields_to_ai, user_profile)
 
@@ -122,74 +139,64 @@ def _ai_fill_leftovers(page, user):
             print(answers)
         print("=============================================")
 
-        # 4) Apply AI answers
         filled = 0
         for fdata in inv:
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            val = answers.get(fid)
-            if not val or str(val).lower() == "skip":
+            answer = answers.get(fid)
+            if not answer or str(answer).lower() == "skip":
                 continue
 
             fr = frames[fdata["frame_index"]]
-            el = fr.locator(fdata["query"]).nth(fdata["nth"])
-            if not el.is_visible():
-                continue
-
-            # Is dropdown?
-            is_select = False
-            try:
-                tag_name = fr.evaluate("(el) => el && el.tagName ? el.tagName.toLowerCase() : ''", el)
-                is_select = (tag_name == "select")
-            except Exception:
-                is_select = False
+            q = fdata["query"]; n = fdata["nth"]
+            ftype = fdata.get("type") or ""
 
             try:
-                el.scroll_into_view_if_needed(timeout=1500)
-
-                if is_select:
-                    # Fetch options for this specific select again
-                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    best = _best_option_match(options, str(val))
-                    if not best:
-                        print(f"⚠️ No close match in options for “{fdata.get('label','(no label)')}” ← {val}")
+                # Re-query inside evaluate to avoid stale element handles.
+                if ftype == "select":
+                    # Fetch options again & pick best
+                    opts = _extract_dropdown_options(fr, q, n)
+                    pick = _best_option_match(opts, str(answer))
+                    if not pick:
+                        print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {answer}")
                         continue
 
-                    # Try native selection by label first
+                    # Try native selection
                     try:
-                        el.select_option(label=best)
+                        el = fr.locator(q).nth(n)
+                        el.select_option(label=pick)
                     except Exception:
-                        # Fallback: set by JS to the matched option's value
                         fr.evaluate(
-                            """(q, n, wantLabel) => {
+                            """(q,n,labelText) => {
                                 const el = document.querySelectorAll(q)[n];
                                 if (!el) return;
-                                const want = (wantLabel || '').trim().toLowerCase();
-                                const opts = [...el.options || []];
-                                const hit = opts.find(o => (o.textContent || '').trim().toLowerCase() === want)
-                                         || opts.find(o => (o.textContent || '').toLowerCase().includes(want));
-                                if (hit) {
-                                    el.value = hit.value;
-                                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                const want = (labelText || '').trim().toLowerCase();
+                                const opt = [...el.options].find(o =>
+                                    (o.textContent || '').trim().toLowerCase() === want
+                                ) || [...el.options].find(o =>
+                                    (o.textContent || '').toLowerCase().includes(want)
+                                );
+                                if (opt) {
+                                    el.value = opt.value;
+                                    el.dispatchEvent(new Event('input',{bubbles:true}));
+                                    el.dispatchEvent(new Event('change',{bubbles:true}));
                                 }
                             }""",
-                            fdata["query"], fdata["nth"], best
+                            q, n, pick
                         )
-                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:60]}” → {best}")
+                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
                 else:
-                    # Text / textarea / contenteditable
-                    if fdata["query"] == "[contenteditable='true']":
-                        el.click()
-                    el.fill(str(val))
-                    try:
-                        el.press("Tab")
-                    except Exception:
-                        pass
                     fr.evaluate(
-                        "el=>{el && el.dispatchEvent(new Event('input',{bubbles:true})); el && el.dispatchEvent(new Event('change',{bubbles:true}));}",
-                        el
+                        """(q,n,v)=>{
+                            const el = document.querySelectorAll(q)[n];
+                            if (!el) return;
+                            if (el.isContentEditable) { el.innerText = v; }
+                            else { el.value = v; }
+                            el.dispatchEvent(new Event('input',{bubbles:true}));
+                            el.dispatchEvent(new Event('change',{bubbles:true}));
+                        }""",
+                        q, n, str(answer)
                     )
-                    print(f"✅ AI filled “{fdata.get('label','(no label)')[:60]}” → {val}")
+                    print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {answer}")
 
                 filled += 1
             except Exception as e:
@@ -203,6 +210,8 @@ def _ai_fill_leftovers(page, user):
         return 0
 
 
+# ---------------- misc helpers ----------------
+
 def write_temp_cover_letter_file(text, suffix=".txt"):
     fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -210,7 +219,6 @@ def write_temp_cover_letter_file(text, suffix=".txt"):
     return path
 
 def _safe_press(page, target_locator, key: str):
-    """Press a key on a target if possible; else fall back to page.keyboard."""
     try:
         if target_locator:
             target_locator.press(key)
@@ -261,24 +269,8 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
         pass
 
 
-def _extract_dropdown_options(frame, query, nth):
-    """Return list of visible option texts for a specific <select> matched by the same query/nth we scanned with."""
-    try:
-        options = frame.evaluate(
-            """(q, n) => {
-                const el = document.querySelectorAll(q)[n];
-                if (!el) return [];
-                const opts = [...el.querySelectorAll('option')].map(o => (o.textContent || '').trim()).filter(Boolean);
-                return opts.slice(0, 100);
-            }""",
-            query, nth
-        )
-        return options or []
-    except Exception:
-        return []
+# ---------------- dropdown helpers already present ----------------
 
-
-# ---------- dropdown helpers (existing) ----------
 def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
     try:
         if label_for_id:
@@ -410,7 +402,8 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
     return False
 
 
-# ---------- metadata + scan/fill ----------
+# ---------------- scan & rule-based fill ----------------
+
 DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
 
 AUTO_YES_RE = re.compile(r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|terms|gdpr|agree)", re.I)
@@ -455,21 +448,43 @@ def scan_all_fields(page):
                 el = loc.nth(i)
                 try:
                     if not el.is_visible(): continue
-                    tag = el.evaluate("el => el.tagName.toLowerCase()")
+
+                    # Type & current value
+                    tag = el.evaluate("el => el.tagName && el.tagName.toLowerCase()")
                     et = tag if tag == "select" else (el.get_attribute("type") or "").lower()
 
-                    curr = ""
+                    current_val = ""
                     try:
-                        curr = el.inner_text().strip() if q == "[contenteditable='true']" else el.input_value().strip()
-                    except Exception: pass
+                        current_val = el.inner_text().strip() if q == "[contenteditable='true']" else el.input_value().strip()
+                    except Exception:
+                        pass
+
+                    # Selected text for selects
+                    selected_text = ""
+                    if et == "select":
+                        try:
+                            selected_text = fr.evaluate(
+                                "(q,n) => { const e = document.querySelectorAll(q)[n]; "
+                                "if(!e) return ''; const o = e.options[e.selectedIndex]; "
+                                "return (o && o.textContent || '').trim(); }",
+                                q, i
+                            ) or ""
+                        except Exception:
+                            selected_text = ""
+
                     inventory.append({
-                        "frame_index": frame_idx[fr], "query": q, "nth": i, "type": et,
-                        "name": el.get_attribute("name") or "", "id": el.get_attribute("id") or "",
+                        "frame_index": frame_idx[fr],
+                        "query": q,
+                        "nth": i,
+                        "type": et,
+                        "name": el.get_attribute("name") or "",
+                        "id": el.get_attribute("id") or "",
                         "placeholder": el.get_attribute("placeholder") or "",
                         "aria_label": el.get_attribute("aria-label") or "",
                         "label": _accessible_label(fr, el),
                         "required": bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True])),
-                        "current_value": curr,
+                        "current_value": current_val,
+                        "selected_text": selected_text,
                     })
                     total += 1
                 except Exception:
@@ -495,8 +510,8 @@ def _value_from_meta(user, meta: str):
         (["email","e-mail","mail"],            user.email or ""),
         (["phone","mobile","tel"],             phone),
         (["linkedin","profile url","profile_url"], linkedin),
-        (["country","nationality"],            _country_human(cc)),
-        (["city","town"],                      getattr(user,"location","") or ""),
+        (["country","nationality","land"],     _country_human(cc)),  # added 'land' (da)
+        (["city","town","by"],                 getattr(user,"location","") or ""),  # 'by' (da)
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
     ]
@@ -517,7 +532,8 @@ def fill_from_inventory(page, user, inventory):
                 curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
                 curr = ""
-            if curr and curr.upper()!="N/A": continue
+            if curr and curr.upper()!="N/A":  # leave prefilled fields
+                continue
 
             meta = _attrs_blob(
                 label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
@@ -530,23 +546,29 @@ def fill_from_inventory(page, user, inventory):
             try: el.scroll_into_view_if_needed(timeout=1500)
             except Exception: pass
 
-            is_select = False
-            try: is_select = el.evaluate("el => el.tagName && el.tagName.toLowerCase()==='select'")
-            except Exception: pass
+            is_select = (it.get("type") == "select")
 
             if is_select:
-                try: el.select_option(label=val)
+                try:
+                    el.select_option(label=val)
                 except Exception:
-                    fr.evaluate("""(el,w)=>{const o=[...el.options||[]];const t=(w||'').toLowerCase();
-                                    const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
-                                         || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
-                                    if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""", el, val)
+                    fr.evaluate(
+                        """(q,n,w)=>{const el=document.querySelectorAll(q)[n]; if(!el) return;
+                            const t=(w||'').toLowerCase();
+                            const o=[...el.options||[]];
+                            const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
+                                 || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
+                            if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""",
+                        it["query"], it["nth"], val
+                    )
             else:
-                el.fill(val)
-                try: el.press("Tab")
-                except Exception: pass
-                try: fr.evaluate("el=>{el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", el)
-                except Exception: pass
+                fr.evaluate(
+                    """(q,n,v)=>{const el=document.querySelectorAll(q)[n]; if(!el) return;
+                        if (el.isContentEditable){ el.innerText=v; } else { el.value=v; }
+                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                        el.dispatchEvent(new Event('change',{bubbles:true}));}""",
+                    it["query"], it["nth"], val
+                )
 
             print(f"✅ Filled “{meta[:60]}” → {val}")
             filled += 1
@@ -556,7 +578,8 @@ def fill_from_inventory(page, user, inventory):
     return filled
 
 
-# ---------- special Yes/No forcings ----------
+# ---------------- special yes/no forcings ----------------
+
 def _force_ipg_employment_no(page, frame) -> bool:
     lab = frame.locator("label[for]").filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
     if not (lab and lab.is_visible()): return False
@@ -630,12 +653,9 @@ def _force_privacy_yes_if_needed(page, frame):
     return changed
 
 
-# ---------- main ----------
+# ---------------- main ----------------
+
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True, screenshot_delay_sec=3):
-    """
-    screenshot_delay_sec: wait this many seconds before the dry-run screenshot,
-    so attachments/labels have time to render.
-    """
     room = ATSRoom.objects.get(id=room_id)
     user = User.objects.get(id=user_id)
 
@@ -666,7 +686,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             page.wait_for_timeout(1200)
             dismiss_privacy_overlays(page)
 
-            # try clicking a safe "Apply"
             try:
                 if page.locator("input, textarea, select").count() < 3:
                     buttons = page.locator("button, a")
@@ -685,7 +704,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             dismiss_privacy_overlays(page, timeout_ms=3000)
 
-            # choose context (iframe hosting the form)
             context = page
             try:
                 for fr in page.frames:
@@ -694,9 +712,9 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         context = fr
                         print("🔄 Switched to ATS iframe")
                         break
-            except Exception: pass
+            except Exception:
+                pass
 
-            # reveal fields
             try: context.wait_for_selector("input, textarea, select", timeout=12000)
             except Exception: pass
             try:
@@ -705,29 +723,26 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     page.wait_for_timeout(220 + random.randint(0,120))
             except Exception: pass
 
-            # scan + fill (rule-based)
             inv = scan_all_fields(page)
             try:
                 with open(os.path.join(log_dir, f"ats_field_inventory_{safe_company}_{ts}.json"), "w", encoding="utf-8") as f:
                     json.dump(inv, f, ensure_ascii=False, indent=2)
-            except Exception: pass
+            except Exception:
+                pass
 
             fill_from_inventory(page, user, inv)
 
-            # force Yes/No type questions (privacy → Yes; employment → No)
             _force_privacy_yes_if_needed(page, context)
             if _force_ipg_employment_no(page, context):
                 print("🟢 IPG employment → No (forced & verified)")
             else:
                 print("🟡 IPG employment not confirmed — continuing; ATS validation may catch it")
 
-            # AI mop-up (includes dropdown selection)
             try:
                 _ai_fill_leftovers(page, user)
             except Exception as e:
                 print(f"⚠️ AI leftovers pass failed: {e}")
 
-            # resume upload
             try:
                 if resume_path:
                     print(f"📎 Uploading resume: {resume_path}")
@@ -735,26 +750,28 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         btn = context.locator(":is(button,label,a):has-text('Attach')")
                         if btn.count() and btn.first.is_visible():
                             btn.first.click(); page.wait_for_timeout(800)
-                    except Exception: pass
+                    except Exception:
+                        pass
                     file_input = None
                     for fr in page.frames:
                         try:
                             fi = fr.locator("input[type='file']")
                             if fi.count():
                                 file_input = fi.first; context = fr; break
-                        except Exception: pass
+                        except Exception:
+                            pass
                     if file_input:
                         try:
                             context.evaluate("""()=>{const i=document.querySelector('input[type=file]'); if(!i) return;
                                 i.style.display='block'; i.style.visibility='visible'; i.style.position='static';
                                 i.removeAttribute('hidden'); i.classList?.remove('visually-hidden'); }""")
-                        except Exception: pass
+                        except Exception:
+                            pass
                         file_input.set_input_files(resume_path)
                         print("✅ Resume uploaded")
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
 
-            # cover letter
             try:
                 letter = cover_letter_text or "test coverletter"
                 inserted = False
@@ -778,12 +795,12 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         try:
                             fi = fr.locator("input[type='file']")
                             if fi.count(): file_input = fi.first; context = fr; break
-                        except Exception: pass
+                        except Exception:
+                            pass
                     if file_input: file_input.set_input_files(fp)
             except Exception as e:
                 print(f"⚠️ Cover letter step failed: {e}")
 
-            # dry run or submit
             screenshot_path = os.path.join(log_dir, f"ats_preview_{safe_company}_{ts}.png")
             if dry_run:
                 print("🧪 Dry run — skipping submit")
@@ -794,7 +811,8 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 try:
                     page.screenshot(path=screenshot_path, full_page=True)
                     print(f"📸 Saved preview → {screenshot_path}")
-                except Exception: pass
+                except Exception:
+                    pass
                 browser.close()
                 return "dry-run"
 
