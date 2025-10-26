@@ -613,11 +613,11 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                             const aria = el.getAttribute("aria-label") || "";
                             const ph   = el.getAttribute("placeholder") || "";
                             const byId = (() => {
-                              const ids = (el.get_attribute?.('aria-labelledby') || el.getAttribute('aria-labelledby') || '').split(/\\s+/).filter(Boolean);
-                              return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
+                            const ids = (el.getAttribute("aria-labelledby") || "").split(/\\s+/).filter(Boolean);
+                            return ids.map(id => (document.getElementById(id)?.innerText || "")).join(" ");
                             })();
-                            const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section");
-                            const near = wrap ? (wrap.querySelector("legend, label, span, small, .label, .title")?.innerText || "") : "";
+                            const wrap = el.closest("label, .field, .form-group, .MuiFormControl-root, div, section, fieldset");
+                            const near = wrap ? (wrap.querySelector("legend, label, h1, h2, h3, h4, span, .label, .title")?.innerText || "") : "";
                             const tr = el.closest("tr");
                             const leftCell = tr ? (tr.querySelector("td,th")?.innerText || "") : "";
                             return [lab, aria, ph, byId, near, leftCell].join(" ").replace(/\\s+/g," ").trim();
@@ -625,6 +625,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                         """, el) or ""
                     except Exception:
                         return ""
+
 
                 # Phone code widgets
                 for frame in page.frames:
@@ -790,6 +791,41 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                                 continue
                     except Exception:
                         pass
+
+
+                        # --- Fallback for custom dropdowns that are not <select> ---
+                        try:
+                            combos = frame.locator("[role='combobox'], [aria-haspopup='listbox']")
+                            for i in range(min(30, combos.count())):
+                                root = combos.nth(i)
+                                if not root.is_visible():
+                                    continue
+                                lbl = near_text(frame, root)
+                                pref = _yesno_preference(lbl)  # "Yes" for privacy; "No" for prior employment
+                                if not pref:
+                                    continue
+
+                                # open the dropdown
+                                try:
+                                    root.click(force=True)
+                                    frame.wait_for_timeout(150)
+                                except Exception:
+                                    continue
+
+                                # pick option that contains our pref text
+                                try:
+                                    menu = frame.locator(":is([role='listbox'], .MuiPaper-root, .select__menu, .dropdown-menu, ul[role='listbox'])")
+                                    opt  = menu.locator(f":is([role='option'], li, div):has-text('{pref}')").first
+                                    if opt and opt.is_visible():
+                                        opt.click(force=True)
+                                        frame.wait_for_timeout(100)
+                                        print(f"🟢 Set custom dropdown “{lbl[:80]}” → {pref}")
+                                except Exception:
+                                    # close if nothing chosen
+                                    try: frame.keyboard.press("Escape")
+                                    except Exception: pass
+                        except Exception:
+                            pass
 
 
                 # Required radios (with auto Yes/No for policy/employment questions)
