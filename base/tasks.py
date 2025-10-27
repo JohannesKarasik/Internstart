@@ -116,7 +116,7 @@ def _rule_based_value(label, options, user_profile, user):
     # Address block
     if "adresse" in L or "address" in L:
         return getattr(user, "address", None) \
-            || _profile_get(user_profile, "address", "street", "address_line_1")
+            or _profile_get(user_profile, "address", "street", "address_line_1")
     if "postnummer" in L or "postal" in L or "zip" in L:
         return getattr(user, "postal_code", None) \
             or _profile_get(user_profile, "postal_code", "zip_code")
