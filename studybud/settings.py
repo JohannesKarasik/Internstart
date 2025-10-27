@@ -38,17 +38,24 @@ LOCALE_PATHS = [
 
 
 
+# === Stripe Configuration ===
+# Toggle between test and live with STRIPE_MODE env var
+STRIPE_MODE = os.getenv("STRIPE_MODE", "test")  # "test" or "live"
 
+if STRIPE_MODE == "live":
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+    STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+else:
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY_TEST", "sk_test_xxx")
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY_TEST", "pk_test_xxx")
+    STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET_TEST", "whsec_xxx")
 
-# === Stripe (TEST MODE FIRST) ===
-STRIPE_SECRET_KEY      = os.getenv("STRIPE_SECRET_KEY", "sk_test_xxx")  # dashboard > Developers > API keys
-STRIPE_WEBHOOK_SECRET  = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_xxx")# from `stripe listen` or dashboard endpoint
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_xxx")
+# Redirects
+STRIPE_SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL", "https://internstart.com/billing/success/")
+STRIPE_CANCEL_URL = os.getenv("STRIPE_CANCEL_URL", "https://internstart.com/billing/cancel/")
+STRIPE_PORTAL_RETURN_URL = os.getenv("STRIPE_PORTAL_RETURN_URL", "https://internstart.com/account/")
 
-# Where users land after checkout
-STRIPE_SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL", "https://your-domain.example/thank-you/")
-STRIPE_CANCEL_URL  = os.getenv("STRIPE_CANCEL_URL",  "https://your-domain.example/pricing/")
-STRIPE_PORTAL_RETURN_URL = os.getenv("STRIPE_PORTAL_RETURN_URL", "https://your-domain.example/account/")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
