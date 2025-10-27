@@ -388,40 +388,12 @@ def _accessible_label(frame, el):
         return ""
 
 def scan_all_fields(page):
-    # 1) expand scan selectors (replace your existing list)
     selectors = [
-        "input:not([type='hidden']):not([disabled]):not([type='file'])",  # skip file inputs here
+        "input:not([type='hidden']):not([disabled])",
         "textarea:not([disabled])",
         "select:not([disabled])",
         "[contenteditable='true']",
-        "[role='combobox']",
-        "[aria-haspopup='listbox']",
-        "div[role='button'][aria-haspopup='listbox']",
     ]
-
-    # inside scan_all_fields(), after you get `el`:
-    tag = el.evaluate("el => (el.tagName || '').toLowerCase()")
-    role = (el.get_attribute("role") or "").lower()
-    has_listbox = (el.get_attribute("aria-haspopup") or "").lower() == "listbox"
-
-    # derive a friendlier "type"
-    if tag == "select":
-        et = "select"
-    elif role == "combobox" or has_listbox:
-        et = "combo"
-    else:
-        et = (el.get_attribute("type") or "").lower()
-
-    # selected text (for select or combo)
-    selected_text = ""
-    if et == "select":
-        selected_text = fr.evaluate("""(a)=>{const e=document.querySelectorAll(a.q)[a.n];
-            if(!e) return ''; const o=e.options[e.selectedIndex]; return (o && o.textContent || '').trim();}""", {"q": q, "n": i}) or ""
-    elif et == "combo":
-        # many libraries put the chosen value as the element's innerText/aria attributes
-        selected_text = (el.inner_text() or el.get_attribute("aria-label") or "").strip()
-
-        
     inventory, frame_idx = [], {fr: i for i, fr in enumerate(page.frames)}
     total = 0
     for fr in page.frames:
