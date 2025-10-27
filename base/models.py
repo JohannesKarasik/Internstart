@@ -164,6 +164,28 @@ class User(AbstractUser):
         help_text="Name of your current or last educational institution (optional)."
     )
 
+    expected_salary = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Expected monthly or yearly salary (depending on context)."
+    )
+
+    salary_currency = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        default="DKK",
+        help_text="Currency for the expected salary, e.g. DKK, EUR, USD."
+    )
+
+    additional_skills = models.TextField(
+        null=True,
+        blank=True,
+        help_text="List any extra skills, certifications, or tools you're proficient in."
+    )
+
 
 
 class UserGoogleCredential(models.Model):
