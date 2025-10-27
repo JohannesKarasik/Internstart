@@ -8,7 +8,7 @@ from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
 
 
-# ============================ utilities ============================
+# ---------------- util ----------------
 
 _PLACEHOLDER_SELECT_TEXTS = {
     "vælg", "select", "choose", "please select",
@@ -16,7 +16,7 @@ _PLACEHOLDER_SELECT_TEXTS = {
 }
 _PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg", "9999"}
 
-def _norm(s):
+def _norm(s): 
     return (s or "").strip().lower()
 
 def _select_is_unfilled(selected_text, selected_value):
@@ -43,7 +43,7 @@ def _best_option_match(options, want_text):
             return o
     # fuzzy
     best = None
-    best_score = -1.0
+    best_score = -1
     for o in options:
         s = difflib.SequenceMatcher(None, _norm(o), want).ratio()
         if s > best_score:
@@ -51,143 +51,124 @@ def _best_option_match(options, want_text):
     return best
 
 
-# ===================== dropdown / combo helpers =====================
+# ---------------- AI leftovers with dropdown support ----------------
 
-def _extract_select_options(frame, query, nth):
-    """Return visible option texts for a native <select>."""
+def _extract_dropdown_options(frame, query, nth):
+    """Read visible option texts for a specific <select> using the same locator query/nth."""
     try:
         return frame.evaluate(
             """(a) => {
                 const el = document.querySelectorAll(a.q)[a.n];
                 if (!el || el.tagName.toLowerCase() !== 'select') return [];
-                return [...el.options].map(o => (o.textContent || '').trim()).filter(Boolean).slice(0, 300);
+                return [...el.options].map(o => (o.textContent || '').trim()).filter(Boolean).slice(0, 200);
             }""",
             {"q": query, "n": nth}
         ) or []
     except Exception:
         return []
 
-def _open_combo_menu(frame, query, nth):
-    try:
-        root = frame.locator(query).nth(nth)
-        if root and root.is_visible():
-            root.scroll_into_view_if_needed()
-            root.click(force=True)
-            frame.wait_for_timeout(120)
-            return True
-    except Exception:
-        pass
-    return False
-
-def _extract_combo_options(frame, query, nth):
-    """Try to open an ARIA/listbox combo and read option texts."""
-    try:
-        _open_combo_menu(frame, query, nth)
-        return frame.evaluate(
-            """() => {
-                const list = document.querySelector('[role="listbox"], .select__menu, .dropdown-menu, .MuiPaper-root, .ant-select-dropdown, ul[role="listbox"]');
-                if (!list) return [];
-                const cand = list.querySelectorAll('[role="option"], [role="menuitem"], li, div, button, span');
-                return [...cand].map(n => (n.textContent || '').trim()).filter(Boolean).slice(0, 300);
-            }"""
-        ) or []
-    except Exception:
-        return []
-
-def _set_combo_value(frame, page, query, nth, want_text):
-    """Set a custom combobox-like widget by typing and/or clicking an option."""
-    want = (want_text or "").strip()
-    try:
-        root = frame.locator(query).nth(nth)
-        if not (root and root.is_visible()):
-            return False
-
-        # open menu
-        try:
-            root.scroll_into_view_if_needed()
-        except Exception:
-            pass
-        try:
-            root.click(force=True)
-            frame.wait_for_timeout(120)
-        except Exception:
-            pass
-
-        # try type + enter into embedded input
-        try:
-            inner = root.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
-            if inner and inner.is_visible():
-                inner.fill("")
-                inner.type(want, delay=18)
-                try:
-                    inner.press("Enter")
-                except Exception:
-                    pass
-                try:
-                    inner.press("Tab")
-                except Exception:
-                    pass
-        except Exception:
-            pass
-
-        # verify selection text is present somewhere in the root
-        try:
-            ok = frame.evaluate(
-                """(a)=>{const el = document.querySelectorAll(a.q)[a.n];
-                        const t = (el?.innerText || el?.value || '').toLowerCase();
-                        return t.includes((a.w||'').toLowerCase());}""",
-                {"q": query, "n": nth, "w": want}
-            )
-            if ok:
-                return True
-        except Exception:
-            pass
-
-        # fallback: click an option from the open list
-        try:
-            menu = frame.locator(":is([role='listbox'], .select__menu, .dropdown-menu, .MuiPaper-root, .ant-select-dropdown, ul[role='listbox'])")
-            if menu.count():
-                opt = menu.locator(":is([role='option'], [role='menuitem'], li, div, button, span)").filter(has_text=want).first
-                if opt and opt.is_visible():
-                    opt.click(force=True)
-                    frame.wait_for_timeout(60)
-                    return True
-        except Exception:
-            pass
-
-        # last resort: click anywhere that contains similar text
-        try:
-            any_opt = frame.locator(":is([role='option'], [role='menuitem'], li, div, button, span)").filter(has_text=want).first
-            if any_opt and any_opt.is_visible():
-                any_opt.click(force=True)
-                frame.wait_for_timeout(60)
-                return True
-        except Exception:
-            pass
-
-    except Exception:
-        pass
-    return False
-
-
-# ============================ auto heuristics ============================
-
+# ---- tweak: make “share your application” count as an auto-YES
 AUTO_YES_RE = re.compile(
     r"(privacy\s*policy|data\s*protection|consent|acknowledg(e|ement)|terms|gdpr|agree|"
     r"dele\s+din\s+ansøgning|må\s+dele\s+min\s+ansøgning)", re.I
 )
+
 AUTO_NO_RE  = re.compile(r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed)?\s*by|subsidiar(y|ies)|conflict\s*of\s*interest)", re.I)
 
-DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
+# ---- helpers for rule-based suggestions -------------------------------------
 
-def _yesno_preference(label_text: str) -> str:
-    L = (label_text or "").lower()
-    if AUTO_YES_RE.search(L): return "Yes"
-    if AUTO_NO_RE.search(L):  return "No"
-    return ""
+def _fallback_required_option(options):
+    """Pick a safe option if AI skips a required select."""
+    if not options: 
+        return None
+    lower = [o.lower() for o in options]
+    for want in ("andet", "other", "ikke relevant", "n/a"):
+        for i, o in enumerate(lower):
+            if want in o:
+                return options[i]
+    # first non-placeholder
+    for o in options:
+        if o and o.strip() and o.strip().lower() not in {"vælg", "select", "choose", "-- select --", "- select -"}:
+            return o
+    return options[0]
+
+def _profile_get(profile: dict, *keys, default=None):
+    """Safely pull nested values. Tries top-level first, then nested dict path hints."""
+    if not profile:
+        return default
+    # direct hits
+    for k in keys:
+        if isinstance(k, str) and k in profile and profile.get(k):
+            return profile[k]
+    # nested: try common groups
+    groups = ["employment", "education", "contact", "profile"]
+    for g in groups:
+        sub = profile.get(g) or {}
+        for k in keys:
+            if isinstance(k, str) and k in sub and sub.get(k):
+                return sub[k]
+    return default
+
+def _rule_based_value(label, options, user_profile, user):
+    """Return a best-guess string for *this* field label from profile, else None."""
+    L = (label or "").strip().lower()
+
+    # Address block
+    if "adresse" in L or "address" in L:
+        return getattr(user, "address", None) \
+            or _profile_get(user_profile, "address", "street", "address_line_1")
+    if "postnummer" in L or "postal" in L or "zip" in L:
+        return getattr(user, "postal_code", None) \
+            or _profile_get(user_profile, "postal_code", "zip_code")
+    if re.search(r"\bby\b", L) or "city" in L:  # city (Danish)
+        return getattr(user, "city", None) \
+            or _profile_get(user_profile, "city", "location")
+
+    # Current position / employer
+    if re.search(r"(nuværende\s+stilling|current\s*position|title\s*\(current\)|position)", L):
+        return getattr(user, "occupation", None) \
+            or _profile_get(user_profile, "current_position", "occupation")
+    if re.search(r"(nuværende\s+arbejdsgiver|current\s*employer|company)", L):
+        return getattr(user, "category", None) \
+            or _profile_get(user_profile, "current_employer", "company")
+
+    # Education – field of study
+    if "fagområde" in L or "fagomraade" in L or "field of study" in L:
+        return _profile_get(user_profile, "field_of_study")
+    # Education – degree title
+    if "titel" in L and "uddannelse" in L or "degree" in L:
+        deg = _profile_get(user_profile, "highest_education_level", "degree", "highest_level") or ""
+        deg = (deg.replace("Bachelor’s", "Bachelor")
+                  .replace("Bachelor's", "Bachelor")
+                  .replace("Master’s", "Master")
+                  .replace("Master's", "Master")
+                  .replace("PhD", "Ph.d.")
+                  .replace("High School", "Gymnasial"))
+        return deg
+
+    # Years of experience
+    if "totalt antal års arbejdserfaring" in L or "arbejdserfaring" in L or "experience" in L:
+        yrs = _profile_get(user_profile, "years_experience")
+        if yrs is None and str(_profile_get(user_profile, "under_education")).lower() in {"yes", "true", "1"}:
+            yrs = 0
+        if yrs is not None:
+            if options:
+                return f"{yrs} År"  # try to match "N År"
+            return str(yrs)
+
+    # Consent type wording (if our auto-YES didn’t catch it)
+    if "må dele" in L or "dele din ansøgning" in L or "consent" in L:
+        return "Ja"
+
+    # Gender (if present in profile)
+    if "køn" in L or "gender" in L:
+        g = _profile_get(user_profile, "gender")
+        return g
+
+    return None
 
 
-# ============================ misc helpers ============================
+# ---------------- misc helpers ----------------
 
 def write_temp_cover_letter_file(text, suffix=".txt"):
     fd, path = tempfile.mkstemp(prefix="cover_letter_", suffix=suffix)
@@ -245,639 +226,8 @@ def dismiss_privacy_overlays(page, timeout_ms=8000):
     except Exception:
         pass
 
-def _accessible_label(frame, el):
-    try:
-        return frame.evaluate(
-            """(el)=>{const lab=(el.labels&&el.labels[0]&&el.labels[0].innerText)||'';
-                      const aria=el.getAttribute('aria-label')||'';
-                      const ph=el.getAttribute('placeholder')||'';
-                      const byId=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/)
-                         .map(id=>document.getElementById(id)?.innerText||'').join(' ');
-                      const near=el.closest('label')?.innerText
-                        || el.closest('div,section,fieldset,.form-group,.field,.MuiFormControl-root')
-                             ?.querySelector('legend,h1,h2,h3,h4,span,small,label,.label,.title,.MuiFormLabel-root')?.innerText || '';
-                      return [lab,aria,ph,byId,near].join(' ').replace(/\\s+/g,' ').trim();}""",
-            el
-        ) or ""
-    except Exception:
-        return ""
 
-
-# ============================ scanning ============================
-
-def scan_all_fields(page):
-    """
-    Broad, de-duped scan that covers:
-    - input/textarea/select
-    - contenteditable regions
-    - ARIA combobox/popover listboxes (.select__control, MUI, Ant, etc.)
-    - role=textbox
-    - radios/checkboxes
-    - (skips type=file — handled separately)
-    """
-    # very broad selectors (union via :is)
-    union_selector = (
-        ":is("
-        "input:not([type='hidden']):not([disabled]):not([type='file']),"
-        "textarea:not([disabled]),"
-        "select:not([disabled]),"
-        "[contenteditable='true'],"
-        "[role='textbox'],"
-        "[role='combobox'],"
-        "[aria-haspopup='listbox'],"
-        "div[role='button'][aria-haspopup='listbox'],"
-        ".select__control,"
-        ".MuiSelect-select,"
-        ".ant-select-selector,"
-        ".v-select,"
-        ".choices__inner"
-        ")"
-    )
-
-    inventory = []
-    frame_idx = {fr: i for i, fr in enumerate(page.frames)}
-    seen = set()
-    total = 0
-
-    for fr in page.frames:
-        loc = fr.locator(union_selector)
-        count = loc.count()
-        for i in range(count):
-            el = loc.nth(i)
-            try:
-                if not el.is_visible():
-                    continue
-
-                # dedupe using DOM path-ish key
-                key = fr.evaluate(
-                    """(node)=>{
-                        const p=[];
-                        let n=node;
-                        while(n && n!==document.body){
-                           const tag=(n.tagName||'').toLowerCase();
-                           let idx=0, sib=n;
-                           while(sib){ if(sib.tagName===n.tagName) idx++; sib=sib.previousElementSibling; }
-                           p.unshift(tag+':'+idx);
-                           n=n.parentElement;
-                        }
-                        return p.join('>');
-                    }""",
-                    el
-                )
-                uniq = f"{frame_idx[fr]}::{key}"
-                if uniq in seen:
-                    continue
-                seen.add(uniq)
-
-                tag = el.evaluate("e => (e.tagName || '').toLowerCase()")
-                role = (el.get_attribute("role") or "").lower()
-                ariapop = (el.get_attribute("aria-haspopup") or "").lower()
-                typ = (el.get_attribute("type") or "").lower()
-
-                # normalize our "type"
-                if tag == "select":
-                    et = "select"
-                elif typ in ("radio", "checkbox"):
-                    et = typ
-                elif role == "combobox" or ariapop == "listbox" or tag == "div":
-                    # many custom widgets expose one of these
-                    et = "combo"
-                elif el.evaluate("e => !!e.isContentEditable"):
-                    et = "contenteditable"
-                elif role == "textbox":
-                    et = "text"
-                else:
-                    et = typ or tag or "text"
-
-                # pull value
-                current_val = ""
-                try:
-                    if et == "contenteditable":
-                        current_val = (el.inner_text() or "").strip()
-                    elif tag in ("input", "textarea", "select"):
-                        current_val = (el.input_value() or "").strip()
-                    else:
-                        # try value attribute; if none, innerText
-                        current_val = (el.get_attribute("value") or el.inner_text() or "").strip()
-                except Exception:
-                    pass
-
-                # selected text for select/combo
-                selected_text = ""
-                if et == "select":
-                    try:
-                        selected_text = fr.evaluate(
-                            """(a)=>{ const e=document.querySelectorAll(a.sel)[a.n];
-                                     if(!e) return ''; const o=e.options[e.selectedIndex];
-                                     return (o && o.textContent || '').trim(); }""",
-                            {"sel": union_selector, "n": i}
-                        ) or ""
-                    except Exception:
-                        selected_text = ""
-                elif et == "combo":
-                    try:
-                        selected_text = (el.inner_text() or el.get_attribute("aria-label") or "").strip()
-                    except Exception:
-                        selected_text = ""
-
-                # required?
-                required = False
-                try:
-                    required = bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True]))
-                except Exception:
-                    pass
-
-                item = {
-                    "frame_index": frame_idx[fr],
-                    "query": union_selector,
-                    "nth": i,
-                    "type": et,
-                    "name": el.get_attribute("name") or "",
-                    "id": el.get_attribute("id") or "",
-                    "placeholder": el.get_attribute("placeholder") or "",
-                    "aria_label": el.get_attribute("aria-label") or "",
-                    "label": _accessible_label(fr, el),
-                    "required": required,
-                    "current_value": current_val,
-                    "selected_text": selected_text,
-                }
-
-                # extra state for radios/checkboxes
-                if et in ("radio", "checkbox"):
-                    try:
-                        item["checked"] = bool(fr.evaluate("(e)=>!!e.checked", el))
-                    except Exception:
-                        item["checked"] = False
-
-                inventory.append(item)
-                total += 1
-            except Exception:
-                pass
-
-    print(f"🧩 Field scan complete — detected {total} fields across {len(page.frames)} frames.")
-    # Exhaustive debug dump
-    for i, f in enumerate(inventory):
-        print(
-            f"   [{i:02d}] frame={f['frame_index']} nth={f['nth']} type='{f.get('type')}' "
-            f"id='{(f.get('id') or '')[:40]}' name='{(f.get('name') or '')[:40]}' "
-            f"label='{(f.get('label') or '')[:80]}' selected='{f.get('selected_text')}' "
-            f"value='{(f.get('current_value') or '')[:80]}' req={f.get('required')}"
-        )
-    return inventory
-
-
-# ============================ baseline fill ============================
-
-def _country_human(code: str) -> str:
-    return {"DK":"Denmark","US":"United States","UK":"United Kingdom","FRA":"France","GER":"Germany"}.get((code or "").upper(), "")
-
-def _attrs_blob(**kw):
-    return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
-
-def _value_from_meta(user, meta: str):
-    L = (meta or "").lower()
-    linkedin = (getattr(user,"linkedin_url","") or "").strip()
-    cc = (getattr(user,"country","") or "").upper()
-    phone_raw = (getattr(user,"phone_number","") or "").strip()
-    phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
-    mapping = [
-        (["first","fname","given","forename"], user.first_name or ""),
-        (["last","lname","surname","family"],  user.last_name or ""),
-        (["email","e-mail","mail"],            user.email or ""),
-        (["phone","mobile","tel"],             phone),
-        (["linkedin","profile url","profile_url"], linkedin),
-        (["country","nationality","land"],     _country_human(cc)),
-        (["city","town","by"],                 getattr(user,"location","") or ""),
-        (["job title","title","position","role"], getattr(user,"occupation","") or ""),
-        (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
-    ]
-    for keys,val in mapping:
-        if any(k in L for k in keys) and val: return val
-    if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
-    return ""
-
-def fill_from_inventory(page, user, inventory):
-    filled = 0
-    frames = list(page.frames)
-    for it in inventory:
-        try:
-            if it.get("type") in ("file", "button", "submit", "image"):
-                continue  # never set via generic filler
-
-            fr = frames[it["frame_index"]]
-            el = fr.locator(it["query"]).nth(it["nth"])
-            if not el.is_visible():
-                continue
-
-            # current value check
-            try:
-                curr = el.inner_text().strip() if it["type"] == "contenteditable" else el.input_value().strip()
-            except Exception:
-                curr = ""
-            if curr and curr.upper() != "N/A":
-                continue
-
-            meta = _attrs_blob(
-                label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
-                placeholder=it.get("placeholder",""), aria_label=it.get("aria_label",""),
-                type_=it.get("type","")
-            )
-            val = _value_from_meta(user, meta)
-            if not val:
-                continue
-
-            try:
-                el.scroll_into_view_if_needed(timeout=1500)
-            except Exception:
-                pass
-
-            etype = it.get("type")
-
-            if etype == "select":
-                try:
-                    el.select_option(label=val)
-                except Exception:
-                    fr.evaluate(
-                        """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
-                            const t=(a.w||'').toLowerCase();
-                            const o=[...el.options||[]];
-                            const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
-                                 || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
-                            if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""",
-                        {"q": it["query"], "n": it["nth"], "w": val}
-                    )
-            elif etype == "combo":
-                _set_combo_value(fr, page, it["query"], it["nth"], val)
-            elif etype in ("radio", "checkbox"):
-                # try to toggle if label suggests yes/consent
-                want_yes = _yesno_preference(it.get("label","")) == "Yes"
-                if want_yes and not it.get("checked"):
-                    try:
-                        el.check(force=True)
-                    except Exception:
-                        fr.evaluate("(e)=>{e.click?.();}", el)
-            else:
-                fr.evaluate(
-                    """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
-                        if (el.isContentEditable){ el.innerText=a.v; } else { el.value=a.v; }
-                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                        el.dispatchEvent(new Event('change',{bubbles:true}));}""",
-                    {"q": it["query"], "n": it["nth"], "v": val}
-                )
-
-            print(f"✅ Filled “{meta[:60]}” → {val}")
-            filled += 1
-        except Exception:
-            pass
-    print(f"✅ Post-scan fill completed — filled {filled} fields from inventory.")
-    return filled
-
-
-# ===================== AI mop-up (rule-based + fallbacks) =====================
-
-def _profile_get(profile: dict, *keys, default=None):
-    if not profile:
-        return default
-    for k in keys:
-        if isinstance(k, str) and k in profile and profile.get(k):
-            return profile[k]
-    for g in ("employment", "education", "contact", "profile"):
-        sub = profile.get(g) or {}
-        for k in keys:
-            if isinstance(k, str) and k in sub and sub.get(k):
-                return sub[k]
-    return default
-
-def _rule_based_value(label, options, user_profile, user):
-    L = (label or "").strip().lower()
-
-    # Address block
-    if "adresse" in L or "address" in L:
-        return getattr(user, "address", None) or _profile_get(user_profile, "address", "street", "address_line_1")
-    if "postnummer" in L or "postal" in L or "zip" in L:
-        return getattr(user, "postal_code", None) or _profile_get(user_profile, "postal_code", "zip_code")
-    if re.search(r"\bby\b", L) or "city" in L:
-        return getattr(user, "city", None) or _profile_get(user_profile, "city", "location")
-
-    # Current role/employer
-    if re.search(r"(nuværende\s*stilling|current\s*position|title\s*\(current\)|position)", L):
-        return getattr(user, "occupation", None) or _profile_get(user_profile, "current_position", "occupation")
-    if re.search(r"(nuværende\s*arbejdsgiver|current\s*employer|company)", L):
-        return getattr(user, "category", None) or _profile_get(user_profile, "current_employer", "company")
-
-    # Education
-    if "fagområde" in L or "fagomraade" in L or "field of study" in L:
-        return _profile_get(user_profile, "field_of_study")
-    if ("titel" in L and "uddannelse" in L) or "degree" in L:
-        deg = _profile_get(user_profile, "highest_education_level", "degree", "highest_level") or ""
-        deg = (deg.replace("Bachelor’s", "Bachelor")
-                  .replace("Bachelor's", "Bachelor")
-                  .replace("Master’s", "Master")
-                  .replace("Master's", "Master")
-                  .replace("PhD", "Ph.d.")
-                  .replace("High School", "Gymnasial"))
-        return deg
-
-    # Experience
-    if "arbejdserfaring" in L or "experience" in L:
-        yrs = _profile_get(user_profile, "years_experience")
-        if yrs is None and str(_profile_get(user_profile, "under_education")).lower() in {"yes", "true", "1"}:
-            yrs = 0
-        if yrs is not None:
-            if options:
-                return f"{yrs} År"
-            return str(yrs)
-
-    # Consent & gender
-    if "må dele" in L or "dele din ansøgning" in L or "consent" in L:
-        return "Ja"
-    if "køn" in L or "gender" in L:
-        g = _profile_get(user_profile, "gender")
-        return g
-
-    return None
-
-def _ai_fill_leftovers(page, user):
-    try:
-        profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
-        if not os.path.exists(profile_path):
-            print(f"⚠️ No profile JSON found for user {user.id} at {profile_path}")
-            return 0
-
-        with open(profile_path, "r", encoding="utf-8") as f:
-            user_profile = json.load(f)
-
-        inv = scan_all_fields(page)
-        print(f"🔍 DEBUG: total scanned fields = {len(inv)}")
-        for i, fdata in enumerate(inv[:12]):
-            print(f"   [{i}] type='{fdata.get('type')}' label='{fdata.get('label')}' "
-                  f"selected='{fdata.get('selected_text')}' value='{fdata.get('current_value')}'")
-
-        frames = list(page.frames)
-
-        # 1) Rule-based prefill
-        prefilled = 0
-        already = set()
-
-        for fdata in inv:
-            fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            ftype = fdata.get("type") or ""
-            if ftype in ("file", "submit", "button", "image"):
-                continue
-
-            q, n = fdata["query"], fdata["nth"]
-            label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
-            curr = (fdata.get("current_value") or "").strip()
-            if curr:
-                continue
-
-            options = []
-            if ftype == "select":
-                options = _extract_select_options(frames[fdata["frame_index"]], q, n)
-
-            sug = _rule_based_value(label, options, user_profile, user)
-            if not sug:
-                continue
-
-            fr = frames[fdata["frame_index"]]
-            try:
-                if ftype == "select":
-                    pick = _best_option_match(options, sug) or (_fallback_required_option(options) if fdata.get("required") else None)
-                    if pick:
-                        try:
-                            fr.locator(q).nth(n).select_option(label=pick)
-                        except Exception:
-                            fr.evaluate(
-                                """(a) => {
-                                    const el = document.querySelectorAll(a.q)[a.n];
-                                    if (!el) return;
-                                    const want = (a.labelText || '').trim().toLowerCase();
-                                    const opt = [...el.options].find(o =>
-                                        (o.textContent || '').trim().toLowerCase() === want
-                                    ) || [...el.options].find(o =>
-                                        (o.textContent || '').toLowerCase().includes(want)
-                                    );
-                                    if (opt) {
-                                        el.value = opt.value;
-                                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                    }
-                                }""",
-                                {"q": q, "n": n, "labelText": pick}
-                            )
-                        print(f"✅ RB selected “{label[:70]}” → {pick}")
-                        prefilled += 1
-                        already.add(fid)
-                elif ftype == "combo":
-                    if _set_combo_value(fr, page, q, n, sug):
-                        print(f"✅ RB selected “{label[:70]}” → {sug}")
-                        prefilled += 1
-                        already.add(fid)
-                elif ftype in ("radio", "checkbox"):
-                    if _yesno_preference(label) == "Yes":
-                        try:
-                            fr.locator(q).nth(n).check(force=True)
-                        except Exception:
-                            try:
-                                fr.evaluate("(e)=>{e.click?.();}", fr.locator(q).nth(n))
-                            except Exception:
-                                pass
-                        print(f"✅ RB checked “{label[:70]}”")
-                        prefilled += 1
-                        already.add(fid)
-                else:
-                    fr.evaluate(
-                        """(a)=>{
-                            const el = document.querySelectorAll(a.q)[a.n];
-                            if (!el) return;
-                            if (el.isContentEditable) { el.innerText = a.v; }
-                            else { el.value = a.v; }
-                            el.dispatchEvent(new Event('input',{bubbles:true}));
-                            el.dispatchEvent(new Event('change',{bubbles:true}));
-                        }""",
-                        {"q": q, "n": n, "v": str(sug)}
-                    )
-                    print(f"✅ RB filled “{label[:70]}” → {sug}")
-                    prefilled += 1
-                    already.add(fid)
-            except Exception as e:
-                print(f"⚠️ RB could not fill {fid}: {e}")
-
-        # 2) Build AI payload
-        fields_to_ai = []
-        select_audit = []
-        for fdata in inv:
-            fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            if fid in already:
-                continue
-
-            ftype = fdata.get("type") or ""
-            if ftype in ("file", "button", "submit", "image"):
-                continue
-
-            label = (fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or "")
-            val = (fdata.get("current_value") or "").strip()
-            required = bool(fdata.get("required"))
-
-            if ftype == "select":
-                sel_text = fdata.get("selected_text") or ""
-                if _select_is_unfilled(sel_text, val):
-                    fr = frames[fdata["frame_index"]]
-                    options = _extract_select_options(fr, fdata["query"], fdata["nth"])
-                    fields_to_ai.append({"field_id": fid, "label": label, "type": "select", "required": required, "options": options})
-                    select_audit.append(f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True")
-            elif ftype == "combo":
-                fr = frames[fdata["frame_index"]]
-                options = _extract_combo_options(fr, fdata["query"], fdata["nth"])
-                fields_to_ai.append({"field_id": fid, "label": label, "type": "combo", "required": required, "options": options})
-            elif ftype in ("radio", "checkbox"):
-                # send the label; AI can return "yes"/"no" or label terms; we will best-effort match
-                fields_to_ai.append({"field_id": fid, "label": label, "type": ftype, "required": required})
-            else:
-                if not val:
-                    fields_to_ai.append({"field_id": fid, "label": label, "type": ftype or "text", "required": required})
-
-        print("🔎 DEBUG (select audit):")
-        for line in select_audit[:25]:
-            print(line)
-        print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields for AI")
-
-        if not fields_to_ai:
-            print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
-            return prefilled
-
-        # 3) Ask AI
-        print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
-        answers = map_fields_to_answers(fields_to_ai, user_profile)
-        print("============== 🧠 AI RAW OUTPUT ==============")
-        try:
-            print(json.dumps(answers, indent=2, ensure_ascii=False))
-        except Exception:
-            print(answers)
-        print("=============================================")
-
-        # 4) Apply AI answers (+ required fallbacks)
-        applied = 0
-        for fdata in inv:
-            fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            if fid in already:
-                continue
-
-            fr = frames[fdata["frame_index"]]
-            q, n = fdata["query"], fdata["nth"]
-            ftype = fdata.get("type") or ""
-            ans = answers.get(fid)
-
-            if ans is None or str(ans).lower() == "skip":
-                if ftype == "select" and fdata.get("required"):
-                    opts = _extract_select_options(fr, q, n)
-                    pick = _fallback_required_option(opts)
-                    if pick:
-                        try:
-                            fr.locator(q).nth(n).select_option(label=pick)
-                        except Exception:
-                            fr.evaluate(
-                                """(a) => {
-                                    const el = document.querySelectorAll(a.q)[a.n];
-                                    if (!el) return;
-                                    const want = (a.labelText || '').trim().toLowerCase();
-                                    const opt = [...el.options].find(o =>
-                                        (o.textContent || '').trim().toLowerCase() === want
-                                    ) || [...el.options].find(o =>
-                                        (o.textContent || '').toLowerCase().includes(want)
-                                    );
-                                    if (opt) {
-                                        el.value = opt.value;
-                                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                    }
-                                }""",
-                                {"q": q, "n": n, "labelText": pick}
-                            )
-                        print(f"✅ Fallback selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
-                        applied += 1
-                continue
-
-            if ftype == "select":
-                opts = _extract_select_options(fr, q, n)
-                pick = _best_option_match(opts, str(ans)) or _fallback_required_option(opts)
-                if not pick:
-                    print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {ans}")
-                    continue
-                try:
-                    fr.locator(q).nth(n).select_option(label=pick)
-                except Exception:
-                    fr.evaluate(
-                        """(a) => {
-                            const el = document.querySelectorAll(a.q)[a.n];
-                            if (!el) return;
-                            const want = (a.labelText || '').trim().toLowerCase();
-                            const opt = [...el.options].find(o =>
-                                (o.textContent || '').trim().toLowerCase() === want
-                            ) || [...el.options].find(o =>
-                                (o.textContent || '').toLowerCase().includes(want)
-                            );
-                            if (opt) {
-                                el.value = opt.value;
-                                el.dispatchEvent(new Event('input',{bubbles:true}));
-                                el.dispatchEvent(new Event('change',{bubbles:true}));
-                            }
-                        }""",
-                        {"q": q, "n": n, "labelText": pick}
-                    )
-                print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
-                applied += 1
-
-            elif ftype == "combo":
-                if _set_combo_value(fr, page, q, n, str(ans)):
-                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {ans}")
-                    applied += 1
-
-            elif ftype in ("radio", "checkbox"):
-                txt = str(ans).strip().lower()
-                try:
-                    if txt in ("true", "yes", "ja", "y", "1"):
-                        fr.locator(q).nth(n).check(force=True)
-                    elif txt in ("false", "no", "nej", "n", "0"):
-                        fr.locator(q).nth(n).uncheck(force=True)
-                    else:
-                        # try click if label text matches the answer
-                        lbl = (fdata.get("label") or "").lower()
-                        if txt and (txt in lbl or lbl in txt):
-                            fr.locator(q).nth(n).check(force=True)
-                except Exception:
-                    try:
-                        fr.evaluate("(e)=>{e.click?.();}", fr.locator(q).nth(n))
-                    except Exception:
-                        pass
-                print(f"✅ AI toggled “{fdata.get('label','(no label)')[:70]}” → {ans}")
-                applied += 1
-
-            else:
-                fr.evaluate(
-                    """(a)=>{
-                        const el = document.querySelectorAll(a.q)[a.n];
-                        if (!el) return;
-                        if (el.isContentEditable) { el.innerText = a.v; }
-                        else { el.value = a.v; }
-                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                    }""",
-                    {"q": q, "n": n, "v": str(ans)}
-                )
-                print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {ans}")
-                applied += 1
-
-        total = prefilled + applied
-        print(f"🤖 AI pass completed — filled {total} fields.")
-        return total
-
-    except Exception as e:
-        print(f"⚠️ AI leftovers pass failed: {e}")
-        return 0
-
-
-# ============================ special forcings ============================
+# ---------------- dropdown helpers ----------------
 
 def _closest_dropdown_root(frame, label_for_id: str, label_id: str):
     try:
@@ -1009,6 +359,463 @@ def _set_custom_dropdown_by_label(page, frame, label_el, want_text: str) -> bool
         pass
     return False
 
+
+# ---------------- scan & baseline fill ----------------
+
+DIAL = {"DK": "+45", "US": "+1", "UK": "+44", "FRA": "+33", "GER": "+49"}
+
+def _yesno_preference(label_text: str) -> str:
+    L = (label_text or "").lower()
+    if AUTO_YES_RE.search(L): return "Yes"
+    if AUTO_NO_RE.search(L):  return "No"
+    return ""
+
+def _accessible_label(frame, el):
+    try:
+        return frame.evaluate(
+            """(el)=>{const lab=(el.labels&&el.labels[0]&&el.labels[0].innerText)||'';
+                      const aria=el.getAttribute('aria-label')||'';
+                      const ph=el.getAttribute('placeholder')||'';
+                      const byId=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/)
+                         .map(id=>document.getElementById(id)?.innerText||'').join(' ');
+                      const near=el.closest('label')?.innerText
+                        || el.closest('div,section,fieldset,.form-group,.field')
+                             ?.querySelector('legend,h1,h2,h3,h4,span,small,label,.label,.title')?.innerText || '';
+                      return [lab,aria,ph,byId,near].join(' ').replace(/\s+/g,' ').trim();}""",
+            el
+        ) or ""
+    except Exception:
+        return ""
+
+def scan_all_fields(page):
+    # 1) expand scan selectors (replace your existing list)
+    selectors = [
+        "input:not([type='hidden']):not([disabled]):not([type='file'])",  # skip file inputs here
+        "textarea:not([disabled])",
+        "select:not([disabled])",
+        "[contenteditable='true']",
+        "[role='combobox']",
+        "[aria-haspopup='listbox']",
+        "div[role='button'][aria-haspopup='listbox']",
+    ]
+
+    # inside scan_all_fields(), after you get `el`:
+    tag = el.evaluate("el => (el.tagName || '').toLowerCase()")
+    role = (el.get_attribute("role") or "").lower()
+    has_listbox = (el.get_attribute("aria-haspopup") or "").lower() == "listbox"
+
+    # derive a friendlier "type"
+    if tag == "select":
+        et = "select"
+    elif role == "combobox" or has_listbox:
+        et = "combo"
+    else:
+        et = (el.get_attribute("type") or "").lower()
+
+    # selected text (for select or combo)
+    selected_text = ""
+    if et == "select":
+        selected_text = fr.evaluate("""(a)=>{const e=document.querySelectorAll(a.q)[a.n];
+            if(!e) return ''; const o=e.options[e.selectedIndex]; return (o && o.textContent || '').trim();}""", {"q": q, "n": i}) or ""
+    elif et == "combo":
+        # many libraries put the chosen value as the element's innerText/aria attributes
+        selected_text = (el.inner_text() or el.get_attribute("aria-label") or "").strip()
+
+        
+    inventory, frame_idx = [], {fr: i for i, fr in enumerate(page.frames)}
+    total = 0
+    for fr in page.frames:
+        for q in selectors:
+            loc = fr.locator(q)
+            for i in range(loc.count()):
+                el = loc.nth(i)
+                try:
+                    if not el.is_visible(): 
+                        continue
+
+                    # Type & current value
+                    tag = el.evaluate("el => el.tagName && el.tagName.toLowerCase()")
+                    et = tag if tag == "select" else (el.get_attribute("type") or "").lower()
+
+                    current_val = ""
+                    try:
+                        current_val = el.inner_text().strip() if q == "[contenteditable='true']" else el.input_value().strip()
+                    except Exception:
+                        pass
+
+                    # Selected text for selects
+                    selected_text = ""
+                    if et == "select":
+                        try:
+                            selected_text = fr.evaluate(
+                                """(a) => { 
+                                    const e = document.querySelectorAll(a.q)[a.n];
+                                    if(!e) return '';
+                                    const o = e.options[e.selectedIndex];
+                                    return (o && o.textContent || '').trim();
+                                }""",
+                                {"q": q, "n": i}
+                            ) or ""
+                        except Exception:
+                            selected_text = ""
+
+                    inventory.append({
+                        "frame_index": frame_idx[fr],
+                        "query": q,
+                        "nth": i,
+                        "type": et or "text",
+                        "name": el.get_attribute("name") or "",
+                        "id": el.get_attribute("id") or "",
+                        "placeholder": el.get_attribute("placeholder") or "",
+                        "aria_label": el.get_attribute("aria-label") or "",
+                        "label": _accessible_label(fr, el),
+                        "required": bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True])),
+                        "current_value": current_val,
+                        "selected_text": selected_text,
+                    })
+                    total += 1
+                except Exception:
+                    pass
+    print(f"🧩 Field scan complete — detected {total} fields across {len(page.frames)} frames.")
+    # EXTRA DEBUG: dump every field we see so you can compare with the UI
+    for i, f in enumerate(inventory):
+        print(
+            f"   [{i:02d}] frame={f['frame_index']} nth={f['nth']} type='{f.get('type')}' "
+            f"id='{(f.get('id') or '')[:40]}' name='{(f.get('name') or '')[:40]}' "
+            f"label='{(f.get('label') or '')[:80]}' selected='{f.get('selected_text')}' "
+            f"value='{(f.get('current_value') or '')[:80]}' req={f.get('required')}"
+        )
+    return inventory
+
+def _country_human(code: str) -> str:
+    return {"DK":"Denmark","US":"United States","UK":"United Kingdom","FRA":"France","GER":"Germany"}.get((code or "").upper(), "")
+
+def _attrs_blob(**kw):
+    return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
+
+def _value_from_meta(user, meta: str):
+    L = (meta or "").lower()
+    linkedin = (getattr(user,"linkedin_url","") or "").strip()
+    cc = (getattr(user,"country","") or "").upper()
+    phone_raw = (getattr(user,"phone_number","") or "").strip()
+    phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
+    mapping = [
+        (["first","fname","given","forename"], user.first_name or ""),
+        (["last","lname","surname","family"],  user.last_name or ""),
+        (["email","e-mail","mail"],            user.email or ""),
+        (["phone","mobile","tel"],             phone),
+        (["linkedin","profile url","profile_url"], linkedin),
+        (["country","nationality","land"],     _country_human(cc)),
+        (["city","town","by"],                 getattr(user,"location","") or ""),
+        (["job title","title","position","role"], getattr(user,"occupation","") or ""),
+        (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
+    ]
+    for keys,val in mapping:
+        if any(k in L for k in keys) and val: return val
+    if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
+    return ""
+
+def fill_from_inventory(page, user, inventory):
+    filled = 0
+    frames = list(page.frames)
+    for it in inventory:
+        try:
+            fr = frames[it["frame_index"]]
+            el = fr.locator(it["query"]).nth(it["nth"])
+            if not el.is_visible(): continue
+            try:
+                curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
+            except Exception:
+                curr = ""
+            if curr and curr.upper()!="N/A":
+                continue
+
+            meta = _attrs_blob(
+                label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
+                placeholder=it.get("placeholder",""), aria_label=it.get("aria_label",""),
+                type_=it.get("type","")
+            )
+            val = _value_from_meta(user, meta)
+            if not val: 
+                continue
+
+            try: el.scroll_into_view_if_needed(timeout=1500)
+            except Exception: pass
+
+            is_select = (it.get("type") == "select")
+
+            if is_select:
+                try:
+                    el.select_option(label=val)
+                except Exception:
+                    fr.evaluate(
+                        """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
+                            const t=(a.w||'').toLowerCase();
+                            const o=[...el.options||[]];
+                            const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
+                                 || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
+                            if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""",
+                        {"q": it["query"], "n": it["nth"], "w": val}
+                    )
+            else:
+                fr.evaluate(
+                    """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
+                        if (el.isContentEditable){ el.innerText=a.v; } else { el.value=a.v; }
+                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                        el.dispatchEvent(new Event('change',{bubbles:true}));}""",
+                    {"q": it["query"], "n": it["nth"], "v": val}
+                )
+
+            print(f"✅ Filled “{meta[:60]}” → {val}")
+            filled += 1
+        except Exception:
+            pass
+    print(f"✅ Post-scan fill completed — filled {filled} fields from inventory.")
+    return filled
+
+
+# ---------------- AI mop-up with rule-based + required fallbacks ----------------
+
+def _ai_fill_leftovers(page, user):
+    try:
+        profile_path = f"/home/clinton/Internstart/media/user_profiles/{user.id}.json"
+        if not os.path.exists(profile_path):
+            print(f"⚠️ No profile JSON found for user {user.id} at {profile_path}")
+            return 0
+
+        with open(profile_path, "r", encoding="utf-8") as f:
+            user_profile = json.load(f)
+
+        inv = scan_all_fields(page)
+        print(f"🔍 DEBUG: total scanned fields = {len(inv)}")
+        for i, fdata in enumerate(inv[:12]):
+            print(f"   [{i}] type='{fdata.get('type')}' label='{fdata.get('label')}' "
+                  f"selected='{fdata.get('selected_text')}' value='{fdata.get('current_value')}'")
+
+        frames = list(page.frames)
+
+        # 1) RULE-BASED PREFILL before AI
+        prefilled = 0
+        already_filled_fids = set()
+        for fdata in inv:
+            q, n, ftype = fdata["query"], fdata["nth"], fdata.get("type")
+            label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
+            curr = (fdata.get("current_value") or "").strip()
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+
+            # skip if something is already entered
+            if curr:
+                continue
+
+            options = []
+            if ftype == "select":
+                try:
+                    fr = frames[fdata["frame_index"]]
+                    options = _extract_dropdown_options(fr, q, n)
+                except Exception:
+                    options = []
+
+            suggested = _rule_based_value(label, options, user_profile, user)
+
+            if suggested:
+                try:
+                    fr = frames[fdata["frame_index"]]
+                    if ftype == "select":
+                        pick = _best_option_match(options, suggested)
+                        if not pick:  # if still nothing, try a reasonable fallback
+                            pick = _fallback_required_option(options) if fdata.get("required") else None
+                        if pick:
+                            try:
+                                fr.locator(q).nth(n).select_option(label=pick)
+                            except Exception:
+                                fr.evaluate(
+                                    """(a) => {
+                                        const el = document.querySelectorAll(a.q)[a.n];
+                                        if (!el) return;
+                                        const want = (a.labelText || '').trim().toLowerCase();
+                                        const opt = [...el.options].find(o =>
+                                            (o.textContent || '').trim().toLowerCase() === want
+                                        ) || [...el.options].find(o =>
+                                            (o.textContent || '').toLowerCase().includes(want)
+                                        );
+                                        if (opt) {
+                                            el.value = opt.value;
+                                            el.dispatchEvent(new Event('input',{bubbles:true}));
+                                            el.dispatchEvent(new Event('change',{bubbles:true}));
+                                        }
+                                    }""",
+                                    {"q": q, "n": n, "labelText": pick}
+                                )
+                            print(f"✅ RB selected “{label[:70]}” → {pick}")
+                            prefilled += 1
+                            already_filled_fids.add(fid)
+                    else:
+                        fr.evaluate(
+                            """(a)=>{
+                                const el = document.querySelectorAll(a.q)[a.n];
+                                if (!el) return;
+                                if (el.isContentEditable) { el.innerText = a.v; }
+                                else { el.value = a.v; }
+                                el.dispatchEvent(new Event('input',{bubbles:true}));
+                                el.dispatchEvent(new Event('change',{bubbles:true}));
+                            }""",
+                            {"q": q, "n": n, "v": str(suggested)}
+                        )
+                        print(f"✅ RB filled “{label[:70]}” → {suggested}")
+                        prefilled += 1
+                        already_filled_fids.add(fid)
+                except Exception as e:
+                    print(f"⚠️ RB could not fill {fid}: {e}")
+
+        # 2) Build payload for AI (exclude what we already prefilled)
+        fields_to_ai = []
+        select_audit = []
+        force_regex = re.compile(r"(stilling|position|arbejdsgiver|employer)", re.I)
+        for fdata in inv:
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+            if fid in already_filled_fids:
+                continue
+
+            ftype = fdata.get("type") or ""
+            label = (fdata.get("label") or fdata.get("placeholder") or
+                     fdata.get("aria_label") or fdata.get("name") or "")
+            val = (fdata.get("current_value") or "").strip()
+            required = bool(fdata.get("required"))
+
+            if ftype == "select":
+                sel_text = fdata.get("selected_text") or ""
+                unfilled = _select_is_unfilled(sel_text, val)
+                if unfilled:
+                    fr = frames[fdata["frame_index"]]
+                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    fields_to_ai.append({
+                        "field_id": fid, "label": label, "type": "select",
+                        "required": required, "options": options
+                    })
+                    select_audit.append(
+                        f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
+                    )
+            else:
+                if not val or force_regex.search(label):
+                    fields_to_ai.append({
+                        "field_id": fid, "label": label, "type": ftype or "text",
+                        "required": required
+                    })
+
+        print("🔎 DEBUG (select audit):")
+        for line in select_audit[:25]:
+            print(line)
+        print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields for AI")
+
+        if not fields_to_ai:
+            print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
+            return prefilled
+
+        # 3) Ask AI
+        print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
+        answers = map_fields_to_answers(fields_to_ai, user_profile)
+        print("============== 🧠 AI RAW OUTPUT ==============")
+        try:
+            print(json.dumps(answers, indent=2, ensure_ascii=False))
+        except Exception:
+            print(answers)
+        print("=============================================")
+
+        # 4) Apply AI answers (with required fallback for selects)
+        applied = 0
+        frames = list(page.frames)
+        for fdata in inv:
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+            if fid in already_filled_fids:
+                continue
+            ans = answers.get(fid)
+            if ans is None or str(ans).lower() == "skip":
+                # if it's a required select, try a safe fallback
+                if fdata.get("type") == "select" and fdata.get("required"):
+                    fr = frames[fdata["frame_index"]]
+                    opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    pick = _fallback_required_option(opts)
+                    if pick:
+                        try:
+                            fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
+                        except Exception:
+                            fr.evaluate(
+                                """(a) => {
+                                    const el = document.querySelectorAll(a.q)[a.n];
+                                    if (!el) return;
+                                    const want = (a.labelText || '').trim().toLowerCase();
+                                    const opt = [...el.options].find(o =>
+                                        (o.textContent || '').trim().toLowerCase() === want
+                                    ) || [...el.options].find(o =>
+                                        (o.textContent || '').toLowerCase().includes(want)
+                                    );
+                                    if (opt) {
+                                        el.value = opt.value;
+                                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                    }
+                                }""",
+                                {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
+                            )
+                        print(f"✅ Fallback selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+                        applied += 1
+                continue
+
+            fr = frames[fdata["frame_index"]]
+            if fdata.get("type") == "select":
+                opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                pick = _best_option_match(opts, str(ans)) or _fallback_required_option(opts)
+                if not pick:
+                    print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {ans}")
+                    continue
+                try:
+                    fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
+                except Exception:
+                    fr.evaluate(
+                        """(a) => {
+                            const el = document.querySelectorAll(a.q)[a.n];
+                            if (!el) return;
+                            const want = (a.labelText || '').trim().toLowerCase();
+                            const opt = [...el.options].find(o =>
+                                (o.textContent || '').trim().toLowerCase() === want
+                            ) || [...el.options].find(o =>
+                                (o.textContent || '').toLowerCase().includes(want)
+                            );
+                            if (opt) {
+                                el.value = opt.value;
+                                el.dispatchEvent(new Event('input',{bubbles:true}));
+                                el.dispatchEvent(new Event('change',{bubbles:true}));
+                            }
+                        }""",
+                        {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
+                    )
+                print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+            else:
+                fr.evaluate(
+                    """(a)=>{
+                        const el = document.querySelectorAll(a.q)[a.n];
+                        if (!el) return;
+                        if (el.isContentEditable) { el.innerText = a.v; }
+                        else { el.value = a.v; }
+                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                    }""",
+                    {"q": fdata["query"], "n": fdata["nth"], "v": str(ans)}
+                )
+                print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {ans}")
+            applied += 1
+
+        total = prefilled + applied
+        print(f"🤖 AI pass completed — filled {total} fields.")
+        return total
+
+    except Exception as e:
+        print(f"⚠️ AI leftovers pass failed: {e}")
+        return 0
+
+
+# ---------------- special yes/no forcings ----------------
+
 def _force_ipg_employment_no(page, frame) -> bool:
     lab = frame.locator("label[for]").filter(has_text=re.compile(r"are you currently employed|ever been employed.*ipg", re.I)).first
     if not (lab and lab.is_visible()): return False
@@ -1083,7 +890,7 @@ def _force_privacy_yes_if_needed(page, frame):
     return changed
 
 
-# ============================ main ============================
+# ---------------- main ----------------
 
 def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_run=True, screenshot_delay_sec=3):
     room = ATSRoom.objects.get(id=room_id)
@@ -1116,7 +923,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             page.wait_for_timeout(1200)
             dismiss_privacy_overlays(page)
 
-            # Try a safe "Apply" click if few fields are present
             try:
                 if page.locator("input, textarea, select").count() < 3:
                     buttons = page.locator("button, a")
@@ -1135,7 +941,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
             dismiss_privacy_overlays(page, timeout_ms=3000)
 
-            # choose context (iframe hosting the form)
             context = page
             try:
                 for fr in page.frames:
@@ -1147,16 +952,13 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception:
                 pass
 
-            try:
-                context.wait_for_selector(":is(input,textarea,select,[contenteditable='true'])", timeout=12000)
-            except Exception:
-                pass
+            try: context.wait_for_selector("input, textarea, select", timeout=12000)
+            except Exception: pass
             try:
                 for _ in range(6):
                     page.mouse.wheel(0, 420)
                     page.wait_for_timeout(220 + random.randint(0,120))
-            except Exception:
-                pass
+            except Exception: pass
 
             inv = scan_all_fields(page)
             try:
@@ -1178,12 +980,11 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ AI leftovers pass failed: {e}")
 
-            # resume upload
             try:
                 if resume_path:
                     print(f"📎 Uploading resume: {resume_path}")
                     try:
-                        btn = context.locator(":is(button,label,a):has-text('Attach'), :is(button,label,a):has-text('Upload')")
+                        btn = context.locator(":is(button,label,a):has-text('Attach')")
                         if btn.count() and btn.first.is_visible():
                             btn.first.click(); page.wait_for_timeout(800)
                     except Exception:
@@ -1208,7 +1009,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Resume upload failed: {e}")
 
-            # cover letter
             try:
                 letter = cover_letter_text or "test coverletter"
                 inserted = False
@@ -1238,7 +1038,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception as e:
                 print(f"⚠️ Cover letter step failed: {e}")
 
-            # dry run or submit
             screenshot_path = os.path.join(log_dir, f"ats_preview_{safe_company}_{ts}.png")
             if dry_run:
                 print("🧪 Dry run — skipping submit")
