@@ -646,9 +646,19 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
     missing = [d for d in required_docs if d not in uploaded]
     return {"uploaded": uploaded, "missing": missing}
 
-def handle_document_uploads(context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
+
+def handle_document_uploads(page, context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
     """Orchestrator: detect requirements, find controls, build files, upload."""
     try:
+        # If we were accidentally passed a Frame as 'page', normalize:
+        # (We always call with page=Page, context=Page/Frame, but keep this safe.)
+        real_page = page
+        if hasattr(page, "page"):  # e.g., a Frame accidentally passed as 'page'
+            try:
+                real_page = page.page
+            except Exception:
+                real_page = context if not hasattr(context, "page") else context.page
+
         section, sec_text = _find_documents_section(context)
         required = _parse_required_docs_from_text(sec_text)
         if not required:
@@ -664,7 +674,7 @@ def handle_document_uploads(context, user, resume_path, cover_letter_text, log_d
 
         controls = _find_upload_controls(context, section)
         files    = _build_files_for_docs(user, resume_path, cover_letter_text or "Default application text.")
-        summary  = upload_docs_via_controls(context.page, context, section, controls, required, files)
+        summary  = upload_docs_via_controls(real_page, context, section, controls, required, files)
 
         # Section screenshot for logs
         try:
@@ -679,6 +689,7 @@ def handle_document_uploads(context, user, resume_path, cover_letter_text, log_d
     except Exception as e:
         print(f"⚠️ Document upload flow failed: {e}")
         return {"uploaded": [], "missing": []}
+
 
 
 
@@ -1513,21 +1524,24 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
             # ---- NEW: document uploads (CV + default "application") ----
-            try:
-                print("📎 Document upload flow: starting …")
-                upload_summary = handle_document_uploads(
-                    context=context,
-                    user=user,
-                    resume_path=resume_path,
-                    cover_letter_text=cover_letter_text or "Default application text.",
-                    log_dir=log_dir,
-                    safe_company=safe_company,
-                    ts=ts
-                )
-                print(f"📦 Document upload flow summary: {upload_summary}")
-            except Exception as e:
-                print(f"⚠️ Document upload flow error: {e}")
-            # -------------------------------------------------------------
+# ---- NEW: document uploads (CV + default "application") ----
+        try:
+            print("📎 Document upload flow: starting …")
+            upload_summary = handle_document_uploads(
+                page=page,                # pass the real Page object
+                context=context,          # page or frame we’re working inside
+                user=user,
+                resume_path=resume_path,
+                cover_letter_text=cover_letter_text or "Default application text.",
+                log_dir=log_dir,
+                safe_company=safe_company,
+                ts=ts
+            )
+            print(f"📦 Document upload flow summary: {upload_summary}")
+        except Exception as e:
+            print(f"⚠️ Document upload flow error: {e}")
+        # -------------------------------------------------------------
+
 
 
 
