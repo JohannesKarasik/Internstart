@@ -324,16 +324,25 @@ def _parse_required_docs_from_text(txt: str):
     return _uniq_keep_order(hits)
 
 def _find_documents_section(context):
-    """Try to find the 'Documents' area root and return (section_locator, text)."""
-    candidates = [
+    # Prefer the container that holds the "Vælg & upload" button
+    try:
+        btn = context.locator(":is(button,a,input)[has-text('Vælg & upload')]")
+        if btn.count():
+            cont = btn.first.locator("xpath=ancestor::*[self::section or self::div][1]").first
+            if cont and cont.is_visible():
+                return cont, (cont.inner_text() or "").strip()
+    except Exception:
+        pass
+
+    # Fallbacks (as before)
+    for sel in [
         "section:has-text('Dokumenter')",
         "div:has-text('Dokumenter')",
         "section:has-text('Documents')",
         "div:has-text('Documents')",
         "section:has-text('Vedhæfte' i)",
         "div:has-text('Vedhæfte' i)",
-    ]
-    for sel in candidates:
+    ]:
         try:
             loc = context.locator(sel)
             if loc.count() and loc.first.is_visible():
@@ -341,12 +350,11 @@ def _find_documents_section(context):
                 return loc.first, txt
         except Exception:
             pass
-    # fallback: whole frame/page text
     return context, (context.inner_text() or "")
 
+
 def _find_upload_controls(context, section):
-    """Locate file input, optional category select/combobox, and the upload button.
-       If no file input is present, try clicking the upload button once to spawn it."""
+    """Locate the file input, the *documents* category select, and the upload button."""
     root = section or context
 
     def _loc_first(scope, sel):
@@ -358,83 +366,57 @@ def _find_upload_controls(context, section):
             pass
         return None
 
-    # 1) Upload button (look early because we might need to click it to spawn the input)
-    upload_btn = None
-    for sel in UPLOAD_BUTTON_CANDIDATES:
-        upload_btn = _loc_first(root, sel) or _loc_first(context, sel)
-        if upload_btn:
-            break
+    # Prefer a container that actually holds the upload UI
+    upload_btn = (_loc_first(root, ":is(button,a,input)[has-text('Vælg & upload')]")
+                  or _loc_first(context, ":is(button,a,input)[has-text('Vælg & upload')]"))
 
-    # 2) File input (initial probe)
+    # File input (often hidden, but present in DOM)
     file_input = None
-    try:
-        cand = root.locator("input[type='file']")
-        if not cand.count():
-            cand = context.locator("input[type='file']")
-        if cand.count():
-            file_input = cand.first
-    except Exception:
-        pass
-
-    # If no file input found yet, try to click the upload button to reveal it
-    if not file_input and upload_btn:
+    for scope in (root, context):
         try:
-            print("🖱️ Clicking upload button to reveal file input …")
-            upload_btn.click(force=True)
-            context.wait_for_timeout(300)
-        except Exception:
-            pass
-        try:
-            cand = root.locator("input[type='file']")
-            if not cand.count():
-                cand = context.locator("input[type='file']")
+            cand = scope.locator("input[type='file']")
             if cand.count():
                 file_input = cand.first
+                break
         except Exception:
             pass
 
-    # 3) Category select (native or custom)
+    # Category select: pick the <select> whose options include CV/Ansøgning (or synonyms)
     category = None
-    try:
-        near_select = root.locator("select")
-        if not near_select.count():
-            near_select = context.locator("select")
-        if near_select.count():
-            category = near_select.first
-        else:
-            custom = root.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
-            if not custom.count():
-                custom = context.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
-            if custom.count():
-                category = custom.first
-    except Exception:
-        pass
+    def _select_with_doc_options(scope):
+        try:
+            sels = scope.locator("select")
+            for i in range(min(sels.count(), 10)):
+                sel = sels.nth(i)
+                try:
+                    opts = sel.evaluate("(el)=>[...el.options].map(o=>(o.textContent||'').trim())")
+                except Exception:
+                    continue
+                joined = " | ".join(opts).lower()
+                if any(k in joined for k in ["cv","curriculum","resume","ansøgning","ansoegning","cover","application","motiveret"]):
+                    return sel
+        except Exception:
+            pass
+        return None
 
-    # 4) Multiple?
+    category = _select_with_doc_options(root) or _select_with_doc_options(context)
+
+    # Multiple files support?
     supports_multiple = False
     try:
         if file_input:
-            multiple_attr = file_input.get_attribute("multiple")
-            if multiple_attr and str(multiple_attr).lower() not in {"false", "0", ""}:
+            ma = file_input.get_attribute("multiple")
+            if ma and str(ma).lower() not in {"false","0",""}:
                 supports_multiple = True
-        sec_text = (section.inner_text() or "") if section else ""
-        if re.search(r"upload flere|flere filer|multiple files|more than one", sec_text, re.I):
-            supports_multiple = True
     except Exception:
         pass
 
-    # Log what we found (debug)
     print(f"🔧 Upload controls → file_input={'yes' if file_input else 'no'}, "
           f"category={'yes' if category else 'no'}, "
           f"button={'yes' if upload_btn else 'no'}, "
           f"multiple={'yes' if supports_multiple else 'no'}")
 
-    return {
-        "file_input": file_input,
-        "category": category,
-        "upload_btn": upload_btn,
-        "supports_multiple": supports_multiple
-    }
+    return {"file_input": file_input, "category": category, "upload_btn": upload_btn, "supports_multiple": supports_multiple}
 
 
 def _ensure_file_input_visible(context):
@@ -484,51 +466,62 @@ def _build_files_for_docs(user, resume_path, default_cover_letter_text=""):
     return files
 
 def _select_category_value(page, context, category_locator, want_label: str) -> bool:
-    """Use your existing select helpers where possible."""
-    label = want_label.strip()
+    label = (want_label or "").strip()
+
+    # Try robust native <select> path first (substring / case-insensitive)
     try:
-        tag = (category_locator.evaluate("el => (el.tagName||'').toLowerCase()") or "").lower()
+        tag = (category_locator.evaluate("el => (el.tagName||'').toLowerCase()") or "")
     except Exception:
         tag = ""
+
     if tag == "select":
         try:
-            category_locator.select_option(label=label)
-            return True
-        except Exception:
-            # Try any synonym that exists as an option
-            opts = []
-            try:
-                opts = context.evaluate(
-                    """(el) => Array.from(el.options||[]).map(o => (o.textContent||'').trim())""",
-                    category_locator.element_handle()
-                ) or []
-            except Exception:
-                pass
-            for alt in CATEGORY_SYNONYMS.get("cv" if "CV" in label.upper() else "cover_letter", []):
-                if any(alt.lower() == o.lower() for o in opts):
-                    try:
-                        category_locator.select_option(label=alt)
-                        return True
-                    except Exception:
-                        pass
-        return False
+            opts = category_locator.evaluate("(el)=>[...el.options].map(o=>({t:(o.textContent||'').trim(), v:o.value}))")
+            def norm(s): 
+                return re.sub(r"\s+", " ", s or "").strip().lower()
+            want = norm(label)
+            idx = next((i for i,o in enumerate(opts)
+                        if norm(o["t"]) == want or norm(o["t"]).startswith(want) or want in norm(o["t"])), -1)
+            if idx >= 0:
+                category_locator.evaluate(
+                    "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
+                    idx
+                )
+                return True
 
-    # custom select-like: click & type + Enter (reuse your patterns)
+            # Try synonyms if not found
+            syns = CATEGORY_SYNONYMS.get("cv" if "cv" in want.lower() else "cover_letter", [])
+            for alt in syns:
+                want_alt = norm(alt)
+                idx = next((i for i,o in enumerate(opts)
+                            if norm(o["t"]) == want_alt or want_alt in norm(o["t"])), -1)
+                if idx >= 0:
+                    category_locator.evaluate(
+                        "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
+                        idx
+                    )
+                    return True
+        except Exception:
+            pass
+
+    # Custom widget fallback: click, type, Enter
     try:
         category_locator.click(force=True)
         context.wait_for_timeout(120)
-        # try to type then Enter
         inner = category_locator.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
         target = inner if (inner and inner.is_visible()) else category_locator
-        target.fill("") if target == inner else None
-        target.type(label, delay=18)
-        _safe_press(page, target, "Enter")
-        _safe_press(page, target, "Tab")
+        try:
+            if target == inner:
+                target.fill("")
+            target.type(label, delay=18)
+        except Exception:
+            pass
+        _safe_press(page, target, "Enter"); _safe_press(page, target, "Tab")
         return True
     except Exception:
         pass
 
-    # brute-force click an option in the open menu
+    # Last resort: click in the open menu
     try:
         menu = context.locator(":is([role='listbox'], .select2-results__options, .MuiPaper-root, ul[role='listbox'])")
         if menu.count():
@@ -538,7 +531,9 @@ def _select_category_value(page, context, category_locator, want_label: str) -> 
                 return True
     except Exception:
         pass
+
     return False
+
 
 def _wait_file_list_contains(section, filename_base: str, category_hint: str = "", timeout_ms: int = 4000):
     """Best-effort verification that the table/list shows our uploaded entry."""
@@ -557,73 +552,76 @@ def _wait_file_list_contains(section, filename_base: str, category_hint: str = "
         time.sleep(0.25)
     return False
 
+def _wait_file_list_contains(section, filename_base: str, timeout_ms: int = 5000):
+    end = time.time() + (timeout_ms / 1000.0)
+    pat = re.compile(re.escape(filename_base), re.I)
+    while time.time() < end:
+        try:
+            txt = (section.inner_text() or "")
+            if pat.search(txt):
+                return True
+        except Exception:
+            pass
+        time.sleep(0.25)
+    return False
+
 def upload_docs_via_controls(page, context, section, controls: dict, required_docs, files_map):
-    """Upload each required doc using the located controls."""
-    file_input  = controls.get("file_input")
-    category    = controls.get("category")
-    upload_btn  = controls.get("upload_btn")
-    supports_multiple = bool(controls.get("supports_multiple"))
+    uploaded = []
 
-    if not file_input:
-        # Try again after clicking the upload button once
-        print("⚠️ No file input found — trying to click the upload button once …")
-        if upload_btn and upload_btn.is_visible():
-            try:
-                upload_btn.click(force=True)
-                context.wait_for_timeout(300)
-            except Exception:
-                pass
-            # re-scan
-            refreshed = _find_upload_controls(context, section)
-            file_input = refreshed.get("file_input")
-            category = category or refreshed.get("category")
-            upload_btn = upload_btn or refreshed.get("upload_btn")
-            supports_multiple = supports_multiple or bool(refreshed.get("supports_multiple"))
-
-    if not file_input:
-        print("❌ Still no file input after attempting to reveal it.")
-        return {"uploaded": [], "missing": required_docs}
-
-    # If no category and input supports multiple, we can upload many at once.
-    if not category and supports_multiple:
+    # If there is no category and the input supports multiple, batch upload
+    if not controls.get("category") and controls.get("supports_multiple"):
         paths = [files_map[d] for d in required_docs if files_map.get(d)]
         if paths:
             _ensure_file_input_visible(context)
-            file_input.set_input_files(paths)
-            if upload_btn and upload_btn.is_visible():
-                upload_btn.click(force=True)
-            # Best-effort verification for the first file
+            controls["file_input"].set_input_files(paths)
+            if controls.get("upload_btn") and controls["upload_btn"].is_visible():
+                controls["upload_btn"].click(force=True)
             b = os.path.basename(paths[0])
             _wait_file_list_contains(section or context, b)
         return {"uploaded": required_docs[:], "missing": []}
 
-    # Otherwise upload sequentially, selecting category when present.
-    uploaded = []
+    # Upload sequentially; RE-FIND controls each time because ATS UIs often re-render
     for doc in required_docs:
         path = files_map.get(doc)
         if not path or not os.path.exists(path):
             print(f"⚠️ Missing file for {doc}")
             continue
 
-        label_to_pick = CATEGORY_SYNONYMS["cv"][0] if doc == "cv" else CATEGORY_SYNONYMS["cover_letter"][0]
+        # Re-acquire the current, live controls inside the section
+        fresh = _find_upload_controls(context, section)
+        file_input  = fresh.get("file_input")
+        category    = fresh.get("category")
+        upload_btn  = fresh.get("upload_btn")
 
+        if not file_input:
+            print("⚠️ No live file input; attempting to click upload button to reveal it …")
+            if upload_btn and upload_btn.is_visible():
+                upload_btn.click(force=True)
+                context.wait_for_timeout(300)
+            fresh = _find_upload_controls(context, section)
+            file_input = fresh.get("file_input")
+            category   = category or fresh.get("category")
+            upload_btn = upload_btn or fresh.get("upload_btn")
+            if not file_input:
+                print("❌ Still no file input; skipping this document.")
+                continue
+
+        want_label = CATEGORY_SYNONYMS["cv"][0] if doc == "cv" else CATEGORY_SYNONYMS["cover_letter"][0]
+        ok_cat = True
         if category:
-            try:
-                ok = _select_category_value(page, context, category, label_to_pick)
-                print(f"{'✅' if ok else '⚠️'} Category set → {label_to_pick}")
-            except Exception:
-                pass
+            ok_cat = _select_category_value(page, context, category, want_label)
+            print(f"{'✅' if ok_cat else '⚠️'} Category set → {want_label}")
 
         _ensure_file_input_visible(context)
         try:
             file_input.set_input_files(path)
         except Exception:
-            # Re-find the input after UI re-render
-            controls = _find_upload_controls(context, section)
-            file_input = controls.get("file_input")
+            # Node may have been re-rendered; re-find once more
+            fresh = _find_upload_controls(context, section)
+            file_input = fresh.get("file_input")
             if not file_input:
                 print("⚠️ File input disappeared; cannot continue.")
-                break
+                continue
             file_input.set_input_files(path)
 
         if upload_btn and upload_btn.is_visible():
@@ -633,24 +631,34 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
                 pass
 
         base = os.path.basename(path)
-        if _wait_file_list_contains(section or context, base, label_to_pick):
+
+        # Prefer toast/notification if present
+        try:
+            notif = context.locator(":is(.alert,.toast,.notification):has-text('blev uploadet')")
+            if notif.count():
+                notif.first.wait_for(state="visible", timeout=3000)
+        except Exception:
+            pass
+
+        if _wait_file_list_contains(section or context, base):
             print(f"🗂️ Uploaded {doc} → {base}")
             uploaded.append(doc)
         else:
-            context.wait_for_timeout(2000)
-            if _wait_file_list_contains(section or context, base, label_to_pick):
+            context.wait_for_timeout(1500)
+            if _wait_file_list_contains(section or context, base):
                 print(f"🗂️ Uploaded (delayed confirm) {doc} → {base}")
                 uploaded.append(doc)
             else:
-                print(f"⚠️ Could not verify upload row for {doc} ({base}) — possibly delayed UI update")
+                print(f"⚠️ Could not verify upload row for {doc} ({base})")
 
-
-        # small pause between uploads
-        try: context.wait_for_timeout(300)
-        except Exception: pass
+        try:
+            context.wait_for_timeout(300)
+        except Exception:
+            pass
 
     missing = [d for d in required_docs if d not in uploaded]
     return {"uploaded": uploaded, "missing": missing}
+
 
 
 def handle_document_uploads(page, context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
