@@ -810,26 +810,25 @@ def _ai_fill_leftovers(page, user):
             val = (fdata.get("current_value") or "").strip()
             required = bool(fdata.get("required"))
 
-        if ftype in SELECT_LIKE_TYPES:
-            sel_text = fdata.get("selected_text") or ""
-            unfilled = _select_is_unfilled(sel_text, val)
-            if unfilled:
-                fr = frames[fdata["frame_index"]]
-                options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                fields_to_ai.append({
-                    "field_id": fid, "label": label, "type": "select",
-                    "required": required, "options": options
-                })
-                select_audit.append(
-                    f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
-                )
-        else:
-            if not val or force_regex.search(label):
-                fields_to_ai.append({
-                    "field_id": fid, "label": label, "type": ftype or "text",
-                    "required": required
-                })
-
+            if ftype == "select":
+                sel_text = fdata.get("selected_text") or ""
+                unfilled = _select_is_unfilled(sel_text, val)
+                if unfilled:
+                    fr = frames[fdata["frame_index"]]
+                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    fields_to_ai.append({
+                        "field_id": fid, "label": label, "type": "select",
+                        "required": required, "options": options
+                    })
+                    select_audit.append(
+                        f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
+                    )
+            else:
+                if not val or force_regex.search(label):
+                    fields_to_ai.append({
+                        "field_id": fid, "label": label, "type": ftype or "text",
+                        "required": required
+                    })
 
         print("🔎 DEBUG (select audit):")
         for line in select_audit[:25]:
@@ -891,15 +890,34 @@ def _ai_fill_leftovers(page, user):
                 continue
 
             fr = frames[fdata["frame_index"]]
-            if fdata.get("type") in SELECT_LIKE_TYPES:
+            if fdata.get("type") == "select":
                 opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                pick = _best_option_match(opts, str(ans)) or str(ans)
-                ok = _select_like_set(fr, fdata["query"], fdata["nth"], pick)
-                if ok:
-                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
-                else:
-                    print(f"⚠️ Could not set “{fdata.get('label','(no label)')}” to {pick}")
+                pick = _best_option_match(opts, str(ans)) or _fallback_required_option(opts)
+                if not pick:
+                    print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {ans}")
                     continue
+                try:
+                    fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
+                except Exception:
+                    fr.evaluate(
+                        """(a) => {
+                            const el = document.querySelectorAll(a.q)[a.n];
+                            if (!el) return;
+                            const want = (a.labelText || '').trim().toLowerCase();
+                            const opt = [...el.options].find(o =>
+                                (o.textContent || '').trim().toLowerCase() === want
+                            ) || [...el.options].find(o =>
+                                (o.textContent || '').toLowerCase().includes(want)
+                            );
+                            if (opt) {
+                                el.value = opt.value;
+                                el.dispatchEvent(new Event('input',{bubbles:true}));
+                                el.dispatchEvent(new Event('change',{bubbles:true}));
+                            }
+                        }""",
+                        {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
+                    )
+                print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
             else:
                 fr.evaluate(
                     """(a)=>{
@@ -913,7 +931,6 @@ def _ai_fill_leftovers(page, user):
                     {"q": fdata["query"], "n": fdata["nth"], "v": str(ans)}
                 )
                 print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {ans}")
-
             applied += 1
 
         total = prefilled + applied
