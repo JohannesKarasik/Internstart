@@ -345,10 +345,27 @@ def _find_documents_section(context):
     return context, (context.inner_text() or "")
 
 def _find_upload_controls(context, section):
-    """Locate file input, optional category select/combobox, and the upload button."""
+    """Locate file input, optional category select/combobox, and the upload button.
+       If no file input is present, try clicking the upload button once to spawn it."""
     root = section or context
 
-    # 1) File input
+    def _loc_first(scope, sel):
+        try:
+            loc = scope.locator(sel)
+            if loc.count() and loc.first.is_visible():
+                return loc.first
+        except Exception:
+            pass
+        return None
+
+    # 1) Upload button (look early because we might need to click it to spawn the input)
+    upload_btn = None
+    for sel in UPLOAD_BUTTON_CANDIDATES:
+        upload_btn = _loc_first(root, sel) or _loc_first(context, sel)
+        if upload_btn:
+            break
+
+    # 2) File input (initial probe)
     file_input = None
     try:
         cand = root.locator("input[type='file']")
@@ -359,18 +376,32 @@ def _find_upload_controls(context, section):
     except Exception:
         pass
 
-    # 2) Category select (native or custom)
+    # If no file input found yet, try to click the upload button to reveal it
+    if not file_input and upload_btn:
+        try:
+            print("🖱️ Clicking upload button to reveal file input …")
+            upload_btn.click(force=True)
+            context.wait_for_timeout(300)
+        except Exception:
+            pass
+        try:
+            cand = root.locator("input[type='file']")
+            if not cand.count():
+                cand = context.locator("input[type='file']")
+            if cand.count():
+                file_input = cand.first
+        except Exception:
+            pass
+
+    # 3) Category select (native or custom)
     category = None
     try:
-        # First try native select near the file input / in section
         near_select = root.locator("select")
         if not near_select.count():
             near_select = context.locator("select")
         if near_select.count():
-            # keep it; we’ll resolve actual value per upload
             category = near_select.first
         else:
-            # Try common custom select roots
             custom = root.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
             if not custom.count():
                 custom = context.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
@@ -379,32 +410,24 @@ def _find_upload_controls(context, section):
     except Exception:
         pass
 
-    # 3) Upload button
-    upload_btn = None
-    for sel in UPLOAD_BUTTON_CANDIDATES:
-        try:
-            loc = root.locator(sel)
-            if not loc.count():
-                loc = context.locator(sel)
-            if loc.count() and loc.first.is_visible():
-                upload_btn = loc.first
-                break
-        except Exception:
-            pass
-
-    # 4) Detect multiple
+    # 4) Multiple?
     supports_multiple = False
     try:
         if file_input:
             multiple_attr = file_input.get_attribute("multiple")
             if multiple_attr and str(multiple_attr).lower() not in {"false", "0", ""}:
                 supports_multiple = True
-        # textual hint
         sec_text = (section.inner_text() or "") if section else ""
         if re.search(r"upload flere|flere filer|multiple files|more than one", sec_text, re.I):
             supports_multiple = True
     except Exception:
         pass
+
+    # Log what we found (debug)
+    print(f"🔧 Upload controls → file_input={'yes' if file_input else 'no'}, "
+          f"category={'yes' if category else 'no'}, "
+          f"button={'yes' if upload_btn else 'no'}, "
+          f"multiple={'yes' if supports_multiple else 'no'}")
 
     return {
         "file_input": file_input,
@@ -412,6 +435,7 @@ def _find_upload_controls(context, section):
         "upload_btn": upload_btn,
         "supports_multiple": supports_multiple
     }
+
 
 def _ensure_file_input_visible(context):
     try:
@@ -541,7 +565,23 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
     supports_multiple = bool(controls.get("supports_multiple"))
 
     if not file_input:
-        print("⚠️ No file input found for document upload.")
+        # Try again after clicking the upload button once
+        print("⚠️ No file input found — trying to click the upload button once …")
+        if upload_btn and upload_btn.is_visible():
+            try:
+                upload_btn.click(force=True)
+                context.wait_for_timeout(300)
+            except Exception:
+                pass
+            # re-scan
+            refreshed = _find_upload_controls(context, section)
+            file_input = refreshed.get("file_input")
+            category = category or refreshed.get("category")
+            upload_btn = upload_btn or refreshed.get("upload_btn")
+            supports_multiple = supports_multiple or bool(refreshed.get("supports_multiple"))
+
+    if not file_input:
+        print("❌ Still no file input after attempting to reveal it.")
         return {"uploaded": [], "missing": required_docs}
 
     # If no category and input supports multiple, we can upload many at once.
@@ -1470,6 +1510,25 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 _ai_fill_leftovers(page, user)
             except Exception as e:
                 print(f"⚠️ AI leftovers pass failed: {e}")
+
+
+            # ---- NEW: document uploads (CV + default "application") ----
+            try:
+                print("📎 Document upload flow: starting …")
+                upload_summary = handle_document_uploads(
+                    context=context,
+                    user=user,
+                    resume_path=resume_path,
+                    cover_letter_text=cover_letter_text or "Default application text.",
+                    log_dir=log_dir,
+                    safe_company=safe_company,
+                    ts=ts
+                )
+                print(f"📦 Document upload flow summary: {upload_summary}")
+            except Exception as e:
+                print(f"⚠️ Document upload flow error: {e}")
+            # -------------------------------------------------------------
+
 
 
 
