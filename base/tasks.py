@@ -637,7 +637,13 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
             print(f"🗂️ Uploaded {doc} → {base}")
             uploaded.append(doc)
         else:
-            print(f"⚠️ Could not verify upload row for {doc} ({base})")
+            context.wait_for_timeout(2000)
+            if _wait_file_list_contains(section or context, base, label_to_pick):
+                print(f"🗂️ Uploaded (delayed confirm) {doc} → {base}")
+                uploaded.append(doc)
+            else:
+                print(f"⚠️ Could not verify upload row for {doc} ({base}) — possibly delayed UI update")
+
 
         # small pause between uploads
         try: context.wait_for_timeout(300)
