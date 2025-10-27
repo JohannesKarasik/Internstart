@@ -1524,23 +1524,22 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
 
 
             # ---- NEW: document uploads (CV + default "application") ----
-# ---- NEW: document uploads (CV + default "application") ----
-        try:
-            print("📎 Document upload flow: starting …")
-            upload_summary = handle_document_uploads(
-                page=page,                # pass the real Page object
-                context=context,          # page or frame we’re working inside
-                user=user,
-                resume_path=resume_path,
-                cover_letter_text=cover_letter_text or "Default application text.",
-                log_dir=log_dir,
-                safe_company=safe_company,
-                ts=ts
-            )
-            print(f"📦 Document upload flow summary: {upload_summary}")
-        except Exception as e:
-            print(f"⚠️ Document upload flow error: {e}")
-        # -------------------------------------------------------------
+            try:
+                print("📎 Document upload flow: starting …")
+                upload_summary = handle_document_uploads(
+                    page=page,                # pass the real Page object
+                    context=context,          # page or frame we’re working inside
+                    user=user,
+                    resume_path=resume_path,
+                    cover_letter_text=cover_letter_text or "Default application text.",
+                    log_dir=log_dir,
+                    safe_company=safe_company,
+                    ts=ts
+                )
+                print(f"📦 Document upload flow summary: {upload_summary}")
+            except Exception as e:
+                print(f"⚠️ Document upload flow error: {e}")
+            # -------------------------------------------------------------
 
 
 
