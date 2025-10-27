@@ -109,6 +109,110 @@ def _profile_get(profile: dict, *keys, default=None):
                 return sub[k]
     return default
 
+
+# --- SELECT-LIKE helpers (add once, near other utils) -----------------------
+SELECT_LIKE_TYPES = {"select", "combo", "md-select", "mat-select"}
+
+def _select_like_set(frame, query, nth, label_text: str) -> bool:
+    """Set a value on native <select> or custom select-like widgets."""
+    try:
+        return frame.evaluate(
+            """(a) => {
+              const el = document.querySelectorAll(a.q)[a.n];
+              if (!el) return false;
+              const want = (a.want || '').trim().toLowerCase();
+              const tag  = (el.tagName || '').toLowerCase();
+              const role = (el.getAttribute('role') || '').toLowerCase();
+              const hasListbox = (el.getAttribute('aria-haspopup') || '').toLowerCase() === 'listbox';
+
+              // Native <select>
+              if (tag === 'select') {
+                const opts = Array.from(el.options || []);
+                const hit  = opts.find(o => (o.textContent||'').trim().toLowerCase() === want)
+                          || opts.find(o => (o.textContent||'').trim().toLowerCase().includes(want));
+                if (!hit) return false;
+                el.value = hit.value;
+                el.dispatchEvent(new Event('input',  {bubbles:true}));
+                el.dispatchEvent(new Event('change', {bubbles:true}));
+                return true;
+              }
+
+              // Generic open
+              const open = () => { el.click(); };
+              open();
+
+              // Options can be rendered in overlays/portals:
+              const root = document;
+              const cand = [
+                ...root.querySelectorAll('[role="option"]'),
+                ...root.querySelectorAll('md-option'),
+                ...root.querySelectorAll('.mat-option-text'),
+                ...root.querySelectorAll('.select2-results__option'),
+              ];
+
+              const norm = s => (s||'').trim().toLowerCase();
+              let best = null;
+              for (const n of cand) {
+                const t = norm(n.innerText || n.textContent);
+                if (!t) continue;
+                if (t === want) { best = n; break; }
+                if (!best && t.startsWith(want)) best = n;
+                if (!best && t.includes(want))   best = n;
+              }
+              if (!best) {
+                // Escape the menu
+                el.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
+                return false;
+              }
+              const clickNode = best.closest('[role="option"]') || best.closest('md-option') || best;
+              clickNode.click();
+              el.dispatchEvent(new Event('change', {bubbles:true}));
+              return true;
+            }""",
+            {"q": query, "n": nth, "want": label_text or ""}
+        ) or False
+    except Exception:
+        return False
+
+def _extract_dropdown_options(frame, query, nth):
+    """Return visible option texts for native and custom selects."""
+    try:
+        return frame.evaluate(
+            """(a) => {
+              const el = document.querySelectorAll(a.q)[a.n];
+              if (!el) return [];
+              const tag  = (el.tagName || '').toLowerCase();
+
+              // Native <select>
+              if (tag === 'select') {
+                return Array.from(el.options || [])
+                        .map(o => (o.textContent||'').trim())
+                        .filter(Boolean).slice(0, 300);
+              }
+
+              // Open the menu
+              el.click();
+
+              const root = document;
+              const texts = [
+                ...root.querySelectorAll('[role="option"]'),
+                ...root.querySelectorAll('md-option'),
+                ...root.querySelectorAll('.mat-option-text'),
+                ...root.querySelectorAll('.select2-results__option'),
+              ]
+              .map(n => (n.innerText || n.textContent || '').trim())
+              .filter(Boolean);
+
+              // Close (best effort)
+              el.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
+              return Array.from(new Set(texts)).slice(0, 300);
+            }""",
+            {"q": query, "n": nth}
+        ) or []
+    except Exception:
+        return []
+
+
 def _rule_based_value(label, options, user_profile, user):
     """Return a best-guess string for *this* field label from profile, else None."""
     L = (label or "").strip().lower()
@@ -387,13 +491,24 @@ def _accessible_label(frame, el):
     except Exception:
         return ""
 
+
 def scan_all_fields(page):
+    # Broader net: native inputs + common select-like widgets
     selectors = [
         "input:not([type='hidden']):not([disabled])",
         "textarea:not([disabled])",
         "select:not([disabled])",
         "[contenteditable='true']",
+
+        # select-like
+        "[role='combobox']:not([aria-disabled='true'])",
+        "[aria-haspopup='listbox']:not([aria-disabled='true'])",
+        "md-select:not([disabled])",
+        "mat-select:not([disabled])",
+        ".select2-selection[role='combobox']",
+        ".choices__inner",
     ]
+
     inventory, frame_idx = [], {fr: i for i, fr in enumerate(page.frames)}
     total = 0
     for fr in page.frames:
@@ -402,34 +517,63 @@ def scan_all_fields(page):
             for i in range(loc.count()):
                 el = loc.nth(i)
                 try:
-                    if not el.is_visible(): 
+                    if not el.is_visible():
                         continue
 
-                    # Type & current value
-                    tag = el.evaluate("el => el.tagName && el.tagName.toLowerCase()")
-                    et = tag if tag == "select" else (el.get_attribute("type") or "").lower()
+                    tag  = el.evaluate("el => (el.tagName||'').toLowerCase()")
+                    role = (el.get_attribute("role") or "").lower()
+                    ah   = (el.get_attribute("aria-haspopup") or "").lower()
 
+                    # classify type
+                    if tag == "select":
+                        et = "select"
+                    elif tag == "md-select":
+                        et = "md-select"
+                    elif tag == "mat-select":
+                        et = "mat-select"
+                    elif role == "combobox" or ah == "listbox" or "choices__inner" in (el.get_attribute("class") or "") or "select2-selection" in (el.get_attribute("class") or ""):
+                        et = "combo"
+                    else:
+                        et = (el.get_attribute("type") or "text").lower()
+
+                    # read current value
                     current_val = ""
                     try:
-                        current_val = el.inner_text().strip() if q == "[contenteditable='true']" else el.input_value().strip()
+                        if q == "[contenteditable='true']":
+                            current_val = (el.inner_text() or "").strip()
+                        elif et in SELECT_LIKE_TYPES and tag != "select":
+                            # many custom selects keep "selected text" inside the element
+                            current_val = (el.inner_text() or el.get_attribute("aria-label") or "").strip()
+                        else:
+                            current_val = (el.input_value() or "").strip()
                     except Exception:
                         pass
 
-                    # Selected text for selects
+                    # selected text (native select only here; custom handled above)
                     selected_text = ""
                     if et == "select":
                         try:
                             selected_text = fr.evaluate(
-                                """(a) => { 
-                                    const e = document.querySelectorAll(a.q)[a.n];
-                                    if(!e) return '';
-                                    const o = e.options[e.selectedIndex];
-                                    return (o && o.textContent || '').trim();
+                                """(a) => {
+                                   const e = document.querySelectorAll(a.q)[a.n];
+                                   if (!e) return '';
+                                   const o = e.options[e.selectedIndex];
+                                   return (o && o.textContent || '').trim();
                                 }""",
                                 {"q": q, "n": i}
                             ) or ""
                         except Exception:
                             selected_text = ""
+
+                    required = False
+                    try:
+                        required = bool(
+                            el.get_attribute("required") or
+                            (el.get_attribute("aria-required") in ["true", True]) or
+                            (el.get_attribute("ng-required") is not None)   # Angular
+                        )
+                    except Exception:
+                        pass
 
                     inventory.append({
                         "frame_index": frame_idx[fr],
@@ -441,15 +585,15 @@ def scan_all_fields(page):
                         "placeholder": el.get_attribute("placeholder") or "",
                         "aria_label": el.get_attribute("aria-label") or "",
                         "label": _accessible_label(fr, el),
-                        "required": bool(el.get_attribute("required") or (el.get_attribute("aria-required") in ["true", True])),
+                        "required": required,
                         "current_value": current_val,
                         "selected_text": selected_text,
                     })
                     total += 1
                 except Exception:
                     pass
+
     print(f"🧩 Field scan complete — detected {total} fields across {len(page.frames)} frames.")
-    # EXTRA DEBUG: dump every field we see so you can compare with the UI
     for i, f in enumerate(inventory):
         print(
             f"   [{i:02d}] frame={f['frame_index']} nth={f['nth']} type='{f.get('type')}' "
@@ -458,6 +602,7 @@ def scan_all_fields(page):
             f"value='{(f.get('current_value') or '')[:80]}' req={f.get('required')}"
         )
     return inventory
+
 
 def _country_human(code: str) -> str:
     return {"DK":"Denmark","US":"United States","UK":"United Kingdom","FRA":"France","GER":"Germany"}.get((code or "").upper(), "")
@@ -514,21 +659,31 @@ def fill_from_inventory(page, user, inventory):
             try: el.scroll_into_view_if_needed(timeout=1500)
             except Exception: pass
 
-            is_select = (it.get("type") == "select")
+            is_select_like = (it.get("type") in SELECT_LIKE_TYPES)
 
-            if is_select:
-                try:
-                    el.select_option(label=val)
-                except Exception:
-                    fr.evaluate(
-                        """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
-                            const t=(a.w||'').toLowerCase();
-                            const o=[...el.options||[]];
-                            const m=o.find(x=>(x.textContent||'').trim().toLowerCase()===t)
-                                 || o.find(x=>(x.textContent||'').toLowerCase().includes(t));
-                            if(m){el.value=m.value; el.dispatchEvent(new Event('change',{bubbles:true}));}}""",
-                        {"q": it["query"], "n": it["nth"], "w": val}
-                    )
+            if is_select_like:
+                ok = False
+                if it.get("type") == "select":
+                    try:
+                        el.select_option(label=val)
+                        ok = True
+                    except Exception:
+                        pass
+                if not ok:  # custom select-like or fallback
+                    ok = _select_like_set(fr, it["query"], it["nth"], val)
+
+                if not ok:
+                    # last-chance: try matching against options we can see
+                    try:
+                        opts = _extract_dropdown_options(fr, it["query"], it["nth"])
+                        pick = _best_option_match(opts, val)
+                        if pick:
+                            ok = _select_like_set(fr, it["query"], it["nth"], pick)
+                    except Exception:
+                        pass
+
+                if not ok:
+                    continue  # couldn’t set this control
             else:
                 fr.evaluate(
                     """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
@@ -537,6 +692,7 @@ def fill_from_inventory(page, user, inventory):
                         el.dispatchEvent(new Event('change',{bubbles:true}));}""",
                     {"q": it["query"], "n": it["nth"], "v": val}
                 )
+
 
             print(f"✅ Filled “{meta[:60]}” → {val}")
             filled += 1
@@ -654,25 +810,26 @@ def _ai_fill_leftovers(page, user):
             val = (fdata.get("current_value") or "").strip()
             required = bool(fdata.get("required"))
 
-            if ftype == "select":
-                sel_text = fdata.get("selected_text") or ""
-                unfilled = _select_is_unfilled(sel_text, val)
-                if unfilled:
-                    fr = frames[fdata["frame_index"]]
-                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    fields_to_ai.append({
-                        "field_id": fid, "label": label, "type": "select",
-                        "required": required, "options": options
-                    })
-                    select_audit.append(
-                        f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
-                    )
-            else:
-                if not val or force_regex.search(label):
-                    fields_to_ai.append({
-                        "field_id": fid, "label": label, "type": ftype or "text",
-                        "required": required
-                    })
+        if ftype in SELECT_LIKE_TYPES:
+            sel_text = fdata.get("selected_text") or ""
+            unfilled = _select_is_unfilled(sel_text, val)
+            if unfilled:
+                fr = frames[fdata["frame_index"]]
+                options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                fields_to_ai.append({
+                    "field_id": fid, "label": label, "type": "select",
+                    "required": required, "options": options
+                })
+                select_audit.append(
+                    f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
+                )
+        else:
+            if not val or force_regex.search(label):
+                fields_to_ai.append({
+                    "field_id": fid, "label": label, "type": ftype or "text",
+                    "required": required
+                })
+
 
         print("🔎 DEBUG (select audit):")
         for line in select_audit[:25]:
@@ -734,34 +891,15 @@ def _ai_fill_leftovers(page, user):
                 continue
 
             fr = frames[fdata["frame_index"]]
-            if fdata.get("type") == "select":
+            if fdata.get("type") in SELECT_LIKE_TYPES:
                 opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                pick = _best_option_match(opts, str(ans)) or _fallback_required_option(opts)
-                if not pick:
-                    print(f"⚠️ No option match for “{fdata.get('label','(no label)')}” ← {ans}")
+                pick = _best_option_match(opts, str(ans)) or str(ans)
+                ok = _select_like_set(fr, fdata["query"], fdata["nth"], pick)
+                if ok:
+                    print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+                else:
+                    print(f"⚠️ Could not set “{fdata.get('label','(no label)')}” to {pick}")
                     continue
-                try:
-                    fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
-                except Exception:
-                    fr.evaluate(
-                        """(a) => {
-                            const el = document.querySelectorAll(a.q)[a.n];
-                            if (!el) return;
-                            const want = (a.labelText || '').trim().toLowerCase();
-                            const opt = [...el.options].find(o =>
-                                (o.textContent || '').trim().toLowerCase() === want
-                            ) || [...el.options].find(o =>
-                                (o.textContent || '').toLowerCase().includes(want)
-                            );
-                            if (opt) {
-                                el.value = opt.value;
-                                el.dispatchEvent(new Event('input',{bubbles:true}));
-                                el.dispatchEvent(new Event('change',{bubbles:true}));
-                            }
-                        }""",
-                        {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
-                    )
-                print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
             else:
                 fr.evaluate(
                     """(a)=>{
@@ -775,6 +913,7 @@ def _ai_fill_leftovers(page, user):
                     {"q": fdata["query"], "n": fdata["nth"], "v": str(ans)}
                 )
                 print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {ans}")
+
             applied += 1
 
         total = prefilled + applied
