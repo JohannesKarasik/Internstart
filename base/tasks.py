@@ -958,48 +958,58 @@ def _yesno_preference(label_text: str) -> str:
     return ""
 
 def _accessible_label(frame, el):
-    """Return best label text for a form control — works with detached, hidden, and React-rendered labels."""
+    """Return the best label text for a form control — works across frames and nested containers."""
     try:
-        # 1️⃣ aria-label direct
+        # 1️⃣ direct aria-label
         label = (el.get_attribute("aria-label") or "").strip()
         if label:
             return label
 
-        # 2️⃣ for/label association inside the frame (supports weird IDs like 'ctl00$ctl00$...')
+        # 2️⃣ try normal for/id link, even if not in same container
         el_id = el.get_attribute("id") or ""
         if el_id:
             try:
-                for_text = frame.evaluate(
+                label_for_text = frame.evaluate(
                     """(id) => {
-                        // Escape CSS special chars like $ in IDs
-                        const cssSafeId = CSS.escape ? CSS.escape(id) : id.replace(/([:.#$/[\]=])/g, '\\\\$1');
-                        let match = document.querySelector(`label[for='${cssSafeId}']`);
-                        if (!match) {
-                            // fallback: search ancestors too
+                        try {
+                            const cssSafeId = CSS.escape ? CSS.escape(id) : id.replace(/([:.#$/[\]=])/g, '\\\\$1');
+                            // Try direct match anywhere in DOM
+                            const labels = Array.from(document.querySelectorAll('label[for]'));
+                            for (const lb of labels) {
+                                if ((lb.getAttribute('for') || '') === id) {
+                                    const t = (lb.innerText || lb.textContent || '').trim();
+                                    if (t) return t;
+                                }
+                            }
+                            // Fallback: try nearby labels if not directly linked
                             const field = document.getElementById(id);
                             if (field) {
                                 let parent = field.parentElement;
-                                while (parent && !match) {
-                                    match = parent.querySelector(`label[for='${cssSafeId}']`);
+                                while (parent) {
+                                    const nearby = parent.querySelector('label');
+                                    if (nearby) {
+                                        const t = (nearby.innerText || nearby.textContent || '').trim();
+                                        if (t) return t;
+                                    }
                                     parent = parent.parentElement;
                                 }
                             }
-                        }
-                        if (!match) return '';
-                        return (match.innerText || match.textContent || '').trim();
+                            return '';
+                        } catch (err) { return ''; }
                     }""",
                     el_id
                 ) or ""
             except Exception:
-                for_text = ""
-            if for_text:
-                return for_text
+                label_for_text = ""
+            if label_for_text:
+                return label_for_text
 
-
-
-        # 3️⃣ browser association (covers wrapping <label>)
+        # 3️⃣ browser association (<label> wrapping element)
         try:
-            lab = frame.evaluate("(el) => el.labels?.[0]?.innerText?.trim() || el.labels?.[0]?.textContent?.trim() || ''", el) or ""
+            lab = frame.evaluate(
+                "(el) => el.labels?.[0]?.innerText?.trim() || el.labels?.[0]?.textContent?.trim() || ''",
+                el
+            ) or ""
         except Exception:
             lab = ""
         if lab:
@@ -1013,11 +1023,11 @@ def _accessible_label(frame, el):
                     """(ids) => {
                         const parts = [];
                         (ids || '').split(/\\s+/).forEach(id => {
-                          const node = document.getElementById(id);
-                          if (node) {
-                            const t = (node.innerText || node.textContent || '').trim();
-                            if (t) parts.push(t);
-                          }
+                            const node = document.getElementById(id);
+                            if (node) {
+                                const t = (node.innerText || node.textContent || '').trim();
+                                if (t) parts.push(t);
+                            }
                         });
                         return parts.join(' ').trim();
                     }""",
@@ -1028,7 +1038,7 @@ def _accessible_label(frame, el):
             if linked_text:
                 return linked_text
 
-        # 5️⃣ try preceding sibling / same container label
+        # 5️⃣ try nearby labels or parent .form-group/.field wrappers
         try:
             prox = frame.evaluate(
                 """(el) => {
@@ -1053,15 +1063,16 @@ def _accessible_label(frame, el):
         if prox:
             return prox
 
-        # 6️⃣ fallback: heuristic tokens
+        # 6️⃣ fallback to placeholder, name, id, or data-* attributes
         placeholder = (el.get_attribute("placeholder") or "").strip()
-        name_attr   = (el.get_attribute("name") or "").strip()
-        id_attr     = (el.get_attribute("id") or "").strip()
-        data_blob   = _collect_data_hints(frame, el)
+        name_attr = (el.get_attribute("name") or "").strip()
+        id_attr = (el.get_attribute("id") or "").strip()
+        data_blob = _collect_data_hints(frame, el)
         return _humanize_tokens(placeholder, name_attr, id_attr, data_blob)
 
     except Exception:
         return ""
+
 
 
 
