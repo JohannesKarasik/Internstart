@@ -132,13 +132,18 @@ def _infer_kind(label, placeholder="", aria_label="", data_hints="", ftype="text
         return "essay"
 
 
-    # Handle long text areas or application text
+        # Handle long text areas or application text
     if ftype in {"textarea", "text"}:
         if any(x in text for x in [
-            "motivation", "applicationtext", "ansøgning", "fortæl", "dig selv",
-            "søger du jobbet", "om dig", "why do you want this job", "cover letter"
+            "motivation", "motivationsbrev",
+            "applicationtext", "application text",   # ← add spaced variant
+            "ansøgning", "ansoegning",
+            "fortæl", "dig selv",
+            "søger du jobbet", "om dig",
+            "why do you want this job", "cover letter", "personal statement"
         ]):
             return "essay"
+
 
     if "email" in text:
         return "email"
@@ -1297,8 +1302,12 @@ def _ai_fill_leftovers(page, user):
 
             # Safety net: if we somehow didn’t catch it, force essay when the blob contains those tokens
             blob = " ".join([
-                raw_label, fdata.get("placeholder",""), fdata.get("aria_label",""), fdata.get("data_hints","")
+                label, raw_label,                      # ← include normalized label
+                fdata.get("placeholder",""),
+                fdata.get("aria_label",""),
+                fdata.get("data_hints","")
             ]).lower()
+
             if kind == "other" and re.search(r"(application\s*text|applicationtext|cover\s*letter|motivation|"
                                             r"motivationsbrev|ans(ø|oe)gning)", blob, re.I):
                 kind = "essay"
@@ -1360,6 +1369,7 @@ def _ai_fill_leftovers(page, user):
 
         # 4) Apply AI answers (with required fallback for selects)
         applied = 0
+        prefilled = 0
         frames = list(page.frames)
         for fdata in inv:
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
@@ -1426,7 +1436,10 @@ def _ai_fill_leftovers(page, user):
                         }""",
                         {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
                     )
-                print(f"✅ AI selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+                _disp = _normalize_label_text(
+                    fdata.get("label") or fdata.get("aria_label") or fdata.get("placeholder") or fdata.get("name") or ""
+                ) or (fdata.get("label") or "(no label)")
+                print(f"✅ AI selected “{_disp[:70]}” → {pick}")
             else:
                 fr.evaluate(
                     """(a)=>{
@@ -1439,7 +1452,10 @@ def _ai_fill_leftovers(page, user):
                     }""",
                     {"q": fdata["query"], "n": fdata["nth"], "v": str(ans)}
                 )
-                print(f"✅ AI filled “{fdata.get('label','(no label)')[:70]}” → {ans}")
+                _disp = _normalize_label_text(
+                    fdata.get("label") or fdata.get("aria_label") or fdata.get("placeholder") or fdata.get("name") or ""
+                ) or (fdata.get("label") or "(no label)")
+                print(f"✅ AI filled “{_disp[:70]}” → {ans}")
             applied += 1
 
         total = prefilled + applied

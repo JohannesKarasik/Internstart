@@ -71,6 +71,52 @@ FEW_SHOT = [
 ]
 
 
+def _normalize_label_text(label: str) -> str:
+    """
+    Clean weird labels like:
+      "[Key candidate.appFormPerson.personality.applicationText not found]"
+    into something GPT understands.
+    """
+    if not label:
+        return ""
+
+    raw = str(label).strip()
+
+    # If the raw already hints at the essay field, normalize to a friendly alias.
+    if re.search(r"(application\s*text|applicationtext|cover\s*letter|motivation|"
+                 r"motivationsbrev|ans(ø|oe)gning|personal(ity)?\s*(statement|profile)?)",
+                 raw, re.I):
+        return "application text"
+
+    # Common "required" noise
+    if raw.lower() in {"nødvendig", "obligatorisk", "required", "necessary"}:
+        return ""
+
+    # Special-case: salvage inside "[Key ... not found]" without dropping the useful token
+    m = re.search(r"\[([^]]+)\]", raw)
+    if m:
+        inside = m.group(1)
+        # remove leading "key" and trailing "not found"
+        inside = re.sub(r"^\s*key\s+", "", inside, flags=re.I)
+        inside = re.sub(r"\s*not\s*found\s*$", "", inside, flags=re.I)
+        # make human
+        inside = re.sub(r"[._]", " ", inside)
+        inside = re.sub(r"([a-z])([A-Z])", r"\1 \2", inside)
+        inside = re.sub(r"\s+", " ", inside).strip().lower()
+
+        # If the salvaged text contains our essay hints, collapse to alias
+        if re.search(r"(application\s*text|applicationtext|cover\s*letter|motivation|"
+                     r"motivationsbrev|ans(ø|oe)gning)", inside, re.I):
+            return "application text"
+        return inside or raw
+
+    # Generic humanization
+    txt = re.sub(r"([a-z])([A-Z])", r"\1 \2", raw)
+    txt = re.sub(r"[\[\]{}()/_.\-]+", " ", txt)
+    return re.sub(r"\s+", " ", txt).strip()
+
+
+
 def _few_shot_block():
     """Render example blocks inside the prompt for few-shot learning."""
     parts = []
@@ -83,40 +129,6 @@ def _few_shot_block():
         )
     return "\n".join(parts)
 
-
-def _normalize_label_text(label: str) -> str:
-    """
-    Clean weird labels like:
-      "[Key candidate.appFormPerson.personality.applicationText not found]"
-    into something GPT understands — without throwing away the useful token.
-    """
-    if not label:
-        return ""
-
-    raw = label.strip()
-
-    # 1) If the raw text already hints it's the essay/cover letter field, return a clean alias
-    if re.search(r"(application\s*text|applicationtext|cover\s*letter|motivation|"
-                 r"motivationsbrev|ans(ø|oe)gning|personal(ity)?\s*(statement|profile)?)",
-                 raw, re.I):
-        return "application text"
-
-    # 2) Map common "required" noise to empty
-    if raw.lower() in {"nødvendig", "obligatorisk", "required", "necessary"}:
-        return ""
-
-    # 3) If it’s a bracketed key, try to salvage human words from inside
-    m = re.search(r"\[([^]]+)\]", raw)
-    if m:
-        inside = m.group(1)
-        inside = re.sub(r"[._]", " ", inside)                 # dots/underscores → spaces
-        inside = re.sub(r"([a-z])([A-Z])", r"\1 \2", inside)  # camelCase → camel Case
-        return inside.strip().lower() or raw
-
-    # 4) Generic humanization
-    txt = re.sub(r"([a-z])([A-Z])", r"\1 \2", raw)
-    txt = re.sub(r"[\[\]{}()/_.\-]+", " ", txt)
-    return re.sub(r"\s+", " ", txt).strip()
 
 
 
