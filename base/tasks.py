@@ -1289,32 +1289,38 @@ def _ai_fill_leftovers(page, user):
                 or ""
             )
 
-            label = _normalize_label_text(raw_label).strip()
+            # Normalize for GPT clarity
+            normalized_label = _normalize_label_text(raw_label).strip()
 
-            # IMPORTANT: use RAW label for kind detection (so "applicationText" is visible)
+            # Use raw label for kind detection (to catch technical tokens like "applicationText")
             kind = _infer_kind(
-                raw_label,                              # <-- raw here
+                raw_label,
                 fdata.get("placeholder", ""),
                 fdata.get("aria_label", ""),
                 fdata.get("data_hints", ""),
                 ftype,
             )
 
-            # Safety net: if we somehow didn’t catch it, force essay when the blob contains those tokens
+            # Combine signals to force essay detection when relevant
             blob = " ".join([
-                label, raw_label,                      # ← include normalized label
-                fdata.get("placeholder",""),
-                fdata.get("aria_label",""),
-                fdata.get("data_hints","")
+                raw_label,
+                normalized_label,
+                fdata.get("placeholder", ""),
+                fdata.get("aria_label", ""),
+                fdata.get("data_hints", "")
             ]).lower()
 
-            if kind == "other" and re.search(r"(application\s*text|applicationtext|cover\s*letter|motivation|"
-                                            r"motivationsbrev|ans(ø|oe)gning)", blob, re.I):
+            if kind == "other" and re.search(
+                r"(application\s*text|applicationtext|cover\s*letter|motivation|"
+                r"motivationsbrev|ans(ø|oe)gning)",
+                blob,
+                re.I
+            ):
                 kind = "essay"
-                if not label:
-                    label = "application text"
+                if not normalized_label:
+                    normalized_label = "application text"
 
-
+            # Extract select options if applicable
             options = []
             if ftype in SELECT_LIKE_TYPES:
                 try:
@@ -1323,18 +1329,18 @@ def _ai_fill_leftovers(page, user):
                 except Exception:
                     options = []
 
+            # Append to AI field list using the normalized label
             fields_to_ai.append({
                 "field_id": fid,
-                "label": label,
+                "label": normalized_label or raw_label,   # 🧠 use normalized version for AI
                 "type": ftype,
                 "required": bool(fdata.get("required")),
                 "placeholder": fdata.get("placeholder", ""),
                 "aria_label": fdata.get("aria_label", ""),
                 "data_hints": fdata.get("data_hints", ""),
-                "kind": kind,                     # 🧩 key addition
+                "kind": kind,
                 "options": options,
             })
-
 
         print(f"🤖 AI-first mode: sending {len(fields_to_ai)} fields for interpretation…")
 
