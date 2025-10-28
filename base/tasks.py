@@ -1,4 +1,6 @@
 from playwright.sync_api import sync_playwright
+from base.ai import field_interpreter as fi
+
 from django.conf import settings
 from .models import ATSRoom, User
 from .ats_filler import fill_dynamic_fields  # optional mop-up, left in import
@@ -1281,16 +1283,28 @@ def _ai_fill_leftovers(page, user):
                 or fdata.get("name")
                 or ""
             )
+
             label = _normalize_label_text(raw_label).strip()
 
-            # 🔍 detect semantic meaning (essay, phone, email, etc.)
+            # IMPORTANT: use RAW label for kind detection (so "applicationText" is visible)
             kind = _infer_kind(
-                label,
+                raw_label,                              # <-- raw here
                 fdata.get("placeholder", ""),
                 fdata.get("aria_label", ""),
                 fdata.get("data_hints", ""),
                 ftype,
             )
+
+            # Safety net: if we somehow didn’t catch it, force essay when the blob contains those tokens
+            blob = " ".join([
+                raw_label, fdata.get("placeholder",""), fdata.get("aria_label",""), fdata.get("data_hints","")
+            ]).lower()
+            if kind == "other" and re.search(r"(application\s*text|applicationtext|cover\s*letter|motivation|"
+                                            r"motivationsbrev|ans(ø|oe)gning)", blob, re.I):
+                kind = "essay"
+                if not label:
+                    label = "application text"
+
 
             options = []
             if ftype in SELECT_LIKE_TYPES:
