@@ -19,17 +19,7 @@ _PLACEHOLDER_SELECT_TEXTS = {
 _PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg", "9999"}
 
 
-EMPTY_SENTINELS = {"n/a", "na", "-", "—", "kr", "kr.", "dkk"}
 
-def _is_effectively_empty(s: str) -> bool:
-    v = (s or "").strip().lower()
-    if not v: 
-        return True
-    if v in EMPTY_SENTINELS:
-        return True
-    if re.fullmatch(r"0+", v):   # "0", "00", etc.
-        return True
-    return False
 
 def _norm(s): 
     return (s or "").strip().lower()
@@ -69,18 +59,7 @@ def _best_option_match(options, want_text):
     return best
 
 
-SALARY_KEYS = {
-    "løn", "lon", "lønforventning", "lonforventning",
-    "salary", "expected salary", "desired salary",
-    "compensation", "pay", "wage", "pension"
-}
 
-def _looks_like_salary(*parts) -> bool:
-    text = _normalize_label(" ".join([p or "" for p in parts]))
-    return any(k in text for k in SALARY_KEYS)
-
-def _digits_only(x) -> str:
-    return re.sub(r"[^\d]", "", str(x or ""))
 
 # ---------------- AI leftovers with dropdown support ----------------
 
@@ -974,8 +953,10 @@ def _accessible_label(frame, el):
               let near = '';
               const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
               if (wrap) {
+                // Try common labely things first
                 let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
                 near = txt(cand);
+                // If still nothing, walk a few previous siblings
                 if (!near) {
                   let prev = el.previousElementSibling;
                   for (let i = 0; i < 4 && !near && prev; i++) {
@@ -991,7 +972,6 @@ def _accessible_label(frame, el):
         ) or ""
     except Exception:
         return ""
-
 
 
 
@@ -1173,36 +1153,8 @@ def fill_from_inventory(page, user, inventory):
                 curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
                 curr = ""
-            if not _is_effectively_empty(curr):
+            if curr and curr.upper()!="N/A":
                 continue
-
-
-            # --- SALARY EXPECTATIONS: force a numeric value early ---
-            label_norm = _normalize_label(label)
-            if any(k in label_norm for k in ["løn", "lon", "lønforventning", "lonforventning", "salary", "compensation", "pay", "wage"]):
-                sal = (getattr(user, "expected_salary", None)
-                    or _profile_get(user_profile, "expected_salary")
-                    or getattr(settings, "DEFAULT_EXPECTED_SALARY_DKK", None))
-                if sal:
-                    sal_digits = re.sub(r"[^\d]", "", str(sal))
-                    if sal_digits:
-                        fr = frames[fdata["frame_index"]]
-                        fr.evaluate(
-                            """(a)=>{
-                                const el = document.querySelectorAll(a.q)[a.n];
-                                if (!el) return;
-                                if (el.isContentEditable) { el.innerText = a.v; }
-                                else { el.value = a.v; }
-                                el.dispatchEvent(new Event('input', {bubbles:true}));
-                                el.dispatchEvent(new Event('change', {bubbles:true}));
-                            }""",
-                            {"q": q, "n": n, "v": sal_digits}
-                        )
-                        print(f"✅ RB filled salary “{label[:70]}” → {sal_digits}")
-                        prefilled += 1
-                        already_filled_fids.add(fid)
-                        continue
-
 
             meta = _attrs_blob(
                 label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
@@ -1289,7 +1241,7 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
 
             # skip if something is already entered
-            if not _is_effectively_empty(curr):
+            if curr:
                 continue
 
             options = []
