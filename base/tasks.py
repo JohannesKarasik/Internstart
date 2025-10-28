@@ -1078,10 +1078,9 @@ def _accessible_label(frame, el):
             try:
                 for_text = frame.evaluate(
                     """(id) => {
-                        try {
-                          const lb = document.querySelector(`label[for="${id}"]`);
-                          return lb ? (lb.innerText || lb.textContent || '').trim() : '';
-                        } catch(e) { return ''; }
+                        const lb = Array.from(document.querySelectorAll('label'))
+                          .find(l => (l.getAttribute('for') || '') === id);
+                        return lb ? (lb.innerText || lb.textContent || '').trim() : '';
                     }""",
                     el_id
                 ) or ""
@@ -1361,7 +1360,7 @@ def fill_from_inventory(page, user, inventory):
                 data_hints=it.get("data_hints",""),
                 type_=it.get("type","")
             )
-            
+
             val = _value_from_meta(user, meta)
             if not val: 
                 continue
