@@ -69,18 +69,7 @@ def _best_option_match(options, want_text):
     return best
 
 
-SALARY_KEYS = {
-    "løn", "lon", "lønforventning", "lonforventning",
-    "salary", "expected salary", "desired salary",
-    "compensation", "pay", "wage", "pension"
-}
 
-def _looks_like_salary(*parts) -> bool:
-    text = _normalize_label(" ".join([p or "" for p in parts]))
-    return any(k in text for k in SALARY_KEYS)
-
-def _digits_only(x) -> str:
-    return re.sub(r"[^\d]", "", str(x or ""))
 
 # ---------------- AI leftovers with dropdown support ----------------
 
@@ -974,8 +963,10 @@ def _accessible_label(frame, el):
               let near = '';
               const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
               if (wrap) {
+                // Try common labely things first
                 let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
                 near = txt(cand);
+                // If still nothing, walk a few previous siblings
                 if (!near) {
                   let prev = el.previousElementSibling;
                   for (let i = 0; i < 4 && !near && prev; i++) {
@@ -991,7 +982,6 @@ def _accessible_label(frame, el):
         ) or ""
     except Exception:
         return ""
-
 
 
 
@@ -1145,11 +1135,10 @@ def _value_from_meta(user, meta: str):
 
         # Salary (include ASCII and English/Danish variants)
         ([
-        "løn", "lon", "lonforventning", "lønforventning",
-        "salary", "expected salary", "expected pay", "desired salary",
-        "compensation", "expected compensation", "kompensation", "pension"
+          "løn", "lon", "lonforventning", "lønforventning",
+          "salary", "expected salary", "expected pay", "desired salary",
+          "compensation", "expected compensation", "kompensation"
         ], _numify_salary(getattr(user, "expected_salary", ""))),
-
     ]
 
     for keys, val in mapping:
@@ -1176,33 +1165,6 @@ def fill_from_inventory(page, user, inventory):
                 curr = ""
             if not _is_effectively_empty(curr):
                 continue
-
-
-                # --- SALARY EXPECTATIONS: force a numeric value early ---
-            # --- SALARY EXPECTATIONS: handle early & robustly ---
-            label_text = (it.get("label") or it.get("placeholder") or it.get("aria_label")
-                        or it.get("name") or it.get("id") or "")
-            if _looks_like_salary(label_text, it.get("name"), it.get("id"),
-                                it.get("placeholder"), it.get("aria_label")):
-                raw_sal = getattr(user, "expected_salary", "") or getattr(settings, "DEFAULT_EXPECTED_SALARY_DKK", "")
-                sal_digits = _digits_only(raw_sal)
-                if sal_digits:
-                    try:
-                        fr.evaluate(
-                            """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
-                                    if (el.isContentEditable) { el.innerText = a.v; }
-                                    else { el.value = a.v; }
-                                    el.dispatchEvent(new Event('input', {bubbles:true}));
-                                    el.dispatchEvent(new Event('change', {bubbles:true})); }""",
-                            {"q": it["query"], "n": it["nth"], "v": sal_digits}
-                        )
-                        print(f"✅ Filled salary “{label_text[:70]}” → {sal_digits}")
-                        filled += 1
-                        continue
-                    except Exception:
-                        pass
-
-
 
             meta = _attrs_blob(
                 label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
@@ -1398,11 +1360,7 @@ def _ai_fill_leftovers(page, user):
 
         # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
-        answers = map_fields_to_answers(
-            fields_to_ai,
-            user_profile,
-            system_prompt="You must always provide a realistic value for each field. Never answer 'skip'. Guess a sensible value if unsure."
-        )
+        answers = map_fields_to_answers(fields_to_ai, user_profile)
         print("============== 🧠 AI RAW OUTPUT ==============")
         try:
             print(json.dumps(answers, indent=2, ensure_ascii=False))
@@ -1417,49 +1375,38 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
             if fid in already_filled_fids:
                 continue
-
             ans = answers.get(fid)
-            # --- FORCE A GUESS FOR ALL FIELDS ---
             if ans is None or str(ans).lower() == "skip":
-                label = fdata.get("label", "")
-                ftype = fdata.get("type", "")
-                options = []
-                if ftype == "select":
-                    try:
-                        fr = frames[fdata["frame_index"]]
-                        options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    except Exception:
-                        pass
-
-                # Rule-based default for text fields
-                if ftype in {"text", "textarea"}:
-                    if "name" in label.lower():
-                        ans = getattr(user, "first_name", "") or "N/A"
-                    elif "email" in label.lower():
-                        ans = getattr(user, "email", "") or "unknown@mail.com"
-                    elif "phone" in label.lower():
-                        ans = getattr(user, "phone_number", "") or "+4500000000"
-                    elif any(k in label.lower() for k in ["city", "by"]):
-                        ans = getattr(user, "city", "") or "Copenhagen"
-                    elif any(k in label.lower() for k in ["address", "street", "vej"]):
-                        ans = getattr(user, "address", "") or "Unknown Street"
-                    elif any(k in label.lower() for k in ["løn", "salary", "compensation", "pay", "wage"]):
-                        ans = getattr(user, "expected_salary", "") or "35000"
-                    else:
-                        ans = "N/A"
-
-                # Fallback for selects / dropdowns
-                elif ftype == "select":
-                    if options:
-                        ans = options[0] if not options[0].lower().startswith("vælg") else (options[1] if len(options) > 1 else options[0])
-                    else:
-                        ans = "N/A"
-
-                else:
-                    ans = "N/A"
-
-                print(f"⚠️ AI had no answer, guessing for “{label[:60]}” → {ans}")
-
+                # if it's a required select, try a safe fallback
+                if fdata.get("type") == "select" and fdata.get("required"):
+                    fr = frames[fdata["frame_index"]]
+                    opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    pick = _fallback_required_option(opts)
+                    if pick:
+                        try:
+                            fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
+                        except Exception:
+                            fr.evaluate(
+                                """(a) => {
+                                    const el = document.querySelectorAll(a.q)[a.n];
+                                    if (!el) return;
+                                    const want = (a.labelText || '').trim().toLowerCase();
+                                    const opt = [...el.options].find(o =>
+                                        (o.textContent || '').trim().toLowerCase() === want
+                                    ) || [...el.options].find(o =>
+                                        (o.textContent || '').toLowerCase().includes(want)
+                                    );
+                                    if (opt) {
+                                        el.value = opt.value;
+                                        el.dispatchEvent(new Event('input',{bubbles:true}));
+                                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                                    }
+                                }""",
+                                {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
+                            )
+                        print(f"✅ Fallback selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
+                        applied += 1
+                continue
 
             fr = frames[fdata["frame_index"]]
             if fdata.get("type") == "select":
