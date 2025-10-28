@@ -1380,39 +1380,51 @@ def _ai_fill_leftovers(page, user):
                     print(f"⚠️ RB could not fill {fid}: {e}")
 
         # 2) Build payload for AI (exclude what we already prefilled)
-        fields_to_ai = []
-        select_audit = []
-        force_regex = re.compile(r"(stilling|position|arbejdsgiver|employer)", re.I)
-        for fdata in inv:
-            fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            if fid in already_filled_fids:
-                continue
+# 2) Build payload for AI (exclude what we already prefilled)
+    fields_to_ai = []
+    select_audit = []
 
-            ftype = fdata.get("type") or ""
-            label = (fdata.get("label") or fdata.get("placeholder") or
-                     fdata.get("aria_label") or fdata.get("name") or "")
-            val = (fdata.get("current_value") or "").strip()
-            required = bool(fdata.get("required"))
+    # We’ll include ALL unfilled fields — not just required ones.
+    # Force regex ensures employment fields get sent even if already filled.
+    force_regex = re.compile(r"(stilling|position|arbejdsgiver|employer)", re.I)
 
-            if ftype == "select":
-                sel_text = fdata.get("selected_text") or ""
-                unfilled = _select_is_unfilled(sel_text, val)
-                if unfilled:
-                    fr = frames[fdata["frame_index"]]
-                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    fields_to_ai.append({
-                        "field_id": fid, "label": label, "type": "select",
-                        "required": required, "options": options
-                    })
-                    select_audit.append(
-                        f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
-                    )
-            else:
-                if not val or force_regex.search(label):
-                    fields_to_ai.append({
-                        "field_id": fid, "label": label, "type": ftype or "text",
-                        "required": required
-                    })
+    for fdata in inv:
+        fid = f"{fdata['frame_index']}_{fdata['nth']}"
+        if fid in already_filled_fids:
+            continue
+
+        ftype = fdata.get("type") or ""
+        label = (fdata.get("label") or fdata.get("placeholder") or
+                fdata.get("aria_label") or fdata.get("name") or "")
+        val = (fdata.get("current_value") or "").strip()
+
+        # Treat anything empty as unfilled (regardless of required)
+        if ftype == "select":
+            sel_text = fdata.get("selected_text") or ""
+            unfilled = _select_is_unfilled(sel_text, val)
+            if unfilled:
+                fr = frames[fdata["frame_index"]]
+                options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                fields_to_ai.append({
+                    "field_id": fid,
+                    "label": label,
+                    "type": "select",
+                    "required": bool(fdata.get("required")),
+                    "options": options,
+                })
+                select_audit.append(
+                    f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
+                )
+        else:
+            # include if empty or relevant by regex
+            if (not val) or force_regex.search(label):
+                fields_to_ai.append({
+                    "field_id": fid,
+                    "label": label,
+                    "type": ftype or "text",
+                    "required": bool(fdata.get("required")),
+                })
+
 
         print("🔎 DEBUG (select audit):")
         for line in select_audit[:25]:
