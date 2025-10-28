@@ -1008,6 +1008,35 @@ def _yesno_preference(label_text: str) -> str:
     if AUTO_NO_RE.search(L):  return "No"
     return ""
 
+
+def _selected_text(frame, el):
+    """Return the visible selected text for dropdowns (<select> or custom widgets)."""
+    try:
+        tag = (el.get_attribute("tagName") or "").lower()
+        if tag == "select":
+            return frame.evaluate(
+                "(sel) => sel.options[sel.selectedIndex]?.textContent?.trim() || ''",
+                el
+            ) or ""
+        # Try to extract for custom widgets
+        return frame.evaluate(
+            """(el) => {
+                const role = (el.getAttribute('role') || '').toLowerCase();
+                if (role === 'combobox' || role === 'listbox') {
+                    const t = el.innerText || el.textContent || '';
+                    return t.trim();
+                }
+                const label = el.closest('[aria-labelledby]')?.innerText
+                           || el.closest('[role="combobox"]')?.innerText
+                           || '';
+                return (label || '').trim();
+            }""",
+            el
+        ) or ""
+    except Exception:
+        return ""
+
+
 def _accessible_label(frame, el):
     try:
         return frame.evaluate(
