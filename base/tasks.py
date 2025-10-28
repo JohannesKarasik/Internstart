@@ -1436,7 +1436,25 @@ def _ai_fill_leftovers(page, user):
 
         # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
-        answers = map_fields_to_answers(fields_to_ai, user_profile)
+
+
+        system_prompt = """
+        You are an AI that fills job application forms using a user's profile.
+        Match each field label to the most relevant piece of information.
+
+        Guidelines:
+        - If a label mentions "Nuværende stilling" or "Current position", use the user's current job title.
+        - If a label mentions "Nuværende arbejdsgiver" or "Current employer", use the user's current company.
+        - If it says "løn", use expected salary.
+        - If it asks about experience, use years of experience.
+        - If you are not sure, infer from related fields. Do not skip unless it is clearly irrelevant.
+        - Return the answer for *every* field — never skip unless the field truly cannot be inferred.
+        - Translate non-English labels as needed (for example, 'stilling' = 'position', 'arbejdsgiver' = 'employer', etc.)
+        """
+
+
+
+        answers = map_fields_to_answers(fields_to_ai, user_profile, system_prompt=system_prompt)
         print("============== 🧠 AI RAW OUTPUT ==============")
         try:
             print(json.dumps(answers, indent=2, ensure_ascii=False))
