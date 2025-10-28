@@ -1009,42 +1009,44 @@ def _yesno_preference(label_text: str) -> str:
     return ""
 
 def _accessible_label(frame, el):
+    """Return the best-guess label text for a form element."""
     try:
-        return frame.evaluate(
-            """(el) => {
-              const txt = n => ((n && (n.innerText || n.textContent)) || '').trim();
-              const byIds = (el.getAttribute('aria-labelledby') || '')
-                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+        # 1️⃣ Highest priority: aria-label (explicit label)
+        label = (el.get_attribute("aria-label") or "").strip()
+        if label:
+            return label
 
-              const described = (el.getAttribute('aria-describedby') || '')
-                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
-
-              const lab = (el.labels && el.labels[0] && txt(el.labels[0])) || '';
-              const aria = el.getAttribute('aria-label') || '';
-              const ph = el.getAttribute('placeholder') || '';
-
-              let near = '';
-              const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
-              if (wrap) {
-                // Try common labely things first
-                let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
-                near = txt(cand);
-                // If still nothing, walk a few previous siblings
-                if (!near) {
-                  let prev = el.previousElementSibling;
-                  for (let i = 0; i < 4 && !near && prev; i++) {
-                    near = txt(prev);
-                    prev = prev.previousElementSibling;
-                  }
-                }
-              }
-
-              return [lab, aria, ph, byIds, described, near].join(' ').replace(/\\s+/g,' ').trim();
-            }""",
-            el
+        # 2️⃣ Next: <label for="id"> or .labels
+        lab = frame.evaluate(
+            "(el) => el.labels?.[0]?.innerText || ''", el
         ) or ""
+        if lab.strip():
+            return lab.strip()
+
+        # 3️⃣ aria-labelledby
+        label_id = el.get_attribute("aria-labelledby")
+        if label_id:
+            linked = frame.query_selector(f"#{label_id}")
+            if linked:
+                t = (linked.inner_text() or "").strip()
+                if t:
+                    return t
+
+        # 4️⃣ Nearby text
+        nearby = frame.evaluate(
+            """(el) => {
+                const prev = el.closest('td,div,tr,span')?.querySelector('label, span, b, strong, p');
+                return prev ? prev.innerText.trim() : '';
+            }""",
+            el,
+        ) or ""
+        if nearby:
+            return nearby.strip()
+
+        return ""
     except Exception:
         return ""
+
 
 
 
