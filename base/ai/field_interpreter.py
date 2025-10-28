@@ -106,8 +106,10 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
               - free-text strings for text inputs, or
               - exact strings from `options` for selects.
     """
-    if not fields or not user_profile:
+    if not fields:
         return {}
+    user_profile = user_profile or {}
+
 
     # Default system prompt if none provided
     base_system_prompt = system_prompt or """
@@ -169,8 +171,8 @@ Returnér KUN et gyldigt JSON-objekt med formatet:
             match = re.search(r"\{.*\}", text, re.DOTALL)
             if match:
                 return json.loads(match.group(0))
-            print("⚠️ Could not parse model output:", text)
-            return {}
+        print("⚠️ Could not parse model output, returning empty:", text)
+        return {f["field_id"]: "" for f in fields}
 
     except Exception as e:
         print(f"❌ AI field mapping failed: {e}")

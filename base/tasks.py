@@ -217,75 +217,6 @@ def _extract_dropdown_options(frame, query, nth):
         return []
 
 
-def _rule_based_value(label, options, user_profile, user):
-    """Return a best-guess string for *this* field label from profile, else None."""
-    L = _normalize_label(label or "")
-
-    # Address block
-    if "adresse" in L or "address" in L:
-        return getattr(user, "address", None) \
-            or _profile_get(user_profile, "address", "street", "address_line_1")
-    if "postnummer" in L or "postal" in L or "zip" in L:
-        return getattr(user, "postal_code", None) \
-            or _profile_get(user_profile, "postal_code", "zip_code")
-    if re.search(r"\bby\b", L) or "city" in L:  # city (Danish)
-        return getattr(user, "city", None) \
-            or _profile_get(user_profile, "city", "location")
-
-    # Current position / employer
-    if re.search(r"(nuværende\s+stilling|current\s*position|title\s*\(current\)|position)", L):
-        val = getattr(user, "occupation", None) or _profile_get(user_profile, "current_position", "occupation")
-        if not val or str(val).strip().lower() in {"none", "non", "n/a", "-", ""}:
-            val = "Ledig"
-        return val
-
-    if re.search(r"(nuværende\s+arbejdsgiver|current\s*employer|company)", L):
-        val = getattr(user, "category", None) or _profile_get(user_profile, "current_employer", "company")
-        if not val or str(val).strip().lower() in {"none", "non", "n/a", "-", ""}:
-            val = "Ingen"
-        return val
-
-
-    # Education – field of study
-    if "fagområde" in L or "fagomraade" in L or "field of study" in L:
-        return _profile_get(user_profile, "field_of_study")
-    # Education – degree title
-    if "titel" in L and "uddannelse" in L or "degree" in L:
-        deg = _profile_get(user_profile, "highest_education_level", "degree", "highest_level") or ""
-        deg = (deg.replace("Bachelor’s", "Bachelor")
-                  .replace("Bachelor's", "Bachelor")
-                  .replace("Master’s", "Master")
-                  .replace("Master's", "Master")
-                  .replace("PhD", "Ph.d.")
-                  .replace("High School", "Gymnasial"))
-        return deg
-
-    # Years of experience
-    if "totalt antal års arbejdserfaring" in L or "arbejdserfaring" in L or "experience" in L:
-        yrs = _profile_get(user_profile, "years_experience")
-        if yrs is None and str(_profile_get(user_profile, "under_education")).lower() in {"yes", "true", "1"}:
-            yrs = 0
-        if yrs is not None:
-            if options:
-                return f"{yrs} År"  # try to match "N År"
-            return str(yrs)
-
-    # Consent type wording (if our auto-YES didn’t catch it)
-    if "må dele" in L or "dele din ansøgning" in L or "consent" in L:
-        return "Ja"
-
-    # Gender (if present in profile)
-    if "køn" in L or "gender" in L:
-        g = _profile_get(user_profile, "gender")
-        return g
-
-        # Salary expectations
-    if "løn" in L or "salary" in L or "pay" in L or "wage" in L:
-        sal = getattr(user, "expected_salary", None) or _profile_get(user_profile, "expected_salary")
-        if sal:
-            return str(sal)
-
-    return None
 
 
 # ---------------- misc helpers ----------------
@@ -431,79 +362,7 @@ def _is_fillable_type(t: str) -> bool:
     t = (t or "").lower()
     return (t in TEXT_LIKE_TYPES) or (t in SELECT_LIKE_TYPES)
 
-def _synth_value_for_text(label: str, ftype: str, user_profile: dict, user) -> str:
-    L = _normalize_label(label or "")
-    # sensible Danish defaults
-    if "email" in L or "mail" in L:
-        return getattr(user, "email", "") or "candidate@example.com"
-    if "phone" in L or "mobil" in L or "tel" in L:
-        raw = getattr(user, "phone_number", "") or "42424242"
-        cc = (getattr(user, "country", "") or "DK").upper()
-        dial = DIAL.get(cc, "+45")
-        return raw if raw.startswith("+") else f"{dial} {raw}"
-    if "postnummer" in L or "zip" in L or "postal" in L:
-        return getattr(user, "postal_code", "") or "2100"
-    if re.search(r"\bby\b", L) or "city" in L:
-        return getattr(user, "city", "") or "København"
-    if "adresse" in L or "address" in L:
-        return getattr(user, "address", "") or "Testvej 1"
-    if "stilling" in L or "position" in L or "title" in L:
-        return _profile_get(user_profile, "current_position", "occupation") or "Ledig"
-    if "arbejdsgiver" in L or "employer" in L or "company" in L:
-        return _profile_get(user_profile, "current_employer", "company") or "Ingen"
-    if ("løn" in L or "salary" in L or "compensation" in L):
-        val = getattr(user, "expected_salary", None) or _profile_get(user_profile, "expected_salary")
-        if ftype == "number":
-            return re.sub(r"[^\d]", "", str(val or "0")) or "0"
-        return str(val or "Efter aftale")
-    if ("fagområde" in L) or ("field of study" in L):
-        return _profile_get(user_profile, "field_of_study") or "Andet område"
-    if ("titel" in L and "uddannelse" in L) or "degree" in L:
-        return _profile_get(user_profile, "highest_education_level", "degree") or "Bachelor"
 
-    # generic fallbacks
-    if ftype == "email":  return "candidate@example.com"
-    if ftype == "tel":    return "+45 42424242"
-    if ftype == "number": return "1"
-    return "N/A"
-
-def _synth_value_for_select(label: str, options: list[str]) -> str | None:
-    """Choose a reasonable option for any select when AI is silent."""
-    if not options:
-        return None
-    L = _normalize_label(label or "")
-    # consent / privacy → Yes / Ja if available
-    if re.search(r"(consent|agree|gdpr|dele.*ansogning|må.*dele)", L):
-        for want in ("Ja", "Yes"):
-            for o in options:
-                if want.lower() in o.lower(): return o
-    # gender → "Andet" or similar neutral
-    if re.search(r"k(ø|o)n|gender", L):
-        for want in ("Foretrækker at undlade", "Andet", "Other"):
-            for o in options:
-                if want.lower() in o.lower(): return o
-    # years of experience → the smallest available (often 0 or 1)
-    if "erfaring" in L or "experience" in L:
-        nums = []
-        for o in options:
-            m = re.search(r"(\d+)", o)
-            if m: nums.append((int(m.group(1)), o))
-        if nums:
-            return sorted(nums, key=lambda x: x[0])[0][1]
-    # degree / uddannelse → Bachelor/Master if present
-    if "uddannelse" in L or "degree" in L:
-        for want in ("Bachelor", "Master"):
-            for o in options:
-                if want.lower() in o.lower(): return o
-    # heard about job → Andet/Other
-    if "hvor har du hørt" in L or "how did you hear" in L or "kilde" in L:
-        for want in ("Andet", "Other"):
-            for o in options:
-                if want.lower() in o.lower(): return o
-
-    # otherwise pick first non-placeholder (or last resort first item)
-    pick = _fallback_required_option(options)
-    return pick or options[0]
 
 
 def _find_upload_controls(context, section):
@@ -1278,122 +1137,7 @@ def _attrs_blob(**kw):
 
 
 
-def _value_from_meta(user, meta: str):
-    L = _normalize_label(meta or "")
-    linkedin = (getattr(user,"linkedin_url","") or "").strip()
-    cc = (getattr(user,"country","") or "").upper()
-    phone_raw = (getattr(user,"phone_number","") or "").strip()
-    phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
 
-    # Make a clean numeric salary in case the input is type="number"
-    def _numify_salary(x):
-        s = str(x or "").strip()
-        # accept things like "45.000 kr" or "45,000"
-        digits = re.sub(r"[^\d]", "", s)
-        return digits or s
-
-    mapping = [
-        (["first","fname","given","forename"], user.first_name or ""),
-        (["last","lname","surname","family"],  user.last_name or ""),
-        (["email","e-mail","mail"],            user.email or ""),
-        (["phone","mobile","tel"],             phone),
-        (["linkedin","profile url","profile_url"], linkedin),
-        (["country","nationality","land"],     _country_human(cc)),
-        (["city","town","by"],                 getattr(user,"location","") or ""),
-        (["job title","title","position","role"], getattr(user,"occupation","") or ""),
-        (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
-
-        # Salary (include ASCII and English/Danish variants)
-        ([
-          "løn", "lon", "lonforventning", "lønforventning",
-          "salary", "expected salary", "expected pay", "desired salary",
-          "compensation", "expected compensation", "kompensation"
-        ], _numify_salary(getattr(user, "expected_salary", ""))),
-    ]
-
-    for keys, val in mapping:
-        # compare on normalized label
-        if any(k in L for k in keys) and val:
-            return val
-
-    if ("url" in L or "website" in L) and "linkedin" in L and linkedin:
-        return linkedin
-    return ""
-
-
-def fill_from_inventory(page, user, inventory):
-    filled = 0
-    frames = list(page.frames)
-    for it in inventory:
-        try:
-            fr = frames[it["frame_index"]]
-            el = fr.locator(it["query"]).nth(it["nth"])
-            if not el.is_visible(): continue
-            try:
-                curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
-            except Exception:
-                curr = ""
-            if curr and curr.upper()!="N/A":
-                continue
-
-            meta = _attrs_blob(
-                label=it.get("label",""),
-                name=it.get("name",""),
-                id_=it.get("id",""),
-                placeholder=it.get("placeholder",""),
-                aria_label=it.get("aria_label",""),
-                data_hints=it.get("data_hints",""),
-                type_=it.get("type","")
-            )
-
-            val = _value_from_meta(user, meta)
-            if not val: 
-                continue
-
-            try: el.scroll_into_view_if_needed(timeout=1500)
-            except Exception: pass
-
-            is_select_like = (it.get("type") in SELECT_LIKE_TYPES)
-
-            if is_select_like:
-                ok = False
-                if it.get("type") == "select":
-                    try:
-                        el.select_option(label=val)
-                        ok = True
-                    except Exception:
-                        pass
-                if not ok:  # custom select-like or fallback
-                    ok = _select_like_set(fr, it["query"], it["nth"], val)
-
-                if not ok:
-                    # last-chance: try matching against options we can see
-                    try:
-                        opts = _extract_dropdown_options(fr, it["query"], it["nth"])
-                        pick = _best_option_match(opts, val)
-                        if pick:
-                            ok = _select_like_set(fr, it["query"], it["nth"], pick)
-                    except Exception:
-                        pass
-
-                if not ok:
-                    continue  # couldn’t set this control
-            else:
-                fr.evaluate(
-                    """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
-                        if (el.isContentEditable){ el.innerText=a.v; } else { el.value=a.v; }
-                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                        el.dispatchEvent(new Event('change',{bubbles:true}));}""",
-                    {"q": it["query"], "n": it["nth"], "v": val}
-                )
-
-
-            print(f"✅ Filled “{meta[:60]}” → {val}")
-            filled += 1
-        except Exception:
-            pass
-    print(f"✅ Post-scan fill completed — filled {filled} fields from inventory.")
-    return filled
 
 
 # ---------------- AI mop-up with rule-based + required fallbacks ----------------
@@ -1416,127 +1160,39 @@ def _ai_fill_leftovers(page, user):
 
         frames = list(page.frames)
 
-        # 1) RULE-BASED PREFILL before AI
-        prefilled = 0
-        already_filled_fids = set()
-        for fdata in inv:
-            q, n, ftype = fdata["query"], fdata["nth"], fdata.get("type")
-            label = fdata.get("label") or fdata.get("placeholder") or fdata.get("aria_label") or fdata.get("name") or ""
-            curr = (fdata.get("current_value") or "").strip()
-            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+                # 1️⃣ Build payload for AI — send all fields, even if already filled
+        fields_to_ai = []
+        frames = list(page.frames)
 
-            # skip if something is already entered
-            if curr:
-                continue
+        for fdata in inv:
+            fid = f"{fdata['frame_index']}_{fdata['nth']}"
+            ftype = fdata.get("type") or "text"
+            label = (
+                fdata.get("label")
+                or fdata.get("placeholder")
+                or fdata.get("aria_label")
+                or fdata.get("name")
+                or ""
+            ).strip()
 
             options = []
-            if ftype == "select":
+            if ftype in SELECT_LIKE_TYPES:
                 try:
                     fr = frames[fdata["frame_index"]]
-                    options = _extract_dropdown_options(fr, q, n)
+                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
                 except Exception:
                     options = []
 
-            suggested = _rule_based_value(label, options, user_profile, user)
+            fields_to_ai.append({
+                "field_id": fid,
+                "label": label,
+                "type": ftype,
+                "required": bool(fdata.get("required")),
+                "options": options,
+            })
 
-            if suggested:
-                try:
-                    fr = frames[fdata["frame_index"]]
-                    if ftype == "select":
-                        pick = _best_option_match(options, suggested)
-                        if not pick:  # if still nothing, try a reasonable fallback
-                            pick = _fallback_required_option(options) if fdata.get("required") else None
-                        if pick:
-                            try:
-                                fr.locator(q).nth(n).select_option(label=pick)
-                            except Exception:
-                                fr.evaluate(
-                                    """(a) => {
-                                        const el = document.querySelectorAll(a.q)[a.n];
-                                        if (!el) return;
-                                        const want = (a.labelText || '').trim().toLowerCase();
-                                        const opt = [...el.options].find(o =>
-                                            (o.textContent || '').trim().toLowerCase() === want
-                                        ) || [...el.options].find(o =>
-                                            (o.textContent || '').toLowerCase().includes(want)
-                                        );
-                                        if (opt) {
-                                            el.value = opt.value;
-                                            el.dispatchEvent(new Event('input',{bubbles:true}));
-                                            el.dispatchEvent(new Event('change',{bubbles:true}));
-                                        }
-                                    }""",
-                                    {"q": q, "n": n, "labelText": pick}
-                                )
-                            print(f"✅ RB selected “{label[:70]}” → {pick}")
-                            prefilled += 1
-                            already_filled_fids.add(fid)
-                    else:
-                        fr.evaluate(
-                            """(a)=>{
-                                const el = document.querySelectorAll(a.q)[a.n];
-                                if (!el) return;
-                                if (el.isContentEditable) { el.innerText = a.v; }
-                                else { el.value = a.v; }
-                                el.dispatchEvent(new Event('input',{bubbles:true}));
-                                el.dispatchEvent(new Event('change',{bubbles:true}));
-                            }""",
-                            {"q": q, "n": n, "v": str(suggested)}
-                        )
-                        print(f"✅ RB filled “{label[:70]}” → {suggested}")
-                        prefilled += 1
-                        already_filled_fids.add(fid)
-                except Exception as e:
-                    print(f"⚠️ RB could not fill {fid}: {e}")
+        print(f"🤖 AI-first mode: sending {len(fields_to_ai)} fields for interpretation…")
 
-        # 2) Build payload for AI (exclude what we already prefilled)
-        # 2) Build payload for AI (exclude what we already prefilled)
-        # 2) Build payload for AI (exclude what we already prefilled)
-# 2) Build payload for AI — send *all* fields, not just required or empty
-        fields_to_ai = []
-        select_audit = []
-
-        for fdata in inv:
-            fid = f"{fdata['frame_index']}_{fdata['nth']}"
-            if fid in already_filled_fids:
-                continue
-
-            ftype = fdata.get("type") or ""
-            label = (fdata.get("label") or fdata.get("placeholder") or
-                    fdata.get("aria_label") or fdata.get("name") or "")
-            val = (fdata.get("current_value") or "").strip()
-
-            if ftype == "select":
-                fr = frames[fdata["frame_index"]]
-                options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                fields_to_ai.append({
-                    "field_id": fid,
-                    "label": label,
-                    "type": "select",
-                    "required": bool(fdata.get("required")),
-                    "options": options,
-                })
-                select_audit.append(
-                    f"   SELECT label='{label}' selected='{fdata.get('selected_text')}' value='{val}'"
-                )
-            else:
-                fields_to_ai.append({
-                    "field_id": fid,
-                    "label": label,
-                    "type": ftype or "text",
-                    "required": bool(fdata.get("required")),
-                })
-
-
-
-        print("🔎 DEBUG (select audit):")
-        for line in select_audit[:25]:
-            print(line)
-        print(f"🔍 DEBUG: {len(fields_to_ai)} unfilled fields for AI")
-
-        if not fields_to_ai:
-            print("🤖 AI pass: sending 0 fields for interpretation… (No unfilled fields detected)")
-            return prefilled
 
         # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
@@ -1812,7 +1468,6 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
             except Exception:
                 pass
 
-            fill_from_inventory(page, user, inv)
 
             _force_privacy_yes_if_needed(page, context)
             if _force_ipg_employment_no(page, context):
