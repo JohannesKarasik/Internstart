@@ -164,7 +164,16 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
     - Translate and normalize appropriately.
     """
 
-    # --- New: Enhanced instructions for essay and field-type awareness ---
+    # --- Normalize all field labels before sending to GPT ---
+    normalized_fields = []
+    for f in fields:
+        norm_label = _normalize_label_text(f.get("label", "")) or _normalize_label_text(f.get("aria_label", "")) or f.get("label", "")
+        norm_field = dict(f)
+        norm_field["label"] = norm_label.strip()
+        normalized_fields.append(norm_field)
+
+    # --- Enhanced instructions for essay and field-type awareness ---
+
     user_prompt = f"""
     You are filling out a job application form on behalf of a user based on their profile.
 
@@ -210,7 +219,8 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
     {json.dumps(user_profile, ensure_ascii=False, indent=2)}
 
     Fields to fill:
-    {json.dumps(fields, ensure_ascii=False, indent=2)}
+    {json.dumps(normalized_fields, ensure_ascii=False, indent=2)}
+
 
     Return **only** valid JSON like this:
     {{"field_id": "answer", ...}}
