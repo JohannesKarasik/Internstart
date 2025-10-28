@@ -1424,7 +1424,8 @@ def _ai_fill_leftovers(page, user):
                     )
             else:
                 # include if empty or relevant by regex
-                if (not val) or force_regex.search(label):
+                always_include_regex = re.compile(r"(stilling|position|arbejdsgiver|employer)", re.I)
+                if (not val) or always_include_regex.search(label):
                     fields_to_ai.append({
                         "field_id": fid,
                         "label": label,
