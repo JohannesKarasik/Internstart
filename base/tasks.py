@@ -344,6 +344,43 @@ def _normalize_label(s: str) -> str:
     s = re.sub(r"\s+", " ", s)
     return s
 
+
+def _humanize_tokens(*parts: str) -> str:
+    """Turn things like 'firstName', 'candidate[first_name]' into 'first name candidate first name'."""
+    import re as _re
+    txt = " ".join([p or "" for p in parts if p])
+    if not txt:
+        return ""
+    # split camelCase → camel Case
+    txt = _re.sub(r"([a-z])([A-Z])", r"\1 \2", txt)
+    # replace separators/brackets with spaces
+    txt = _re.sub(r"[\[\]{}()/_.\-]+", " ", txt)
+    # collapse spaces
+    txt = _re.sub(r"\s+", " ", txt).strip()
+    return txt
+
+def _collect_data_hints(frame, el) -> str:
+    """Collect a flat string of data-* attribute names/values to help infer meaning."""
+    try:
+        return frame.evaluate(
+            """(el) => {
+                if (!el) return "";
+                const names = (el.getAttributeNames?.() || []).filter(n => n.startsWith('data-')).slice(0, 24);
+                const bits = [];
+                for (const n of names) {
+                  const v = el.getAttribute(n) || "";
+                  bits.push(n.replace(/^data-/, "").replace(/[-_]+/g, " "));
+                  bits.push(v.replace(/[-_]+/g, " "));
+                }
+                return bits.join(" ").trim();
+            }""",
+            el
+        ) or ""
+    except Exception:
+        return ""
+
+
+
 def _parse_required_docs_from_text(txt: str):
     """Return ordered list like ['cv','cover_letter'] based on section text."""
     t = (txt or "").lower()
@@ -1015,41 +1052,113 @@ def _yesno_preference(label_text: str) -> str:
     return ""
 
 def _accessible_label(frame, el):
-    """Return the best-guess label text for a form element."""
+    """Return the best-guess label text for a form element.
+
+    Order:
+    1) aria-label on the element itself
+    2) <label for="..."> or el.labels[0]
+    3) aria-labelledby target text
+    4) Nearby/preceding label above the input (common in modern UIs)
+    5) Heuristic from placeholder/name/id/data-* if nothing else exists
+    """
     try:
-        # 1️⃣ Highest priority: aria-label (explicit label)
+        # 1) aria-label on the control
         label = (el.get_attribute("aria-label") or "").strip()
         if label:
             return label
 
-        # 2️⃣ Next: <label for="id"> or .labels
-        lab = frame.evaluate(
-            "(el) => el.labels?.[0]?.innerText || ''", el
-        ) or ""
-        if lab.strip():
+        # 2a) the browser-provided association (works for 'for=' and wrapping <label>)
+        lab = frame.evaluate("(el) => el.labels?.[0]?.innerText?.trim() || ''", el) or ""
+        if lab:
             return lab.strip()
 
-        # 3️⃣ aria-labelledby
-        label_id = el.get_attribute("aria-labelledby")
+        # 2b) explicit <label for="id">
+        el_id = el.get_attribute("id") or ""
+        if el_id:
+            try:
+                for_text = frame.evaluate(
+                    """(id) => {
+                        try {
+                          const lb = document.querySelector(`label[for="${id}"]`);
+                          return lb ? (lb.innerText || lb.textContent || '').trim() : '';
+                        } catch(e) { return ''; }
+                    }""",
+                    el_id
+                ) or ""
+            except Exception:
+                for_text = ""
+            if for_text:
+                return for_text
+
+        # 3) aria-labelledby chain
+        label_id = el.get_attribute("aria-labelledby") or ""
         if label_id:
-            linked = frame.query_selector(f"#{label_id}")
-            if linked:
-                t = (linked.inner_text() or "").strip()
-                if t:
-                    return t
+            try:
+                linked_text = frame.evaluate(
+                    """(ids) => {
+                        const get = (n) => (n && (n.innerText || n.textContent) || '').trim();
+                        const out = [];
+                        (ids || '').split(/\s+/).forEach(id => {
+                          const n = document.getElementById(id);
+                          const t = get(n);
+                          if (t) out.push(t);
+                        });
+                        return out.join(' ').trim();
+                    }""",
+                    label_id
+                ) or ""
+            except Exception:
+                linked_text = ""
+            if linked_text:
+                return linked_text
 
-        # 4️⃣ Nearby text
-        nearby = frame.evaluate(
-            """(el) => {
-                const prev = el.closest('td,div,tr,span')?.querySelector('label, span, b, strong, p');
-                return prev ? prev.innerText.trim() : '';
-            }""",
-            el,
-        ) or ""
-        if nearby:
-            return nearby.strip()
+        # 4) Nearby/preceding label in the same field wrapper
+        try:
+            prox = frame.evaluate(
+                """(el) => {
+                    if (!el) return "";
+                    // Walk a few previous siblings
+                    let n = el.previousElementSibling;
+                    for (let i = 0; i < 4 && n; i++, n = n.previousElementSibling) {
+                        if (n.tagName && n.tagName.toLowerCase() === 'label') {
+                            const t = (n.innerText || n.textContent || '').trim();
+                            if (t) return t;
+                        }
+                        const l = n.querySelector?.('label, .label, strong, b, span, p');
+                        if (l) {
+                            const t = (l.innerText || l.textContent || '').trim();
+                            if (t) return t;
+                        }
+                    }
+                    // Look inside a common wrapper (form-group/control/etc) for the nearest label above
+                    const wrap = el.closest('.field, .form-field, .form-group, .control, .input, .mb-3, .w-full, div, section');
+                    if (wrap) {
+                        const labels = Array.from(wrap.querySelectorAll('label'));
+                        let best = "";
+                        for (const lb of labels) {
+                          if (lb.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) {
+                            best = (lb.innerText || lb.textContent || '').trim();
+                          }
+                        }
+                        if (best) return best;
+                    }
+                    return "";
+                }""",
+                el
+            ) or ""
+        except Exception:
+            prox = ""
+        if prox:
+            return prox
 
-        return ""
+        # 5) Heuristic from placeholder / name / id / data-*
+        placeholder = (el.get_attribute("placeholder") or "").strip()
+        name_attr   = (el.get_attribute("name") or "").strip()
+        id_attr     = (el.get_attribute("id") or "").strip()
+        data_blob   = _collect_data_hints(frame, el)
+
+        heuristic = _humanize_tokens(placeholder, name_attr, id_attr, data_blob)
+        return heuristic
     except Exception:
         return ""
 
@@ -1139,6 +1248,8 @@ def scan_all_fields(page):
                     except Exception:
                         pass
 
+                    data_hints = _collect_data_hints(fr, el)
+
                     inventory.append({
                         "frame_index": frame_idx[fr],
                         "query": q,
@@ -1152,7 +1263,9 @@ def scan_all_fields(page):
                         "required": required,
                         "current_value": current_val,
                         "selected_text": selected_text,
+                        "data_hints": data_hints,   # <-- NEW
                     })
+
                     total += 1
                 except Exception:
                     pass
@@ -1172,8 +1285,10 @@ def _country_human(code: str) -> str:
     return {"DK":"Denmark","US":"United States","UK":"United Kingdom","FRA":"France","GER":"Germany"}.get((code or "").upper(), "")
 
 def _attrs_blob(**kw):
-    return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
-
+    return " ".join([
+        str(kw.get(k, "") or "")
+        for k in ["label", "name", "id_", "placeholder", "aria_label", "data_hints", "type_"]
+    ]).lower().strip()
 
 
 
@@ -1238,10 +1353,15 @@ def fill_from_inventory(page, user, inventory):
                 continue
 
             meta = _attrs_blob(
-                label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
-                placeholder=it.get("placeholder",""), aria_label=it.get("aria_label",""),
+                label=it.get("label",""),
+                name=it.get("name",""),
+                id_=it.get("id",""),
+                placeholder=it.get("placeholder",""),
+                aria_label=it.get("aria_label",""),
+                data_hints=it.get("data_hints",""),
                 type_=it.get("type","")
             )
+            
             val = _value_from_meta(user, meta)
             if not val: 
                 continue
