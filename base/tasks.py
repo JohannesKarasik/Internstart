@@ -5,9 +5,9 @@ from .ats_filler import fill_dynamic_fields  # optional mop-up, left in import
 import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
-from base.ai.field_interpreter import map_fields_to_answers
 import unicodedata
 import re
+from base.ai.field_interpreter import map_fields_to_answers, _normalize_label_text
 
 
 # ---------------- util ----------------
@@ -1274,13 +1274,14 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
             ftype = fdata.get("type") or "text"
 
-            label = (
+            raw_label = (
                 fdata.get("label")
                 or fdata.get("placeholder")
                 or fdata.get("aria_label")
                 or fdata.get("name")
                 or ""
-            ).strip()
+            )
+            label = _normalize_label_text(raw_label).strip()
 
             # 🔍 detect semantic meaning (essay, phone, email, etc.)
             kind = _infer_kind(

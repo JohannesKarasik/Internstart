@@ -84,6 +84,24 @@ def _few_shot_block():
     return "\n".join(parts)
 
 
+def _normalize_label_text(label: str) -> str:
+    """
+    Clean up technical keys like [Key candidate.appFormPerson.personality.applicationText not found]
+    to something GPT can understand.
+    """
+    if not label:
+        return ""
+    label = label.strip()
+    # Remove boilerplate [Key ... not found]
+    label = re.sub(r"\[?key[^]]*not found\]?", "", label, flags=re.I)
+    # Extract core token (e.g. 'applicationText')
+    m = re.search(r"applicationtext|motivation|coverletter|personality", label, re.I)
+    if m:
+        return "application text"
+    return label
+
+
+
 def map_fields_to_answers(fields, user_profile, system_prompt=None):
     """
     Use AI to decide what values should go in each ATS field dynamically.
