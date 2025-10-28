@@ -19,18 +19,13 @@ _PLACEHOLDER_SELECT_TEXTS = {
 _PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg", "9999"}
 
 
-
-
-def _norm(s): 
+def _norm(s):
     return (s or "").strip().lower()
 
 def _select_is_unfilled(selected_text, selected_value):
     st = _norm(selected_text)
     sv = _norm(selected_value)
     return (not st and not sv) or (st in _PLACEHOLDER_SELECT_TEXTS) or (sv in _PLACEHOLDER_SELECT_VALUES)
-
-
-
 
 def _best_option_match(options, want_text):
     if not options or not want_text:
@@ -57,8 +52,6 @@ def _best_option_match(options, want_text):
         if s > best_score:
             best, best_score = o, s
     return best
-
-
 
 
 # ---------------- AI leftovers with dropdown support ----------------
@@ -89,7 +82,7 @@ AUTO_NO_RE  = re.compile(r"(currently\s*employ(ed)?\s*by|ever\s*been\s*employ(ed
 
 def _fallback_required_option(options):
     """Pick a safe option if AI skips a required select."""
-    if not options: 
+    if not options:
         return None
     lower = [o.lower() for o in options]
     for want in ("andet", "other", "ikke relevant", "n/a"):
@@ -183,6 +176,7 @@ def _select_like_set(frame, query, nth, label_text: str) -> bool:
         ) or False
     except Exception:
         return False
+
 
 def _extract_dropdown_options(frame, query, nth):
     """Return visible option texts for native and custom selects."""
@@ -278,7 +272,6 @@ def _rule_based_value(label, options, user_profile, user):
     if "køn" in L or "gender" in L:
         g = _profile_get(user_profile, "gender")
         return g
-    
 
         # Salary expectations
     if "løn" in L or "salary" in L or "pay" in L or "wage" in L:
@@ -384,6 +377,90 @@ def _find_documents_section(context):
         except Exception:
             pass
     return context, (context.inner_text() or "")
+
+
+# ---- fill policy ------------------------------------------------------------
+FILL_ALL_MISSING = True
+
+TEXT_LIKE_TYPES = {"text", "email", "tel", "number", "url", "search", "textarea"}
+
+def _is_fillable_type(t: str) -> bool:
+    t = (t or "").lower()
+    return (t in TEXT_LIKE_TYPES) or (t in SELECT_LIKE_TYPES)
+
+def _synth_value_for_text(label: str, ftype: str, user_profile: dict, user) -> str:
+    L = _normalize_label(label or "")
+    # sensible Danish defaults
+    if "email" in L or "mail" in L:
+        return getattr(user, "email", "") or "candidate@example.com"
+    if "phone" in L or "mobil" in L or "tel" in L:
+        raw = getattr(user, "phone_number", "") or "42424242"
+        cc = (getattr(user, "country", "") or "DK").upper()
+        dial = DIAL.get(cc, "+45")
+        return raw if raw.startswith("+") else f"{dial} {raw}"
+    if "postnummer" in L or "zip" in L or "postal" in L:
+        return getattr(user, "postal_code", "") or "2100"
+    if re.search(r"\bby\b", L) or "city" in L:
+        return getattr(user, "city", "") or "København"
+    if "adresse" in L or "address" in L:
+        return getattr(user, "address", "") or "Testvej 1"
+    if "stilling" in L or "position" in L or "title" in L:
+        return _profile_get(user_profile, "current_position", "occupation") or "Ledig"
+    if "arbejdsgiver" in L or "employer" in L or "company" in L:
+        return _profile_get(user_profile, "current_employer", "company") or "Ingen"
+    if ("løn" in L or "salary" in L or "compensation" in L):
+        val = getattr(user, "expected_salary", None) or _profile_get(user_profile, "expected_salary")
+        if ftype == "number":
+            return re.sub(r"[^\d]", "", str(val or "0")) or "0"
+        return str(val or "Efter aftale")
+    if ("fagområde" in L) or ("field of study" in L):
+        return _profile_get(user_profile, "field_of_study") or "Andet område"
+    if ("titel" in L and "uddannelse" in L) or "degree" in L:
+        return _profile_get(user_profile, "highest_education_level", "degree") or "Bachelor"
+
+    # generic fallbacks
+    if ftype == "email":  return "candidate@example.com"
+    if ftype == "tel":    return "+45 42424242"
+    if ftype == "number": return "1"
+    return "N/A"
+
+def _synth_value_for_select(label: str, options: list[str]) -> str | None:
+    """Choose a reasonable option for any select when AI is silent."""
+    if not options:
+        return None
+    L = _normalize_label(label or "")
+    # consent / privacy → Yes / Ja if available
+    if re.search(r"(consent|agree|gdpr|dele.*ansogning|må.*dele)", L):
+        for want in ("Ja", "Yes"):
+            for o in options:
+                if want.lower() in o.lower(): return o
+    # gender → "Andet" or similar neutral
+    if re.search(r"k(ø|o)n|gender", L):
+        for want in ("Foretrækker at undlade", "Andet", "Other"):
+            for o in options:
+                if want.lower() in o.lower(): return o
+    # years of experience → the smallest available (often 0 or 1)
+    if "erfaring" in L or "experience" in L:
+        nums = []
+        for o in options:
+            m = re.search(r"(\d+)", o)
+            if m: nums.append((int(m.group(1)), o))
+        if nums:
+            return sorted(nums, key=lambda x: x[0])[0][1]
+    # degree / uddannelse → Bachelor/Master if present
+    if "uddannelse" in L or "degree" in L:
+        for want in ("Bachelor", "Master"):
+            for o in options:
+                if want.lower() in o.lower(): return o
+    # heard about job → Andet/Other
+    if "hvor har du hørt" in L or "how did you hear" in L or "kilde" in L:
+        for want in ("Andet", "Other"):
+            for o in options:
+                if want.lower() in o.lower(): return o
+
+    # otherwise pick first non-placeholder (or last resort first item)
+    pick = _fallback_required_option(options)
+    return pick or options[0]
 
 
 def _find_upload_controls(context, section):
@@ -510,14 +587,14 @@ def _select_category_value(page, context, category_locator, want_label: str) -> 
     if tag == "select":
         try:
             opts = category_locator.evaluate("(el)=>[...el.options].map(o=>({t:(o.textContent||'').trim(), v:o.value}))")
-            def norm(s): 
+            def norm(s):
                 return re.sub(r"\s+", " ", s or "").strip().lower()
             want = norm(label)
             idx = next((i for i,o in enumerate(opts)
                         if norm(o["t"]) == want or norm(o["t"]).startswith(want) or want in norm(o["t"])), -1)
             if idx >= 0:
                 category_locator.evaluate(
-                    "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
+                    "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}",
                     idx
                 )
                 return True
@@ -530,7 +607,7 @@ def _select_category_value(page, context, category_locator, want_label: str) -> 
                             if norm(o["t"]) == want_alt or want_alt in norm(o["t"])), -1)
                 if idx >= 0:
                     category_locator.evaluate(
-                        "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
+                        "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}",
                         idx
                     )
                     return True
@@ -693,7 +770,6 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
     return {"uploaded": uploaded, "missing": missing}
 
 
-
 def handle_document_uploads(page, context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
     """Orchestrator: detect requirements, find controls, build files, upload."""
     try:
@@ -736,9 +812,6 @@ def handle_document_uploads(page, context, user, resume_path, cover_letter_text,
     except Exception as e:
         print(f"⚠️ Document upload flow failed: {e}")
         return {"uploaded": [], "missing": []}
-
-
-
 
 
 def _safe_press(page, target_locator, key: str):
