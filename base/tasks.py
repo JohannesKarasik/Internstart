@@ -1052,35 +1052,25 @@ def _yesno_preference(label_text: str) -> str:
     return ""
 
 def _accessible_label(frame, el):
-    """Return the best-guess label text for a form element.
-
-    Order:
-    1) aria-label on the element itself
-    2) <label for="..."> or el.labels[0]
-    3) aria-labelledby target text
-    4) Nearby/preceding label above the input (common in modern UIs)
-    5) Heuristic from placeholder/name/id/data-* if nothing else exists
-    """
+    """Return best label text for a form control — works with detached, hidden, and React-rendered labels."""
     try:
-        # 1) aria-label on the control
+        # 1️⃣ aria-label direct
         label = (el.get_attribute("aria-label") or "").strip()
         if label:
             return label
 
-        # 2a) the browser-provided association (works for 'for=' and wrapping <label>)
-        lab = frame.evaluate("(el) => el.labels?.[0]?.innerText?.trim() || ''", el) or ""
-        if lab:
-            return lab.strip()
-
-        # 2b) explicit <label for="id">
+        # 2️⃣ for/label association inside the frame
         el_id = el.get_attribute("id") or ""
         if el_id:
             try:
+                # Robust: try both visible and hidden labels, both innerText and textContent
                 for_text = frame.evaluate(
                     """(id) => {
-                        const lb = Array.from(document.querySelectorAll('label'))
-                          .find(l => (l.getAttribute('for') || '') === id);
-                        return lb ? (lb.innerText || lb.textContent || '').trim() : '';
+                        const labels = Array.from(document.querySelectorAll('label'));
+                        const match = labels.find(lb => (lb.getAttribute('for') || '') === id);
+                        if (!match) return '';
+                        const raw = (match.innerText || match.textContent || '').trim();
+                        return raw || '';
                     }""",
                     el_id
                 ) or ""
@@ -1089,20 +1079,29 @@ def _accessible_label(frame, el):
             if for_text:
                 return for_text
 
-        # 3) aria-labelledby chain
+        # 3️⃣ browser association (covers wrapping <label>)
+        try:
+            lab = frame.evaluate("(el) => el.labels?.[0]?.innerText?.trim() || el.labels?.[0]?.textContent?.trim() || ''", el) or ""
+        except Exception:
+            lab = ""
+        if lab:
+            return lab
+
+        # 4️⃣ aria-labelledby chain
         label_id = el.get_attribute("aria-labelledby") or ""
         if label_id:
             try:
                 linked_text = frame.evaluate(
                     """(ids) => {
-                        const get = (n) => (n && (n.innerText || n.textContent) || '').trim();
-                        const out = [];
-                        (ids || '').split(/\s+/).forEach(id => {
-                          const n = document.getElementById(id);
-                          const t = get(n);
-                          if (t) out.push(t);
+                        const parts = [];
+                        (ids || '').split(/\\s+/).forEach(id => {
+                          const node = document.getElementById(id);
+                          if (node) {
+                            const t = (node.innerText || node.textContent || '').trim();
+                            if (t) parts.push(t);
+                          }
                         });
-                        return out.join(' ').trim();
+                        return parts.join(' ').trim();
                     }""",
                     label_id
                 ) or ""
@@ -1111,37 +1110,23 @@ def _accessible_label(frame, el):
             if linked_text:
                 return linked_text
 
-        # 4) Nearby/preceding label in the same field wrapper
+        # 5️⃣ try preceding sibling / same container label
         try:
             prox = frame.evaluate(
                 """(el) => {
-                    if (!el) return "";
-                    // Walk a few previous siblings
-                    let n = el.previousElementSibling;
-                    for (let i = 0; i < 4 && n; i++, n = n.previousElementSibling) {
-                        if (n.tagName && n.tagName.toLowerCase() === 'label') {
-                            const t = (n.innerText || n.textContent || '').trim();
-                            if (t) return t;
-                        }
-                        const l = n.querySelector?.('label, .label, strong, b, span, p');
-                        if (l) {
-                            const t = (l.innerText || l.textContent || '').trim();
-                            if (t) return t;
-                        }
-                    }
-                    // Look inside a common wrapper (form-group/control/etc) for the nearest label above
-                    const wrap = el.closest('.field, .form-field, .form-group, .control, .input, .mb-3, .w-full, div, section');
+                    if (!el) return '';
+                    const prev = el.previousElementSibling;
+                    if (prev && prev.tagName.toLowerCase() === 'label')
+                        return (prev.innerText || prev.textContent || '').trim();
+                    const wrap = el.closest('.field, .form-group, .input, div, section');
                     if (wrap) {
-                        const labels = Array.from(wrap.querySelectorAll('label'));
-                        let best = "";
-                        for (const lb of labels) {
-                          if (lb.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) {
-                            best = (lb.innerText || lb.textContent || '').trim();
-                          }
+                        const labs = Array.from(wrap.querySelectorAll('label'));
+                        for (const lb of labs) {
+                            const txt = (lb.innerText || lb.textContent || '').trim();
+                            if (txt) return txt;
                         }
-                        if (best) return best;
                     }
-                    return "";
+                    return '';
                 }""",
                 el
             ) or ""
@@ -1150,16 +1135,16 @@ def _accessible_label(frame, el):
         if prox:
             return prox
 
-        # 5) Heuristic from placeholder / name / id / data-*
+        # 6️⃣ fallback: heuristic tokens
         placeholder = (el.get_attribute("placeholder") or "").strip()
         name_attr   = (el.get_attribute("name") or "").strip()
         id_attr     = (el.get_attribute("id") or "").strip()
         data_blob   = _collect_data_hints(frame, el)
+        return _humanize_tokens(placeholder, name_attr, id_attr, data_blob)
 
-        heuristic = _humanize_tokens(placeholder, name_attr, id_attr, data_blob)
-        return heuristic
     except Exception:
         return ""
+
 
 
 
