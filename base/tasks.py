@@ -234,11 +234,17 @@ def _rule_based_value(label, options, user_profile, user):
 
     # Current position / employer
     if re.search(r"(nuværende\s+stilling|current\s*position|title\s*\(current\)|position)", L):
-        return getattr(user, "occupation", None) \
-            or _profile_get(user_profile, "current_position", "occupation")
+        val = getattr(user, "occupation", None) or _profile_get(user_profile, "current_position", "occupation")
+        if not val or str(val).strip().lower() in {"none", "non", "n/a", "-", ""}:
+            val = "Ledig"
+        return val
+
     if re.search(r"(nuværende\s+arbejdsgiver|current\s*employer|company)", L):
-        return getattr(user, "category", None) \
-            or _profile_get(user_profile, "current_employer", "company")
+        val = getattr(user, "category", None) or _profile_get(user_profile, "current_employer", "company")
+        if not val or str(val).strip().lower() in {"none", "non", "n/a", "-", ""}:
+            val = "Ingen"
+        return val
+
 
     # Education – field of study
     if "fagområde" in L or "fagomraade" in L or "field of study" in L:
