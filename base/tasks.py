@@ -6,8 +6,7 @@ import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
-import unicodedata
-import re
+
 
 
 # ---------------- util ----------------
@@ -18,19 +17,6 @@ _PLACEHOLDER_SELECT_TEXTS = {
 }
 _PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg", "9999"}
 
-
-EMPTY_SENTINELS = {"n/a", "na", "-", "—", "kr", "kr.", "dkk"}
-
-def _is_effectively_empty(s: str) -> bool:
-    v = (s or "").strip().lower()
-    if not v: 
-        return True
-    if v in EMPTY_SENTINELS:
-        return True
-    if re.fullmatch(r"0+", v):   # "0", "00", etc.
-        return True
-    return False
-
 def _norm(s): 
     return (s or "").strip().lower()
 
@@ -38,9 +24,6 @@ def _select_is_unfilled(selected_text, selected_value):
     st = _norm(selected_text)
     sv = _norm(selected_value)
     return (not st and not sv) or (st in _PLACEHOLDER_SELECT_TEXTS) or (sv in _PLACEHOLDER_SELECT_VALUES)
-
-
-
 
 def _best_option_match(options, want_text):
     if not options or not want_text:
@@ -69,6 +52,23 @@ def _best_option_match(options, want_text):
     return best
 
 
+
+
+def _normalize_label(s: str) -> str:
+    """Lowercase, strip, remove diacritics, collapse spaces, and map Danish chars."""
+    if not s:
+        return ""
+    s = str(s).strip().lower()
+    # Preserve Danish forms, but also support ASCII fallbacks
+    s = (s.replace("ø", "o")
+          .replace("æ", "ae")
+          .replace("å", "a"))
+    # Remove any remaining diacritics
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    # Collapse whitespace
+    s = re.sub(r"\s+", " ", s)
+    return s
 
 
 # ---------------- AI leftovers with dropdown support ----------------
@@ -235,7 +235,7 @@ def _extract_dropdown_options(frame, query, nth):
 
 def _rule_based_value(label, options, user_profile, user):
     """Return a best-guess string for *this* field label from profile, else None."""
-    L = _normalize_label(label or "")
+    L = (label or "").strip().lower()
 
     # Address block
     if "adresse" in L or "address" in L:
@@ -338,22 +338,6 @@ def _uniq_keep_order(items):
         if x not in seen:
             seen.add(x); out.append(x)
     return out
-
-def _normalize_label(s: str) -> str:
-    """Lowercase, strip, remove diacritics, collapse spaces, and map Danish chars."""
-    if not s:
-        return ""
-    s = str(s).strip().lower()
-    # Preserve Danish forms, but also support ASCII fallbacks
-    s = (s.replace("ø", "o")
-          .replace("æ", "ae")
-          .replace("å", "a"))
-    # Remove any remaining diacritics
-    s = unicodedata.normalize("NFKD", s)
-    s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    # Collapse whitespace
-    s = re.sub(r"\s+", " ", s)
-    return s
 
 def _parse_required_docs_from_text(txt: str):
     """Return ordered list like ['cv','cover_letter'] based on section text."""
@@ -948,41 +932,19 @@ def _yesno_preference(label_text: str) -> str:
 def _accessible_label(frame, el):
     try:
         return frame.evaluate(
-            """(el) => {
-              const txt = n => ((n && (n.innerText || n.textContent)) || '').trim();
-              const byIds = (el.getAttribute('aria-labelledby') || '')
-                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
-
-              const described = (el.getAttribute('aria-describedby') || '')
-                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
-
-              const lab = (el.labels && el.labels[0] && txt(el.labels[0])) || '';
-              const aria = el.getAttribute('aria-label') || '';
-              const ph = el.getAttribute('placeholder') || '';
-
-              let near = '';
-              const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
-              if (wrap) {
-                // Try common labely things first
-                let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
-                near = txt(cand);
-                // If still nothing, walk a few previous siblings
-                if (!near) {
-                  let prev = el.previousElementSibling;
-                  for (let i = 0; i < 4 && !near && prev; i++) {
-                    near = txt(prev);
-                    prev = prev.previousElementSibling;
-                  }
-                }
-              }
-
-              return [lab, aria, ph, byIds, described, near].join(' ').replace(/\\s+/g,' ').trim();
-            }""",
+            """(el)=>{const lab=(el.labels&&el.labels[0]&&el.labels[0].innerText)||'';
+                      const aria=el.getAttribute('aria-label')||'';
+                      const ph=el.getAttribute('placeholder')||'';
+                      const byId=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/)
+                         .map(id=>document.getElementById(id)?.innerText||'').join(' ');
+                      const near=el.closest('label')?.innerText
+                        || el.closest('div,section,fieldset,.form-group,.field')
+                             ?.querySelector('legend,h1,h2,h3,h4,span,small,label,.label,.title')?.innerText || '';
+                      return [lab,aria,ph,byId,near].join(' ').replace(/\s+/g,' ').trim();}""",
             el
         ) or ""
     except Exception:
         return ""
-
 
 
 def scan_all_fields(page):
@@ -1109,19 +1071,11 @@ def _attrs_blob(**kw):
 
 
 def _value_from_meta(user, meta: str):
-    L = _normalize_label(meta or "")
+    L = (meta or "").lower()
     linkedin = (getattr(user,"linkedin_url","") or "").strip()
     cc = (getattr(user,"country","") or "").upper()
     phone_raw = (getattr(user,"phone_number","") or "").strip()
     phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
-
-    # Make a clean numeric salary in case the input is type="number"
-    def _numify_salary(x):
-        s = str(x or "").strip()
-        # accept things like "45.000 kr" or "45,000"
-        digits = re.sub(r"[^\d]", "", s)
-        return digits or s
-
     mapping = [
         (["first","fname","given","forename"], user.first_name or ""),
         (["last","lname","surname","family"],  user.last_name or ""),
@@ -1132,24 +1086,14 @@ def _value_from_meta(user, meta: str):
         (["city","town","by"],                 getattr(user,"location","") or ""),
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
-
-        # Salary (include ASCII and English/Danish variants)
-        ([
-          "løn", "lon", "lonforventning", "lønforventning",
-          "salary", "expected salary", "expected pay", "desired salary",
-          "compensation", "expected compensation", "kompensation"
-        ], _numify_salary(getattr(user, "expected_salary", ""))),
+        (["salary","løn","lønforventning","expected salary","expected pay","desired salary"],
+        getattr(user, "expected_salary", "")),
     ]
 
-    for keys, val in mapping:
-        # compare on normalized label
-        if any(k in L for k in keys) and val:
-            return val
-
-    if ("url" in L or "website" in L) and "linkedin" in L and linkedin:
-        return linkedin
+    for keys,val in mapping:
+        if any(k in L for k in keys) and val: return val
+    if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
     return ""
-
 
 def fill_from_inventory(page, user, inventory):
     filled = 0
@@ -1163,7 +1107,7 @@ def fill_from_inventory(page, user, inventory):
                 curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
                 curr = ""
-            if not _is_effectively_empty(curr):
+            if curr and curr.upper()!="N/A":
                 continue
 
             meta = _attrs_blob(
@@ -1251,7 +1195,7 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
 
             # skip if something is already entered
-            if not _is_effectively_empty(curr):
+            if curr:
                 continue
 
             options = []
