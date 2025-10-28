@@ -268,6 +268,13 @@ def _rule_based_value(label, options, user_profile, user):
     if "køn" in L or "gender" in L:
         g = _profile_get(user_profile, "gender")
         return g
+    
+
+        # Salary expectations
+    if "løn" in L or "salary" in L or "pay" in L or "wage" in L:
+        sal = getattr(user, "expected_salary", None) or _profile_get(user_profile, "expected_salary")
+        if sal:
+            return str(sal)
 
     return None
 
@@ -1037,6 +1044,18 @@ def _country_human(code: str) -> str:
 
 def _attrs_blob(**kw):
     return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
+
+import unicodedata
+
+def _normalize_label(s: str) -> str:
+    L = _normalize_label(meta or "")
+    """Normalize to ASCII-only lowercase for matching (ø→o, æ→ae, å→a)."""
+    if not s:
+        return ""
+    s = s.lower()
+    s = s.replace("ø", "o").replace("æ", "ae").replace("å", "a")
+    return unicodedata.normalize("NFKD", s)
+
 
 def _value_from_meta(user, meta: str):
     L = (meta or "").lower()
