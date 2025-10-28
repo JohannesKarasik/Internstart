@@ -1463,13 +1463,24 @@ def _ai_fill_leftovers(page, user):
                     """(a)=>{
                         const el = document.querySelectorAll(a.q)[a.n];
                         if (!el) return;
-                        if (el.isContentEditable) { el.innerText = a.v; }
-                        else { el.value = a.v; }
-                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                        el.dispatchEvent(new Event('change',{bubbles:true}));
+                        const val = String(a.v || '');
+
+                        // handle contenteditable, textarea, and normal inputs the same way
+                        if (el.isContentEditable) {
+                            el.innerText = val;
+                        } else if (el.tagName && el.tagName.toLowerCase() === 'textarea') {
+                            el.value = val;
+                        } else {
+                            el.value = val;
+                        }
+
+                        // fire both input + change events so frameworks notice
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
                     }""",
                     {"q": fdata["query"], "n": fdata["nth"], "v": str(ans)}
                 )
+
                 _disp = _normalize_label_text(
                     fdata.get("label") or fdata.get("aria_label") or fdata.get("placeholder") or fdata.get("name") or ""
                 ) or (fdata.get("label") or "(no label)")
