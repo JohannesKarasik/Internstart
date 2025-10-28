@@ -965,18 +965,27 @@ def _accessible_label(frame, el):
         if label:
             return label
 
-        # 2️⃣ for/label association inside the frame
+        # 2️⃣ for/label association inside the frame (extended to walk DOM ancestors)
         el_id = el.get_attribute("id") or ""
         if el_id:
             try:
-                # Robust: try both visible and hidden labels, both innerText and textContent
+                # Try direct lookup first
                 for_text = frame.evaluate(
                     """(id) => {
-                        const labels = Array.from(document.querySelectorAll('label'));
-                        const match = labels.find(lb => (lb.getAttribute('for') || '') === id);
+                        let match = document.querySelector(`label[for='${id}']`);
+                        if (!match) {
+                            // fallback: search ancestor containers too
+                            const field = document.getElementById(id);
+                            if (field) {
+                                let parent = field.parentElement;
+                                while (parent && !match) {
+                                    match = parent.querySelector(`label[for='${id}']`);
+                                    parent = parent.parentElement;
+                                }
+                            }
+                        }
                         if (!match) return '';
-                        const raw = (match.innerText || match.textContent || '').trim();
-                        return raw || '';
+                        return (match.innerText || match.textContent || '').trim();
                     }""",
                     el_id
                 ) or ""
@@ -984,6 +993,7 @@ def _accessible_label(frame, el):
                 for_text = ""
             if for_text:
                 return for_text
+
 
         # 3️⃣ browser association (covers wrapping <label>)
         try:
