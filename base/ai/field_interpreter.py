@@ -131,26 +131,59 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
 
     # Combine structured hints + few-shot + user data
     user_prompt = f"""
-Du udfylder et DANSK jobansøgningsskema baseret på en brugerprofil.
+    You are filling out a job application form on behalf of a user based on their profile.
 
-Brug kun oplysningerne i profilen. Hvis et felt har "options", skal svaret være præcis én af disse.
-Hvis intet passer, og feltet er required, vælg en neutral mulighed som "Andet/Other".
-Undgå "skip" på required felter.
+    🧩 Input:
+    - You receive a list of fields with labels, IDs, types, and possible options.
+    - You must fill **every single field** — never skip any.
+    - If you don’t know the answer, generate a natural, realistic value that matches the field label and context.
 
-Synonymer og hints:
-{json.dumps(HINTS, ensure_ascii=False, indent=2)}
+    🌍 Language:
+    - Understand and respond correctly in both Danish and English.
+    - Match the field’s language: if the label is Danish, answer in Danish; if English, answer in English.
 
-UserProfile:
-{json.dumps(user_profile, ensure_ascii=False, indent=2)}
+    🎯 Objective:
+    Provide one value per field ID in valid JSON format.
 
-Fields to fill:
-{json.dumps(fields, ensure_ascii=False, indent=2)}
+    💡 Rules:
+    1. **Always provide a value** for every field_id — even if you must make one up.
+    2. **For select or dropdown fields**:
+    - The answer **must exactly match** one of the available options.
+    - If none fit, pick a neutral or generic one like “Other”, “Andet”, or the first option that makes sense.
+    3. **For text fields**:
+    - Use realistic short answers: names, emails, phone numbers, cities, companies, etc.
+    - If the label is unknown, infer from common job application logic (example: “info.middleName” → a realistic middle name like “Peter”).
+    4. **For Yes/No questions**:
+    - If it sounds like consent, policy, or agreement → “Yes” / “Ja”.
+    - If it sounds like prior employment restriction → “No” / “Nej”.
+    5. **For salary or pay** → “Efter aftale” (Danish) or “Negotiable” (English).
+    6. **For address** → “Testvej 1”, city → “København”, zip → “2100”.
+    7. **For first name** → use user’s name if known, else “Test”.
+    8. **For last name** → use user’s surname if known, else “User”.
+    9. **If completely unsure**, make up a short but realistic answer based on the field label type.
+    10. **Return only valid JSON** — no markdown, no explanations, no comments.
 
-{_few_shot_block()}
+    Examples:
+    - Label: “info.firstName” → “Kasper”
+    - Label: “City” → “Copenhagen”
+    - Label: “Expected Salary” → “Efter aftale”
+    - Label: “How did you hear about us?” → “LinkedIn”
+    - Label: “Address Line 1” → “Testvej 1”
+    - Label: “Email” → “kasperchristensen@mail.com”
+    - Label: “Skills” → “Python, Marketing, Communication”
 
-Returnér KUN et gyldigt JSON-objekt med formatet:
-{{"field_id": "answer", ...}}
-"""
+    Now fill out the following fields based on the user profile.
+
+    UserProfile:
+    {json.dumps(user_profile, ensure_ascii=False, indent=2)}
+
+    Fields to fill:
+    {json.dumps(fields, ensure_ascii=False, indent=2)}
+
+    Return **only** a JSON object like this:
+    {{"field_id": "answer", ...}}
+    """
+
 
     try:
         response = client.chat.completions.create(
@@ -159,7 +192,7 @@ Returnér KUN et gyldigt JSON-objekt med formatet:
                 {"role": "system", "content": base_system_prompt.strip()},
                 {"role": "user", "content": user_prompt.strip()},
             ],
-            temperature=0.1,  # deterministic output
+            temperature=0.4,  # deterministic output
         )
 
         text = (response.choices[0].message.content or "").strip()

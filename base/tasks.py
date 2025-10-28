@@ -1161,6 +1161,8 @@ def _ai_fill_leftovers(page, user):
         frames = list(page.frames)
 
                 # 1️⃣ Build payload for AI — send all fields, even if already filled
+        already_filled_fids = set()
+
         fields_to_ai = []
         frames = list(page.frames)
 
