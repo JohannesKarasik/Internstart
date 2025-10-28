@@ -1014,35 +1014,38 @@ def _accessible_label(frame, el):
             """(el) => {
               const txt = n => ((n && (n.innerText || n.textContent)) || '').trim();
               const byIds = (el.getAttribute('aria-labelledby') || '')
-                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+                  .trim().split(/\\s+/).map(id => txt(document.getElementById(id))).join(' ');
 
               const described = (el.getAttribute('aria-describedby') || '')
-                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+                  .trim().split(/\\s+/).map(id => txt(document.getElementById(id))).join(' ');
 
               const lab = (el.labels && el.labels[0] && txt(el.labels[0])) || '';
               const aria = el.getAttribute('aria-label') || '';
               const ph = el.getAttribute('placeholder') || '';
 
               let near = '';
-              const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
+              const wrap = el.closest('div,section,fieldset,td,tr,.form-group,.field,.form__group') || el.parentElement;
+
               if (wrap) {
-                // Try common labely things first
-                let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
+                // Common label-like elements near the field
+                let cand = wrap.querySelector('label,[for],legend,th,td,span,small,p,strong,b');
                 near = txt(cand);
-                // If still nothing, walk a few previous siblings
+                // If still empty, walk up and across siblings
                 if (!near) {
-                let prev = el.previousElementSibling;
-                for (let i = 0; i < 10 && !near && prev; i++) {
-                near = txt(prev);
-                prev = prev.previousElementSibling;
+                  let prev = el.previousElementSibling;
+                  for (let i = 0; i < 10 && !near && prev; i++) {
+                    near = txt(prev);
+                    prev = prev.previousElementSibling;
+                  }
                 }
                 if (!near) {
-                let up = el.parentElement;
-                for (let i = 0; i < 3 && !near && up; i++) {
-                    near = txt(up.querySelector('label, span, strong, b, p'));
+                  // Search upwards for any row/cell headers with text
+                  let up = wrap.parentElement;
+                  for (let i = 0; i < 4 && !near && up; i++) {
+                    let headerish = up.querySelector('label,th,td,span,strong,b,p');
+                    near = txt(headerish);
                     up = up.parentElement;
-                }
-                }
+                  }
                 }
               }
 
