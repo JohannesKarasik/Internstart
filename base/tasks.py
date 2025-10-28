@@ -1054,7 +1054,10 @@ def _value_from_meta(user, meta: str):
         (["city","town","by"],                 getattr(user,"location","") or ""),
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
+        (["salary","løn","lønforventning","expected salary","expected pay","desired salary"],
+        getattr(user, "expected_salary", "")),
     ]
+
     for keys,val in mapping:
         if any(k in L for k in keys) and val: return val
     if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
