@@ -1008,72 +1008,33 @@ def _yesno_preference(label_text: str) -> str:
     if AUTO_NO_RE.search(L):  return "No"
     return ""
 
-
-def _selected_text(frame, el):
-    """Return the visible selected text for dropdowns (<select> or custom widgets)."""
-    try:
-        tag = frame.evaluate("(el)=> (el.tagName || '').toLowerCase()", el) or ""
-        if tag == "select":
-            return frame.evaluate(
-                "(sel) => sel.options[sel.selectedIndex]?.textContent?.trim() || ''",
-                el
-            ) or ""
-        # Custom/select-like
-        return frame.evaluate(
-            """(el) => {
-                const role = (el.getAttribute('role') || '').toLowerCase();
-                if (role === 'combobox' || role === 'listbox') {
-                    const t = el.innerText || el.textContent || '';
-                    return (t || '').trim();
-                }
-                const shell = el.closest('[aria-labelledby]') || el.closest('[role="combobox"]');
-                const txt = shell ? (shell.innerText || shell.textContent || '') : '';
-                return (txt || '').trim();
-            }""",
-            el
-        ) or ""
-    except Exception:
-        return ""
-
-
-
 def _accessible_label(frame, el):
     try:
         return frame.evaluate(
             """(el) => {
               const txt = n => ((n && (n.innerText || n.textContent)) || '').trim();
               const byIds = (el.getAttribute('aria-labelledby') || '')
-                  .trim().split(/\\s+/).map(id => txt(document.getElementById(id))).join(' ');
+                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
 
               const described = (el.getAttribute('aria-describedby') || '')
-                  .trim().split(/\\s+/).map(id => txt(document.getElementById(id))).join(' ');
+                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
 
               const lab = (el.labels && el.labels[0] && txt(el.labels[0])) || '';
               const aria = el.getAttribute('aria-label') || '';
               const ph = el.getAttribute('placeholder') || '';
 
               let near = '';
-              const wrap = el.closest('div,section,fieldset,td,tr,.form-group,.field,.form__group') || el.parentElement;
-
+              const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
               if (wrap) {
-                // Common label-like elements near the field
-                let cand = wrap.querySelector('label,[for],legend,th,td,span,small,p,strong,b');
+                // Try common labely things first
+                let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
                 near = txt(cand);
-                // If still empty, walk up and across siblings
+                // If still nothing, walk a few previous siblings
                 if (!near) {
                   let prev = el.previousElementSibling;
-                  for (let i = 0; i < 10 && !near && prev; i++) {
+                  for (let i = 0; i < 4 && !near && prev; i++) {
                     near = txt(prev);
                     prev = prev.previousElementSibling;
-                  }
-                }
-                if (!near) {
-                  // Search upwards for any row/cell headers with text
-                  let up = wrap.parentElement;
-                  for (let i = 0; i < 4 && !near && up; i++) {
-                    let headerish = up.querySelector('label,th,td,span,strong,b,p');
-                    near = txt(headerish);
-                    up = up.parentElement;
                   }
                 }
               }
@@ -1087,110 +1048,116 @@ def _accessible_label(frame, el):
 
 
 
-def scan_all_fields(root):
-    """
-    Build an inventory with the same keys that fill_from_inventory/_ai_fill_leftovers expect.
-    root: Page or Frame (we'll recurse into child frames).
-    """
-    Q = "input, textarea, select, [role='combobox'], md-select, mat-select"
-    inventory = []
+def scan_all_fields(page):
+    # Broader net: native inputs + common select-like widgets
+    selectors = [
+        "input:not([type='hidden']):not([disabled])",
+        "textarea:not([disabled])",
+        "select:not([disabled])",
+        "[contenteditable='true']",
 
-    # We need access to the owning Page to compute frame indices
-    try:
-        owning_page = root.page if hasattr(root, "page") else root
-    except Exception:
-        owning_page = root
+        # select-like
+        "[role='combobox']:not([aria-disabled='true'])",
+        "[aria-haspopup='listbox']:not([aria-disabled='true'])",
+        "md-select:not([disabled])",
+        "mat-select:not([disabled])",
+        ".select2-selection[role='combobox']",
+        ".choices__inner",
+    ]
 
-    def _frame_index(fr):
-        try:
-            return list(owning_page.frames).index(fr)
-        except Exception:
-            return 0
+    inventory, frame_idx = [], {fr: i for i, fr in enumerate(page.frames)}
+    total = 0
+    for fr in page.frames:
+        for q in selectors:
+            loc = fr.locator(q)
+            for i in range(loc.count()):
+                el = loc.nth(i)
+                try:
+                    if not el.is_visible():
+                        continue
 
-    def _type_of(fr, el):
-        try:
-            t = (el.get_attribute("type") or "").lower()
-            if t:
-                return t
-            # fallbacks for non-native controls
-            tag = fr.evaluate("(el)=> (el.tagName||'').toLowerCase()", el) or ""
-            if tag == "select":
-                return "select"
-            role = (el.get_attribute("role") or "").lower()
-            if role in {"combobox", "listbox"}:
-                return "combo"
-            return "text"
-        except Exception:
-            return "text"
+                    tag  = el.evaluate("el => (el.tagName||'').toLowerCase()")
+                    role = (el.get_attribute("role") or "").lower()
+                    ah   = (el.get_attribute("aria-haspopup") or "").lower()
 
-    def _current_value(fr, el, t):
-        try:
-            if t in {"checkbox","radio","submit"}:
-                return ""
-            if t == "select":
-                return fr.evaluate("(sel)=> sel.value || ''", el) or ""
-            # generic
-            return el.input_value()
-        except Exception:
-            return ""
+                    # classify type
+                    if tag == "select":
+                        et = "select"
+                    elif tag == "md-select":
+                        et = "md-select"
+                    elif tag == "mat-select":
+                        et = "mat-select"
+                    elif role == "combobox" or ah == "listbox" or "choices__inner" in (el.get_attribute("class") or "") or "select2-selection" in (el.get_attribute("class") or ""):
+                        et = "combo"
+                    else:
+                        et = (el.get_attribute("type") or "text").lower()
 
-    def _aria_label(el):
-        try:
-            return (el.get_attribute("aria-label") or "").strip()
-        except Exception:
-            return ""
+                    # read current value
+                    current_val = ""
+                    try:
+                        if q == "[contenteditable='true']":
+                            current_val = (el.inner_text() or "").strip()
+                        elif et in SELECT_LIKE_TYPES and tag != "select":
+                            # many custom selects keep "selected text" inside the element
+                            current_val = (el.inner_text() or el.get_attribute("aria-label") or "").strip()
+                        else:
+                            current_val = (el.input_value() or "").strip()
+                    except Exception:
+                        pass
 
-    def _placeholder(el):
-        try:
-            return (el.get_attribute("placeholder") or "").strip()
-        except Exception:
-            return ""
+                    # selected text (native select only here; custom handled above)
+                    selected_text = ""
+                    if et == "select":
+                        try:
+                            selected_text = fr.evaluate(
+                                """(a) => {
+                                   const e = document.querySelectorAll(a.q)[a.n];
+                                   if (!e) return '';
+                                   const o = e.options[e.selectedIndex];
+                                   return (o && o.textContent || '').trim();
+                                }""",
+                                {"q": q, "n": i}
+                            ) or ""
+                        except Exception:
+                            selected_text = ""
 
-    def scan_frame(frame):
-        # enumerate the SAME selector + nth we will use later
-        els = frame.query_selector_all(Q)
-        fidx = _frame_index(frame)
-        for nth, el in enumerate(els):
-            try:
-                typ = _type_of(frame, el)
-                inv_item = {
-                    "frame_index": fidx,
-                    "nth": nth,
-                    "query": Q,  # we’ll re-find by the same Q + nth
-                    "type": typ,
-                    "id": (el.get_attribute("id") or "")[:200],
-                    "name": (el.get_attribute("name") or "")[:200],
-                    "label": _accessible_label(frame, el),
-                    "placeholder": _placeholder(el),
-                    "aria_label": _aria_label(el),
-                    "selected_text": _selected_text(frame, el),
-                    "current_value": _current_value(frame, el, typ),
-                    "required": bool(el.is_required()),
-                }
-                inventory.append(inv_item)
-            except Exception:
-                continue
+                    required = False
+                    try:
+                        required = bool(
+                            el.get_attribute("required") or
+                            (el.get_attribute("aria-required") in ["true", True]) or
+                            (el.get_attribute("ng-required") is not None)   # Angular
+                        )
+                    except Exception:
+                        pass
 
-        # recurse into child iframes
-        for child in frame.child_frames:
-            scan_frame(child)
+                    inventory.append({
+                        "frame_index": frame_idx[fr],
+                        "query": q,
+                        "nth": i,
+                        "type": et or "text",
+                        "name": el.get_attribute("name") or "",
+                        "id": el.get_attribute("id") or "",
+                        "placeholder": el.get_attribute("placeholder") or "",
+                        "aria_label": el.get_attribute("aria-label") or "",
+                        "label": _accessible_label(fr, el),
+                        "required": required,
+                        "current_value": current_val,
+                        "selected_text": selected_text,
+                    })
+                    total += 1
+                except Exception:
+                    pass
 
-    # start at the provided root (Page or Frame)
-    try:
-        start = root.main_frame if hasattr(root, "main_frame") else root
-    except Exception:
-        start = root
-    scan_frame(start)
-
-    print(f"🔍 DEBUG: total scanned fields = {len(inventory)}")
-    for i, f in enumerate(inventory[:50]):
+    print(f"🧩 Field scan complete — detected {total} fields across {len(page.frames)} frames.")
+    for i, f in enumerate(inventory):
         print(
-            f"   [{i}] frame={f['frame_index']} nth={f['nth']} "
-            f"type='{f['type']}' label='{(f['label'] or '')[:60]}' "
-            f"value='{(f['current_value'] or '')[:40]}' req={f['required']}"
+            f"   [{i:02d}] frame={f['frame_index']} nth={f['nth']} type='{f.get('type')}' "
+            f"id='{(f.get('id') or '')[:40]}' name='{(f.get('name') or '')[:40]}' "
+            f"label='{(f.get('label') or '')[:80]}' selected='{f.get('selected_text')}' "
+            f"value='{(f.get('current_value') or '')[:80]}' req={f.get('required')}"
         )
     return inventory
-
 
 
 def _country_human(code: str) -> str:
@@ -1703,7 +1670,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                     page.wait_for_timeout(220 + random.randint(0,120))
             except Exception: pass
 
-            inv = scan_all_fields(context)          # <— scan inside the ATS iframe
+            inv = scan_all_fields(page)
             try:
                 with open(os.path.join(log_dir, f"ats_field_inventory_{safe_company}_{ts}.json"), "w", encoding="utf-8") as f:
                     json.dump(inv, f, ensure_ascii=False, indent=2)
@@ -1719,7 +1686,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 print("🟡 IPG employment not confirmed — continuing; ATS validation may catch it")
 
             try:
-                _ai_fill_leftovers(context, user)       # <— pass the same context into AI fill
+                _ai_fill_leftovers(page, user)
             except Exception as e:
                 print(f"⚠️ AI leftovers pass failed: {e}")
 
