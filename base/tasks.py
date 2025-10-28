@@ -69,7 +69,18 @@ def _best_option_match(options, want_text):
     return best
 
 
+SALARY_KEYS = {
+    "løn", "lon", "lønforventning", "lonforventning",
+    "salary", "expected salary", "desired salary",
+    "compensation", "pay", "wage", "pension"
+}
 
+def _looks_like_salary(*parts) -> bool:
+    text = _normalize_label(" ".join([p or "" for p in parts]))
+    return any(k in text for k in SALARY_KEYS)
+
+def _digits_only(x) -> str:
+    return re.sub(r"[^\d]", "", str(x or ""))
 
 # ---------------- AI leftovers with dropdown support ----------------
 
@@ -1134,10 +1145,11 @@ def _value_from_meta(user, meta: str):
 
         # Salary (include ASCII and English/Danish variants)
         ([
-          "løn", "lon", "lonforventning", "lønforventning",
-          "salary", "expected salary", "expected pay", "desired salary",
-          "compensation", "expected compensation", "kompensation"
+        "løn", "lon", "lonforventning", "lønforventning",
+        "salary", "expected salary", "expected pay", "desired salary",
+        "compensation", "expected compensation", "kompensation", "pension"
         ], _numify_salary(getattr(user, "expected_salary", ""))),
+
     ]
 
     for keys, val in mapping:
@@ -1166,31 +1178,30 @@ def fill_from_inventory(page, user, inventory):
                 continue
 
 
-            # --- SALARY EXPECTATIONS: force a numeric value early ---
-            label_norm = _normalize_label(label)
-            if any(k in label_norm for k in ["løn", "lon", "lønforventning", "lonforventning", "salary", "compensation", "pay", "wage"]):
-                sal = (getattr(user, "expected_salary", None)
-                    or _profile_get(user_profile, "expected_salary")
-                    or getattr(settings, "DEFAULT_EXPECTED_SALARY_DKK", None))
-                if sal:
-                    sal_digits = re.sub(r"[^\d]", "", str(sal))
-                    if sal_digits:
-                        fr = frames[fdata["frame_index"]]
+                # --- SALARY EXPECTATIONS: force a numeric value early ---
+            # --- SALARY EXPECTATIONS: handle early & robustly ---
+            label_text = (it.get("label") or it.get("placeholder") or it.get("aria_label")
+                        or it.get("name") or it.get("id") or "")
+            if _looks_like_salary(label_text, it.get("name"), it.get("id"),
+                                it.get("placeholder"), it.get("aria_label")):
+                raw_sal = getattr(user, "expected_salary", "") or getattr(settings, "DEFAULT_EXPECTED_SALARY_DKK", "")
+                sal_digits = _digits_only(raw_sal)
+                if sal_digits:
+                    try:
                         fr.evaluate(
-                            """(a)=>{
-                                const el = document.querySelectorAll(a.q)[a.n];
-                                if (!el) return;
-                                if (el.isContentEditable) { el.innerText = a.v; }
-                                else { el.value = a.v; }
-                                el.dispatchEvent(new Event('input', {bubbles:true}));
-                                el.dispatchEvent(new Event('change', {bubbles:true}));
-                            }""",
-                            {"q": q, "n": n, "v": sal_digits}
+                            """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
+                                    if (el.isContentEditable) { el.innerText = a.v; }
+                                    else { el.value = a.v; }
+                                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                                    el.dispatchEvent(new Event('change', {bubbles:true})); }""",
+                            {"q": it["query"], "n": it["nth"], "v": sal_digits}
                         )
-                        print(f"✅ RB filled salary “{label[:70]}” → {sal_digits}")
-                        prefilled += 1
-                        already_filled_fids.add(fid)
+                        print(f"✅ Filled salary “{label_text[:70]}” → {sal_digits}")
+                        filled += 1
                         continue
+                    except Exception:
+                        pass
+
 
 
             meta = _attrs_blob(

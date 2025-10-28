@@ -100,6 +100,7 @@ INSTALLED_APPS = [
 
 ]
 
+DEFAULT_EXPECTED_SALARY_DKK = "35000"
 
 
 # --- Email / SendGrid ---
