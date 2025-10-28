@@ -6,6 +6,8 @@ import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
+import unicodedata
+import re
 
 
 # ---------------- util ----------------
@@ -49,6 +51,8 @@ def _best_option_match(options, want_text):
         if s > best_score:
             best, best_score = o, s
     return best
+
+
 
 
 # ---------------- AI leftovers with dropdown support ----------------
@@ -215,8 +219,8 @@ def _extract_dropdown_options(frame, query, nth):
 
 def _rule_based_value(label, options, user_profile, user):
     """Return a best-guess string for *this* field label from profile, else None."""
-    L = (label or "").strip().lower()
-
+    L = _normalize_label(label or "")
+    
     # Address block
     if "adresse" in L or "address" in L:
         return getattr(user, "address", None) \
@@ -318,6 +322,22 @@ def _uniq_keep_order(items):
         if x not in seen:
             seen.add(x); out.append(x)
     return out
+
+def _normalize_label(s: str) -> str:
+    """Lowercase, strip, remove diacritics, collapse spaces, and map Danish chars."""
+    if not s:
+        return ""
+    s = str(s).strip().lower()
+    # Preserve Danish forms, but also support ASCII fallbacks
+    s = (s.replace("ø", "o")
+          .replace("æ", "ae")
+          .replace("å", "a"))
+    # Remove any remaining diacritics
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    # Collapse whitespace
+    s = re.sub(r"\s+", " ", s)
+    return s
 
 def _parse_required_docs_from_text(txt: str):
     """Return ordered list like ['cv','cover_letter'] based on section text."""
@@ -1045,24 +1065,25 @@ def _country_human(code: str) -> str:
 def _attrs_blob(**kw):
     return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
 
-import unicodedata
 
-def _normalize_label(s: str) -> str:
-    L = _normalize_label(meta or "")
-    """Normalize to ASCII-only lowercase for matching (ø→o, æ→ae, å→a)."""
-    if not s:
-        return ""
-    s = s.lower()
-    s = s.replace("ø", "o").replace("æ", "ae").replace("å", "a")
-    return unicodedata.normalize("NFKD", s)
+
+
 
 
 def _value_from_meta(user, meta: str):
-    L = (meta or "").lower()
+    L = _normalize_label(meta or "")
     linkedin = (getattr(user,"linkedin_url","") or "").strip()
     cc = (getattr(user,"country","") or "").upper()
     phone_raw = (getattr(user,"phone_number","") or "").strip()
     phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
+
+    # Make a clean numeric salary in case the input is type="number"
+    def _numify_salary(x):
+        s = str(x or "").strip()
+        # accept things like "45.000 kr" or "45,000"
+        digits = re.sub(r"[^\d]", "", s)
+        return digits or s
+
     mapping = [
         (["first","fname","given","forename"], user.first_name or ""),
         (["last","lname","surname","family"],  user.last_name or ""),
@@ -1073,14 +1094,24 @@ def _value_from_meta(user, meta: str):
         (["city","town","by"],                 getattr(user,"location","") or ""),
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
-        (["salary","løn","lønforventning","expected salary","expected pay","desired salary"],
-        getattr(user, "expected_salary", "")),
+
+        # Salary (include ASCII and English/Danish variants)
+        ([
+          "løn", "lon", "lonforventning", "lønforventning",
+          "salary", "expected salary", "expected pay", "desired salary",
+          "compensation", "expected compensation", "kompensation"
+        ], _numify_salary(getattr(user, "expected_salary", ""))),
     ]
 
-    for keys,val in mapping:
-        if any(k in L for k in keys) and val: return val
-    if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
+    for keys, val in mapping:
+        # compare on normalized label
+        if any(k in L for k in keys) and val:
+            return val
+
+    if ("url" in L or "website" in L) and "linkedin" in L and linkedin:
+        return linkedin
     return ""
+
 
 def fill_from_inventory(page, user, inventory):
     filled = 0
