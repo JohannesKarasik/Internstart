@@ -1398,7 +1398,11 @@ def _ai_fill_leftovers(page, user):
 
         # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
-        answers = map_fields_to_answers(fields_to_ai, user_profile)
+        answers = map_fields_to_answers(
+            fields_to_ai,
+            user_profile,
+            system_prompt="You must always provide a realistic value for each field. Never answer 'skip'. Guess a sensible value if unsure."
+        )
         print("============== 🧠 AI RAW OUTPUT ==============")
         try:
             print(json.dumps(answers, indent=2, ensure_ascii=False))
@@ -1413,38 +1417,49 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
             if fid in already_filled_fids:
                 continue
+
             ans = answers.get(fid)
+            # --- FORCE A GUESS FOR ALL FIELDS ---
             if ans is None or str(ans).lower() == "skip":
-                # if it's a required select, try a safe fallback
-                if fdata.get("type") == "select" and fdata.get("required"):
-                    fr = frames[fdata["frame_index"]]
-                    opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    pick = _fallback_required_option(opts)
-                    if pick:
-                        try:
-                            fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
-                        except Exception:
-                            fr.evaluate(
-                                """(a) => {
-                                    const el = document.querySelectorAll(a.q)[a.n];
-                                    if (!el) return;
-                                    const want = (a.labelText || '').trim().toLowerCase();
-                                    const opt = [...el.options].find(o =>
-                                        (o.textContent || '').trim().toLowerCase() === want
-                                    ) || [...el.options].find(o =>
-                                        (o.textContent || '').toLowerCase().includes(want)
-                                    );
-                                    if (opt) {
-                                        el.value = opt.value;
-                                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                    }
-                                }""",
-                                {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
-                            )
-                        print(f"✅ Fallback selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
-                        applied += 1
-                continue
+                label = fdata.get("label", "")
+                ftype = fdata.get("type", "")
+                options = []
+                if ftype == "select":
+                    try:
+                        fr = frames[fdata["frame_index"]]
+                        options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    except Exception:
+                        pass
+
+                # Rule-based default for text fields
+                if ftype in {"text", "textarea"}:
+                    if "name" in label.lower():
+                        ans = getattr(user, "first_name", "") or "N/A"
+                    elif "email" in label.lower():
+                        ans = getattr(user, "email", "") or "unknown@mail.com"
+                    elif "phone" in label.lower():
+                        ans = getattr(user, "phone_number", "") or "+4500000000"
+                    elif any(k in label.lower() for k in ["city", "by"]):
+                        ans = getattr(user, "city", "") or "Copenhagen"
+                    elif any(k in label.lower() for k in ["address", "street", "vej"]):
+                        ans = getattr(user, "address", "") or "Unknown Street"
+                    elif any(k in label.lower() for k in ["løn", "salary", "compensation", "pay", "wage"]):
+                        ans = getattr(user, "expected_salary", "") or "35000"
+                    else:
+                        ans = "N/A"
+
+                # Fallback for selects / dropdowns
+                elif ftype == "select":
+                    if options:
+                        ans = options[0] if not options[0].lower().startswith("vælg") else (options[1] if len(options) > 1 else options[0])
+                    else:
+                        ans = "N/A"
+
+                else:
+                    ans = "N/A"
+
+                print(f"⚠️ AI had no answer, guessing for “{label[:60]}” → {ans}")
+
 
             fr = frames[fdata["frame_index"]]
             if fdata.get("type") == "select":
