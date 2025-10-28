@@ -965,21 +965,22 @@ def _accessible_label(frame, el):
         if label:
             return label
 
-        # 2️⃣ for/label association inside the frame (extended to walk DOM ancestors)
+        # 2️⃣ for/label association inside the frame (supports weird IDs like 'ctl00$ctl00$...')
         el_id = el.get_attribute("id") or ""
         if el_id:
             try:
-                # Try direct lookup first
                 for_text = frame.evaluate(
                     """(id) => {
-                        let match = document.querySelector(`label[for='${id}']`);
+                        // Escape CSS special chars like $ in IDs
+                        const cssSafeId = CSS.escape ? CSS.escape(id) : id.replace(/([:.#$/[\]=])/g, '\\\\$1');
+                        let match = document.querySelector(`label[for='${cssSafeId}']`);
                         if (!match) {
-                            // fallback: search ancestor containers too
+                            // fallback: search ancestors too
                             const field = document.getElementById(id);
                             if (field) {
                                 let parent = field.parentElement;
                                 while (parent && !match) {
-                                    match = parent.querySelector(`label[for='${id}']`);
+                                    match = parent.querySelector(`label[for='${cssSafeId}']`);
                                     parent = parent.parentElement;
                                 }
                             }
@@ -993,6 +994,7 @@ def _accessible_label(frame, el):
                 for_text = ""
             if for_text:
                 return for_text
+
 
 
         # 3️⃣ browser association (covers wrapping <label>)
