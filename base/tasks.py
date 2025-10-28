@@ -6,6 +6,8 @@ import time, traceback, random, json, os, tempfile, re, difflib
 from urllib.parse import urlparse
 from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
+import unicodedata
+import re
 
 
 # ---------------- util ----------------
@@ -16,6 +18,19 @@ _PLACEHOLDER_SELECT_TEXTS = {
 }
 _PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg", "9999"}
 
+
+EMPTY_SENTINELS = {"n/a", "na", "-", "—", "kr", "kr.", "dkk"}
+
+def _is_effectively_empty(s: str) -> bool:
+    v = (s or "").strip().lower()
+    if not v: 
+        return True
+    if v in EMPTY_SENTINELS:
+        return True
+    if re.fullmatch(r"0+", v):   # "0", "00", etc.
+        return True
+    return False
+
 def _norm(s): 
     return (s or "").strip().lower()
 
@@ -23,6 +38,9 @@ def _select_is_unfilled(selected_text, selected_value):
     st = _norm(selected_text)
     sv = _norm(selected_value)
     return (not st and not sv) or (st in _PLACEHOLDER_SELECT_TEXTS) or (sv in _PLACEHOLDER_SELECT_VALUES)
+
+
+
 
 def _best_option_match(options, want_text):
     if not options or not want_text:
@@ -50,6 +68,19 @@ def _best_option_match(options, want_text):
             best, best_score = o, s
     return best
 
+
+SALARY_KEYS = {
+    "løn", "lon", "lønforventning", "lonforventning",
+    "salary", "expected salary", "desired salary",
+    "compensation", "pay", "wage", "pension"
+}
+
+def _looks_like_salary(*parts) -> bool:
+    text = _normalize_label(" ".join([p or "" for p in parts]))
+    return any(k in text for k in SALARY_KEYS)
+
+def _digits_only(x) -> str:
+    return re.sub(r"[^\d]", "", str(x or ""))
 
 # ---------------- AI leftovers with dropdown support ----------------
 
@@ -215,7 +246,7 @@ def _extract_dropdown_options(frame, query, nth):
 
 def _rule_based_value(label, options, user_profile, user):
     """Return a best-guess string for *this* field label from profile, else None."""
-    L = (label or "").strip().lower()
+    L = _normalize_label(label or "")
 
     # Address block
     if "adresse" in L or "address" in L:
@@ -268,6 +299,13 @@ def _rule_based_value(label, options, user_profile, user):
     if "køn" in L or "gender" in L:
         g = _profile_get(user_profile, "gender")
         return g
+    
+
+        # Salary expectations
+    if "løn" in L or "salary" in L or "pay" in L or "wage" in L:
+        sal = getattr(user, "expected_salary", None) or _profile_get(user_profile, "expected_salary")
+        if sal:
+            return str(sal)
 
     return None
 
@@ -312,6 +350,22 @@ def _uniq_keep_order(items):
             seen.add(x); out.append(x)
     return out
 
+def _normalize_label(s: str) -> str:
+    """Lowercase, strip, remove diacritics, collapse spaces, and map Danish chars."""
+    if not s:
+        return ""
+    s = str(s).strip().lower()
+    # Preserve Danish forms, but also support ASCII fallbacks
+    s = (s.replace("ø", "o")
+          .replace("æ", "ae")
+          .replace("å", "a"))
+    # Remove any remaining diacritics
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    # Collapse whitespace
+    s = re.sub(r"\s+", " ", s)
+    return s
+
 def _parse_required_docs_from_text(txt: str):
     """Return ordered list like ['cv','cover_letter'] based on section text."""
     t = (txt or "").lower()
@@ -324,16 +378,25 @@ def _parse_required_docs_from_text(txt: str):
     return _uniq_keep_order(hits)
 
 def _find_documents_section(context):
-    """Try to find the 'Documents' area root and return (section_locator, text)."""
-    candidates = [
+    # Prefer the container that holds the "Vælg & upload" button
+    try:
+        btn = context.locator(":is(button,a,input)[has-text('Vælg & upload')]")
+        if btn.count():
+            cont = btn.first.locator("xpath=ancestor::*[self::section or self::div][1]").first
+            if cont and cont.is_visible():
+                return cont, (cont.inner_text() or "").strip()
+    except Exception:
+        pass
+
+    # Fallbacks (as before)
+    for sel in [
         "section:has-text('Dokumenter')",
         "div:has-text('Dokumenter')",
         "section:has-text('Documents')",
         "div:has-text('Documents')",
         "section:has-text('Vedhæfte' i)",
         "div:has-text('Vedhæfte' i)",
-    ]
-    for sel in candidates:
+    ]:
         try:
             loc = context.locator(sel)
             if loc.count() and loc.first.is_visible():
@@ -341,77 +404,74 @@ def _find_documents_section(context):
                 return loc.first, txt
         except Exception:
             pass
-    # fallback: whole frame/page text
     return context, (context.inner_text() or "")
 
+
 def _find_upload_controls(context, section):
-    """Locate file input, optional category select/combobox, and the upload button."""
+    """Locate the file input, the *documents* category select, and the upload button."""
     root = section or context
 
-    # 1) File input
-    file_input = None
-    try:
-        cand = root.locator("input[type='file']")
-        if not cand.count():
-            cand = context.locator("input[type='file']")
-        if cand.count():
-            file_input = cand.first
-    except Exception:
-        pass
-
-    # 2) Category select (native or custom)
-    category = None
-    try:
-        # First try native select near the file input / in section
-        near_select = root.locator("select")
-        if not near_select.count():
-            near_select = context.locator("select")
-        if near_select.count():
-            # keep it; we’ll resolve actual value per upload
-            category = near_select.first
-        else:
-            # Try common custom select roots
-            custom = root.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
-            if not custom.count():
-                custom = context.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
-            if custom.count():
-                category = custom.first
-    except Exception:
-        pass
-
-    # 3) Upload button
-    upload_btn = None
-    for sel in UPLOAD_BUTTON_CANDIDATES:
+    def _loc_first(scope, sel):
         try:
-            loc = root.locator(sel)
-            if not loc.count():
-                loc = context.locator(sel)
+            loc = scope.locator(sel)
             if loc.count() and loc.first.is_visible():
-                upload_btn = loc.first
+                return loc.first
+        except Exception:
+            pass
+        return None
+
+    # Prefer a container that actually holds the upload UI
+    upload_btn = (_loc_first(root, ":is(button,a,input)[has-text('Vælg & upload')]")
+                  or _loc_first(context, ":is(button,a,input)[has-text('Vælg & upload')]"))
+
+    # File input (often hidden, but present in DOM)
+    file_input = None
+    for scope in (root, context):
+        try:
+            cand = scope.locator("input[type='file']")
+            if cand.count():
+                file_input = cand.first
                 break
         except Exception:
             pass
 
-    # 4) Detect multiple
+    # Category select: pick the <select> whose options include CV/Ansøgning (or synonyms)
+    category = None
+    def _select_with_doc_options(scope):
+        try:
+            sels = scope.locator("select")
+            for i in range(min(sels.count(), 10)):
+                sel = sels.nth(i)
+                try:
+                    opts = sel.evaluate("(el)=>[...el.options].map(o=>(o.textContent||'').trim())")
+                except Exception:
+                    continue
+                joined = " | ".join(opts).lower()
+                if any(k in joined for k in ["cv","curriculum","resume","ansøgning","ansoegning","cover","application","motiveret"]):
+                    return sel
+        except Exception:
+            pass
+        return None
+
+    category = _select_with_doc_options(root) or _select_with_doc_options(context)
+
+    # Multiple files support?
     supports_multiple = False
     try:
         if file_input:
-            multiple_attr = file_input.get_attribute("multiple")
-            if multiple_attr and str(multiple_attr).lower() not in {"false", "0", ""}:
+            ma = file_input.get_attribute("multiple")
+            if ma and str(ma).lower() not in {"false","0",""}:
                 supports_multiple = True
-        # textual hint
-        sec_text = (section.inner_text() or "") if section else ""
-        if re.search(r"upload flere|flere filer|multiple files|more than one", sec_text, re.I):
-            supports_multiple = True
     except Exception:
         pass
 
-    return {
-        "file_input": file_input,
-        "category": category,
-        "upload_btn": upload_btn,
-        "supports_multiple": supports_multiple
-    }
+    print(f"🔧 Upload controls → file_input={'yes' if file_input else 'no'}, "
+          f"category={'yes' if category else 'no'}, "
+          f"button={'yes' if upload_btn else 'no'}, "
+          f"multiple={'yes' if supports_multiple else 'no'}")
+
+    return {"file_input": file_input, "category": category, "upload_btn": upload_btn, "supports_multiple": supports_multiple}
+
 
 def _ensure_file_input_visible(context):
     try:
@@ -460,51 +520,62 @@ def _build_files_for_docs(user, resume_path, default_cover_letter_text=""):
     return files
 
 def _select_category_value(page, context, category_locator, want_label: str) -> bool:
-    """Use your existing select helpers where possible."""
-    label = want_label.strip()
+    label = (want_label or "").strip()
+
+    # Try robust native <select> path first (substring / case-insensitive)
     try:
-        tag = (category_locator.evaluate("el => (el.tagName||'').toLowerCase()") or "").lower()
+        tag = (category_locator.evaluate("el => (el.tagName||'').toLowerCase()") or "")
     except Exception:
         tag = ""
+
     if tag == "select":
         try:
-            category_locator.select_option(label=label)
-            return True
-        except Exception:
-            # Try any synonym that exists as an option
-            opts = []
-            try:
-                opts = context.evaluate(
-                    """(el) => Array.from(el.options||[]).map(o => (o.textContent||'').trim())""",
-                    category_locator.element_handle()
-                ) or []
-            except Exception:
-                pass
-            for alt in CATEGORY_SYNONYMS.get("cv" if "CV" in label.upper() else "cover_letter", []):
-                if any(alt.lower() == o.lower() for o in opts):
-                    try:
-                        category_locator.select_option(label=alt)
-                        return True
-                    except Exception:
-                        pass
-        return False
+            opts = category_locator.evaluate("(el)=>[...el.options].map(o=>({t:(o.textContent||'').trim(), v:o.value}))")
+            def norm(s): 
+                return re.sub(r"\s+", " ", s or "").strip().lower()
+            want = norm(label)
+            idx = next((i for i,o in enumerate(opts)
+                        if norm(o["t"]) == want or norm(o["t"]).startswith(want) or want in norm(o["t"])), -1)
+            if idx >= 0:
+                category_locator.evaluate(
+                    "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
+                    idx
+                )
+                return True
 
-    # custom select-like: click & type + Enter (reuse your patterns)
+            # Try synonyms if not found
+            syns = CATEGORY_SYNONYMS.get("cv" if "cv" in want.lower() else "cover_letter", [])
+            for alt in syns:
+                want_alt = norm(alt)
+                idx = next((i for i,o in enumerate(opts)
+                            if norm(o["t"]) == want_alt or want_alt in norm(o["t"])), -1)
+                if idx >= 0:
+                    category_locator.evaluate(
+                        "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
+                        idx
+                    )
+                    return True
+        except Exception:
+            pass
+
+    # Custom widget fallback: click, type, Enter
     try:
         category_locator.click(force=True)
         context.wait_for_timeout(120)
-        # try to type then Enter
         inner = category_locator.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
         target = inner if (inner and inner.is_visible()) else category_locator
-        target.fill("") if target == inner else None
-        target.type(label, delay=18)
-        _safe_press(page, target, "Enter")
-        _safe_press(page, target, "Tab")
+        try:
+            if target == inner:
+                target.fill("")
+            target.type(label, delay=18)
+        except Exception:
+            pass
+        _safe_press(page, target, "Enter"); _safe_press(page, target, "Tab")
         return True
     except Exception:
         pass
 
-    # brute-force click an option in the open menu
+    # Last resort: click in the open menu
     try:
         menu = context.locator(":is([role='listbox'], .select2-results__options, .MuiPaper-root, ul[role='listbox'])")
         if menu.count():
@@ -514,7 +585,9 @@ def _select_category_value(page, context, category_locator, want_label: str) -> 
                 return True
     except Exception:
         pass
+
     return False
+
 
 def _wait_file_list_contains(section, filename_base: str, category_hint: str = "", timeout_ms: int = 4000):
     """Best-effort verification that the table/list shows our uploaded entry."""
@@ -533,57 +606,76 @@ def _wait_file_list_contains(section, filename_base: str, category_hint: str = "
         time.sleep(0.25)
     return False
 
+def _wait_file_list_contains(section, filename_base: str, timeout_ms: int = 5000):
+    end = time.time() + (timeout_ms / 1000.0)
+    pat = re.compile(re.escape(filename_base), re.I)
+    while time.time() < end:
+        try:
+            txt = (section.inner_text() or "")
+            if pat.search(txt):
+                return True
+        except Exception:
+            pass
+        time.sleep(0.25)
+    return False
+
 def upload_docs_via_controls(page, context, section, controls: dict, required_docs, files_map):
-    """Upload each required doc using the located controls."""
-    file_input  = controls.get("file_input")
-    category    = controls.get("category")
-    upload_btn  = controls.get("upload_btn")
-    supports_multiple = bool(controls.get("supports_multiple"))
+    uploaded = []
 
-    if not file_input:
-        print("⚠️ No file input found for document upload.")
-        return {"uploaded": [], "missing": required_docs}
-
-    # If no category and input supports multiple, we can upload many at once.
-    if not category and supports_multiple:
+    # If there is no category and the input supports multiple, batch upload
+    if not controls.get("category") and controls.get("supports_multiple"):
         paths = [files_map[d] for d in required_docs if files_map.get(d)]
         if paths:
             _ensure_file_input_visible(context)
-            file_input.set_input_files(paths)
-            if upload_btn and upload_btn.is_visible():
-                upload_btn.click(force=True)
-            # Best-effort verification for the first file
+            controls["file_input"].set_input_files(paths)
+            if controls.get("upload_btn") and controls["upload_btn"].is_visible():
+                controls["upload_btn"].click(force=True)
             b = os.path.basename(paths[0])
             _wait_file_list_contains(section or context, b)
         return {"uploaded": required_docs[:], "missing": []}
 
-    # Otherwise upload sequentially, selecting category when present.
-    uploaded = []
+    # Upload sequentially; RE-FIND controls each time because ATS UIs often re-render
     for doc in required_docs:
         path = files_map.get(doc)
         if not path or not os.path.exists(path):
             print(f"⚠️ Missing file for {doc}")
             continue
 
-        label_to_pick = CATEGORY_SYNONYMS["cv"][0] if doc == "cv" else CATEGORY_SYNONYMS["cover_letter"][0]
+        # Re-acquire the current, live controls inside the section
+        fresh = _find_upload_controls(context, section)
+        file_input  = fresh.get("file_input")
+        category    = fresh.get("category")
+        upload_btn  = fresh.get("upload_btn")
 
+        if not file_input:
+            print("⚠️ No live file input; attempting to click upload button to reveal it …")
+            if upload_btn and upload_btn.is_visible():
+                upload_btn.click(force=True)
+                context.wait_for_timeout(300)
+            fresh = _find_upload_controls(context, section)
+            file_input = fresh.get("file_input")
+            category   = category or fresh.get("category")
+            upload_btn = upload_btn or fresh.get("upload_btn")
+            if not file_input:
+                print("❌ Still no file input; skipping this document.")
+                continue
+
+        want_label = CATEGORY_SYNONYMS["cv"][0] if doc == "cv" else CATEGORY_SYNONYMS["cover_letter"][0]
+        ok_cat = True
         if category:
-            try:
-                ok = _select_category_value(page, context, category, label_to_pick)
-                print(f"{'✅' if ok else '⚠️'} Category set → {label_to_pick}")
-            except Exception:
-                pass
+            ok_cat = _select_category_value(page, context, category, want_label)
+            print(f"{'✅' if ok_cat else '⚠️'} Category set → {want_label}")
 
         _ensure_file_input_visible(context)
         try:
             file_input.set_input_files(path)
         except Exception:
-            # Re-find the input after UI re-render
-            controls = _find_upload_controls(context, section)
-            file_input = controls.get("file_input")
+            # Node may have been re-rendered; re-find once more
+            fresh = _find_upload_controls(context, section)
+            file_input = fresh.get("file_input")
             if not file_input:
                 print("⚠️ File input disappeared; cannot continue.")
-                break
+                continue
             file_input.set_input_files(path)
 
         if upload_btn and upload_btn.is_visible():
@@ -593,22 +685,48 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
                 pass
 
         base = os.path.basename(path)
-        if _wait_file_list_contains(section or context, base, label_to_pick):
+
+        # Prefer toast/notification if present
+        try:
+            notif = context.locator(":is(.alert,.toast,.notification):has-text('blev uploadet')")
+            if notif.count():
+                notif.first.wait_for(state="visible", timeout=3000)
+        except Exception:
+            pass
+
+        if _wait_file_list_contains(section or context, base):
             print(f"🗂️ Uploaded {doc} → {base}")
             uploaded.append(doc)
         else:
-            print(f"⚠️ Could not verify upload row for {doc} ({base})")
+            context.wait_for_timeout(1500)
+            if _wait_file_list_contains(section or context, base):
+                print(f"🗂️ Uploaded (delayed confirm) {doc} → {base}")
+                uploaded.append(doc)
+            else:
+                print(f"⚠️ Could not verify upload row for {doc} ({base})")
 
-        # small pause between uploads
-        try: context.wait_for_timeout(300)
-        except Exception: pass
+        try:
+            context.wait_for_timeout(300)
+        except Exception:
+            pass
 
     missing = [d for d in required_docs if d not in uploaded]
     return {"uploaded": uploaded, "missing": missing}
 
-def handle_document_uploads(context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
+
+
+def handle_document_uploads(page, context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
     """Orchestrator: detect requirements, find controls, build files, upload."""
     try:
+        # If we were accidentally passed a Frame as 'page', normalize:
+        # (We always call with page=Page, context=Page/Frame, but keep this safe.)
+        real_page = page
+        if hasattr(page, "page"):  # e.g., a Frame accidentally passed as 'page'
+            try:
+                real_page = page.page
+            except Exception:
+                real_page = context if not hasattr(context, "page") else context.page
+
         section, sec_text = _find_documents_section(context)
         required = _parse_required_docs_from_text(sec_text)
         if not required:
@@ -624,7 +742,7 @@ def handle_document_uploads(context, user, resume_path, cover_letter_text, log_d
 
         controls = _find_upload_controls(context, section)
         files    = _build_files_for_docs(user, resume_path, cover_letter_text or "Default application text.")
-        summary  = upload_docs_via_controls(context.page, context, section, controls, required, files)
+        summary  = upload_docs_via_controls(real_page, context, section, controls, required, files)
 
         # Section screenshot for logs
         try:
@@ -639,6 +757,7 @@ def handle_document_uploads(context, user, resume_path, cover_letter_text, log_d
     except Exception as e:
         print(f"⚠️ Document upload flow failed: {e}")
         return {"uploaded": [], "missing": []}
+
 
 
 
@@ -840,19 +959,40 @@ def _yesno_preference(label_text: str) -> str:
 def _accessible_label(frame, el):
     try:
         return frame.evaluate(
-            """(el)=>{const lab=(el.labels&&el.labels[0]&&el.labels[0].innerText)||'';
-                      const aria=el.getAttribute('aria-label')||'';
-                      const ph=el.getAttribute('placeholder')||'';
-                      const byId=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/)
-                         .map(id=>document.getElementById(id)?.innerText||'').join(' ');
-                      const near=el.closest('label')?.innerText
-                        || el.closest('div,section,fieldset,.form-group,.field')
-                             ?.querySelector('legend,h1,h2,h3,h4,span,small,label,.label,.title')?.innerText || '';
-                      return [lab,aria,ph,byId,near].join(' ').replace(/\s+/g,' ').trim();}""",
+            """(el) => {
+              const txt = n => ((n && (n.innerText || n.textContent)) || '').trim();
+              const byIds = (el.getAttribute('aria-labelledby') || '')
+                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+
+              const described = (el.getAttribute('aria-describedby') || '')
+                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+
+              const lab = (el.labels && el.labels[0] && txt(el.labels[0])) || '';
+              const aria = el.getAttribute('aria-label') || '';
+              const ph = el.getAttribute('placeholder') || '';
+
+              let near = '';
+              const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
+              if (wrap) {
+                let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
+                near = txt(cand);
+                if (!near) {
+                  let prev = el.previousElementSibling;
+                  for (let i = 0; i < 4 && !near && prev; i++) {
+                    near = txt(prev);
+                    prev = prev.previousElementSibling;
+                  }
+                }
+              }
+
+              return [lab, aria, ph, byIds, described, near].join(' ').replace(/\\s+/g,' ').trim();
+            }""",
             el
         ) or ""
     except Exception:
         return ""
+
+
 
 
 def scan_all_fields(page):
@@ -973,12 +1113,25 @@ def _country_human(code: str) -> str:
 def _attrs_blob(**kw):
     return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
 
+
+
+
+
+
 def _value_from_meta(user, meta: str):
-    L = (meta or "").lower()
+    L = _normalize_label(meta or "")
     linkedin = (getattr(user,"linkedin_url","") or "").strip()
     cc = (getattr(user,"country","") or "").upper()
     phone_raw = (getattr(user,"phone_number","") or "").strip()
     phone = f"{DIAL.get(cc,'')} {phone_raw}".strip() if any(k in L for k in ["phone","mobile","tel"]) and phone_raw and not phone_raw.startswith("+") else phone_raw
+
+    # Make a clean numeric salary in case the input is type="number"
+    def _numify_salary(x):
+        s = str(x or "").strip()
+        # accept things like "45.000 kr" or "45,000"
+        digits = re.sub(r"[^\d]", "", s)
+        return digits or s
+
     mapping = [
         (["first","fname","given","forename"], user.first_name or ""),
         (["last","lname","surname","family"],  user.last_name or ""),
@@ -989,11 +1142,25 @@ def _value_from_meta(user, meta: str):
         (["city","town","by"],                 getattr(user,"location","") or ""),
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
+
+        # Salary (include ASCII and English/Danish variants)
+        ([
+        "løn", "lon", "lonforventning", "lønforventning",
+        "salary", "expected salary", "expected pay", "desired salary",
+        "compensation", "expected compensation", "kompensation", "pension"
+        ], _numify_salary(getattr(user, "expected_salary", ""))),
+
     ]
-    for keys,val in mapping:
-        if any(k in L for k in keys) and val: return val
-    if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
+
+    for keys, val in mapping:
+        # compare on normalized label
+        if any(k in L for k in keys) and val:
+            return val
+
+    if ("url" in L or "website" in L) and "linkedin" in L and linkedin:
+        return linkedin
     return ""
+
 
 def fill_from_inventory(page, user, inventory):
     filled = 0
@@ -1007,8 +1174,35 @@ def fill_from_inventory(page, user, inventory):
                 curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
                 curr = ""
-            if curr and curr.upper()!="N/A":
+            if not _is_effectively_empty(curr):
                 continue
+
+
+                # --- SALARY EXPECTATIONS: force a numeric value early ---
+            # --- SALARY EXPECTATIONS: handle early & robustly ---
+            label_text = (it.get("label") or it.get("placeholder") or it.get("aria_label")
+                        or it.get("name") or it.get("id") or "")
+            if _looks_like_salary(label_text, it.get("name"), it.get("id"),
+                                it.get("placeholder"), it.get("aria_label")):
+                raw_sal = getattr(user, "expected_salary", "") or getattr(settings, "DEFAULT_EXPECTED_SALARY_DKK", "")
+                sal_digits = _digits_only(raw_sal)
+                if sal_digits:
+                    try:
+                        fr.evaluate(
+                            """(a)=>{const el=document.querySelectorAll(a.q)[a.n]; if(!el) return;
+                                    if (el.isContentEditable) { el.innerText = a.v; }
+                                    else { el.value = a.v; }
+                                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                                    el.dispatchEvent(new Event('change', {bubbles:true})); }""",
+                            {"q": it["query"], "n": it["nth"], "v": sal_digits}
+                        )
+                        print(f"✅ Filled salary “{label_text[:70]}” → {sal_digits}")
+                        filled += 1
+                        continue
+                    except Exception:
+                        pass
+
+
 
             meta = _attrs_blob(
                 label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
@@ -1095,7 +1289,7 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
 
             # skip if something is already entered
-            if curr:
+            if not _is_effectively_empty(curr):
                 continue
 
             options = []
@@ -1204,7 +1398,11 @@ def _ai_fill_leftovers(page, user):
 
         # 3) Ask AI
         print(f"🤖 AI pass: sending {len(fields_to_ai)} fields for interpretation…")
-        answers = map_fields_to_answers(fields_to_ai, user_profile)
+        answers = map_fields_to_answers(
+            fields_to_ai,
+            user_profile,
+            system_prompt="You must always provide a realistic value for each field. Never answer 'skip'. Guess a sensible value if unsure."
+        )
         print("============== 🧠 AI RAW OUTPUT ==============")
         try:
             print(json.dumps(answers, indent=2, ensure_ascii=False))
@@ -1219,38 +1417,49 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
             if fid in already_filled_fids:
                 continue
+
             ans = answers.get(fid)
+            # --- FORCE A GUESS FOR ALL FIELDS ---
             if ans is None or str(ans).lower() == "skip":
-                # if it's a required select, try a safe fallback
-                if fdata.get("type") == "select" and fdata.get("required"):
-                    fr = frames[fdata["frame_index"]]
-                    opts = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    pick = _fallback_required_option(opts)
-                    if pick:
-                        try:
-                            fr.locator(fdata["query"]).nth(fdata["nth"]).select_option(label=pick)
-                        except Exception:
-                            fr.evaluate(
-                                """(a) => {
-                                    const el = document.querySelectorAll(a.q)[a.n];
-                                    if (!el) return;
-                                    const want = (a.labelText || '').trim().toLowerCase();
-                                    const opt = [...el.options].find(o =>
-                                        (o.textContent || '').trim().toLowerCase() === want
-                                    ) || [...el.options].find(o =>
-                                        (o.textContent || '').toLowerCase().includes(want)
-                                    );
-                                    if (opt) {
-                                        el.value = opt.value;
-                                        el.dispatchEvent(new Event('input',{bubbles:true}));
-                                        el.dispatchEvent(new Event('change',{bubbles:true}));
-                                    }
-                                }""",
-                                {"q": fdata["query"], "n": fdata["nth"], "labelText": pick}
-                            )
-                        print(f"✅ Fallback selected “{fdata.get('label','(no label)')[:70]}” → {pick}")
-                        applied += 1
-                continue
+                label = fdata.get("label", "")
+                ftype = fdata.get("type", "")
+                options = []
+                if ftype == "select":
+                    try:
+                        fr = frames[fdata["frame_index"]]
+                        options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                    except Exception:
+                        pass
+
+                # Rule-based default for text fields
+                if ftype in {"text", "textarea"}:
+                    if "name" in label.lower():
+                        ans = getattr(user, "first_name", "") or "N/A"
+                    elif "email" in label.lower():
+                        ans = getattr(user, "email", "") or "unknown@mail.com"
+                    elif "phone" in label.lower():
+                        ans = getattr(user, "phone_number", "") or "+4500000000"
+                    elif any(k in label.lower() for k in ["city", "by"]):
+                        ans = getattr(user, "city", "") or "Copenhagen"
+                    elif any(k in label.lower() for k in ["address", "street", "vej"]):
+                        ans = getattr(user, "address", "") or "Unknown Street"
+                    elif any(k in label.lower() for k in ["løn", "salary", "compensation", "pay", "wage"]):
+                        ans = getattr(user, "expected_salary", "") or "35000"
+                    else:
+                        ans = "N/A"
+
+                # Fallback for selects / dropdowns
+                elif ftype == "select":
+                    if options:
+                        ans = options[0] if not options[0].lower().startswith("vælg") else (options[1] if len(options) > 1 else options[0])
+                    else:
+                        ans = "N/A"
+
+                else:
+                    ans = "N/A"
+
+                print(f"⚠️ AI had no answer, guessing for “{label[:60]}” → {ans}")
+
 
             fr = frames[fdata["frame_index"]]
             if fdata.get("type") == "select":
@@ -1470,7 +1679,27 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 _ai_fill_leftovers(page, user)
             except Exception as e:
                 print(f"⚠️ AI leftovers pass failed: {e}")
-                
+
+
+            # ---- NEW: document uploads (CV + default "application") ----
+            try:
+                print("📎 Document upload flow: starting …")
+                upload_summary = handle_document_uploads(
+                    page=page,                # pass the real Page object
+                    context=context,          # page or frame we’re working inside
+                    user=user,
+                    resume_path=resume_path,
+                    cover_letter_text=cover_letter_text or "Default application text.",
+                    log_dir=log_dir,
+                    safe_company=safe_company,
+                    ts=ts
+                )
+                print(f"📦 Document upload flow summary: {upload_summary}")
+            except Exception as e:
+                print(f"⚠️ Document upload flow error: {e}")
+            # -------------------------------------------------------------
+
+
 
 
 
