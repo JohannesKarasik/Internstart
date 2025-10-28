@@ -1388,12 +1388,9 @@ def _ai_fill_leftovers(page, user):
         # 2) Build payload for AI (exclude what we already prefilled)
         # 2) Build payload for AI (exclude what we already prefilled)
         # 2) Build payload for AI (exclude what we already prefilled)
+# 2) Build payload for AI — send *all* fields, not just required or empty
         fields_to_ai = []
         select_audit = []
-
-        # We’ll include ALL unfilled fields — not just required ones.
-        # Force regex ensures employment fields get sent even if already filled.
-        force_regex = re.compile(r"(stilling|position|arbejdsgiver|employer)", re.I)
 
         for fdata in inv:
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
@@ -1405,33 +1402,27 @@ def _ai_fill_leftovers(page, user):
                     fdata.get("aria_label") or fdata.get("name") or "")
             val = (fdata.get("current_value") or "").strip()
 
-            # Treat anything empty as unfilled (regardless of required)
             if ftype == "select":
-                sel_text = fdata.get("selected_text") or ""
-                unfilled = _select_is_unfilled(sel_text, val)
-                if unfilled:
-                    fr = frames[fdata["frame_index"]]
-                    options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
-                    fields_to_ai.append({
-                        "field_id": fid,
-                        "label": label,
-                        "type": "select",
-                        "required": bool(fdata.get("required")),
-                        "options": options,
-                    })
-                    select_audit.append(
-                        f"   SELECT label='{label}' selected='{sel_text}' value='{val}' → unfilled=True"
-                    )
+                fr = frames[fdata["frame_index"]]
+                options = _extract_dropdown_options(fr, fdata["query"], fdata["nth"])
+                fields_to_ai.append({
+                    "field_id": fid,
+                    "label": label,
+                    "type": "select",
+                    "required": bool(fdata.get("required")),
+                    "options": options,
+                })
+                select_audit.append(
+                    f"   SELECT label='{label}' selected='{fdata.get('selected_text')}' value='{val}'"
+                )
             else:
-                # include if empty or relevant by regex
-                always_include_regex = re.compile(r"(stilling|position|arbejdsgiver|employer)", re.I)
-                if (not val) or always_include_regex.search(label):
-                    fields_to_ai.append({
-                        "field_id": fid,
-                        "label": label,
-                        "type": ftype or "text",
-                        "required": bool(fdata.get("required")),
-                    })
+                fields_to_ai.append({
+                    "field_id": fid,
+                    "label": label,
+                    "type": ftype or "text",
+                    "required": bool(fdata.get("required")),
+                })
+
 
 
         print("🔎 DEBUG (select audit):")
