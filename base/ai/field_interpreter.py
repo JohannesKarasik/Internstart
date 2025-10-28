@@ -90,28 +90,14 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
     The model is robust to unpredictable labels and multi-language forms (Danish/English).
 
     Args:
-        fields (list): each field may include:
-          {
-            "field_id": str,
-            "label": str,
-            "type": "text"|"select"|...,
-            "options": [str, ...],
-            "required": bool
-          }
-        user_profile (dict): loaded from JSON for this user.
-        system_prompt (str, optional): custom system prompt to override default behavior.
-
-    Returns:
-        dict: {"field_id": "answer"} where answers are:
-              - free-text strings for text inputs, or
-              - exact strings from `options` for selects.
+        fields (list): list of dicts with metadata about each field (label, type, kind, etc.)
+        user_profile (dict): loaded from JSON for this user
+        system_prompt (str, optional): override base prompt
     """
     if not fields:
         return {}
     user_profile = user_profile or {}
 
-
-    # Default system prompt if none provided
     base_system_prompt = system_prompt or """
     You are an AI assistant that fills job application forms using a user's profile.
     Match each field label to the most relevant piece of information.
@@ -129,61 +115,57 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
     - Translate and normalize appropriately.
     """
 
-    # Combine structured hints + few-shot + user data
+    # --- New: Enhanced instructions for essay and field-type awareness ---
     user_prompt = f"""
     You are filling out a job application form on behalf of a user based on their profile.
 
     🧩 Input:
-    - You receive a list of fields with labels, IDs, types, and possible options.
+    - Each field includes a label, type, and "kind" (semantic meaning like essay, phone, email, etc.).
     - You must fill **every single field** — never skip any.
-    - If you don’t know the answer, generate a natural, realistic value that matches the field label and context.
+    - If you don’t know the answer, make up a realistic value that fits the label.
 
     🌍 Language:
-    - Understand and respond correctly in both Danish and English.
-    - Match the field’s language: if the label is Danish, answer in Danish; if English, answer in English.
+    - Understand and respond in Danish or English depending on the field label.
+    - Match the field’s language (Danish label → Danish answer, English label → English answer).
 
-    🎯 Objective:
-    Provide one value per field ID in valid JSON format.
+    🧠 Formatting rules by kind:
+    - kind="essay": Write 4–7 fluent sentences (≈80–150 words) in the label’s language.
+      Describe the user's motivation for the job, their interest in the company, and relevant strengths.
+      Never include numbers, phone codes, or countries here.
+    - kind="skills": Return 3–6 comma-separated skills, e.g. "Python, Marketing, Communication".
+    - kind="phone": Return a valid phone number with country code, e.g. "+45 42424242".
+    - kind="email": Return a valid email, e.g. "kasperchristensen@mail.com".
+    - kind="salary": Use "Efter aftale" (Danish) or "Negotiable" (English).
+    - kind="yesno": If it sounds like consent/policy/sharing → "Ja"/"Yes"; if about employment restrictions → "Nej"/"No".
+    - kind="address": Use "Testvej 1".
+    - kind="city": Use "København".
+    - kind="zip": Use "2100".
+    - kind="country": Use "Danmark" or "Denmark".
+    - kind="first_name": "Kasper"
+    - kind="last_name": "Christensen"
+    - Default (unknown kind): Generate a short, context-appropriate value (company name, text snippet, etc.)
 
-    💡 Rules:
-    1. **Always provide a value** for every field_id — even if you must make one up.
-    2. **For select or dropdown fields**:
-    - The answer **must exactly match** one of the available options.
-    - If none fit, pick a neutral or generic one like “Other”, “Andet”, or the first option that makes sense.
-    3. **For text fields**:
-    - Use realistic short answers: names, emails, phone numbers, cities, companies, etc.
-    - If the label is unknown, infer from common job application logic (example: “info.middleName” → a realistic middle name like “Peter”).
-    4. **For Yes/No questions**:
-    - If it sounds like consent, policy, or agreement → “Yes” / “Ja”.
-    - If it sounds like prior employment restriction → “No” / “Nej”.
-    5. **For salary or pay** → “Efter aftale” (Danish) or “Negotiable” (English).
-    6. **For address** → “Testvej 1”, city → “København”, zip → “2100”.
-    7. **For first name** → use user’s name if known, else “Test”.
-    8. **For last name** → use user’s surname if known, else “User”.
-    9. **If completely unsure**, make up a short but realistic answer based on the field label type.
-    10. **Return only valid JSON** — no markdown, no explanations, no comments.
+    🎯 Output:
+    Return one JSON object where each key is a field_id and each value is the best answer.
 
     Examples:
-    - Label: “info.firstName” → “Kasper”
-    - Label: “City” → “Copenhagen”
-    - Label: “Expected Salary” → “Efter aftale”
-    - Label: “How did you hear about us?” → “LinkedIn”
-    - Label: “Address Line 1” → “Testvej 1”
-    - Label: “Email” → “kasperchristensen@mail.com”
-    - Label: “Skills” → “Python, Marketing, Communication”
+    - Label: “info.firstName” (kind="first_name") → “Kasper”
+    - Label: “Beskriv kort din motivation” (kind="essay") →
+      “Jeg søger stillingen, fordi opgaverne matcher mine kompetencer og min interesse for at udvikle mig i et professionelt miljø.
+      Jeg arbejder struktureret, lærer hurtigt nye systemer og sætter pris på samarbejde og kvalitet.”
+    - Label: “Expected Salary” (kind="salary") → “Negotiable”
+    - Label: “Email” (kind="email") → “kasperchristensen@mail.com”
+    - Label: “Skills” (kind="skills") → “Python, Communication, Teamwork”
 
-    Now fill out the following fields based on the user profile.
-
-    UserProfile:
+    🧾 UserProfile:
     {json.dumps(user_profile, ensure_ascii=False, indent=2)}
 
     Fields to fill:
     {json.dumps(fields, ensure_ascii=False, indent=2)}
 
-    Return **only** a JSON object like this:
+    Return **only** valid JSON like this:
     {{"field_id": "answer", ...}}
     """
-
 
     try:
         response = client.chat.completions.create(
@@ -192,12 +174,11 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
                 {"role": "system", "content": base_system_prompt.strip()},
                 {"role": "user", "content": user_prompt.strip()},
             ],
-            temperature=0.4,  # deterministic output
+            temperature=0.4,
         )
 
         text = (response.choices[0].message.content or "").strip()
 
-        # Parse JSON safely
         try:
             return json.loads(text)
         except Exception:
@@ -210,3 +191,4 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
     except Exception as e:
         print(f"❌ AI field mapping failed: {e}")
         return {}
+

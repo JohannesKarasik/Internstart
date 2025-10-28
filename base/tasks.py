@@ -114,6 +114,53 @@ def _profile_get(profile: dict, *keys, default=None):
 
 
 # --- SELECT-LIKE helpers (add once, near other utils) -----------------------
+
+
+ESSAY_HINTS = re.compile(
+    r"(ansøgning|ansoegning|motivation|application\s*text|cover\s*letter|"
+    r"personal\s*statement|beskriv|skriv.*motivation|why.*(role|job)|"
+    r"tell.*about.*yourself|fortæl.*om.*dig\s*selv)", re.I
+)
+
+def _infer_kind(label, placeholder="", aria_label="", data_hints="", ftype="text"):
+    text = " ".join([label, placeholder, aria_label, data_hints]).lower()
+
+    # Handle long text areas or application text
+    if ftype in {"textarea", "text"}:
+        if any(x in text for x in [
+            "motivation", "applicationtext", "ansøgning", "fortæl", "dig selv",
+            "søger du jobbet", "om dig", "why do you want this job", "cover letter"
+        ]):
+            return "essay"
+
+    if "email" in text:
+        return "email"
+    if "phone" in text or "mobil" in text or "tel" in text:
+        return "phone"
+    if "salary" in text or "løn" in text or "pay" in text:
+        return "salary"
+    if "address" in text or "vej" in text:
+        return "address"
+    if "by" in text or "city" in text:
+        return "city"
+    if "zip" in text or "post" in text:
+        return "zip"
+    if "country" in text or "land" in text:
+        return "country"
+    if "first" in text or "fornavn" in text:
+        return "first_name"
+    if "last" in text or "efternavn" in text:
+        return "last_name"
+    if "skills" in text or "kompetence" in text:
+        return "skills"
+    if any(x in text for x in ["ja", "nej", "yes", "no", "consent", "accept"]):
+        return "yesno"
+
+    return "other"
+
+
+
+
 SELECT_LIKE_TYPES = {"select", "combo", "md-select", "mat-select"}
 
 def _select_like_set(frame, query, nth, label_text: str) -> bool:
@@ -1169,6 +1216,7 @@ def _ai_fill_leftovers(page, user):
         for fdata in inv:
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
             ftype = fdata.get("type") or "text"
+
             label = (
                 fdata.get("label")
                 or fdata.get("placeholder")
@@ -1176,6 +1224,15 @@ def _ai_fill_leftovers(page, user):
                 or fdata.get("name")
                 or ""
             ).strip()
+
+            # 🔍 detect semantic meaning (essay, phone, email, etc.)
+            kind = _infer_kind(
+                label,
+                fdata.get("placeholder", ""),
+                fdata.get("aria_label", ""),
+                fdata.get("data_hints", ""),
+                ftype,
+            )
 
             options = []
             if ftype in SELECT_LIKE_TYPES:
@@ -1190,8 +1247,13 @@ def _ai_fill_leftovers(page, user):
                 "label": label,
                 "type": ftype,
                 "required": bool(fdata.get("required")),
+                "placeholder": fdata.get("placeholder", ""),
+                "aria_label": fdata.get("aria_label", ""),
+                "data_hints": fdata.get("data_hints", ""),
+                "kind": kind,                     # 🧩 key addition
                 "options": options,
             })
+
 
         print(f"🤖 AI-first mode: sending {len(fields_to_ai)} fields for interpretation…")
 
