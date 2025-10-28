@@ -125,6 +125,11 @@ ESSAY_HINTS = re.compile(
 def _infer_kind(label, placeholder="", aria_label="", data_hints="", ftype="text"):
     text = " ".join([label, placeholder, aria_label, data_hints]).lower()
 
+        # Force essay classification for unlabeled textareas
+    if ftype == "textarea" and not text.strip():
+        return "essay"
+
+
     # Handle long text areas or application text
     if ftype in {"textarea", "text"}:
         if any(x in text for x in [
@@ -1071,6 +1076,35 @@ def _accessible_label(frame, el):
         return _humanize_tokens(placeholder, name_attr, id_attr, data_blob)
 
     except Exception:
+
+
+        # 7️⃣ Final fallback: global search by ID for textareas
+        try:
+            tag_name = el.evaluate("(el) => (el.tagName || '').toLowerCase()")
+            if tag_name == "textarea" and el_id:
+                label_from_id = frame.evaluate(
+                    """(id) => {
+                        try {
+                            const cssSafeId = CSS.escape ? CSS.escape(id) : id.replace(/([:.#$/[\]=])/g, '\\\\$1');
+                            const match = document.querySelector(`label[for='${cssSafeId}']`);
+                            if (match) return (match.innerText || match.textContent || '').trim();
+                            // if not found in this frame, search parent
+                            if (window.parent && window.parent.document) {
+                                const m2 = window.parent.document.querySelector(`label[for='${cssSafeId}']`);
+                                if (m2) return (m2.innerText || m2.textContent || '').trim();
+                            }
+                            return '';
+                        } catch (err) { return ''; }
+                    }""",
+                    el_id
+                ) or ""
+                if label_from_id:
+                    return label_from_id
+        except Exception:
+            pass
+
+
+
         return ""
 
 
