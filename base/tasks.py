@@ -1031,11 +1031,18 @@ def _accessible_label(frame, el):
                 near = txt(cand);
                 // If still nothing, walk a few previous siblings
                 if (!near) {
-                  let prev = el.previousElementSibling;
-                  for (let i = 0; i < 4 && !near && prev; i++) {
-                    near = txt(prev);
-                    prev = prev.previousElementSibling;
-                  }
+                let prev = el.previousElementSibling;
+                for (let i = 0; i < 10 && !near && prev; i++) {
+                near = txt(prev);
+                prev = prev.previousElementSibling;
+                }
+                if (!near) {
+                let up = el.parentElement;
+                for (let i = 0; i < 3 && !near && up; i++) {
+                    near = txt(up.querySelector('label, span, strong, b, p'));
+                    up = up.parentElement;
+                }
+                }
                 }
               }
 
