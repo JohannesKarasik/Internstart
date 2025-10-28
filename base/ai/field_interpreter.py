@@ -136,15 +136,11 @@ def _few_shot_block():
 def map_fields_to_answers(fields, user_profile, system_prompt=None):
     """
     Use AI to decide what values should go in each ATS field dynamically.
-    The model is robust to unpredictable labels and multi-language forms (Danish/English).
-
-    Args:
-        fields (list): list of dicts with metadata about each field (label, type, kind, etc.)
-        user_profile (dict): loaded from JSON for this user
-        system_prompt (str, optional): override base prompt
+    Handles both short structured fields and essay/motivation fields in separate passes.
     """
     if not fields:
         return {}
+
     user_profile = user_profile or {}
 
     base_system_prompt = system_prompt or """
@@ -167,87 +163,125 @@ def map_fields_to_answers(fields, user_profile, system_prompt=None):
     # --- Normalize all field labels before sending to GPT ---
     normalized_fields = []
     for f in fields:
-        norm_label = _normalize_label_text(f.get("label", "")) or _normalize_label_text(f.get("aria_label", "")) or f.get("label", "")
+        norm_label = (
+            _normalize_label_text(f.get("label", ""))
+            or _normalize_label_text(f.get("aria_label", ""))
+            or f.get("label", "")
+        )
         norm_field = dict(f)
         norm_field["label"] = norm_label.strip()
         normalized_fields.append(norm_field)
 
-    # --- Enhanced instructions for essay and field-type awareness ---
+    # --- Split essay vs non-essay fields ---
+    essay_fields = [f for f in normalized_fields if f.get("kind") == "essay"]
+    short_fields = [f for f in normalized_fields if f.get("kind") != "essay"]
 
-    user_prompt = f"""
-    You are filling out a job application form on behalf of a user based on their profile.
+    answers = {}
 
-    🧩 Input:
-    - Each field includes a label, type, and "kind" (semantic meaning like essay, phone, email, etc.).
-    - You must fill **every single field** — never skip any.
-    - If you don’t know the answer, make up a realistic value that fits the label.
+    # ================================
+    # 🧩 PASS 1 — Non-essay fields
+    # ================================
+    if short_fields:
+        user_prompt_short = f"""
+        You are filling out a job application form on behalf of a user based on their profile.
 
-    🌍 Language:
-    - Understand and respond in Danish or English depending on the field label.
-    - Match the field’s language (Danish label → Danish answer, English label → English answer).
+        🧩 Input:
+        - Each field includes a label, type, and "kind" (semantic meaning like essay, phone, email, etc.).
+        - You must fill **every single field** — never skip any.
+        - If you don’t know the answer, make up a realistic value that fits the label.
 
-    🧠 Formatting rules by kind:
-    - kind="essay": Write 4–7 fluent sentences (≈80–150 words) in the label’s language.
-      Describe the user's motivation for the job, their interest in the company, and relevant strengths.
-      Never include numbers, phone codes, or countries here.
-    - kind="skills": Return 3–6 comma-separated skills, e.g. "Python, Marketing, Communication".
-    - kind="phone": Return a valid phone number with country code, e.g. "+45 42424242".
-    - kind="email": Return a valid email, e.g. "kasperchristensen@mail.com".
-    - kind="salary": Use "Efter aftale" (Danish) or "Negotiable" (English).
-    - kind="yesno": If it sounds like consent/policy/sharing → "Ja"/"Yes"; if about employment restrictions → "Nej"/"No".
-    - kind="address": Use "Testvej 1".
-    - kind="city": Use "København".
-    - kind="zip": Use "2100".
-    - kind="country": Use "Danmark" or "Denmark".
-    - kind="first_name": "Kasper"
-    - kind="last_name": "Christensen"
-    - Default (unknown kind): Generate a short, context-appropriate value (company name, text snippet, etc.)
+        🌍 Language:
+        - Understand and respond in Danish or English depending on the field label.
+        - Match the field’s language (Danish label → Danish answer, English label → English answer).
 
-    🎯 Output:
-    Return one JSON object where each key is a field_id and each value is the best answer.
+        🧠 Formatting rules by kind:
+        - kind="skills": Return 3–6 comma-separated skills, e.g. "Python, Marketing, Communication".
+        - kind="phone": Return a valid phone number with country code, e.g. "+45 42424242".
+        - kind="email": Return a valid email, e.g. "kasperchristensen@mail.com".
+        - kind="salary": Use "Efter aftale" (Danish) or "Negotiable" (English).
+        - kind="yesno": If it sounds like consent/policy/sharing → "Ja"/"Yes"; if about employment restrictions → "Nej"/"No".
+        - kind="address": Use "Testvej 1".
+        - kind="city": Use "København".
+        - kind="zip": Use "2100".
+        - kind="country": Use "Danmark" or "Denmark".
+        - kind="first_name": "Kasper"
+        - kind="last_name": "Christensen"
+        - Default (unknown kind): Generate a short, context-appropriate value.
 
-    Examples:
-    - Label: “info.firstName” (kind="first_name") → “Kasper”
-    - Label: “Beskriv kort din motivation” (kind="essay") →
-      “Jeg søger stillingen, fordi opgaverne matcher mine kompetencer og min interesse for at udvikle mig i et professionelt miljø.
-      Jeg arbejder struktureret, lærer hurtigt nye systemer og sætter pris på samarbejde og kvalitet.”
-    - Label: “Expected Salary” (kind="salary") → “Negotiable”
-    - Label: “Email” (kind="email") → “kasperchristensen@mail.com”
-    - Label: “Skills” (kind="skills") → “Python, Communication, Teamwork”
+        🎯 Output:
+        Return one JSON object where each key is a field_id and each value is the best answer.
 
-    🧾 UserProfile:
-    {json.dumps(user_profile, ensure_ascii=False, indent=2)}
+        🧾 UserProfile:
+        {json.dumps(user_profile, ensure_ascii=False, indent=2)}
 
-    Fields to fill:
-    {json.dumps(normalized_fields, ensure_ascii=False, indent=2)}
+        Fields to fill:
+        {json.dumps(short_fields, ensure_ascii=False, indent=2)}
 
-
-    Return **only** valid JSON like this:
-    {{"field_id": "answer", ...}}
-    """
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": base_system_prompt.strip()},
-                {"role": "user", "content": user_prompt.strip()},
-            ],
-            temperature=0.4,
-        )
-
-        text = (response.choices[0].message.content or "").strip()
+        Return **only** valid JSON like this:
+        {{"field_id": "answer", ...}}
+        """
 
         try:
-            return json.loads(text)
-        except Exception:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": base_system_prompt.strip()},
+                    {"role": "user", "content": user_prompt_short.strip()},
+                ],
+                temperature=0.4,
+            )
+            text = (response.choices[0].message.content or "").strip()
             match = re.search(r"\{.*\}", text, re.DOTALL)
             if match:
-                return json.loads(match.group(0))
-        print("⚠️ Could not parse model output, returning empty:", text)
-        return {f["field_id"]: "" for f in fields}
+                answers.update(json.loads(match.group(0)))
+            else:
+                print("⚠️ Could not parse non-essay block:", text)
+        except Exception as e:
+            print(f"❌ Non-essay AI block failed: {e}")
 
-    except Exception as e:
-        print(f"❌ AI field mapping failed: {e}")
-        return {}
+    # ================================
+    # 🧠 PASS 2 — Essay fields
+    # ================================
+    if essay_fields:
+        essay_prompt = f"""
+        You are a writing assistant for job applications.
 
+        For each of the following fields, write 4–7 fluent sentences (≈80–150 words)
+        in the label’s language. Each should read like a short motivational paragraph.
+
+        Include:
+        - Why the user is interested in the position
+        - Relevant experience or strengths
+        - A professional and positive tone
+
+        Never include numbers, phone codes, or countries here.
+
+        🧾 UserProfile:
+        {json.dumps(user_profile, ensure_ascii=False, indent=2)}
+
+        Fields:
+        {json.dumps(essay_fields, ensure_ascii=False, indent=2)}
+
+        Return JSON with each field_id as key and its essay text as value.
+        """
+
+        try:
+            essay_response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a writing assistant for job applications."},
+                    {"role": "user", "content": essay_prompt.strip()},
+                ],
+                temperature=0.7,
+            )
+            essay_text = (essay_response.choices[0].message.content or "").strip()
+            match = re.search(r"\{.*\}", essay_text, re.DOTALL)
+            if match:
+                answers.update(json.loads(match.group(0)))
+            else:
+                print("⚠️ Could not parse essay block:", essay_text)
+        except Exception as e:
+            print(f"❌ Essay AI block failed: {e}")
+
+    # ✅ Final merged result
+    return answers
