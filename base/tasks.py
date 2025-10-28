@@ -8,7 +8,6 @@ from datetime import datetime
 from base.ai.field_interpreter import map_fields_to_answers
 
 
-
 # ---------------- util ----------------
 
 _PLACEHOLDER_SELECT_TEXTS = {
@@ -50,25 +49,6 @@ def _best_option_match(options, want_text):
         if s > best_score:
             best, best_score = o, s
     return best
-
-
-
-
-def _normalize_label(s: str) -> str:
-    """Lowercase, strip, remove diacritics, collapse spaces, and map Danish chars."""
-    if not s:
-        return ""
-    s = str(s).strip().lower()
-    # Preserve Danish forms, but also support ASCII fallbacks
-    s = (s.replace("ø", "o")
-          .replace("æ", "ae")
-          .replace("å", "a"))
-    # Remove any remaining diacritics
-    s = unicodedata.normalize("NFKD", s)
-    s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    # Collapse whitespace
-    s = re.sub(r"\s+", " ", s)
-    return s
 
 
 # ---------------- AI leftovers with dropdown support ----------------
@@ -288,13 +268,6 @@ def _rule_based_value(label, options, user_profile, user):
     if "køn" in L or "gender" in L:
         g = _profile_get(user_profile, "gender")
         return g
-    
-
-        # Salary expectations
-    if "løn" in L or "salary" in L or "pay" in L or "wage" in L:
-        sal = getattr(user, "expected_salary", None) or _profile_get(user_profile, "expected_salary")
-        if sal:
-            return str(sal)
 
     return None
 
@@ -351,25 +324,16 @@ def _parse_required_docs_from_text(txt: str):
     return _uniq_keep_order(hits)
 
 def _find_documents_section(context):
-    # Prefer the container that holds the "Vælg & upload" button
-    try:
-        btn = context.locator(":is(button,a,input)[has-text('Vælg & upload')]")
-        if btn.count():
-            cont = btn.first.locator("xpath=ancestor::*[self::section or self::div][1]").first
-            if cont and cont.is_visible():
-                return cont, (cont.inner_text() or "").strip()
-    except Exception:
-        pass
-
-    # Fallbacks (as before)
-    for sel in [
+    """Try to find the 'Documents' area root and return (section_locator, text)."""
+    candidates = [
         "section:has-text('Dokumenter')",
         "div:has-text('Dokumenter')",
         "section:has-text('Documents')",
         "div:has-text('Documents')",
         "section:has-text('Vedhæfte' i)",
         "div:has-text('Vedhæfte' i)",
-    ]:
+    ]
+    for sel in candidates:
         try:
             loc = context.locator(sel)
             if loc.count() and loc.first.is_visible():
@@ -377,74 +341,77 @@ def _find_documents_section(context):
                 return loc.first, txt
         except Exception:
             pass
+    # fallback: whole frame/page text
     return context, (context.inner_text() or "")
 
-
 def _find_upload_controls(context, section):
-    """Locate the file input, the *documents* category select, and the upload button."""
+    """Locate file input, optional category select/combobox, and the upload button."""
     root = section or context
 
-    def _loc_first(scope, sel):
-        try:
-            loc = scope.locator(sel)
-            if loc.count() and loc.first.is_visible():
-                return loc.first
-        except Exception:
-            pass
-        return None
-
-    # Prefer a container that actually holds the upload UI
-    upload_btn = (_loc_first(root, ":is(button,a,input)[has-text('Vælg & upload')]")
-                  or _loc_first(context, ":is(button,a,input)[has-text('Vælg & upload')]"))
-
-    # File input (often hidden, but present in DOM)
+    # 1) File input
     file_input = None
-    for scope in (root, context):
+    try:
+        cand = root.locator("input[type='file']")
+        if not cand.count():
+            cand = context.locator("input[type='file']")
+        if cand.count():
+            file_input = cand.first
+    except Exception:
+        pass
+
+    # 2) Category select (native or custom)
+    category = None
+    try:
+        # First try native select near the file input / in section
+        near_select = root.locator("select")
+        if not near_select.count():
+            near_select = context.locator("select")
+        if near_select.count():
+            # keep it; we’ll resolve actual value per upload
+            category = near_select.first
+        else:
+            # Try common custom select roots
+            custom = root.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
+            if not custom.count():
+                custom = context.locator("[role='combobox'], [aria-haspopup='listbox'], .select2-selection[role='combobox'], .choices__inner")
+            if custom.count():
+                category = custom.first
+    except Exception:
+        pass
+
+    # 3) Upload button
+    upload_btn = None
+    for sel in UPLOAD_BUTTON_CANDIDATES:
         try:
-            cand = scope.locator("input[type='file']")
-            if cand.count():
-                file_input = cand.first
+            loc = root.locator(sel)
+            if not loc.count():
+                loc = context.locator(sel)
+            if loc.count() and loc.first.is_visible():
+                upload_btn = loc.first
                 break
         except Exception:
             pass
 
-    # Category select: pick the <select> whose options include CV/Ansøgning (or synonyms)
-    category = None
-    def _select_with_doc_options(scope):
-        try:
-            sels = scope.locator("select")
-            for i in range(min(sels.count(), 10)):
-                sel = sels.nth(i)
-                try:
-                    opts = sel.evaluate("(el)=>[...el.options].map(o=>(o.textContent||'').trim())")
-                except Exception:
-                    continue
-                joined = " | ".join(opts).lower()
-                if any(k in joined for k in ["cv","curriculum","resume","ansøgning","ansoegning","cover","application","motiveret"]):
-                    return sel
-        except Exception:
-            pass
-        return None
-
-    category = _select_with_doc_options(root) or _select_with_doc_options(context)
-
-    # Multiple files support?
+    # 4) Detect multiple
     supports_multiple = False
     try:
         if file_input:
-            ma = file_input.get_attribute("multiple")
-            if ma and str(ma).lower() not in {"false","0",""}:
+            multiple_attr = file_input.get_attribute("multiple")
+            if multiple_attr and str(multiple_attr).lower() not in {"false", "0", ""}:
                 supports_multiple = True
+        # textual hint
+        sec_text = (section.inner_text() or "") if section else ""
+        if re.search(r"upload flere|flere filer|multiple files|more than one", sec_text, re.I):
+            supports_multiple = True
     except Exception:
         pass
 
-    print(f"🔧 Upload controls → file_input={'yes' if file_input else 'no'}, "
-          f"category={'yes' if category else 'no'}, "
-          f"button={'yes' if upload_btn else 'no'}, "
-          f"multiple={'yes' if supports_multiple else 'no'}")
-
-    return {"file_input": file_input, "category": category, "upload_btn": upload_btn, "supports_multiple": supports_multiple}
-
+    return {
+        "file_input": file_input,
+        "category": category,
+        "upload_btn": upload_btn,
+        "supports_multiple": supports_multiple
+    }
 
 def _ensure_file_input_visible(context):
     try:
@@ -493,62 +460,51 @@ def _build_files_for_docs(user, resume_path, default_cover_letter_text=""):
     return files
 
 def _select_category_value(page, context, category_locator, want_label: str) -> bool:
-    label = (want_label or "").strip()
-
-    # Try robust native <select> path first (substring / case-insensitive)
+    """Use your existing select helpers where possible."""
+    label = want_label.strip()
     try:
-        tag = (category_locator.evaluate("el => (el.tagName||'').toLowerCase()") or "")
+        tag = (category_locator.evaluate("el => (el.tagName||'').toLowerCase()") or "").lower()
     except Exception:
         tag = ""
-
     if tag == "select":
         try:
-            opts = category_locator.evaluate("(el)=>[...el.options].map(o=>({t:(o.textContent||'').trim(), v:o.value}))")
-            def norm(s): 
-                return re.sub(r"\s+", " ", s or "").strip().lower()
-            want = norm(label)
-            idx = next((i for i,o in enumerate(opts)
-                        if norm(o["t"]) == want or norm(o["t"]).startswith(want) or want in norm(o["t"])), -1)
-            if idx >= 0:
-                category_locator.evaluate(
-                    "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
-                    idx
-                )
-                return True
-
-            # Try synonyms if not found
-            syns = CATEGORY_SYNONYMS.get("cv" if "cv" in want.lower() else "cover_letter", [])
-            for alt in syns:
-                want_alt = norm(alt)
-                idx = next((i for i,o in enumerate(opts)
-                            if norm(o["t"]) == want_alt or want_alt in norm(o["t"])), -1)
-                if idx >= 0:
-                    category_locator.evaluate(
-                        "(el,i)=>{el.selectedIndex=i; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));}", 
-                        idx
-                    )
-                    return True
+            category_locator.select_option(label=label)
+            return True
         except Exception:
-            pass
+            # Try any synonym that exists as an option
+            opts = []
+            try:
+                opts = context.evaluate(
+                    """(el) => Array.from(el.options||[]).map(o => (o.textContent||'').trim())""",
+                    category_locator.element_handle()
+                ) or []
+            except Exception:
+                pass
+            for alt in CATEGORY_SYNONYMS.get("cv" if "CV" in label.upper() else "cover_letter", []):
+                if any(alt.lower() == o.lower() for o in opts):
+                    try:
+                        category_locator.select_option(label=alt)
+                        return True
+                    except Exception:
+                        pass
+        return False
 
-    # Custom widget fallback: click, type, Enter
+    # custom select-like: click & type + Enter (reuse your patterns)
     try:
         category_locator.click(force=True)
         context.wait_for_timeout(120)
+        # try to type then Enter
         inner = category_locator.locator("input[role='combobox'], input[aria-autocomplete='list'], input[type='text']").first
         target = inner if (inner and inner.is_visible()) else category_locator
-        try:
-            if target == inner:
-                target.fill("")
-            target.type(label, delay=18)
-        except Exception:
-            pass
-        _safe_press(page, target, "Enter"); _safe_press(page, target, "Tab")
+        target.fill("") if target == inner else None
+        target.type(label, delay=18)
+        _safe_press(page, target, "Enter")
+        _safe_press(page, target, "Tab")
         return True
     except Exception:
         pass
 
-    # Last resort: click in the open menu
+    # brute-force click an option in the open menu
     try:
         menu = context.locator(":is([role='listbox'], .select2-results__options, .MuiPaper-root, ul[role='listbox'])")
         if menu.count():
@@ -558,9 +514,7 @@ def _select_category_value(page, context, category_locator, want_label: str) -> 
                 return True
     except Exception:
         pass
-
     return False
-
 
 def _wait_file_list_contains(section, filename_base: str, category_hint: str = "", timeout_ms: int = 4000):
     """Best-effort verification that the table/list shows our uploaded entry."""
@@ -579,76 +533,57 @@ def _wait_file_list_contains(section, filename_base: str, category_hint: str = "
         time.sleep(0.25)
     return False
 
-def _wait_file_list_contains(section, filename_base: str, timeout_ms: int = 5000):
-    end = time.time() + (timeout_ms / 1000.0)
-    pat = re.compile(re.escape(filename_base), re.I)
-    while time.time() < end:
-        try:
-            txt = (section.inner_text() or "")
-            if pat.search(txt):
-                return True
-        except Exception:
-            pass
-        time.sleep(0.25)
-    return False
-
 def upload_docs_via_controls(page, context, section, controls: dict, required_docs, files_map):
-    uploaded = []
+    """Upload each required doc using the located controls."""
+    file_input  = controls.get("file_input")
+    category    = controls.get("category")
+    upload_btn  = controls.get("upload_btn")
+    supports_multiple = bool(controls.get("supports_multiple"))
 
-    # If there is no category and the input supports multiple, batch upload
-    if not controls.get("category") and controls.get("supports_multiple"):
+    if not file_input:
+        print("⚠️ No file input found for document upload.")
+        return {"uploaded": [], "missing": required_docs}
+
+    # If no category and input supports multiple, we can upload many at once.
+    if not category and supports_multiple:
         paths = [files_map[d] for d in required_docs if files_map.get(d)]
         if paths:
             _ensure_file_input_visible(context)
-            controls["file_input"].set_input_files(paths)
-            if controls.get("upload_btn") and controls["upload_btn"].is_visible():
-                controls["upload_btn"].click(force=True)
+            file_input.set_input_files(paths)
+            if upload_btn and upload_btn.is_visible():
+                upload_btn.click(force=True)
+            # Best-effort verification for the first file
             b = os.path.basename(paths[0])
             _wait_file_list_contains(section or context, b)
         return {"uploaded": required_docs[:], "missing": []}
 
-    # Upload sequentially; RE-FIND controls each time because ATS UIs often re-render
+    # Otherwise upload sequentially, selecting category when present.
+    uploaded = []
     for doc in required_docs:
         path = files_map.get(doc)
         if not path or not os.path.exists(path):
             print(f"⚠️ Missing file for {doc}")
             continue
 
-        # Re-acquire the current, live controls inside the section
-        fresh = _find_upload_controls(context, section)
-        file_input  = fresh.get("file_input")
-        category    = fresh.get("category")
-        upload_btn  = fresh.get("upload_btn")
+        label_to_pick = CATEGORY_SYNONYMS["cv"][0] if doc == "cv" else CATEGORY_SYNONYMS["cover_letter"][0]
 
-        if not file_input:
-            print("⚠️ No live file input; attempting to click upload button to reveal it …")
-            if upload_btn and upload_btn.is_visible():
-                upload_btn.click(force=True)
-                context.wait_for_timeout(300)
-            fresh = _find_upload_controls(context, section)
-            file_input = fresh.get("file_input")
-            category   = category or fresh.get("category")
-            upload_btn = upload_btn or fresh.get("upload_btn")
-            if not file_input:
-                print("❌ Still no file input; skipping this document.")
-                continue
-
-        want_label = CATEGORY_SYNONYMS["cv"][0] if doc == "cv" else CATEGORY_SYNONYMS["cover_letter"][0]
-        ok_cat = True
         if category:
-            ok_cat = _select_category_value(page, context, category, want_label)
-            print(f"{'✅' if ok_cat else '⚠️'} Category set → {want_label}")
+            try:
+                ok = _select_category_value(page, context, category, label_to_pick)
+                print(f"{'✅' if ok else '⚠️'} Category set → {label_to_pick}")
+            except Exception:
+                pass
 
         _ensure_file_input_visible(context)
         try:
             file_input.set_input_files(path)
         except Exception:
-            # Node may have been re-rendered; re-find once more
-            fresh = _find_upload_controls(context, section)
-            file_input = fresh.get("file_input")
+            # Re-find the input after UI re-render
+            controls = _find_upload_controls(context, section)
+            file_input = controls.get("file_input")
             if not file_input:
                 print("⚠️ File input disappeared; cannot continue.")
-                continue
+                break
             file_input.set_input_files(path)
 
         if upload_btn and upload_btn.is_visible():
@@ -658,48 +593,22 @@ def upload_docs_via_controls(page, context, section, controls: dict, required_do
                 pass
 
         base = os.path.basename(path)
-
-        # Prefer toast/notification if present
-        try:
-            notif = context.locator(":is(.alert,.toast,.notification):has-text('blev uploadet')")
-            if notif.count():
-                notif.first.wait_for(state="visible", timeout=3000)
-        except Exception:
-            pass
-
-        if _wait_file_list_contains(section or context, base):
+        if _wait_file_list_contains(section or context, base, label_to_pick):
             print(f"🗂️ Uploaded {doc} → {base}")
             uploaded.append(doc)
         else:
-            context.wait_for_timeout(1500)
-            if _wait_file_list_contains(section or context, base):
-                print(f"🗂️ Uploaded (delayed confirm) {doc} → {base}")
-                uploaded.append(doc)
-            else:
-                print(f"⚠️ Could not verify upload row for {doc} ({base})")
+            print(f"⚠️ Could not verify upload row for {doc} ({base})")
 
-        try:
-            context.wait_for_timeout(300)
-        except Exception:
-            pass
+        # small pause between uploads
+        try: context.wait_for_timeout(300)
+        except Exception: pass
 
     missing = [d for d in required_docs if d not in uploaded]
     return {"uploaded": uploaded, "missing": missing}
 
-
-
-def handle_document_uploads(page, context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
+def handle_document_uploads(context, user, resume_path, cover_letter_text, log_dir, safe_company, ts):
     """Orchestrator: detect requirements, find controls, build files, upload."""
     try:
-        # If we were accidentally passed a Frame as 'page', normalize:
-        # (We always call with page=Page, context=Page/Frame, but keep this safe.)
-        real_page = page
-        if hasattr(page, "page"):  # e.g., a Frame accidentally passed as 'page'
-            try:
-                real_page = page.page
-            except Exception:
-                real_page = context if not hasattr(context, "page") else context.page
-
         section, sec_text = _find_documents_section(context)
         required = _parse_required_docs_from_text(sec_text)
         if not required:
@@ -715,7 +624,7 @@ def handle_document_uploads(page, context, user, resume_path, cover_letter_text,
 
         controls = _find_upload_controls(context, section)
         files    = _build_files_for_docs(user, resume_path, cover_letter_text or "Default application text.")
-        summary  = upload_docs_via_controls(real_page, context, section, controls, required, files)
+        summary  = upload_docs_via_controls(context.page, context, section, controls, required, files)
 
         # Section screenshot for logs
         try:
@@ -730,7 +639,6 @@ def handle_document_uploads(page, context, user, resume_path, cover_letter_text,
     except Exception as e:
         print(f"⚠️ Document upload flow failed: {e}")
         return {"uploaded": [], "missing": []}
-
 
 
 
@@ -1065,11 +973,6 @@ def _country_human(code: str) -> str:
 def _attrs_blob(**kw):
     return " ".join([str(kw.get(k,"") or "") for k in ["label","name","id_","placeholder","aria_label","type_"]]).lower().strip()
 
-
-
-
-
-
 def _value_from_meta(user, meta: str):
     L = (meta or "").lower()
     linkedin = (getattr(user,"linkedin_url","") or "").strip()
@@ -1086,10 +989,7 @@ def _value_from_meta(user, meta: str):
         (["city","town","by"],                 getattr(user,"location","") or ""),
         (["job title","title","position","role"], getattr(user,"occupation","") or ""),
         (["company","employer","organization","organisation","current company"], getattr(user,"category","") or ""),
-        (["salary","løn","lønforventning","expected salary","expected pay","desired salary"],
-        getattr(user, "expected_salary", "")),
     ]
-
     for keys,val in mapping:
         if any(k in L for k in keys) and val: return val
     if ("url" in L or "website" in L) and "linkedin" in L and linkedin: return linkedin
@@ -1570,27 +1470,7 @@ def apply_to_ats(room_id, user_id, resume_path=None, cover_letter_text="", dry_r
                 _ai_fill_leftovers(page, user)
             except Exception as e:
                 print(f"⚠️ AI leftovers pass failed: {e}")
-
-
-            # ---- NEW: document uploads (CV + default "application") ----
-            try:
-                print("📎 Document upload flow: starting …")
-                upload_summary = handle_document_uploads(
-                    page=page,                # pass the real Page object
-                    context=context,          # page or frame we’re working inside
-                    user=user,
-                    resume_path=resume_path,
-                    cover_letter_text=cover_letter_text or "Default application text.",
-                    log_dir=log_dir,
-                    safe_company=safe_company,
-                    ts=ts
-                )
-                print(f"📦 Document upload flow summary: {upload_summary}")
-            except Exception as e:
-                print(f"⚠️ Document upload flow error: {e}")
-            # -------------------------------------------------------------
-
-
+                
 
 
 
