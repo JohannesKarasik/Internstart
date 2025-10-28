@@ -18,6 +18,19 @@ _PLACEHOLDER_SELECT_TEXTS = {
 }
 _PLACEHOLDER_SELECT_VALUES = {"", "0", "-1", "select", "vælg", "9999"}
 
+
+EMPTY_SENTINELS = {"n/a", "na", "-", "—", "kr", "kr.", "dkk"}
+
+def _is_effectively_empty(s: str) -> bool:
+    v = (s or "").strip().lower()
+    if not v: 
+        return True
+    if v in EMPTY_SENTINELS:
+        return True
+    if re.fullmatch(r"0+", v):   # "0", "00", etc.
+        return True
+    return False
+
 def _norm(s): 
     return (s or "").strip().lower()
 
@@ -25,6 +38,9 @@ def _select_is_unfilled(selected_text, selected_value):
     st = _norm(selected_text)
     sv = _norm(selected_value)
     return (not st and not sv) or (st in _PLACEHOLDER_SELECT_TEXTS) or (sv in _PLACEHOLDER_SELECT_VALUES)
+
+
+
 
 def _best_option_match(options, want_text):
     if not options or not want_text:
@@ -220,7 +236,7 @@ def _extract_dropdown_options(frame, query, nth):
 def _rule_based_value(label, options, user_profile, user):
     """Return a best-guess string for *this* field label from profile, else None."""
     L = _normalize_label(label or "")
-    
+
     # Address block
     if "adresse" in L or "address" in L:
         return getattr(user, "address", None) \
@@ -932,19 +948,40 @@ def _yesno_preference(label_text: str) -> str:
 def _accessible_label(frame, el):
     try:
         return frame.evaluate(
-            """(el)=>{const lab=(el.labels&&el.labels[0]&&el.labels[0].innerText)||'';
-                      const aria=el.getAttribute('aria-label')||'';
-                      const ph=el.getAttribute('placeholder')||'';
-                      const byId=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/)
-                         .map(id=>document.getElementById(id)?.innerText||'').join(' ');
-                      const near=el.closest('label')?.innerText
-                        || el.closest('div,section,fieldset,.form-group,.field')
-                             ?.querySelector('legend,h1,h2,h3,h4,span,small,label,.label,.title')?.innerText || '';
-                      return [lab,aria,ph,byId,near].join(' ').replace(/\s+/g,' ').trim();}""",
+            """(el) => {
+              const txt = n => ((n && (n.innerText || n.textContent)) || '').trim();
+              const byIds = (el.getAttribute('aria-labelledby') || '')
+                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+
+              const described = (el.getAttribute('aria-describedby') || '')
+                  .trim().split(/\s+/).map(id => txt(document.getElementById(id))).join(' ');
+
+              const lab = (el.labels && el.labels[0] && txt(el.labels[0])) || '';
+              const aria = el.getAttribute('aria-label') || '';
+              const ph = el.getAttribute('placeholder') || '';
+
+              let near = '';
+              const wrap = el.closest('div,section,fieldset,.form-group,.field,.form__group') || el.parentElement;
+              if (wrap) {
+                let cand = wrap.querySelector('label,[for],legend,h1,h2,h3,h4,span,small,.label,.title,p,strong,b');
+                near = txt(cand);
+                if (!near) {
+                  let prev = el.previousElementSibling;
+                  for (let i = 0; i < 4 && !near && prev; i++) {
+                    near = txt(prev);
+                    prev = prev.previousElementSibling;
+                  }
+                }
+              }
+
+              return [lab, aria, ph, byIds, described, near].join(' ').replace(/\\s+/g,' ').trim();
+            }""",
             el
         ) or ""
     except Exception:
         return ""
+
+
 
 
 def scan_all_fields(page):
@@ -1125,8 +1162,36 @@ def fill_from_inventory(page, user, inventory):
                 curr = el.inner_text().strip() if it["query"]=="[contenteditable='true']" else el.input_value().strip()
             except Exception:
                 curr = ""
-            if curr and curr.upper()!="N/A":
+            if not _is_effectively_empty(curr):
                 continue
+
+
+            # --- SALARY EXPECTATIONS: force a numeric value early ---
+            label_norm = _normalize_label(label)
+            if any(k in label_norm for k in ["løn", "lon", "lønforventning", "lonforventning", "salary", "compensation", "pay", "wage"]):
+                sal = (getattr(user, "expected_salary", None)
+                    or _profile_get(user_profile, "expected_salary")
+                    or getattr(settings, "DEFAULT_EXPECTED_SALARY_DKK", None))
+                if sal:
+                    sal_digits = re.sub(r"[^\d]", "", str(sal))
+                    if sal_digits:
+                        fr = frames[fdata["frame_index"]]
+                        fr.evaluate(
+                            """(a)=>{
+                                const el = document.querySelectorAll(a.q)[a.n];
+                                if (!el) return;
+                                if (el.isContentEditable) { el.innerText = a.v; }
+                                else { el.value = a.v; }
+                                el.dispatchEvent(new Event('input', {bubbles:true}));
+                                el.dispatchEvent(new Event('change', {bubbles:true}));
+                            }""",
+                            {"q": q, "n": n, "v": sal_digits}
+                        )
+                        print(f"✅ RB filled salary “{label[:70]}” → {sal_digits}")
+                        prefilled += 1
+                        already_filled_fids.add(fid)
+                        continue
+
 
             meta = _attrs_blob(
                 label=it.get("label",""), name=it.get("name",""), id_=it.get("id",""),
@@ -1213,7 +1278,7 @@ def _ai_fill_leftovers(page, user):
             fid = f"{fdata['frame_index']}_{fdata['nth']}"
 
             # skip if something is already entered
-            if curr:
+            if not _is_effectively_empty(curr):
                 continue
 
             options = []
