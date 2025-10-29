@@ -791,14 +791,14 @@ html[lang="da"] .hero__subhead {
   filter: none;
 }
 
-/* Queued card: already visible behind (subtle) */
 .tinder-deck .card.is-next{
-  opacity: .14;                 /* tweak intensity here */
+  opacity: 1;                         /* was .14 */
   z-index: 2;
-  transform: translateX(-50%) translateY(10px) scale(.992);
-  filter: saturate(.92);
+  transform: translateX(-50%) translateY(12px) scale(.992); /* subtle peek */
+  filter: none;                       /* remove saturation/blur effects */
+  pointer-events: none;               /* still not clickable */
+  box-shadow: 0 14px 32px rgba(0,0,0,.14); /* slightly lighter than top */
 }
-
 /* All other cards fully hidden */
 .tinder-deck .card:not(.is-top):not(.is-next){
   opacity: 0;
