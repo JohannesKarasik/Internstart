@@ -14,7 +14,9 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      {% blocktrans %}Apply to hundreds of jobs in minutes — powered by <span class="accent">AI</span>{% endblocktrans %}
+      {% blocktrans %}
+      Apply to <span class="accent">hundreds of jobs</span> in minutes — powered by <span class="accent">AI</span>
+      {% endblocktrans %}
     </h1>
   
     <p class="hero__subhead">
@@ -452,7 +454,14 @@
   
   /* Ultra small phones ≤380px */
   @media (max-width: 380px) {
-    .hero__title { font-size: 32px; }
+    .hero__title {
+      font-size: clamp(36px, 4.4vw, 56px); /* smaller and more balanced */
+      line-height: 1.1;
+      letter-spacing: -0.4px;
+      font-weight: 800;
+      margin: 0;
+      color: #111;
+    }
     .hero__subhead { font-size: 15px; }
     .card__logo { max-width: 150px; }
     .action { width: 40px; height: 40px; }
@@ -475,7 +484,7 @@
 
 
 html[lang="da"] .hero__title {
-  font-size: clamp(44px, 5vw, 66px) !important;
+  font-size: clamp(36px, 4.4vw, 56px); /* smaller and more balanced */
   line-height: 1.1;
   max-width: 700px;
 }
