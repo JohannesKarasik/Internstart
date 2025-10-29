@@ -912,7 +912,7 @@ document.addEventListener("DOMContentLoaded", () => {
         for (const step of steps) {
           if (!step.el) continue;
           focusField(step.el);
-          statusText.textContent = `{{ _('Filling') if False else 'Filling' }} ${step.el.labels?.[0]?.innerText || ''}…`;
+          statusText.textContent = "{% trans 'Filling' %} " + (step.el.labels?.[0]?.innerText || '') + "…";
   
           if (step.check) {
             // consent checkbox
