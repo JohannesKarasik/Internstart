@@ -6,10 +6,13 @@
   <!-- ===== Activity Ticker (top of header) ===== -->
 <div class="header__ticker" id="headerTicker" role="region" aria-label="Recent activity">
   <div class="ticker__icon" aria-hidden="true">
-    <!-- tiny spark icon -->
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M13 2l-2 6H5l5 4-2 8 6-6 5 4-2-6 5-4h-7L13 2z"/>
-    </svg>
+    <img
+      src="{% static 'images/favicon-32x32.png' %}"
+      alt=""
+      class="ticker__iconImg"
+      width="16" height="16"
+      decoding="async"
+    />
   </div>
 
   <div class="ticker__viewport" aria-live="off">
@@ -310,6 +313,13 @@
   .ticker__item{ font-size:12px; padding:5px 8px; }
   .ticker__icon{ display:none; }              /* keep it minimal on phones */
 }
+
+.ticker__iconImg{
+  display:block;
+  width:16px; height:16px;          /* fits nicely inside the 22x22 icon box */
+  object-fit:contain;
+}
+
 
 
   </style>
