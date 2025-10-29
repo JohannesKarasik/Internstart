@@ -937,7 +937,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
         setProgress(100);
         btnSubmit.disabled = false;
-        statusText.textContent = "{{ _('Ready to submit — optimized by AI.') if False else 'Ready to submit — optimized by AI.' }}";
+        statusText.textContent = "{% trans 'Ready to submit — optimized by AI.' %}";
   
         // subtle button pulse
         if (!prefersReduced) {
