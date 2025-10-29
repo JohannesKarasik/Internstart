@@ -80,8 +80,8 @@ class User(AbstractUser):
         default='starter'
     )
 
-    swipes_used = models.PositiveIntegerField(default=0)
-
+    total_swipes_used = models.PositiveIntegerField(default=0)
+    
     # 🔹 Stripe integration fields
     stripe_customer_id = models.CharField(max_length=100, null=True, blank=True)
     subscription_status = models.CharField(max_length=50, null=True, blank=True)
