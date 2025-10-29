@@ -120,6 +120,83 @@
       </div>
     </article>
   </div>
+
+
+
+  <!-- AI Autofill Demo -->
+<div class="ai-demo" role="region" aria-label="AI auto-filling a job application">
+  <div class="ai-demo__window">
+    <div class="ai-demo__chrome">
+      <div class="ai-demo__dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="ai-demo__title">{% trans "Job Application — Preview" %}</div>
+      <div class="ai-demo__progress" aria-hidden="true">
+        <div class="ai-demo__bar"></div>
+        <span class="ai-demo__pct">0%</span>
+      </div>
+    </div>
+
+    <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
+      <div class="ai-field">
+        <label for="ai-name">{% trans "Full name" %}</label>
+        <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+
+      <div class="ai-field">
+        <label for="ai-email">{% trans "Email" %}</label>
+        <input id="ai-email" type="email" placeholder="name@university.dk" />
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+
+      <div class="ai-field">
+        <label for="ai-uni">{% trans "University" %}</label>
+        <input id="ai-uni" type="text" placeholder="{% trans 'Your university' %}" />
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+
+      <div class="ai-field">
+        <label for="ai-degree">{% trans "Degree" %}</label>
+        <input id="ai-degree" type="text" placeholder="{% trans 'e.g., BSc International Business, 2026' %}" />
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+
+      <div class="ai-field">
+        <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
+        <input id="ai-portfolio" type="url" placeholder="https://…" />
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+
+      <div class="ai-field ai-field--textarea">
+        <label for="ai-cover">{% trans "Short cover note" %}</label>
+        <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+
+      <div class="ai-consent">
+        <input id="ai-consent" type="checkbox" />
+        <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
+      </div>
+
+      <div class="ai-actions">
+        <button type="button" class="btn btn--primary ai-submit" disabled>
+          {% trans "Apply now" %}
+        </button>
+        <button type="button" class="btn btn--ghost ai-replay">
+          {% trans "Replay" %}
+        </button>
+      </div>
+
+      <p id="ai-status" class="ai-status" aria-live="polite">
+        {% trans "AI is preparing your application…" %}
+      </p>
+    </form>
+  </div>
+</div>
+
+
+
 </section>
 
 <!-- =========================
@@ -499,6 +576,118 @@ html[lang="da"] .hero__subhead {
 }
 
 
+/* ---------- AI Autofill Demo ---------- */
+.ai-demo{
+  --ai-w: 520px;
+  --ai-pad: 16px;
+  max-width: var(--ai-w);
+  margin: 18px 0 0;
+}
+
+@media (max-width:1024px){
+  .ai-demo{ margin: 24px auto 0; width: min(100%, var(--ai-w)); }
+}
+
+.ai-demo__window{
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(0,0,0,.12);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  font-family: var(--font);
+}
+
+.ai-demo__chrome{
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ai-demo__dots span{
+  display:inline-block; width:10px; height:10px; border-radius:50%;
+  margin-right:6px; background:#ff5f56;
+}
+.ai-demo__dots span:nth-child(2){ background:#ffbd2e; }
+.ai-demo__dots span:nth-child(3){ background:#27c93f; }
+
+.ai-demo__title{
+  font-weight: 700; color:#111; font-size: 14px;
+}
+.ai-demo__progress{
+  display:flex; align-items:center; gap:8px;
+}
+.ai-demo__bar{
+  --pct: 0%;
+  width: 120px; height: 8px; border-radius: 999px; background:#e5e7eb; position:relative; overflow:hidden;
+}
+.ai-demo__bar::after{
+  content:""; position:absolute; left:0; top:0; bottom:0; width: var(--pct);
+  background: linear-gradient(90deg, #10B981, #3B82F6);
+  transition: width .25s ease;
+}
+.ai-demo__pct{ font-size: 12px; color:#374151; min-width: 32px; text-align:right; }
+
+.ai-form{ padding: 14px var(--ai-pad) 18px; }
+.ai-field{
+  position:relative; display:flex; flex-direction:column; gap:6px; margin-bottom: 12px;
+}
+.ai-field label{
+  font-size: 12px; color:#6b7280; font-weight:600; letter-spacing:.2px;
+}
+.ai-field input,
+.ai-field textarea{
+  width: 100%; padding: 12px 40px 12px 12px;
+  font-size: 14px; line-height:1.35; border-radius: 12px;
+  border: 1px solid #e5e7eb; background:#fff; color:#111;
+  outline: none; transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.ai-field--textarea textarea{ padding-right: 44px; }
+
+.ai-field.is-active input,
+.ai-field.is-active textarea{
+  border-color: rgba(59,130,246,.6);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+.ai-field.is-done input,
+.ai-field.is-done textarea{
+  border-color: rgba(16,185,129,.6);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.12);
+  background: #f7fffb;
+}
+
+.ai-field__check{
+  position:absolute; right:10px; top: 29px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background:#10B981; color:#fff; display:grid; place-items:center;
+  font-size: 14px; line-height:1;
+  transform: scale(.6); opacity: 0; transition: .18s ease;
+}
+.ai-field.is-done .ai-field__check{ transform: scale(1); opacity: 1; }
+
+.ai-consent{
+  display:flex; gap:10px; align-items:flex-start; margin: 6px 0 10px;
+  font-size: 13px; color:#374151;
+}
+.ai-consent input{ width:18px; height:18px; margin-top:2px; }
+
+.ai-actions{ display:flex; gap: 10px; }
+.ai-actions .btn{ height: 48px; font-size: 16px; }
+.ai-actions .ai-submit[disabled]{ opacity:.6; cursor:not-allowed; }
+
+.ai-status{
+  margin-top: 12px; font-size: 13px; color:#6b7280;
+}
+
+/* Reduced Motion: keep UI but skip key animations */
+@media (prefers-reduced-motion: reduce){
+  .ai-demo__bar::after{ transition: none !important; }
+  .ai-field__check{ transition:none !important; }
+}
+
 
   </style>
   
@@ -614,4 +803,167 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+
+<script>
+  (() => {
+    const onReady = (fn) => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+      } else { fn(); }
+    };
+  
+    onReady(() => {
+      const root      = document.querySelector('.ai-demo');
+      if (!root) return;
+  
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+      const fields = {
+        name:      document.getElementById('ai-name'),
+        email:     document.getElementById('ai-email'),
+        uni:       document.getElementById('ai-uni'),
+        degree:    document.getElementById('ai-degree'),
+        portfolio: document.getElementById('ai-portfolio'),
+        cover:     document.getElementById('ai-cover'),
+        consent:   document.getElementById('ai-consent'),
+      };
+  
+      const fieldWrap = (el) => el?.closest('.ai-field');
+  
+      const progressBar = root.querySelector('.ai-demo__bar');
+      const progressPct = root.querySelector('.ai-demo__pct');
+      const statusText  = root.querySelector('#ai-status');
+      const btnSubmit   = root.querySelector('.ai-submit');
+      const btnReplay   = root.querySelector('.ai-replay');
+  
+      // Scripted content
+      const steps = [
+        { el: fields.name,      text: 'Ava Jensen' },
+        { el: fields.email,     text: 'ava.jensen@uni.dk' },
+        { el: fields.uni,       text: 'Copenhagen Business School (CBS)' },
+        { el: fields.degree,    text: 'BSc International Business, 2026' },
+        { el: fields.portfolio, text: 'https://ava.work' },
+        { el: fields.cover,     text:
+          "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
+        },
+        { el: fields.consent,   check: true }
+      ];
+  
+      const totalChars = steps.reduce((n,s) => n + (s.text ? s.text.length : 0), 0) || 1;
+      let typedChars   = 0, isRunning = false;
+  
+      const setProgress = (val) => {
+        const pct = Math.min(100, Math.round(val));
+        progressBar.style.setProperty('--pct', pct + '%');
+        progressPct.textContent = pct + '%';
+      };
+  
+      const typeInto = (el, text, speed = 22) => new Promise((resolve) => {
+        // For reduced motion, dump instantly.
+        if (prefersReduced) {
+          el.value = text;
+          resolve();
+          return;
+        }
+        let i = 0;
+        el.value = '';
+        const tick = () => {
+          if (i > text.length) return resolve();
+          el.value = text.slice(0, i);
+          typedChars += (i === 0 ? 0 : 1);
+          setProgress((typedChars / totalChars) * 100);
+          i++;
+          setTimeout(tick, speed + Math.random() * 18);
+        };
+        tick();
+      });
+  
+      const checkField = (el) => {
+        const wrap = fieldWrap(el);
+        wrap?.classList.remove('is-active');
+        wrap?.classList.add('is-done');
+      };
+  
+      const focusField = (el) => {
+        const wrap = fieldWrap(el);
+        root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
+        wrap?.classList.add('is-active');
+        el?.focus();
+        el?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+      };
+  
+      const run = async () => {
+        if (isRunning) return;
+        isRunning = true;
+  
+        // Reset UI
+        Object.values(fields).forEach((el) => {
+          if (!el) return;
+          if (el.type === 'checkbox') el.checked = false;
+          else el.value = '';
+          const wrap = fieldWrap(el);
+          wrap?.classList.remove('is-active', 'is-done');
+        });
+        btnSubmit.disabled = true;
+        typedChars = 0; setProgress(0);
+        statusText.textContent = "{{ _('AI is preparing your application…') if False else 'AI is preparing your application…' }}";
+  
+        // Walk through steps
+        for (const step of steps) {
+          if (!step.el) continue;
+          focusField(step.el);
+          statusText.textContent = `{{ _('Filling') if False else 'Filling' }} ${step.el.labels?.[0]?.innerText || ''}…`;
+  
+          if (step.check) {
+            // consent checkbox
+            if (prefersReduced) {
+              step.el.checked = true;
+            } else {
+              // tiny delay to feel intentional
+              await new Promise(r => setTimeout(r, 300));
+              step.el.checked = true;
+              await new Promise(r => setTimeout(r, 200));
+            }
+            checkField(step.el);
+            continue;
+          }
+  
+          await typeInto(step.el, step.text);
+          checkField(step.el);
+  
+          // small pause between fields
+          await new Promise(r => setTimeout(r, prefersReduced ? 40 : 180));
+        }
+  
+        setProgress(100);
+        btnSubmit.disabled = false;
+        statusText.textContent = "{{ _('Ready to submit — optimized by AI.') if False else 'Ready to submit — optimized by AI.' }}";
+  
+        // subtle button pulse
+        if (!prefersReduced) {
+          btnSubmit.animate(
+            [{ transform:'scale(1)' }, { transform:'scale(1.04)' }, { transform:'scale(1)' }],
+            { duration: 600, easing: 'ease', iterations: 1 }
+          );
+        }
+  
+        isRunning = false;
+      };
+  
+      btnReplay?.addEventListener('click', run);
+      // Auto-start once when in view
+      const startOnce = () => { run(); observer.disconnect(); };
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)) startOnce();
+      }, { threshold: .35 });
+      observer.observe(root);
+    });
+  })();
+  </script>
+  
+
 {% endblock content %}
+
+
+
+
