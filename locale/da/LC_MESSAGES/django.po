@@ -66,8 +66,13 @@ msgstr "Opret adgangskode"
 msgid "Confirm password"
 msgstr "Bekræft adgangskode"
 
-msgid "Apply to hundreds of jobs in minutes — powered by <span class=\"accent\">AI</span>"
-msgstr "Ansøg hundredvis af jobs på få minutter — drevet af <span class=\"accent\">AI</span>"
+msgid ""
+"Apply to <span class=\"accent\">200+ jobs</span> in minutes<br>— powered by "
+"<span class=\"accent\">AI</span>"
+msgstr ""
+"Ansøg til <span class=\"accent\">200+ jobs</span> på få minutter<br>— drevet "
+"af <span class=\"accent\">AI</span>"
+
 
 msgid "Internstart finds the right opportunities, fills out applications, and sends them for you. Land interviews faster without the endless forms."
 msgstr "Internstart finder de rigtige muligheder, udfylder ansøgningerne og sender dem for dig. Få samtaler hurtigere – uden de endeløse formularer."
