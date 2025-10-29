@@ -242,15 +242,7 @@ class Room(models.Model):
     ]
     country = models.CharField(max_length=10, choices=COUNTRY_CHOICES, null=True, blank=True)
 
-    INDUSTRY_CHOICES = [
-        ('business_finance', 'Business & Finance'),
-        ('marketing', 'Marketing & Communications'),
-        ('software_backend', 'Software Development (Backend)'),
-        ('software_frontend', 'Software Development (Frontend)'),
-        ('sales_customer', 'Sales & Customer Relations'),
-    ]
 
-    industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
 
     # Job type field — matches user's job_type
     JOB_TYPE_CHOICES = [
