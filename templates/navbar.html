@@ -236,10 +236,10 @@
 
 /* ===== Top Ticker Styles ===== */
 .header__ticker{
-  --ticker-bg: linear-gradient(90deg,#fff5f8 0%, #ffe9ef 100%);
-  --ticker-fg: #7a1030;
-  --ticker-pill-bg: #ffffff;
-  --ticker-pill-fg: #111;
+  --ticker-bg: linear-gradient(90deg, #FF2F5A 0%, #FF5400 100%);
+  --ticker-fg: #fff;
+  --ticker-pill-bg: rgba(255,255,255,0.2);
+  --ticker-pill-fg: #fff;
   --ticker-gap: 32px;
 
   display:flex; align-items:center; gap:12px;
@@ -274,16 +274,19 @@
 .ticker__item{
   display:inline-flex; align-items:center; gap:8px;
   padding:6px 10px;
-  background: var(--ticker-pill-bg);
-  color: var(--ticker-pill-fg);
-  border: 1px solid rgba(17,17,17,.06);
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  border: none;
   border-radius: 999px;
   box-shadow: 0 1px 2px rgba(0,0,0,.04);
   font-family:'Manrope',sans-serif;
   font-weight:600; font-size:13px; line-height:1;
 }
 
-.ticker__item strong{ color: var(--brand); font-weight:800; }
+.ticker__item strong{  
+  color: #fff;
+  font-weight: 800;
+}
 
 .ticker__close{
   appearance:none; border:0; background:transparent; color: #9a2c45;
