@@ -74,7 +74,12 @@ msgstr "Begynd at ansøge nu"
 msgid "Start applying to jobs with AI"
 msgstr "Begynd at ansøge til jobs med AI"
 
-
+msgid ""
+"Apply to <span class=\"accent\">hundreds of jobs</span> in minutes — powered "
+"by <span class=\"accent\">AI</span>"
+msgstr ""
+"Ansøg til <span class=\"accent\">hundredvis af jobs</span> på få minutter — "
+"drevet af <span class=\"accent\">AI</span>"
 
 #: base/templates/base/register.html:XXX
 msgid "What's your desired job title?"
