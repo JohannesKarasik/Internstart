@@ -54,6 +54,8 @@ class User(AbstractUser):
     total_years_experience = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Whole years")
     linkedin_url = models.URLField(blank=True, null=True)
     onboarding_shown = models.BooleanField(default=False)
+    ready = models.BooleanField(default=False)
+
 
     # Resume upload
     resume = models.FileField(upload_to="resumes/", blank=True, null=True)
