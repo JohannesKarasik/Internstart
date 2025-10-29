@@ -14,18 +14,21 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      {% blocktrans %}Swipe Into Your <span class="accent">Dream Career</span> Today{% endblocktrans %}
+      {% blocktrans %}Apply to hundreds of jobs in minutes — powered by <span class="accent">AI</span>{% endblocktrans %}
     </h1>
   
     <p class="hero__subhead">
-      {% trans "Discover internships at top companies, build your skills, and take the first step toward your future career." %}
+      {% trans "Internstart finds the right opportunities, fills out applications, and sends them for you. Land interviews faster without the endless forms." %}
     </p>
   
     <div class="hero__ctas">
-      <a href="{% url 'register' %}" class="btn btn--primary">{% trans "Start Your Journey" %}</a>
+      <a href="{% url 'register' %}" class="btn btn--primary">
+        {% trans "Start applying to jobs with AI" %}
+      </a>
       <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">{% trans "Login" %}</a>
     </div>
   </div>
+  
 
   <!-- Card deck -->
   <div class="deck" aria-label="Featured internships">
