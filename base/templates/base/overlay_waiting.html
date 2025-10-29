@@ -4,95 +4,101 @@
 {% block content %}
 <style>
   :root{
-    --accent:#FF2F5A;        /* secondary brand color */
+    --accent:#FF2F5A;          /* Secondary brand */
     --accent-600:#ff5f7a;
-    --bg-0:#ffffff;          /* lots of white */
+    --bg-0:#ffffff;            /* Lots of white */
     --bg-1:#fafafb;
-    --text-0:#0f172a;
-    --text-1:#475569;
+    --text-0:#0f172a;          /* slate-900 */
+    --text-1:#475569;          /* slate-600 */
     --muted:#e5e7eb;
   }
 
   .ai-wait{font-family:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text-0)}
   .ai-wait *{box-sizing:border-box}
 
-  /* ===== Overlay ===== */
+  /* ===== Fullscreen overlay (very subtle) ===== */
   .ai-overlay{
     position:fixed; inset:0; z-index:9999;
     display:grid; place-items:center;
     padding:clamp(16px,3vw,40px);
     background:
-      radial-gradient(900px 600px at 85% -10%, rgba(255,47,90,.08), transparent 60%),
-      radial-gradient(900px 600px at -10% 100%, rgba(255,47,90,.06), transparent 60%),
+      radial-gradient(900px 600px at 85% -10%, rgba(255,47,90,.05), transparent 60%),
+      radial-gradient(900px 600px at -10% 100%, rgba(255,47,90,.04), transparent 60%),
       linear-gradient(180deg, var(--bg-0), var(--bg-1));
   }
-  /* brand in the corner */
-  .ai-brand{
-    position:fixed; inset:auto auto 0 0; top:20px; left:24px; z-index:10000;
-    display:flex; align-items:center; gap:10px;
-  }
-  .ai-brand__logo{height:28px; width:auto; border-radius:6px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.05))}
-  .ai-brand__name{font-weight:800; color:var(--text-0); font-size:14px; letter-spacing:.2px}
 
   /* ===== Card ===== */
   .ai-card{
-    width:min(920px,94vw);
-    border:1px solid rgba(2,6,23,.06);
+    width:min(980px,94vw);
     background:#fff;
+    border:1px solid rgba(2,6,23,.06);
     border-radius:18px;
-    box-shadow:0 12px 40px rgba(2,6,23,.06);
-    padding:clamp(20px,4vw,36px);
+    box-shadow:0 14px 44px rgba(2,6,23,.06);
+    padding: clamp(20px, 4vw, 36px);
   }
-  .ai-grid{display:grid; gap:clamp(18px,3vw,28px); align-items:center}
-  @media(min-width:880px){.ai-grid{grid-template-columns:330px 1fr}}
 
-  /* ===== Minimal “radar” animation (simple & smooth) ===== */
-  .ai-radar{
-    position:relative; width:min(260px,52vw); aspect-ratio:1; margin-inline:auto;
-    border-radius:50%;
-    background:
-      radial-gradient(closest-side, rgba(255,47,90,.10), rgba(255,47,90,0) 62%);
-    overflow:hidden;
+  .ai-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; margin-bottom:10px;
   }
-  /* rotating sweep */
-  .ai-radar::after{
-    content:""; position:absolute; inset:0; border-radius:50%;
-    background:conic-gradient(from 0deg, rgba(255,47,90,.18) 0 20deg, transparent 20deg 360deg);
-    animation:sweep 7s linear infinite;
+  .ai-logo{
+    display:flex; align-items:center; gap:10px;
   }
-  /* inner dotted ring */
-  .ai-radar::before{
-    content:""; position:absolute; inset:12%; border-radius:50%;
-    border:1.5px dashed rgba(255,47,90,.35);
-  }
-  /* breathing center dot */
-  .ai-dot{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:12px; height:12px; border-radius:50%; background:var(--accent);
-    box-shadow:0 0 0 10px rgba(255,47,90,.10);
-    animation:breathe 3s ease-in-out infinite;
-  }
-  @keyframes sweep{to{transform:rotate(360deg)}}
-  @keyframes breathe{0%,100%{box-shadow:0 0 0 8px rgba(255,47,90,.10)}50%{box-shadow:0 0 0 14px rgba(255,47,90,.14)}}
+  .ai-logo img{height:28px; width:auto; border-radius:6px}
 
-  /* ===== Copy ===== */
   .badge{
     display:inline-flex; align-items:center; gap:8px;
     padding:8px 12px; border-radius:999px; background:#fff;
-    border:1px solid rgba(2,6,23,.06); color:var(--text-1); font-weight:700; margin-bottom:8px;
+    border:1px solid rgba(2,6,23,.06); color:var(--text-1); font-weight:700;
     box-shadow:0 3px 10px rgba(2,6,23,.06);
+    white-space:nowrap;
   }
   .badge .dot{width:8px; height:8px; border-radius:50%; background:var(--accent)}
 
-  h1{font-weight:800; font-size:clamp(26px,4.4vw,42px); line-height:1.1; letter-spacing:-.02em; margin:0 0 10px}
+  .ai-grid{display:grid; gap:clamp(18px,3vw,28px); align-items:center}
+  @media(min-width:900px){.ai-grid{grid-template-columns:320px 1fr}}
+
+  /* ===== NEW: Simple ripple animation (no rotation) ===== */
+  .ai-ripples{
+    position:relative; width:min(240px,52vw); aspect-ratio:1;
+    margin-inline:auto; border-radius:50%;
+    background: radial-gradient(closest-side, rgba(255,47,90,.08), transparent 60%);
+  }
+  .ai-ripples .ring{
+    position:absolute; left:50%; top:50%; translate:-50% -50%;
+    width:38%; aspect-ratio:1; border-radius:50%;
+    border:2px solid rgba(255,47,90,.30);
+    opacity:0; transform:scale(.45);
+    animation:ripple 2.4s ease-out infinite;
+  }
+  .ai-ripples .r2{animation-delay:.6s}
+  .ai-ripples .r3{animation-delay:1.2s}
+
+  .ai-ripples .core{
+    position:absolute; left:50%; top:50%; translate:-50% -50%;
+    width:14px; height:14px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 10px rgba(255,47,90,.10);
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+
+  @keyframes ripple{
+    0%   {opacity:.65; transform:scale(.35)}
+    70%  {opacity:.12}
+    100% {opacity:0; transform:scale(1)}
+  }
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 8px rgba(255,47,90,.10)}
+    50%    {box-shadow:0 0 0 14px rgba(255,47,90,.16)}
+  }
+
+  /* ===== Copy ===== */
+  h1{font-weight:800; font-size:clamp(26px,4.4vw,42px); line-height:1.1; letter-spacing:-.02em; margin:6px 0 10px}
   h1 .accent{color:var(--accent)}
   p{color:var(--text-1); font-size:clamp(15px,1.6vw,18px); line-height:1.6; margin:0 0 16px}
 
-  /* Status line (simple fade, not sliding) */
   .status{color:var(--text-1); min-height:22px; margin-top:6px}
-  .status__text{opacity:1; transition:opacity .28s ease}
+  .status__text{opacity:1; transition:opacity .25s ease}
 
-  /* Progress */
   .progress{margin-top:12px; height:10px; border-radius:999px; overflow:hidden; background:#f1f5f9; border:1px solid var(--muted)}
   .progress__bar{
     --w:12%; width:var(--w); height:100%;
@@ -102,7 +108,6 @@
   }
   @keyframes shift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
-  /* Steps */
   .steps{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
   .step{
     padding:6px 10px; border-radius:8px; background:#fff;
@@ -118,36 +123,37 @@
   }
   .chip .c{width:6px; height:6px; border-radius:50%; background:var(--accent)}
 
-  /* Respect reduced motion */
+  /* Reduced motion */
   @media (prefers-reduced-motion: reduce){
-    .ai-radar::after, .ai-dot, .progress__bar{animation:none!important}
+    .ai-ripples .ring, .ai-ripples .core, .progress__bar{animation:none!important}
   }
 </style>
 
 {% if not user.ready %}
 <div class="ai-wait">
   <div class="ai-overlay" role="status" aria-live="polite">
-    <!-- Brand -->
-    <div class="ai-brand">
-      <img class="ai-brand__logo" src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart logo">
-      <!-- Optional: show name if you want -->
-      <!-- <span class="ai-brand__name">Internstart</span> -->
-    </div>
 
-    <!-- Card -->
     <section class="ai-card">
+      <!-- Logo INSIDE the box -->
+      <header class="ai-header">
+        <div class="ai-logo">
+          <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart logo">
+        </div>
+        <div class="badge"><span class="dot"></span> AI matching in progress</div>
+      </header>
+
       <div class="ai-grid">
-        <!-- Left: Minimal radar -->
-        <div class="ai-radar" aria-hidden="true">
-          <span class="ai-dot"></span>
+        <!-- Left: Simple ripple animation -->
+        <div class="ai-ripples" aria-hidden="true">
+          <span class="ring r1"></span>
+          <span class="ring r2"></span>
+          <span class="ring r3"></span>
+          <span class="core"></span>
         </div>
 
         <!-- Right: Copy -->
         <div>
-          <div class="badge"><span class="dot"></span> AI matching in progress</div>
-          <h1>
-            Gathering <span class="accent">{{ user.desired_job_title|default:"new"|lower }}</span> roles tailored to your resume
-          </h1>
+          <h1>Gathering <span class="accent">{{ user.desired_job_title|default:"new"|lower }}</span> roles tailored to your resume</h1>
           <p>We’re scanning fresh openings, ranking them by fit, and preparing one-click applications. This can take a while depending on volume.</p>
 
           <div class="status">
@@ -171,17 +177,18 @@
         </div>
       </div>
     </section>
+
   </div>
 </div>
 
 <script>
-  // Simple, smooth progress + status rotation (kept minimal)
+  // Smooth progress + status rotation (kept minimal)
   (function(){
     const bar = document.getElementById('aiProgressBar');
     const steps = Array.from(document.getElementById('aiSteps').children);
     const statusEl = document.getElementById('statusText');
 
-    let pct = 10;
+    let pct = 12;
     let stepIndex = 0;
     const statuses = [
       '🔎 Crawling sources & company boards',
@@ -191,13 +198,13 @@
     ];
 
     function updateProgress(){
-      const next = Math.min(90, pct + Math.random()*5 + 1.5);
+      const next = Math.min(92, pct + Math.random()*5 + 1.2);
       pct = next;
       bar.style.setProperty('--w', next.toFixed(1) + '%');
 
       const thresholds = [0, 28, 56, 80];
       const idx = thresholds.filter(t => pct >= t).length - 1;
-      if(idx !== stepIndex){
+      if (idx !== stepIndex){
         steps.forEach((s,i)=>s.classList.toggle('is-active', i===idx));
         stepIndex = idx;
       }
@@ -206,16 +213,13 @@
     function rotateStatus(){
       statusEl.style.opacity = 0;
       setTimeout(()=>{
-        const i = (stepIndex) % statuses.length;
-        statusEl.textContent = statuses[i];
+        statusEl.textContent = statuses[stepIndex % statuses.length];
         statusEl.style.opacity = 1;
-      }, 220);
+      }, 200);
     }
 
     const progTimer = setInterval(updateProgress, 1400);
     const statTimer = setInterval(rotateStatus, 1800);
-
-    // Clean up if the page changes away naturally
     setTimeout(()=>{ clearInterval(progTimer); clearInterval(statTimer); }, 180000);
   })();
 </script>
