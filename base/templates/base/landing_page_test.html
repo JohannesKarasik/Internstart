@@ -134,12 +134,12 @@
           <h3 class="card__company">Goldman Sachs</h3>
           <p class="card__meta">{% trans "Location: New York, NY" %}</p>
         </div>
-        <div class="card__actions" aria-hidden="true">
-          <button class="action" aria-label="{% trans 'Pass' %}" title="{% trans 'Pass' %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+          <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">
+            {% trans "Dismiss" %}
           </button>
-          <button class="action" aria-label="{% trans 'Apply' %}" title="{% trans 'Apply' %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <button type="button" class="action action--apply" aria-label="{% trans 'Apply' %}">
+            {% trans "Apply" %}
           </button>
         </div>
       </div>
@@ -154,12 +154,12 @@
           <h3 class="card__company">Danske Bank</h3>
           <p class="card__meta">{% trans "Location: Copenhagen, Denmark" %}</p>
         </div>
-        <div class="card__actions" aria-hidden="true">
-          <button class="action" aria-label="{% trans 'Pass' %}" title="{% trans 'Pass' %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+          <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">
+            {% trans "Dismiss" %}
           </button>
-          <button class="action" aria-label="{% trans 'Apply' %}" title="{% trans 'Apply' %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <button type="button" class="action action--apply" aria-label="{% trans 'Apply' %}">
+            {% trans "Apply" %}
           </button>
         </div>
       </div>
@@ -174,12 +174,12 @@
           <h3 class="card__company">Deutsche Bank</h3>
           <p class="card__meta">{% trans "Location: Frankfurt, Germany" %}</p>
         </div>
-        <div class="card__actions" aria-hidden="true">
-          <button class="action" aria-label="{% trans 'Pass' %}" title="{% trans 'Pass' %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+          <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">
+            {% trans "Dismiss" %}
           </button>
-          <button class="action" aria-label="{% trans 'Apply' %}" title="{% trans 'Apply' %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <button type="button" class="action action--apply" aria-label="{% trans 'Apply' %}">
+            {% trans "Apply" %}
           </button>
         </div>
       </div>
@@ -830,6 +830,55 @@ html[lang="da"] .hero__subhead {
 @media (prefers-reduced-motion: reduce){
   .tinder-deck .card{ animation: none !important; transition: none !important; }
 }
+
+
+/* Text buttons for Tinder demo (left = Dismiss, right = Apply) */
+.tinder-deck .card__actions{
+  display:flex; gap: var(--action-gap); justify-content:center;
+  margin-top:auto; padding-bottom:22px;
+}
+
+.tinder-deck .action{
+  height: 44px; min-width: 116px; padding: 0 16px;
+  border-radius: 999px;
+  background:#fff;
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,.12);
+  font-weight: 800; font-size: 14px; letter-spacing:.2px;
+  color:#111;
+  cursor: default; /* this demo is autoplay; change to pointer if you wire clicks */
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.tinder-deck .action:focus-visible{
+  outline: 3px solid rgba(59,130,246,.45);
+  outline-offset: 2px;
+}
+
+/* Dismiss (left) */
+.tinder-deck .action--dismiss{
+  color:#EF4444;
+  border-color:#FECACA;
+  background:#fff;
+}
+.tinder-deck .action--dismiss:hover{
+  background:#FFF1F2; transform: translateY(-1px);
+}
+
+/* Apply (right) */
+.tinder-deck .action--apply{
+  color:#10B981;
+  border-color:#A7F3D0;
+  background:#fff;
+}
+.tinder-deck .action--apply:hover{
+  background:#ECFDF5; transform: translateY(-1px);
+}
+
+/* Hide actions on non-top cards (keeps demo clean) */
+.tinder-deck .card:not(.is-top) .card__actions{ opacity:0; pointer-events:none; }
+
+
 
   </style>
   
