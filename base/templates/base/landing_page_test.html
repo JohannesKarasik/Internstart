@@ -122,6 +122,72 @@
   </div>
 
 
+  <!-- Tinder-style Swipe Demo -->
+<div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
+  <div class="tinder-deck" data-autoplay="true">
+    <!-- T-Card 1 -->
+    <article class="card card--pink">
+      <div class="card__body">
+        <div class="card__info">
+          <img src="{% static 'images/Goldman-Sachs-1869.png' %}" alt="Goldman Sachs logo" class="card__logo">
+          <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
+          <h3 class="card__company">Goldman Sachs</h3>
+          <p class="card__meta">{% trans "Location: New York, NY" %}</p>
+        </div>
+        <div class="card__actions" aria-hidden="true">
+          <button class="action" aria-label="{% trans 'Pass' %}" title="{% trans 'Pass' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="action" aria-label="{% trans 'Apply' %}" title="{% trans 'Apply' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- T-Card 2 -->
+    <article class="card card--blue">
+      <div class="card__body">
+        <div class="card__info">
+          <img src="{% static 'images/danske-bank.png' %}" alt="Danske Bank logo" class="card__logo">
+          <h4 class="card__role">{% trans "Corporate Finance Intern" %}</h4>
+          <h3 class="card__company">Danske Bank</h3>
+          <p class="card__meta">{% trans "Location: Copenhagen, Denmark" %}</p>
+        </div>
+        <div class="card__actions" aria-hidden="true">
+          <button class="action" aria-label="{% trans 'Pass' %}" title="{% trans 'Pass' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="action" aria-label="{% trans 'Apply' %}" title="{% trans 'Apply' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- T-Card 3 -->
+    <article class="card card--yellow">
+      <div class="card__body">
+        <div class="card__info">
+          <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
+          <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
+          <h3 class="card__company">Deutsche Bank</h3>
+          <p class="card__meta">{% trans "Location: Frankfurt, Germany" %}</p>
+        </div>
+        <div class="card__actions" aria-hidden="true">
+          <button class="action" aria-label="{% trans 'Pass' %}" title="{% trans 'Pass' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="action" aria-label="{% trans 'Apply' %}" title="{% trans 'Apply' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+
+
 
   <!-- AI Autofill Demo -->
 <div class="ai-demo" role="region" aria-label="AI auto-filling a job application">
@@ -689,6 +755,65 @@ html[lang="da"] .hero__subhead {
 }
 
 
+/* ---------- Tinder-style demo ---------- */
+.tinder-section{
+  margin-top: 28px;
+}
+
+.tinder-deck{
+  --gap: min(var(--stack-gap), calc((100% - var(--card-w)) / 2));
+  position: relative;
+  min-height: var(--card-h);
+  perspective: 1600px;
+}
+
+/* mirror the stack positions, but scoped to the new deck for predictability */
+.tinder-deck .card:nth-child(1){
+  transform: translateX(0) translateZ(40px) rotateY(-14deg);
+  z-index: 3;
+}
+.tinder-deck .card:nth-child(2){
+  transform: translateX(var(--gap)) translateZ(10px) rotateY(-20deg);
+  z-index: 2;
+}
+.tinder-deck .card:nth-child(3){
+  transform: translateX(calc(var(--gap)*2)) translateZ(-20px) rotateY(-24deg);
+  z-index: 1;
+}
+
+/* hide actions for background cards (like your first deck) */
+.tinder-deck .card:not(:first-child) .card__actions{
+  opacity: 0; pointer-events: none;
+}
+
+/* swipe keyframes – left then right */
+@keyframes swipeLeft3D{
+  0%   { transform: translateX(0) translateZ(40px) rotateY(-14deg) scale(1);   opacity:1; }
+  40%  { transform: translateX(-60px) translateZ(80px) rotateY(-18deg) scale(1.05); opacity:1; }
+  100% { transform: translateX(-560px) translateZ(-40px) rotateY(-26deg) scale(.96); opacity:0; }
+}
+@keyframes swipeRight3D{
+  0%   { transform: translateX(0) translateZ(40px) rotateY(-14deg) scale(1);   opacity:1; }
+  40%  { transform: translateX(60px) translateZ(80px) rotateY(-10deg) scale(1.05);  opacity:1; }
+  100% { transform: translateX(560px) translateZ(-40px) rotateY(6deg) scale(.96);   opacity:0; }
+}
+
+/* helpers to trigger those keyframes */
+.tinder-deck .card.t-swipe-left{
+  animation: swipeLeft3D .9s ease forwards;
+  pointer-events: none;
+}
+.tinder-deck .card.t-swipe-right{
+  animation: swipeRight3D .9s ease forwards;
+  pointer-events: none;
+}
+
+/* Reduced motion: keep static stack */
+@media (prefers-reduced-motion: reduce){
+  .tinder-deck .card{ animation: none !important; transition: none !important; }
+}
+
+
   </style>
   
 
@@ -959,8 +1084,117 @@ document.addEventListener("DOMContentLoaded", () => {
       observer.observe(root);
     });
   })();
+
+
+  
   </script>
   
+
+  <script>
+    (function(){
+      const ready = (fn)=> (document.readyState === 'loading') ? document.addEventListener('DOMContentLoaded', fn, {once:true}) : fn();
+    
+      ready(() => {
+        const tDeck = document.querySelector('.tinder-deck');
+        if (!tDeck) return;
+    
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+        const getGap = () => parseFloat(getComputedStyle(tDeck).getPropertyValue('--gap')) || 140;
+        const transformFor = (i, gap) => {
+          if (i === 0) return `translateX(0px) translateZ(40px) rotateY(-14deg)`;
+          if (i === 1) return `translateX(${gap}px) translateZ(10px) rotateY(-20deg)`;
+          return `translateX(${i * gap}px) translateZ(-20px) rotateY(-24deg)`;
+        };
+    
+        const reorder = () => {
+          const cards = tDeck.querySelectorAll('.card');
+          const gap = getGap();
+          cards.forEach((card, i) => {
+            card.style.zIndex = cards.length - i;
+            card.style.transition = 'transform .3s ease-out';
+            card.style.transform = transformFor(i, gap);
+          });
+          // restore default transition next tick
+          setTimeout(() => {
+            cards.forEach(card => card.style.transition = 'transform .8s ease-in-out, opacity .6s ease');
+          }, 320);
+        };
+    
+        let isRunning = false;
+        let nextRight = false; // first left, then right, alternating
+        const pause = (ms) => new Promise(r => setTimeout(r, ms));
+    
+        const swipeSequence = async () => {
+          if (prefersReduced || isRunning) return;
+          isRunning = true;
+    
+          while (!prefersReduced) {
+            const first = tDeck.querySelector('.card');
+            if (!first) break;
+    
+            // bring to front for the swipe
+            first.style.zIndex = 999;
+            first.classList.add(nextRight ? 't-swipe-right' : 't-swipe-left');
+    
+            await new Promise(resolve => {
+              first.addEventListener('animationend', resolve, { once: true });
+            });
+    
+            // move swiped card to back and reset
+            first.style.opacity = '0';
+            tDeck.appendChild(first);
+            first.classList.remove('t-swipe-left', 't-swipe-right');
+    
+            // reposition stack
+            const cards = tDeck.querySelectorAll('.card');
+            const gap = getGap();
+            cards.forEach((card, i) => {
+              card.style.zIndex = cards.length - i;
+              card.style.transition = 'transform .3s ease-out';
+              card.style.transform = transformFor(i, gap);
+            });
+    
+            // fade the moved card back in at the back
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                first.style.transition = 'opacity .35s ease';
+                first.style.opacity = '1';
+                setTimeout(() => {
+                  first.style.transition = 'transform .8s ease-in-out, opacity .6s ease';
+                }, 360);
+              });
+            });
+    
+            // alternate direction: left -> right -> left -> ...
+            nextRight = !nextRight;
+    
+            // small beat between swipes
+            await pause(1200);
+          }
+    
+          isRunning = false;
+        };
+    
+        // start when visible
+        const observer = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) {
+            reorder();
+            swipeSequence();
+            observer.disconnect();
+          }
+        }, { threshold: 0.3 });
+        observer.observe(tDeck);
+    
+        // keep layout correct on resize or tab switch
+        window.addEventListener('resize', reorder);
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) reorder();
+        });
+      });
+    })();
+    </script>
+    
 
 {% endblock content %}
 
