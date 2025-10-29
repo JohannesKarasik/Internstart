@@ -232,7 +232,6 @@ class RoomForm(forms.ModelForm):
             'topic',
             'logo',
             'country',
-            'desired_job_title',  # was student_industry
             'job_type',
         ]
         widgets = {
