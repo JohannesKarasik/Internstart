@@ -754,62 +754,75 @@ html[lang="da"] .hero__subhead {
   .ai-field__check{ transition:none !important; }
 }
 
-
-/* ---------- Tinder-style demo (single visible card, centered stack) ---------- */
+/* ---------- Tinder-style demo (one visible + queued preview) ---------- */
 .tinder-section{
   margin-top: 28px;
 }
 
-/* center the deck and make it exactly one-card wide/high */
 .tinder-deck{
   position: relative;
   width: var(--card-w);
   min-height: var(--card-h);
   margin: 0 auto;
-  perspective: 1200px; /* harmless, but we keep it subtle */
+  perspective: 1200px; /* subtle depth, no tilt */
 }
 
-/* cards are centered; only the top card is visible */
+/* Base card: centered stack */
 .tinder-deck .card{
   position: absolute;
   top: 0;
   left: 50%;
   width: var(--card-w);
   height: var(--card-h);
-  transform: translateX(-50%) translateY(0) rotateY(0) translateZ(0);
+  transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
   opacity: 0;
   pointer-events: none;
-  transition: transform .6s ease, opacity .35s ease;
-  /* keep your visual style */
+  transition: transform .6s ease, opacity .35s ease, filter .35s ease;
   border-radius: 24px;
   box-shadow: 0 18px 40px rgba(0,0,0,.18);
 }
 
-/* top card only */
+/* Top card: fully visible & interactive */
 .tinder-deck .card.is-top{
   opacity: 1;
   pointer-events: auto;
   z-index: 3;
+  transform: translateX(-50%) translateY(0) scale(1);
+  filter: none;
 }
 
-/* hide actions for non-top cards */
+/* Queued card: already visible behind (subtle) */
+.tinder-deck .card.is-next{
+  opacity: .14;                 /* tweak intensity here */
+  z-index: 2;
+  transform: translateX(-50%) translateY(10px) scale(.992);
+  filter: saturate(.92);
+}
+
+/* All other cards fully hidden */
+.tinder-deck .card:not(.is-top):not(.is-next){
+  opacity: 0;
+  z-index: 1;
+}
+
+/* Hide actions on non-top cards */
 .tinder-deck .card:not(.is-top) .card__actions{
   opacity: 0; pointer-events: none;
 }
 
 /* Swipe keyframes: left then right */
 @keyframes tSwipeLeft {
-  0%   { transform: translateX(-50%) translateY(0) rotate(0deg);   opacity:1; }
-  40%  { transform: translateX(calc(-50% - 60px)) rotate(-4deg);   opacity:1; }
-  100% { transform: translateX(calc(-50% - 640px)) rotate(-10deg); opacity:0; }
+  0%   { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);   opacity:1; }
+  40%  { transform: translateX(calc(-50% - 60px)) rotate(-4deg) scale(1.02); opacity:1; }
+  100% { transform: translateX(calc(-50% - 640px)) rotate(-10deg) scale(.98); opacity:0; }
 }
 @keyframes tSwipeRight {
-  0%   { transform: translateX(-50%) translateY(0) rotate(0deg);   opacity:1; }
-  40%  { transform: translateX(calc(-50% + 60px)) rotate(4deg);    opacity:1; }
-  100% { transform: translateX(calc(-50% + 640px)) rotate(10deg);  opacity:0; }
+  0%   { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);   opacity:1; }
+  40%  { transform: translateX(calc(-50% + 60px)) rotate(4deg)  scale(1.02); opacity:1; }
+  100% { transform: translateX(calc(-50% + 640px)) rotate(10deg) scale(.98); opacity:0; }
 }
 
-/* helpers to trigger the keyframes */
+/* Helpers to trigger those keyframes */
 .tinder-deck .card.swipe-left  { animation: tSwipeLeft  .9s ease forwards; }
 .tinder-deck .card.swipe-right { animation: tSwipeRight .9s ease forwards; }
 
@@ -817,7 +830,6 @@ html[lang="da"] .hero__subhead {
 @media (prefers-reduced-motion: reduce){
   .tinder-deck .card{ animation: none !important; transition: none !important; }
 }
-
 
   </style>
   
@@ -1091,7 +1103,6 @@ document.addEventListener("DOMContentLoaded", () => {
   })();
   </script>
   
-
   <script>
     (function(){
       const ready = (fn) => (document.readyState === 'loading')
@@ -1104,18 +1115,18 @@ document.addEventListener("DOMContentLoaded", () => {
     
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const PAUSE_BETWEEN_SWIPES = 1100; // ms
-        let swipeRightNext = false; // first left, then right, alternating
+        let swipeRightNext = false; // left first, then right, alternate
         let running = false;
     
-        const setTopOnly = () => {
+        const setStack = () => {
           const cards = Array.from(deck.querySelectorAll('.card'));
-          cards.forEach((c, i) => {
-            c.classList.remove('is-top');
-            // ensure a clean, centered stack with decreasing z-index
-            c.style.zIndex = String(cards.length - i);
-            c.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
-            if (i === 0) c.classList.add('is-top');
-          });
+          // reset classes
+          cards.forEach(c => c.classList.remove('is-top','is-next'));
+          // z-index descending from front to back
+          cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
+          // mark top + next
+          if (cards[0]) cards[0].classList.add('is-top');
+          if (cards[1]) cards[1].classList.add('is-next');
         };
     
         const pause = (ms) => new Promise(r => setTimeout(r, ms));
@@ -1124,39 +1135,37 @@ document.addEventListener("DOMContentLoaded", () => {
           const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
           if (!top) return;
     
-          // play the swipe on the top card
+          // swipe the top card
           top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
     
-          // wait for animation to finish
+          // wait until animation ends
           await new Promise(res => top.addEventListener('animationend', res, { once: true }));
     
-          // move swiped card to the back and reset classes/inline styles that animation changed
-          top.classList.remove('swipe-left', 'swipe-right', 'is-top');
-          top.style.opacity = '0';
+          // send to back
+          top.classList.remove('swipe-left','swipe-right','is-top');
+          top.style.opacity = '0'; // ensure no flash
           deck.appendChild(top);
     
-          // re-mark only the new first card as top and reset transforms
-          setTopOnly();
+          // re-stack so the previously "next" card becomes top and the next one becomes queued
+          setStack();
     
-          // alternate direction
+          // alternate direction and pause a beat
           swipeRightNext = !swipeRightNext;
-    
-          // small pause before next swipe
           await pause(PAUSE_BETWEEN_SWIPES);
         };
     
         const run = async () => {
           if (running || prefersReduced) return;
           running = true;
-          setTopOnly();
     
-          // start once visible
+          setStack(); // ensure we show a queued card right away
+    
+          // start when visible
           const start = () => {
-            const loop = async () => {
+            (async () => {
               while (!prefersReduced) { await cycleOnce(); }
               running = false;
-            };
-            loop();
+            })();
           };
     
           const io = new IntersectionObserver((entries) => {
@@ -1165,14 +1174,11 @@ document.addEventListener("DOMContentLoaded", () => {
               io.disconnect();
             }
           }, { threshold: 0.3 });
-    
           io.observe(deck);
     
-          // keep layout sane on resize or tab restore
-          window.addEventListener('resize', setTopOnly);
-          document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) setTopOnly();
-          });
+          // keep stack tidy on resize or tab restore
+          window.addEventListener('resize', setStack);
+          document.addEventListener('visibilitychange', () => { if (!document.hidden) setStack(); });
         };
     
         run();
