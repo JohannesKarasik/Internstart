@@ -223,13 +223,11 @@ class RoomForm(forms.ModelForm):
     )
 
     class Meta:
-        model = User   # ✅ must be your User model
+        model = User
         fields = [
             'full_name',
             'email',
             'resume',
-            'password1',
-            'password2',
             'country',
             'desired_job_title',
             'job_type',
