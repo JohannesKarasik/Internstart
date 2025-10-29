@@ -906,7 +906,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         btnSubmit.disabled = true;
         typedChars = 0; setProgress(0);
-        statusText.textContent = "{{ _('AI is preparing your application…') if False else 'AI is preparing your application…' }}";
+        statusText.textContent = "{% trans 'AI is preparing your application…' %}";
   
         // Walk through steps
         for (const step of steps) {
