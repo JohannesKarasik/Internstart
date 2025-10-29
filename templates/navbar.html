@@ -3,6 +3,25 @@
 
 
 <header class="header header--loggedIn" style="margin-bottom: 0px !important; padding-bottom: 0px !important;">
+  <!-- ===== Activity Ticker (top of header) ===== -->
+<div class="header__ticker" id="headerTicker" role="region" aria-label="Recent activity">
+  <div class="ticker__icon" aria-hidden="true">
+    <!-- tiny spark icon -->
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13 2l-2 6H5l5 4-2 8 6-6 5 4-2-6 5-4h-7L13 2z"/>
+    </svg>
+  </div>
+
+  <div class="ticker__viewport" aria-live="off">
+    <div class="ticker__track" id="tickerTrack"></div>
+  </div>
+
+  <button class="ticker__close" type="button" aria-label="Hide updates">
+    ×
+  </button>
+</div>
+<!-- ===== /Activity Ticker ===== -->
+
     <div class="container" 
     style="display: flex; align-items: center; justify-content: space-between; position: relative; height: 100px !important; padding-left: 60px; padding-right: 40px;">      
       <!-- Logo (left) -->
@@ -212,6 +231,144 @@
   .logout-form{ display:none !important; }
 }
 
+/* ===== Top Ticker Styles ===== */
+.header__ticker{
+  --ticker-bg: linear-gradient(90deg,#fff5f8 0%, #ffe9ef 100%);
+  --ticker-fg: #7a1030;
+  --ticker-pill-bg: #ffffff;
+  --ticker-pill-fg: #111;
+  --ticker-gap: 32px;
+
+  display:flex; align-items:center; gap:12px;
+  width:100%;
+  height:36px;
+  padding:6px 14px;
+  background: var(--ticker-bg);
+  color: var(--ticker-fg);
+  border-bottom: 1px solid rgba(255,47,90,.18);
+  box-sizing: border-box;
+  overflow:hidden;
+}
+
+.ticker__icon{
+  display:grid; place-items:center;
+  width:22px; height:22px;
+  color: var(--brand);                 /* uses your brand color */
+  background:#fff; border-radius:8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  flex:0 0 auto;
+}
+
+.ticker__viewport{ flex:1 1 auto; overflow:hidden; }
+.ticker__track{
+  display:flex; align-items:center;
+  gap: var(--ticker-gap);
+  white-space: nowrap;
+  will-change: transform;
+  animation: ticker-scroll var(--duration, 30s) linear infinite;
+}
+
+.ticker__item{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px;
+  background: var(--ticker-pill-bg);
+  color: var(--ticker-pill-fg);
+  border: 1px solid rgba(17,17,17,.06);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  font-family:'Manrope',sans-serif;
+  font-weight:600; font-size:13px; line-height:1;
+}
+
+.ticker__item strong{ color: var(--brand); font-weight:800; }
+
+.ticker__close{
+  appearance:none; border:0; background:transparent; color: #9a2c45;
+  font-size:18px; line-height:1; padding:2px 6px; cursor:pointer;
+  border-radius:6px;
+}
+.ticker__close:hover{ background: rgba(255,47,90,.08); }
+.ticker__close:focus{ outline:none; box-shadow:0 0 0 3px rgba(255,47,90,.25); }
+
+/* Animation: we duplicate content & scroll -50% for a seamless loop */
+@keyframes ticker-scroll { to { transform: translateX(-50%); } }
+
+/* Pause on hover */
+.header__ticker:hover .ticker__track { animation-play-state: paused; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .ticker__track{ animation: none !important; transform: none !important; }
+}
+
+/* Mobile tuning */
+@media (max-width: 600px){
+  .header__ticker{
+    height: 34px;
+    padding: 6px 10px;
+  }
+  .ticker__item{ font-size:12px; padding:5px 8px; }
+  .ticker__icon{ display:none; }              /* keep it minimal on phones */
+}
+
 
   </style>
+  <script>
+    (function(){
+      // Respect a previous dismissal
+      const bar = document.getElementById('headerTicker');
+      if (!bar) return;
+      if (localStorage.getItem('hideTicker') === '1'){ bar.remove(); return; }
+    
+      const track = document.getElementById('tickerTrack');
+      if (!track) return;
+    
+      // Generate simple, realistic-looking messages
+      const NAMES = ['Anna','Stephan','Noah','Emma','Lucas','Mia','Leon','Ava','Mateo','Sofia','Liam','Olivia'];
+      const ROLES = [
+        'data analyst','machine learning','frontend developer','backend developer',
+        'data engineer','AI research','product manager','UX designer','BI analyst'
+      ];
+      const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+    
+      const buildMessage = () => {
+        const name = NAMES[rand(0, NAMES.length-1)];
+        const role = ROLES[rand(0, ROLES.length-1)];
+        const count = rand(50, 300);
+        return `<span class="ticker__item"><strong>${name}</strong> just applied to <strong>${count}</strong> jobs for <strong>${role}</strong> positions</span>`;
+      };
+    
+      // Create a set of items (you can also fetch from Django if you prefer)
+      const items = Array.from({length: 10}, buildMessage).join('');
+      // Duplicate content for seamless loop (animation translates -50%)
+      track.innerHTML = items + items;
+    
+      // Compute duration from content width for consistent speed
+      const PX_PER_SECOND = 60; // lower = slower, higher = faster
+      const oneSetWidth = track.scrollWidth / 2;
+      const duration = Math.max(15, Math.round(oneSetWidth / PX_PER_SECOND));
+      track.style.setProperty('--duration', duration + 's');
+    
+      // Dismiss button
+      const closeBtn = bar.querySelector('.ticker__close');
+      if (closeBtn){
+        closeBtn.addEventListener('click', () => {
+          localStorage.setItem('hideTicker','1');
+          bar.remove();
+        });
+      }
+    
+      // Recompute speed on resize (debounced)
+      let t;
+      window.addEventListener('resize', () => {
+        clearTimeout(t);
+        t = setTimeout(() => {
+          const newWidth = track.scrollWidth / 2;
+          const newDuration = Math.max(15, Math.round(newWidth / PX_PER_SECOND));
+          track.style.setProperty('--duration', newDuration + 's');
+        }, 150);
+      });
+    })();
+    </script>
+    
 </header>
