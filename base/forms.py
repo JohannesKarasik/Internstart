@@ -93,15 +93,17 @@ class StudentCreationForm(UserCreationForm):
         })
     )
 
-    # Industry dropdown
-    student_industry = forms.ChoiceField(
-        choices=[('', _('Select industry'))] + User.INDUSTRY_CHOICES,  # ✅ translated
+    # Desired job title field (replaces industry)
+    desired_job_title = forms.CharField(
+        max_length=150,
         required=True,
-        label=_("Industry"),
-        widget=forms.Select(attrs={
+        label=_("What's your desired job title?"),
+        widget=forms.TextInput(attrs={
+            'placeholder': _('e.g. Marketing Intern, Software Developer, Analyst'),
             'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
         })
     )
+
 
     # Job type dropdown
     job_type = forms.ChoiceField(
@@ -157,7 +159,7 @@ class StudentCreationForm(UserCreationForm):
         self.fields['email'].required = True
         self.fields['resume'].required = True
         self.fields['country'].required = True
-        self.fields['student_industry'].required = True
+        self.fields['desired_job_title'].required = True
         self.fields['job_type'].required = True
 
 
@@ -181,7 +183,7 @@ class StudentCreationForm(UserCreationForm):
         user = super().save(commit=False)
         user.role = 'student'
         user.country = self.cleaned_data['country']
-        user.student_industry = self.cleaned_data['student_industry']
+        user.desired_job_title = self.cleaned_data['desired_job_title']
         user.job_type = self.cleaned_data['job_type']
         if commit:
             user.save()
@@ -244,7 +246,7 @@ class RoomForm(forms.ModelForm):
             'topic',
             'logo',
             'country',
-            'industry',
+            'desired_job_title',  # was student_industry
             'job_type',
         ]
         widgets = {

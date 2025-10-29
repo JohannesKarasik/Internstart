@@ -81,7 +81,7 @@ class User(AbstractUser):
     )
 
     total_swipes_used = models.PositiveIntegerField(default=0)
-    
+
     # 🔹 Stripe integration fields
     stripe_customer_id = models.CharField(max_length=100, null=True, blank=True)
     subscription_status = models.CharField(max_length=50, null=True, blank=True)
@@ -102,15 +102,12 @@ class User(AbstractUser):
     ]
     country = models.CharField(max_length=10, choices=COUNTRY_CHOICES, null=True, blank=True)
 
-    INDUSTRY_CHOICES = [
-        ('business_finance', 'Business & Finance'),
-        ('marketing', 'Marketing & Communications'),
-        ('software_backend', 'Software Development (Backend)'),
-        ('software_frontend', 'Software Development (Frontend)'),
-        ('sales_customer', 'Sales & Customer Relations'),
-        ('other', 'Other'),
-    ]
-    student_industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, null=True, blank=True)
+    desired_job_title = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        help_text="What's your desired job title?"
+    )
 
     JOB_TYPE_CHOICES = [
         ('internship', 'Internship'),
