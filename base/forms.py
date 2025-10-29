@@ -223,17 +223,18 @@ class RoomForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Room
+        model = User   # ✅ must be your User model
         fields = [
-            'company_name',
-            'location',
-            'job_title',
-            'description',
-            'topic',
-            'logo',
+            'full_name',
+            'email',
+            'resume',
+            'password1',
+            'password2',
             'country',
+            'desired_job_title',
             'job_type',
         ]
+
         widgets = {
             'company_name': forms.TextInput(attrs={'placeholder': 'Enter company name', 'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'}),
             'location': forms.TextInput(attrs={'placeholder': 'Enter company location', 'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'}),
