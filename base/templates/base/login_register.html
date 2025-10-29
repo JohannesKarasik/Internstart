@@ -271,16 +271,17 @@
       {% endif %}
     </div>
     
-    <!-- Industry -->
-    <div class="form__group{% if student_form.student_industry.errors %} form__group--error{% endif %}">
-      <label class="form__label" for="{{ student_form.student_industry.id_for_label }}">
-        {% trans "Industry" %}
+    <!-- Desired Job Title -->
+    <div class="form__group{% if student_form.desired_job_title.errors %} form__group--error{% endif %}">
+      <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
+        {% trans "What's your desired job title?" %}
       </label>
-      {{ student_form.student_industry|add_class:"form__control" }}
-      {% if student_form.student_industry.errors %}
-        <small class="form__error">{{ student_form.student_industry.errors|striptags }}</small>
+      {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=e.g. Marketing Intern, Software Developer, Analyst" }}
+      {% if student_form.desired_job_title.errors %}
+        <small class="form__error">{{ student_form.desired_job_title.errors|striptags }}</small>
       {% endif %}
     </div>
+
     </div>
     
     <!-- Job Type -->
@@ -781,11 +782,14 @@ document.addEventListener('click', (e) => {
     return true;
   };
 
+
   const step2Valid = () => {
     const country  = step2.querySelector('[name$="country"]');
-    const industry = step2.querySelector('[name$="student_industry"]');
+    const jobTitle = step2.querySelector('[name$="desired_job_title"]');
+
     if (!country?.value)  { country?.reportValidity?.();  return false; }
-    if (!industry?.value) { industry?.reportValidity?.(); return false; }
+    if (!jobTitle?.value) { jobTitle?.reportValidity?.(); return false; }
+
     return true;
   };
 
