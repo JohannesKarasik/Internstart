@@ -660,11 +660,6 @@ p {
   gap: 55px;
 }
 
-.header {
-
-  background-color: var(--color-dark);
-}
-
 .header > .container {
   display: flex;
   align-items: center; /* Vertically centers the content */
@@ -972,9 +967,6 @@ p {
 =>  Topics
 ================================*/
 
-.topics__header {
-  margin-bottom: 2rem;
-}
 
 .topics__header h2 {
   text-transform: uppercase;
@@ -1033,14 +1025,6 @@ p {
 
 /*==============================
 =>  Room List
-================================*/
-
-.roomList__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2.4rem;
-}
 
 .roomList__header h2 {
   text-transform: uppercase;
@@ -1060,12 +1044,6 @@ p {
   background-color: var(--color-dark);
   border-radius: 1rem;
   padding: 2rem;
-}
-
-.roomListRoom__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .roomListRoom__author {
@@ -1610,16 +1588,6 @@ font-size: 20px;
   color: #666; /* Set a softer color for location and occupation */
 }
 
-/* Message header */
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  background-color: #ff2a55;
-  color: white;
-  cursor: pointer;
-}
 
 
 
@@ -1808,13 +1776,7 @@ font-size: 20px;
 }
 
 /* Style for the message header */
-.message-header {
-  background-color: #ff2a55;
-  color: white;
-  padding: 10px;
-  text-align: center;
-  font-weight: bold;
-}
+
 
 .toggle-button {
   background-color: transparent;
@@ -1986,16 +1948,7 @@ font-size: 20px;
   height: 40px;
 }
 
-/* Message Header */
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  background-color: #ff2a55;
-  color: white;
-  cursor: pointer;
-}
+
 
 .toggle-button {
   background-color: transparent;
@@ -2166,9 +2119,6 @@ a.connection-btn {
   margin-bottom: 0.5rem;
 }
 
-.profile-page .roomList__header {
-  margin-bottom: 1.5rem;
-}
 
 .profile-page .roomList__header h2 {
   color: var(--color-dark-light);
@@ -2243,24 +2193,7 @@ a.connection-btn {
   fill: var(--color-main-light);
 }
 
-.room__header {
-  max-height: 30vh;
-  overflow-y: auto;
-  position: absolute;
-  width: 95%;
-  background: var(--color-dark);
-  z-index: 999;
-  top: 4.4rem;
-  padding-top: 2rem;
-  padding-bottom: 1rem;
-}
 
-@media screen and (max-width: 500px) {
-  .room__header {
-    top: 4.3rem;
-    padding-right: 2rem;
-  }
-}
 
 .room__box {
   padding-left: 2rem;
