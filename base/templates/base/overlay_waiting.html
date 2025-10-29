@@ -3,86 +3,313 @@
 
 {% block content %}
 <style>
-.wait-overlay {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #f9fafc, #eef1f5);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  z-index: 9999;
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
-  color: #111;
-  padding: 24px;
-}
-
-.wait-overlay h1 {
-  font-size: clamp(26px, 4vw, 36px);
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.wait-overlay p {
-  font-size: 18px;
-  color: #555;
-  max-width: 480px;
-  line-height: 1.5;
-  margin-bottom: 32px;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #ddd;
-  border-top-color: #ff2f5a;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  :root{
+    --bg: #0b0f19;
+    --card: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.12);
+    --text: #e6e9f2;
+    --muted: #a6aec9;
+    --accent: #7c5cff;      /* indigo-violet */
+    --accent-2: #22d3ee;    /* cyan */
+    --accent-3: #06b6d4;    /* teal */
+    --shadow: 0 10px 40px rgba(0,0,0,0.35);
+    --radius: 16px;
   }
-}
 
-.progress-bar {
-  width: 200px;
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-}
+  @media (prefers-color-scheme: light) {
+    :root{
+      --bg: #f6f8fc;
+      --card: rgba(255,255,255,0.7);
+      --border: rgba(21,24,30,0.08);
+      --text: #0b1020;
+      --muted: #5a647a;
+      --shadow: 0 10px 30px rgba(18,24,40,0.08);
+    }
+  }
 
-.progress-bar span {
-  display: block;
-  width: 40%;
-  height: 100%;
-  background: linear-gradient(90deg, #ff2f5a, #ff5f7a);
-  animation: progress 2s ease-in-out infinite alternate;
-}
+  /* --- OVERLAY --- */
+  .ai-wait {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 3vw, 40px);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Manrope", Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 10% -10%, rgba(124,92,255,0.25), transparent 60%),
+                radial-gradient(900px 700px at 110% 10%, rgba(34,211,238,0.20), transparent 55%),
+                radial-gradient(1200px 900px at -10% 110%, rgba(6,182,212,0.18), transparent 55%),
+                var(--bg);
+    overflow: hidden;
+  }
 
-@keyframes progress {
-  from { width: 30%; }
-  to { width: 100%; }
-}
+  /* Soft animated aurora */
+  .ai-wait::before,
+  .ai-wait::after{
+    content:"";
+    position:absolute; inset:-20%;
+    background: conic-gradient(from 180deg at 50% 50%,
+      rgba(124,92,255,0.25), rgba(34,211,238,0.18), rgba(6,182,212,0.15), transparent 35%);
+    filter: blur(60px) saturate(120%);
+    animation: swirl 18s linear infinite;
+    pointer-events: none;
+  }
+  .ai-wait::after{ animation-duration: 28s; mix-blend-mode: screen; opacity: .7; }
+  @keyframes swirl { to { transform: rotate(360deg); } }
+
+  /* --- CARD --- */
+  .wait-card{
+    position: relative;
+    width: min(820px, 92vw);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    backdrop-filter: blur(14px) saturate(130%);
+    box-shadow: var(--shadow);
+    overflow: clip;
+  }
+
+  .wait-inner{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: clamp(20px, 3.5vw, 36px);
+  }
+
+  /* Header row */
+  .wait-top{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.2px;
+  }
+  .brand .logo{
+    width:34px; height:34px; border-radius:10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 6px 18px rgba(124,92,255,.35);
+  }
+  .badge{
+    font-size:12px; color:var(--muted);
+    padding:6px 10px; border:1px dashed var(--border); border-radius:999px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* --- AI ORB LOADER --- */
+  .ai-orb{
+    width: 72px; height: 72px; margin: 6px auto 6px;
+    border-radius: 50%;
+    position: relative; isolation:isolate;
+    background:
+      radial-gradient(35% 35% at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,0) 60%),
+      conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--accent-3), var(--accent));
+    animation: spin 2.8s linear infinite;
+    filter: saturate(120%);
+  }
+  .ai-orb::after{
+    content:""; position:absolute; inset:6px; border-radius:inherit;
+    background: radial-gradient(60% 60% at 50% 40%, rgba(255,255,255,.9), rgba(255,255,255,.05) 70%);
+    mix-blend-mode: screen;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- TEXT --- */
+  .title{
+    font-size: clamp(22px, 3.8vw, 34px);
+    line-height: 1.15; font-weight: 800; letter-spacing: -0.02em;
+    text-align: center; margin: 2px 0 4px;
+  }
+  .subtitle{
+    color: var(--muted);
+    font-size: clamp(14px, 2.2vw, 16px);
+    text-align:center; margin: 0 auto; max-width: 600px;
+  }
+
+  /* --- PROGRESS --- */
+  .progress{
+    margin: 18px auto 2px; width: min(520px, 88%); height: 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.07));
+    border: 1px solid var(--border);
+    border-radius: 999px; overflow: hidden; position: relative;
+  }
+  .progress span{
+    display:block; height:100%; width:18%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: inherit;
+    animation: fill 2.2s ease-in-out infinite alternate;
+  }
+  .progress::after{
+    content:""; position:absolute; inset:0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 2.8s linear infinite;
+  }
+  @keyframes fill { from{width:16%} to{width:100%} }
+  @keyframes shimmer { to { transform: translateX(100%); } }
+
+  .progress-note{
+    color: var(--muted); text-align:center; font-size: 13px; margin-top: 6px;
+  }
+
+  /* --- STEPS --- */
+  .steps{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;
+    width: min(720px, 100%); margin: 14px auto 2px;
+  }
+  .step{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--border); border-radius: 12px;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  }
+  .step .dot{
+    width:10px; height:10px; border-radius:50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 0 0 rgba(124,92,255,.5); transform: scale(.9);
+  }
+  .step.active .dot{ animation: ping 1.4s ease-out infinite; }
+  .step.done .dot{ background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow:none; }
+  .step span{ font-size:13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @keyframes ping {
+    0%{ box-shadow: 0 0 0 0 rgba(124,92,255,.45); transform: scale(1); }
+    80%{ box-shadow: 0 0 0 12px rgba(124,92,255,0); transform: scale(1); }
+    100%{ box-shadow: 0 0 0 0 rgba(124,92,255,0); }
+  }
+
+  /* --- FOOT ROW --- */
+  .foot{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top: 6px;
+  }
+  .hint{ color: var(--muted); font-size: 13px; }
+  .cta{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 10px 14px; border-radius: 12px; font-weight: 600;
+    color: #0b0f19; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: 1px solid rgba(255,255,255,.5);
+    box-shadow: 0 8px 20px rgba(124,92,255,.35), inset 0 0 0 1px rgba(255,255,255,.3);
+  }
+  .cta:hover{ filter: brightness(1.02); transform: translateY(-1px); transition: .2s ease; }
+  .sr-only{ position:absolute !important; clip: rect(1px,1px,1px,1px); padding:0; border:0; height:1px; width:1px; overflow:hidden; }
+
+  /* RESPONSIVE */
+  @media (max-width: 720px){
+    .steps{ grid-template-columns: 1fr; }
+    .foot{ flex-direction: column; align-items: stretch; gap:10px; }
+    .cta{ justify-content: center; width: 100%; }
+  }
+
+  /* Reduce motion accessibility */
+  @media (prefers-reduced-motion: reduce){
+    .ai-wait::before, .ai-wait::after, .ai-orb, .progress span, .progress::after, .step.active .dot { animation: none !important; }
+  }
 </style>
 
 {% if not user.ready %}
-  <div class="wait-overlay">
-    <div class="spinner"></div>
-    <h1>Gathering {{ user.desired_job_title|default:"new"|lower }} jobs that match your resume 🔍</h1>
-    <p>
-      Come back in a couple of hours — our AI is gathering hundreds of new opportunities  
-      tailored to your background. Soon, you’ll be able to apply to them all with a single click.
-    </p>
-    <div class="progress-bar"><span></span></div>
-  </div>
+  <section class="ai-wait" aria-busy="true" aria-live="polite">
+    <div class="wait-card" role="status">
+      <div class="wait-inner">
+
+        <div class="wait-top">
+          <div class="brand">
+            <div class="logo" aria-hidden="true"></div>
+            <div>JobGenie<span style="opacity:.55"> • AI</span></div>
+          </div>
+          <div class="badge">Real-time search</div>
+        </div>
+
+        <div class="ai-orb" aria-hidden="true"></div>
+
+        <h1 class="title">
+          Gathering {{ user.desired_job_title|default:"new"|lower }} jobs that match your resume
+          <span aria-hidden="true"> 🔍</span>
+        </h1>
+
+        <p class="subtitle" id="statusLine" data-rotate='[
+          "Scanning top boards and company sites",
+          "Ranking roles by skill match and seniority",
+          "Removing duplicates and low-quality posts",
+          "Preparing one-click apply for you"
+        ]'>
+          Come back in a couple of hours — our AI is gathering hundreds of new opportunities tailored to your background. Soon, you’ll be able to apply to them all with a single click.
+        </p>
+
+        <div class="progress" aria-hidden="true"><span></span></div>
+        <div class="progress-note" id="progressNote">Working…</div>
+
+        <div class="steps" aria-label="Job gathering progress">
+          <div class="step active" id="s1"><div class="dot"></div><span>Scan sources</span></div>
+          <div class="step" id="s2"><div class="dot"></div><span>Match to resume</span></div>
+          <div class="step" id="s3"><div class="dot"></div><span>Deduplicate & prep</span></div>
+        </div>
+
+        <div class="foot">
+          <span class="hint">We’ll notify you here when your personalized list is ready.</span>
+          <a class="cta" href="#" onclick="return false;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7v4.764l-1.447 2.414A1 1 0 0 0 4.447 18H8v1a4 4 0 0 0 8 0v-1h3.553a1 1 0 0 0 .894-1.553L19 13.764V9a7 7 0 0 0-7-7Zm2 17a2 2 0 1 1-4 0v-1h4v1Z"/></svg>
+            Enable sound alert
+            <span class="sr-only">(optional)</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
 {% else %}
-  <!-- Show the normal swipe interface -->
+  {# Normal experience when ready #}
   {% include 'base/swipe_page.html' %}
 {% endif %}
+
+<script>
+  // Minimal, framework-free polish.
+
+  // 1) Rotate sub-status lines
+  (function rotateLines(){
+    const el = document.getElementById('statusLine');
+    if(!el) return;
+    try{
+      const items = JSON.parse(el.getAttribute('data-rotate') || '[]');
+      if(!items.length) return;
+      let i = 0;
+      setInterval(() => {
+        i = (i + 1) % items.length;
+        el.textContent = items[i];
+      }, 2800);
+    }catch(e){}
+  })();
+
+  // 2) Fake step progression (visual only; backend controls real "ready" state)
+  (function stepper(){
+    const s1 = document.getElementById('s1');
+    const s2 = document.getElementById('s2');
+    const s3 = document.getElementById('s3');
+    const note = document.getElementById('progressNote');
+    if(!s1 || !s2 || !s3) return;
+
+    const stages = [
+      {el: s1, text: 'Scanning sources…'},
+      {el: s2, text: 'Matching to your resume…'},
+      {el: s3, text: 'Cleaning & preparing results…'},
+    ];
+    let idx = 0;
+
+    function tick(){
+      stages.forEach((s, i) => {
+        s.el.classList.toggle('active', i === idx);
+        s.el.classList.toggle('done', i < idx);
+      });
+      note.textContent = stages[idx].text;
+      idx = (idx + 1) % stages.length;
+    }
+    tick();
+    setInterval(tick, 3800);
+  })();
+
+  // 3) Optional: simple sound alert toggle (no audio shipped; stub for later)
+  document.querySelectorAll('.cta').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      btn.textContent = 'Sound alert enabled';
+      btn.setAttribute('aria-label','Sound alert enabled');
+    }, { once: true });
+  });
+</script>
 {% endblock %}
