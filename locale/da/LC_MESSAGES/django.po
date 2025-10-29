@@ -22,8 +22,9 @@ msgstr ""
 msgid "Upload your resume as PDF or DOCX."
 msgstr "Upload dit CV som PDF eller DOCX."
 
-msgid "Apply to <span class=\"accent\">200+ jobs</span> in minutes — powered by <span class=\"accent\">AI</span>"
-msgstr "Ansøg til <span class=\"accent\">200+ jobs</span> på få minutter — drevet af <span class=\"accent\">AI</span>"
+msgid "Apply to <span class=\"accent\">200+ jobs</span> in minutes<br>powered by <span class=\"accent\">AI</span>"
+msgstr "Ansøg til <span class=\"accent\">200+ jobs</span> på få minutter<br>drevet af <span class=\"accent\">AI</span>"
+
 
 
 #: base/forms.py:88
