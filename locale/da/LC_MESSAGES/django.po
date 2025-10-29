@@ -62,6 +62,10 @@ msgstr "Opret adgangskode"
 msgid "Confirm password"
 msgstr "Bekræft adgangskode"
 
+#: base/templates/base/register.html:XXX
+msgid "What's your desired job title?"
+msgstr "Hvad er din ønskede jobtitel?"
+
 #: base/templates/base/landing_page.html:17
 msgid "Swipe Into Your <span class=\"accent\">Dream Career</span> Today"
 msgstr "Swipe dig ind i din <span class=\"accent\">drømmekarriere</span> i dag"

@@ -263,7 +263,7 @@
               <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
                 {% trans "What's your desired job title?" %}
               </label>
-              {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=e.g. Marketing Intern, Software Developer, Analyst" }}
+              {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder={% trans 'f.eks. Marketingpraktikant, Softwareudvikler, Analytiker' %}" }}
               {% if student_form.desired_job_title.errors %}
                 <small class="form__error">{{ student_form.desired_job_title.errors|striptags }}</small>
               {% endif %}
