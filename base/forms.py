@@ -33,15 +33,7 @@ class EmployerCompanyForm(forms.Form):
             'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
         })
     )
-    industry = forms.CharField(
-        max_length=255,
-        required=True,
-        label="Which industry are you in?",
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Enter industry',
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
-        })
-    )
+
 
 # Step 2: Personal Info
 class EmployerPersonalForm(UserCreationForm):
@@ -61,16 +53,16 @@ class EmployerPersonalForm(UserCreationForm):
         model = User
         fields = ['email', 'password1', 'password2']
 
-    def save(self, commit=True, company_data=None):
-        user = super().save(commit=False)
-        user.role = 'employer'
-        if company_data:
-            user.occupation = company_data['industry']
-            user.location = company_data['company_location']
-            user.company_name = company_data['company_name']
-        if commit:
-            user.save()
-        return user
+def save(self, commit=True, company_data=None):
+    user = super().save(commit=False)
+    user.role = 'employer'
+    if company_data:
+        user.occupation = company_data.get('industry')
+        user.location = company_data.get('company_location')
+        user.company_name = company_data.get('company_name')
+    if commit:
+        user.save()
+    return user
 
 
 
@@ -117,17 +109,18 @@ class StudentCreationForm(UserCreationForm):
 
 
     class Meta:
-        model = User
+        model = Room
         fields = [
-            'full_name',
-            'email',
-            'resume',
-            'password1',
-            'password2',
+            'company_name',
+            'location',
+            'job_title',
+            'description',
+            'topic',
+            'logo',
             'country',
-            'student_industry',
             'job_type',
         ]
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -218,14 +211,7 @@ class RoomForm(forms.ModelForm):
         })
     )
 
-    industry = forms.ChoiceField(
-        choices=Room.INDUSTRY_CHOICES,
-        required=False,
-        label="Industry",
-        widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
-        })
-    )
+
 
     job_type = forms.ChoiceField(
         choices=Room.JOB_TYPE_CHOICES,
