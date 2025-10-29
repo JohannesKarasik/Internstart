@@ -2728,5 +2728,6 @@ def process_text_page(request):
         )
     
 
-
+def landing_page_test(request):
+    return render(request, "base/landing_page_test.html")
 
