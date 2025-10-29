@@ -109,15 +109,13 @@ class StudentCreationForm(UserCreationForm):
 
 
     class Meta:
-        model = Room
+        model = User   # ✅ CORRECT
         fields = [
-            'company_name',
-            'location',
-            'job_title',
-            'description',
-            'topic',
-            'logo',
+            'full_name',
+            'email',
+            'resume',
             'country',
+            'desired_job_title',
             'job_type',
         ]
 
@@ -223,13 +221,15 @@ class RoomForm(forms.ModelForm):
     )
 
     class Meta:
-        model = User
+        model = Room   # ✅ CORRECT
         fields = [
-            'full_name',
-            'email',
-            'resume',
+            'company_name',
+            'location',
+            'job_title',
+            'description',
+            'topic',
+            'logo',
             'country',
-            'desired_job_title',
             'job_type',
         ]
 
