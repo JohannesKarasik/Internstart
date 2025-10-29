@@ -5,7 +5,7 @@
 <header class="header header--loggedIn" style="margin-bottom: 0px !important; padding-bottom: 0px !important;">
   <!-- ===== Activity Ticker (top of header) ===== -->
 <div class="header__ticker" id="headerTicker" role="region" aria-label="Recent activity">
-  <div class="ticker__icon" aria-hidden="true" style="display: none;>
+  <div class="ticker__icon" aria-hidden="true">
     <img
       src="{% static 'images/transperantsmalllogo.png' %}"
       alt=""
@@ -144,7 +144,8 @@
     align-items: center;
     justify-items: center;              /* center content (logo) */
     height: 72px !important;
-
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-right: max(16px, env(safe-area-inset-right)) !important;
     gap: 0;
   }
 
@@ -175,7 +176,8 @@
 
   /* Remove leftover spacing from inline styles */
   .header .container{
-
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
 }
 
