@@ -255,52 +255,51 @@
             </div>
           </div>
 
-          <!-- ========== STEP 2: Preferences (Country & Industry) ========== -->
-<div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
-  <h2 id="step2label" class="sr-only">Preferences</h2>
-
-  <div class="form-grid form-grid--2">
-    <!-- Country -->
-    <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
-      <label class="form__label" for="{{ student_form.country.id_for_label }}">
-        {% trans "Country" %}
-      </label>
-      {{ student_form.country }}
-      {% if student_form.country.errors %}
-        <small class="form__error">{{ student_form.country.errors|striptags }}</small>
-      {% endif %}
-    </div>
-    
-    <!-- Desired Job Title -->
-    <div class="form__group{% if student_form.desired_job_title.errors %} form__group--error{% endif %}">
-      <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
-        {% trans "What's your desired job title?" %}
-      </label>
-      {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=e.g. Marketing Intern, Software Developer, Analyst" }}
-      {% if student_form.desired_job_title.errors %}
-        <small class="form__error">{{ student_form.desired_job_title.errors|striptags }}</small>
-      {% endif %}
-    </div>
-
-    </div>
-    
-    <!-- Job Type -->
-    <div class="form__group{% if student_form.job_type.errors %} form__group--error{% endif %}">
-      <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
-        {% trans "What type of job are you looking for?" %}
-      </label>
-      {{ student_form.job_type|add_class:"form__control" }}
-      {% if student_form.job_type.errors %}
-        <small class="form__error">{{ student_form.job_type.errors|striptags }}</small>
-      {% endif %}
-    </div>
-    
-
-  <div class="wizard-actions wizard-actions--split">
-    <button type="button" class="btn btn--ghost" id="backToStep1">{% trans "Back" %}</button>
-    <button type="button" class="btn btn--primary" id="toStep3">{% trans "Continue" %}</button>    
-  </div>
-</div>
+          <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
+            <h2 id="step2label" class="sr-only">Preferences</h2>
+          
+            <!-- Desired Job Title (full width on top) -->
+            <div class="form__group{% if student_form.desired_job_title.errors %} form__group--error{% endif %}" style="grid-column: 1 / -1; margin-bottom: 16px;">
+              <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
+                {% trans "What's your desired job title?" %}
+              </label>
+              {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=e.g. Marketing Intern, Software Developer, Analyst" }}
+              {% if student_form.desired_job_title.errors %}
+                <small class="form__error">{{ student_form.desired_job_title.errors|striptags }}</small>
+              {% endif %}
+            </div>
+          
+            <!-- Country + Job Type side by side -->
+            <div class="form-grid form-grid--2">
+              <!-- Country -->
+              <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
+                <label class="form__label" for="{{ student_form.country.id_for_label }}">
+                  {% trans "Country" %}
+                </label>
+                {{ student_form.country }}
+                {% if student_form.country.errors %}
+                  <small class="form__error">{{ student_form.country.errors|striptags }}</small>
+                {% endif %}
+              </div>
+          
+              <!-- Job Type -->
+              <div class="form__group{% if student_form.job_type.errors %} form__group--error{% endif %}">
+                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
+                  {% trans "What type of job are you looking for?" %}
+                </label>
+                {{ student_form.job_type|add_class:"form__control" }}
+                {% if student_form.job_type.errors %}
+                  <small class="form__error">{{ student_form.job_type.errors|striptags }}</small>
+                {% endif %}
+              </div>
+            </div>
+          
+            <div class="wizard-actions wizard-actions--split">
+              <button type="button" class="btn btn--ghost" id="backToStep1">{% trans "Back" %}</button>
+              <button type="button" class="btn btn--primary" id="toStep3">{% trans "Continue" %}</button>    
+            </div>
+          </div>
+          
 
           <!-- ========== STEP 2: Resume ========== -->
           <div class="form-step" id="step-3" data-step="3" role="group" aria-labelledby="step3label">
