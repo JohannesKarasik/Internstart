@@ -74,10 +74,10 @@
 {% if not user.ready %}
   <div class="wait-overlay">
     <div class="spinner"></div>
-    <h1>Almost ready 🚀</h1>
+    <h1>Gathering {{ user.desired_job_title|default:"new"|lower }} jobs that match your resume 🔍</h1>
     <p>
-      Come back in a couple of hours — our AI is gathering hundreds of new jobs  
-      just for you. Soon, you’ll be able to apply to them all with a single click.
+      Come back in a couple of hours — our AI is gathering hundreds of new opportunities  
+      tailored to your background. Soon, you’ll be able to apply to them all with a single click.
     </p>
     <div class="progress-bar"><span></span></div>
   </div>
