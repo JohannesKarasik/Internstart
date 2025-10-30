@@ -271,6 +271,91 @@
 
 
 
+
+
+
+
+<section class="scan" id="resume-scan" aria-label="{% trans 'Resume scanning demo' %}"></section>
+  <div class="scan__inner">
+    <header class="scan__head">
+      <h2 class="scan__title">{% trans "AI scans your resume in seconds" %}</h2>
+      <p class="scan__sub">{% trans "We extract your details and achievements to personalize every application." %}</p>
+    </header>
+
+    <div class="scan__stage">
+      <!-- Faux resume (left) -->
+      <figure class="scan__doc" aria-label="{% trans 'Resume preview' %}">
+        <div class="scan__chrome">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div class="scan__progress"><span class="scan__bar" style="--pct:0%"></span><em class="scan__pct">0%</em></div>
+        </div>
+
+        <div class="scan__paper">
+          <!-- sweeping scanner line -->
+          <div class="scan__beam" aria-hidden="true"></div>
+
+          <!-- Lines that light up while scanning -->
+          <div class="line is-1"><span class="label">{% trans "Full name" %}</span> <strong>Ava Jensen</strong></div>
+          <div class="line is-2"><span class="label">{% trans "E-mail" %}</span> ava.jensen@uni.dk</div>
+          <div class="line is-3"><span class="label">{% trans "Portfolio / LinkedIn" %}</span> https://ava.work</div>
+          <div class="line is-4"><span class="label">{% trans "CV" %}</span> Ava_Jensen_Resume.pdf</div>
+
+          <div class="hr"></div>
+          <div class="line is-5">
+            <span class="label">{% trans "Short cover note" %}</span>
+            <p>“I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg…”</p>
+          </div>
+        </div>
+      </figure>
+
+      <!-- Extraction panel (right) -->
+      <aside class="scan__extract" aria-live="polite">
+        <div class="extract__head">
+          <h3>{% trans "Extracted fields" %}</h3>
+          <span class="badge">{% trans "Auto" %}</span>
+        </div>
+
+        <ul class="extract__list">
+          <li class="chip" data-k="name">
+            <span class="k">{% trans "Name" %}</span>
+            <span class="v">Ava Jensen</span>
+            <span class="ok" aria-hidden="true">✓</span>
+          </li>
+          <li class="chip" data-k="email">
+            <span class="k">{% trans "Email" %}</span>
+            <span class="v">ava.jensen@uni.dk</span>
+            <span class="ok" aria-hidden="true">✓</span>
+          </li>
+          <li class="chip" data-k="portfolio">
+            <span class="k">{% trans "Portfolio" %}</span>
+            <span class="v">https://ava.work</span>
+            <span class="ok" aria-hidden="true">✓</span>
+          </li>
+          <li class="chip" data-k="file">
+            <span class="k">{% trans "File" %}</span>
+            <span class="v">Ava_Jensen_Resume.pdf</span>
+            <span class="ok" aria-hidden="true">✓</span>
+          </li>
+          <li class="chip" data-k="highlights">
+            <span class="k">{% trans "Highlights" %}</span>
+            <span class="v">CBS Finance Club • DCF/LBO • Excel · PowerPoint · Bloomberg</span>
+            <span class="ok" aria-hidden="true">✓</span>
+          </li>
+        </ul>
+
+        <div class="extract__cta">
+          <button type="button" class="btn btn--primary scan__replay">{% trans "Replay scan" %}</button>
+          <button type="button" class="btn btn--ghost scan__continue">{% trans "Use details" %}</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+
+
+
 <!-- =========================
       FOOTER
 ========================= -->
@@ -1154,6 +1239,127 @@ html { scroll-behavior: smooth; }
 
 </style>
 
+
+
+
+
+
+
+
+<style>
+  /* ===== Resume Scan ===== */
+  .scan{
+    --surface:#fff;
+    --ink:#0f172a;
+    --muted:#667085;
+    --line:#e7edf5;
+    --brand:#FF2F5A;
+    --ok:#10B981;
+    --accent:#3B82F6;
+  
+    padding: clamp(48px, 8vw, 96px) 0;
+    background:
+      radial-gradient(800px 220px at 10% -10%, color-mix(in srgb, var(--brand) 10%, transparent), transparent),
+      radial-gradient(800px 220px at 90% 110%, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
+  }
+  .scan__inner{ max-width: 1200px; margin:0 auto; padding:0 24px; }
+  .scan__head{ text-align:center; margin-bottom: 28px; }
+  .scan__title{ margin:0 0 8px; font-size: clamp(22px, 3.4vw, 32px); font-weight: 900; color: var(--ink); }
+  .scan__sub{ margin:0; color: var(--muted); }
+  
+  .scan__stage{
+    display:grid; grid-template-columns: 1.1fr .9fr; gap: clamp(20px, 4vw, 36px);
+    align-items: stretch;
+  }
+  @media (max-width: 980px){
+    .scan__stage{ grid-template-columns: 1fr; }
+  }
+  
+  /* --- Fake resume window --- */
+  .scan__doc{
+    margin:0; border-radius: 16px; overflow: hidden; background: var(--surface);
+    border:1px solid var(--line); box-shadow: 0 16px 40px rgba(2,8,23,.08);
+    display:flex; flex-direction:column;
+  }
+  .scan__chrome{
+    display:flex; align-items:center; gap:8px; padding:10px 12px;
+    background: linear-gradient(180deg,#f8fafc 0%, #eef2f6 100%); border-bottom:1px solid var(--line);
+  }
+  .scan__chrome .dot{ width:10px; height:10px; border-radius:50%; background:#ff5f56; }
+  .scan__chrome .dot:nth-child(2){ background:#ffbd2e; }
+  .scan__chrome .dot:nth-child(3){ background:#27c93f; }
+  
+  .scan__progress{ margin-left:auto; display:flex; align-items:center; gap:8px; }
+  .scan__progress .scan__bar{
+    --pct:0%;
+    position:relative; display:block; width:min(22vw,180px); height:6px; border-radius:999px; background:#e6eaf1; overflow:hidden;
+  }
+  .scan__progress .scan__bar::after{
+    content:""; position:absolute; inset:0 auto 0 0; width:var(--pct);
+    background: linear-gradient(90deg, var(--ok), #3B82F6); border-radius:inherit; transition: width .25s ease;
+  }
+  .scan__pct{ font-style:normal; font-size:12px; color:#475467; min-width:36px; text-align:right; }
+  
+  /* Paper + scanner */
+  .scan__paper{
+    position:relative; padding: 18px 18px 22px; background:#fff;
+    min-height: 420px;
+  }
+  .scan__paper .hr{
+    height:1px; background: var(--line); margin: 10px 0 6px;
+  }
+  .scan__beam{
+    position:absolute; left:0; right:0; top:0; height:42px;
+    background: linear-gradient(180deg, rgba(59,130,246,0) 0%, rgba(59,130,246,.10) 50%, rgba(59,130,246,0) 100%);
+    filter: blur(0.5px); pointer-events:none; transform: translateY(-100%);
+  }
+  
+  /* resume lines */
+  .scan .line{
+    display:block; padding: 10px 12px; border-radius: 12px; border:1px solid transparent;
+    color:#0b1220; font-size:14px; line-height:1.4;
+  }
+  .scan .line .label{ color:#6b7280; font-weight:600; margin-right:8px; }
+  .scan .line.is-hit{ border-color: color-mix(in srgb, var(--accent) 30%, #cfe3ff); background: #f7fbff; box-shadow: 0 0 0 3px rgba(59,130,246,.08) inset; }
+  .scan .line strong{ font-weight:800; }
+  
+  /* --- Extraction panel --- */
+  .scan__extract{
+    border:1px solid var(--line); background:#fff; border-radius: 16px; padding:16px; 
+    box-shadow: 0 16px 40px rgba(2,8,23,.06);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .extract__head{ display:flex; align-items:center; gap:10px; }
+  .extract__head h3{ margin:0; font-size:16px; font-weight:800; color:#0b1220; }
+  .badge{ font-size:12px; font-weight:800; padding:4px 8px; border-radius:999px; color:#065f46; background:#d1fae5; border:1px solid #a7f3d0; }
+  
+  .extract__list{ list-style:none; margin:0; padding:6px 2px 2px; display:grid; gap:10px; }
+  .chip{
+    --bg:#f9fafb;
+    display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;
+    padding:10px 12px; border:1px solid #e7edf5; background:var(--bg); border-radius:12px;
+    opacity:.35; transform: translateY(4px) scale(.98); transition:.25s ease;
+  }
+  .chip .k{ font-size:12px; font-weight:800; color:#475467; }
+  .chip .v{ font-size:14px; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .chip .ok{ width:22px; height:22px; display:grid; place-items:center; color:#fff; background:var(--ok); border-radius:50%; transform:scale(.8); opacity:0; transition:.25s ease; }
+  
+  .chip.is-on{
+    opacity:1; transform:none; --bg:#ffffff;
+    box-shadow: 0 1px 0 #eef2f6, 0 6px 18px rgba(2,8,23,.06);
+  }
+  .chip.is-on .ok{ opacity:1; transform:scale(1); }
+  
+  .extract__cta{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 4px; }
+  
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .scan__beam{ display:none; }
+    .chip, .chip .ok, .scan__progress .scan__bar::after{ transition:none !important; }
+  }
+  </style>
+
+
 <script>
   /* =========================
      A) AI Form controller (AIDemo)
@@ -1682,4 +1888,118 @@ html { scroll-behavior: smooth; }
           setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
         });
       </script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  /* ===== Resume Scan controller ===== */
+  (() => {
+    const onReady = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    onReady(() => {
+      const root = document.querySelector('#resume-scan');
+      if (!root) return;
+  
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+      const paper = root.querySelector('.scan__paper');
+      const beam  = root.querySelector('.scan__beam');
+      const lines = [...root.querySelectorAll('.scan .line')];
+      const chips = [...root.querySelectorAll('.chip')];
+      const pctEl = root.querySelector('.scan__pct');
+      const barEl = root.querySelector('.scan__bar');
+      const replayBtn = root.querySelector('.scan__replay');
+      const useBtn    = root.querySelector('.scan__continue');
+  
+      const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      const animateProgress = async (to = 100, d = 800) => {
+        const start = performance.now();
+        const from = Number((barEl.style.getPropertyValue('--pct') || '0%').replace('%',''));
+        const delta = to - from;
+        await new Promise(res => {
+          const step = (now) => {
+            const t = Math.min(1, (now - start) / d);
+            const v = Math.round(from + delta * t);
+            barEl.style.setProperty('--pct', v + '%');
+            pctEl.textContent = v + '%';
+            t < 1 ? requestAnimationFrame(step) : res();
+          };
+          requestAnimationFrame(step);
+        });
+      };
+  
+      const run = async () => {
+        // reset
+        lines.forEach(l => l.classList.remove('is-hit'));
+        chips.forEach(c => c.classList.remove('is-on'));
+        barEl.style.setProperty('--pct','0%');
+        pctEl.textContent = '0%';
+        beam.style.transform = 'translateY(-100%)';
+  
+        await sleep(prefersReduced ? 0 : 300);
+  
+        // sweep + hit lines one by one
+        if (!prefersReduced) {
+          const paperH = paper.clientHeight;
+          const beamH  = 42;
+          const total = lines.length;
+          for (let i=0;i<total;i++){
+            const y = ((i+0.8)/ (total+1)) * (paperH - beamH);
+            beam.style.transform = `translateY(${y}px)`;
+            lines[i].classList.add('is-hit');
+            await animateProgress(Math.round(((i+1)/total)*80), 300);
+            await sleep(180);
+          }
+        } else {
+          lines.forEach(l => l.classList.add('is-hit'));
+          await animateProgress(80, 100);
+        }
+  
+        // populate extraction chips
+        for (const [i,chip] of chips.entries()){
+          chip.classList.add('is-on');
+          await sleep(prefersReduced ? 0 : 160);
+        }
+        await animateProgress(100, 400);
+  
+        // finish beam position
+        if (!prefersReduced){
+          beam.style.transform = `translateY(${paper.clientHeight}px)`;
+        }
+      };
+  
+      // Auto-run when it scrolls into view
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)){
+          io.disconnect(); run();
+        }
+      }, { threshold: 0.35 });
+      io.observe(root);
+  
+      replayBtn?.addEventListener('click', () => run());
+      useBtn?.addEventListener('click', () => {
+        // simple pulse to imply "data sent"
+        useBtn.classList.add('is-pressed');
+        setTimeout(() => useBtn.classList.remove('is-pressed'), 180);
+      });
+    });
+  })();
+  </script>
+
+
+
+
+
 {% endblock content %}
