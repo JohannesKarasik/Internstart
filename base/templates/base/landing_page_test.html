@@ -34,6 +34,7 @@
     <div class="demo-overlay" aria-live="polite">
       <span class="demo-overlay__text">Swipe left to dismiss</span>
     </div>
+
     <!-- Tinder-style Swipe Demo -->
     <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
       <div class="tinder-deck" data-autoplay="true">
@@ -52,6 +53,7 @@
             </div>
           </div>
         </article>
+
         <!-- T-Card 2 -->
         <article class="card card--blue">
           <div class="card__body">
@@ -67,6 +69,7 @@
             </div>
           </div>
         </article>
+
         <!-- T-Card 3 -->
         <article class="card card--yellow">
           <div class="card__body">
@@ -89,9 +92,12 @@
     <div class="ai-demo" role="region" aria-label="AI auto-filling a job application">
       <div class="ai-demo__window">
         <div class="ai-demo__chrome">
-          <div class="ai-demo__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-          <div class="ai-demo__title">{% trans "Job Application — Preview" %}</div>
-          <div class="ai-demo__progress" aria-hidden="true">
+          <div class="ai-demo__dots"><span></span><span></span><span></span></div>
+          <div class="ai-demo__title">
+            Job Application — Preview
+            <span class="ai-chip" id="ai-chip" aria-live="polite">AI is filling</span>
+          </div>
+          <div class="ai-demo__progress">
             <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
           </div>
         </div>
@@ -551,6 +557,29 @@
   to { transform: translateX(100%); }
 }
 
+.ai-chip{
+  margin-left:10px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px; font-weight:700;
+  color:#0f5132; background:#d1fae5;  /* subtle success */
+  border:1px solid #a7f3d0;
+  opacity:0; transform:translateY(-2px);
+  transition:opacity .3s ease, transform .3s ease;
+}
+.ai-chip.is-on{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){ .ai-chip{ transition:none; } }
+
+
+.ai-status{ font-size:12px; color:#475467; }
+.ai-status::before{
+  content:""; display:inline-block; width:6px; height:6px; border-radius:50%;
+  background:#22c55e; margin-right:8px; box-shadow:0 0 0 0 rgba(34,197,94,.7); 
+  animation:pulse 1.6s infinite;
+}
+@keyframes pulse { 70%{ box-shadow:0 0 0 8px rgba(34,197,94,0) } }
+@media (prefers-reduced-motion: reduce){ .ai-status::before{ animation:none; } }
+
 
 
 </style>
@@ -563,14 +592,14 @@
       document.readyState === 'loading'
         ? document.addEventListener('DOMContentLoaded', fn, { once: true })
         : fn();
-  
+
     onReady(() => {
       const root = document.querySelector('.ai-demo');
       if (!root) return;
-  
+
       const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
-  
+
       const fields = {
         name:      document.getElementById('ai-name'),
         email:     document.getElementById('ai-email'),
@@ -579,15 +608,23 @@
         cover:     document.getElementById('ai-cover'),
         consent:   document.getElementById('ai-consent'),
       };
-  
+
       const resumeBtn  = root.querySelector('.ai-file__btn');
       const winEl      = root.querySelector('.ai-demo__window');
       const formEl     = root.querySelector('.ai-form');
-  
+
       const progressBar = root.querySelector('.ai-demo__bar');
       const progressPct = root.querySelector('.ai-demo__pct');
       const statusText  = root.querySelector('#ai-status');
-  
+
+      // ✅ tiny chip in title bar
+      const chip = root.querySelector('#ai-chip');
+      const showChip = (ms = 2200) => {
+        if (!chip) return;
+        chip.classList.add('is-on');
+        setTimeout(() => chip.classList.remove('is-on'), ms);
+      };
+
       // success overlay
       const ensureSuccessUI = () => {
         let overlay = winEl.querySelector('.ai-success');
@@ -612,13 +649,13 @@
         return { overlay, ok: overlay.querySelector('.ai-success__ok') };
       };
       const success = ensureSuccessUI();
-  
+
       const setProgress = (v) => {
         const pct = Math.min(100, Math.max(0, Math.round(v)));
         progressBar.style.setProperty('--pct', pct + '%');
         progressPct.textContent = pct + '%';
       };
-  
+
       const typeInto = (el, text, speed = 22, onTick) => new Promise((resolve) => {
         if (prefersReduced) { el.value = text; onTick?.(text.length); resolve(); return; }
         let i = 0; el.value = '';
@@ -631,7 +668,7 @@
         };
         tick();
       });
-  
+
       const RESUME_WEIGHT = prefersReduced ? 1 : 60;
       const steps = [
         { el: fields.name,      text: 'Ava Jensen' },
@@ -643,7 +680,7 @@
         },
         { el: fields.consent,   check: true }
       ];
-  
+
       const showSuccess = () => {
         winEl.classList.add('is-success');
         formEl.classList.add('is-success');
@@ -671,15 +708,19 @@
         showSuccess();
         await fadeOutAndHide(prefersReduced ? 0 : 1100);
       };
-  
+
       let isRunning = false;
       const run = async () => {
         if (isRunning) return;
         isRunning = true;
-  
+
         hideSuccess();
         root.removeAttribute('hidden'); root.removeAttribute('aria-hidden');
-  
+
+        // narrate & show chip at start of form phase
+        statusText.textContent = "AI is preparing your application…";
+        showChip();
+
         // reset
         Object.values(fields).forEach((el) => {
           if (!el) return;
@@ -692,10 +733,10 @@
         const uploadBar  = root.querySelector('.ai-upload__bar');
         resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
         uploadWrap?.classList.remove('is-visible'); uploadBar?.style.setProperty('--up','0%');
-  
+
         const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
         let typed = 0; setProgress(0);
-  
+
         const focusField = (el) => {
           const wrap = el.closest('.ai-field');
           root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
@@ -703,8 +744,10 @@
           wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
         };
         const checkField = (el) => el.closest('.ai-field')?.classList.add('is-done');
-  
+
         const attachResume = async () => {
+          // ✅ narrate upload
+          statusText.textContent = "AI is uploading your CV…";
           const D = prefersReduced ? 40 : 1200; let used = 0;
           const btn = root.querySelector('.ai-file__btn');
           const upW = root.querySelector('.ai-upload');
@@ -725,31 +768,32 @@
           if (nameEl) nameEl.textContent = 'Ava_Jensen_Resume.pdf';
           upW?.classList.remove('is-visible');
         };
-  
+
         const pauseStep = prefersReduced ? 40 : 180;
-  
+
         for (const s of steps) {
           if (!s.el) continue;
           focusField(s.focusEl || s.el);
-  
+
           if (s.upload){ await attachResume(); checkField(s.el); await new Promise(r=>setTimeout(r,pauseStep)); continue; }
           if (s.check){ if (!prefersReduced) await new Promise(r=>setTimeout(r,300)); s.el.checked = true; if (!prefersReduced) await new Promise(r=>setTimeout(r,200)); checkField(s.el); continue; }
-  
-          statusText.textContent = "Filling " + (s.el.labels?.[0]?.innerText || '') + "…";
+
+          const label = (s.el.labels?.[0]?.innerText || '').trim();
+          statusText.textContent = `AI is filling “${label}”…`;
           await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
           checkField(s.el);
           await new Promise(r=>setTimeout(r,pauseStep));
         }
-  
+
         setProgress(100);
         root.querySelector('#ai-status').textContent = "Ready to submit — optimized by AI.";
         await autoPressAndCelebrate();
         isRunning = false;
         return true;
       };
-  
+
       root.querySelector('.ai-replay')?.addEventListener('click', run);
-  
+
       window.AIDemo = {
         runOnce: run,
         hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
@@ -757,226 +801,222 @@
       };
     });
   })();
-  </script>
-  
-  <script>
+</script>
+
+<script>
   /* =========================
    B) Tinder controller (TinderDemo) + correct per-swipe overlay timing
-========================= */
-(() => {
-  const ready = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
+  ========================= */
+  (() => {
+    const ready = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
 
-  ready(() => {
-    const section = document.querySelector('.tinder-section');
-    const deck    = document.querySelector('.tinder-deck');
-    const stage   = document.querySelector('.demo-stage');
-    if (!deck || !section || !stage) return;
+    ready(() => {
+      const section = document.querySelector('.tinder-section');
+      const deck    = document.querySelector('.tinder-deck');
+      const stage   = document.querySelector('.demo-stage');
+      if (!deck || !section || !stage) return;
 
-    // Overlay label
-    const overlayTextEl = document.querySelector('.demo-overlay__text');
-    const showOverlayText = (text) => {
-      if (!overlayTextEl) return;
-      overlayTextEl.textContent = text;
-      overlayTextEl.classList.remove('is-visible');
-      void overlayTextEl.offsetWidth; // reflow to restart transition
-      overlayTextEl.classList.add('is-visible');
-    };
+      // Overlay label
+      const overlayTextEl = document.querySelector('.demo-overlay__text');
+      const showOverlayText = (text) => {
+        if (!overlayTextEl) return;
+        overlayTextEl.textContent = text;
+        overlayTextEl.classList.remove('is-visible');
+        void overlayTextEl.offsetWidth; // reflow to restart transition
+        overlayTextEl.classList.add('is-visible');
+      };
 
-    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const PAUSE = 1600, PRESS = 220;
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const PAUSE = 1600, PRESS = 220;
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
 
-    const setStack = () => {
-      const cards = [...deck.querySelectorAll('.card')];
-      cards.forEach(c => c.classList.remove('is-top','is-next'));
-      cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
-      if (cards[0]) cards[0].classList.add('is-top');
-      if (cards[1]) cards[1].classList.add('is-next');
-    };
+      const setStack = () => {
+        const cards = [...deck.querySelectorAll('.card')];
+        cards.forEach(c => c.classList.remove('is-top','is-next'));
+        cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
+        if (cards[0]) cards[0].classList.add('is-top');
+        if (cards[1]) cards[1].classList.add('is-next');
+      };
 
-    let swipeIndex = 0; // track how many swipes have occurred
+      let swipeIndex = 0; // track how many swipes have occurred
 
-    const swipeOnce = async (stepIndex, totalSteps) => {
-      const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-      if (!top) return;
+      const swipeOnce = async (stepIndex, totalSteps) => {
+        const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+        if (!top) return;
 
-      const btnDismiss = top.querySelector('.action--dismiss');
-      const btnApply   = top.querySelector('.action--apply');
+        const btnDismiss = top.querySelector('.action--dismiss');
+        const btnApply   = top.querySelector('.action--apply');
 
-      // 1️⃣ determine direction based on index
-      const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
-      const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
+        // 1️⃣ determine direction based on index
+        const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
+        const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
 
-      // 2️⃣ simulate button press
-      if (pressBtn){
-        pressBtn.classList.add('is-pressed');
-        pressBtn.setAttribute('aria-pressed','true');
-        await pause(PRESS);
-        pressBtn.classList.remove('is-pressed');
-        pressBtn.removeAttribute('aria-pressed');
-      }
-
-      // 3️⃣ swipe animation
-      top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
-      await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-
-      // 4️⃣ move card to back, rebuild stack
-      top.classList.remove('swipe-left','swipe-right','is-top');
-      top.style.opacity = '0';
-      deck.appendChild(top);
-      setStack();
-
-      // 5️⃣ update overlay text AFTER swipe finishes
-      if (stepIndex === 0) {
-        showOverlayText('Swipe left to dismiss');
-      } else if (stepIndex === 1) {
-        // after second card swiped, before yellow card appears
-        showOverlayText('Swipe right to apply');
-      }
-
-      swipeIndex++;
-    };
-
-    setStack();
-
-    window.TinderDemo = {
-      count: () => deck.querySelectorAll('.card').length,
-      setVisible: (show) => {
-        if (show) {
-          section.removeAttribute('hidden');
-          section.removeAttribute('aria-hidden');
-        } else {
-          section.setAttribute('hidden','');
-          section.setAttribute('aria-hidden','true');
+        // 2️⃣ simulate button press
+        if (pressBtn){
+          pressBtn.classList.add('is-pressed');
+          pressBtn.setAttribute('aria-pressed','true');
+          await pause(PRESS);
+          pressBtn.classList.remove('is-pressed');
+          pressBtn.removeAttribute('aria-pressed');
         }
-      },
-      play: async (swipes = 3) => {
-        if (prefersReduced) return true;
-        window.TinderDemo.setVisible(true);
+
+        // 3️⃣ swipe animation
+        top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
+        await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+
+        // 4️⃣ move card to back, rebuild stack
+        top.classList.remove('swipe-left','swipe-right','is-top');
+        top.style.opacity = '0';
+        deck.appendChild(top);
         setStack();
 
-        // initial label for first card
-        showOverlayText('Swipe left to dismiss');
-        await pause(800);
-
-        for (let i = 0; i < swipes; i++) {
-          await swipeOnce(i, swipes);
-          if (i < swipes - 1) await pause(PAUSE);
+        // 5️⃣ update overlay text AFTER swipe finishes
+        if (stepIndex === 0) {
+          showOverlayText('Swipe left to dismiss');
+        } else if (stepIndex === 1) {
+          // after second card swiped, before yellow card appears
+          showOverlayText('Swipe right to apply');
         }
-        return true;
-      }
-    };
-  });
-})();
 
-  </script>
-  
-  <script>
+        swipeIndex++;
+      };
+
+      setStack();
+
+      window.TinderDemo = {
+        count: () => deck.querySelectorAll('.card').length,
+        setVisible: (show) => {
+          if (show) {
+            section.removeAttribute('hidden');
+            section.removeAttribute('aria-hidden');
+          } else {
+            section.setAttribute('hidden','');
+            section.setAttribute('aria-hidden','true');
+          }
+        },
+        play: async (swipes = 3) => {
+          if (prefersReduced) return true;
+          window.TinderDemo.setVisible(true);
+          setStack();
+
+          // initial label for first card
+          showOverlayText('Swipe left to dismiss');
+          await pause(800);
+
+          for (let i = 0; i < swipes; i++) {
+            await swipeOnce(i, swipes);
+            if (i < swipes - 1) await pause(PAUSE);
+          }
+          return true;
+        }
+      };
+    });
+  })();
+</script>
+
+<script>
   /* =========================
-     C) ORCHESTRATOR — plays Tinder → Form in the same spot, loops
+     C) ORCHESTRATOR — plays Tinder → Form in the same spot, then fully resets
   ========================= */
-/* =========================
-   C) ORCHESTRATOR — plays Tinder → Form in the same spot, then fully resets
-========================= */
-(() => {
-  const ready = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
+  (() => {
+    const ready = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
 
-  ready(() => {
-    const stage  = document.querySelector('.demo-stage');
-    const tinder = document.querySelector('.tinder-section');
-    const deck   = document.querySelector('.tinder-deck');
-    const form   = document.querySelector('.ai-demo');
-    const overlayText = document.querySelector('.demo-overlay__text');
-    if (!stage || !tinder || !form || !deck) return;
+    ready(() => {
+      const stage  = document.querySelector('.demo-stage');
+      const tinder = document.querySelector('.tinder-section');
+      const deck   = document.querySelector('.tinder-deck');
+      const form   = document.querySelector('.ai-demo');
+      const overlayText = document.querySelector('.demo-overlay__text');
+      if (!stage || !tinder || !form || !deck) return;
 
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
 
-    // keep wrapper height stable
-    const measure = () => {
-      const tHidden = tinder.hasAttribute('hidden');
-      const fHidden = form.hasAttribute('hidden');
-      if (tHidden) tinder.removeAttribute('hidden');
-      if (fHidden) form.removeAttribute('hidden');
-      const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
-      stage.style.minHeight = h + 'px';
-      if (tHidden) tinder.setAttribute('hidden','');
-      if (fHidden) form.setAttribute('hidden','');
-    };
-    measure();
-    addEventListener('resize', measure);
+      // keep wrapper height stable
+      const measure = () => {
+        const tHidden = tinder.hasAttribute('hidden');
+        const fHidden = form.hasAttribute('hidden');
+        if (tHidden) tinder.removeAttribute('hidden');
+        if (fHidden) form.removeAttribute('hidden');
+        const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
+        stage.style.minHeight = h + 'px';
+        if (tHidden) tinder.setAttribute('hidden','');
+        if (fHidden) form.setAttribute('hidden','');
+      };
+      measure();
+      addEventListener('resize', measure);
 
-    // 🔄 reset deck to initial card order/state
-    const resetDeck = () => {
-      const cards = [...deck.querySelectorAll('.card')];
-      // restore original HTML order (pink, blue, yellow)
-      cards.sort((a, b) => {
-        const order = ['card--pink', 'card--blue', 'card--yellow'];
-        return order.indexOf([...a.classList].find(c => order.includes(c))) -
-               order.indexOf([...b.classList].find(c => order.includes(c)));
-      });
-      // clear inline styles/classes
-      deck.innerHTML = '';
-      cards.forEach(c => {
-        c.style.opacity = '';
-        c.classList.remove('swipe-left','swipe-right','is-top','is-next');
-        deck.appendChild(c);
-      });
-      // rebuild stack
-      if (cards[0]) cards[0].classList.add('is-top');
-      if (cards[1]) cards[1].classList.add('is-next');
-    };
+      // 🔄 reset deck to initial card order/state
+      const resetDeck = () => {
+        const cards = [...deck.querySelectorAll('.card')];
+        // restore original HTML order (pink, blue, yellow)
+        cards.sort((a, b) => {
+          const order = ['card--pink', 'card--blue', 'card--yellow'];
+          return order.indexOf([...a.classList].find(c => order.includes(c))) -
+                 order.indexOf([...b.classList].find(c => order.includes(c)));
+        });
+        // clear inline styles/classes
+        deck.innerHTML = '';
+        cards.forEach(c => {
+          c.style.opacity = '';
+          c.classList.remove('swipe-left','swipe-right','is-top','is-next');
+          deck.appendChild(c);
+        });
+        // rebuild stack
+        if (cards[0]) cards[0].classList.add('is-top');
+        if (cards[1]) cards[1].classList.add('is-next');
+      };
 
-    (async function loop(){
-      // wait until stage is visible
-      await new Promise(res => {
-        const io = new IntersectionObserver((entries) => {
-          if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-        }, { threshold: 0.3 });
-        io.observe(stage);
-      });
+      (async function loop(){
+        // wait until stage is visible
+        await new Promise(res => {
+          const io = new IntersectionObserver((entries) => {
+            if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+          }, { threshold: 0.3 });
+          io.observe(stage);
+        });
 
-      while (true) {
-        /* 1️⃣ Reset everything like a fresh page */
-        resetDeck();
-        overlayText.textContent = 'Swipe left to dismiss';
-        overlayText.classList.remove('is-visible');
-        void overlayText.offsetWidth;
-        overlayText.classList.add('is-visible');
+        while (true) {
+          /* 1️⃣ Reset everything like a fresh page */
+          resetDeck();
+          overlayText.textContent = 'Swipe left to dismiss';
+          overlayText.classList.remove('is-visible');
+          void overlayText.offsetWidth;
+          overlayText.classList.add('is-visible');
 
-        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
-        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
-        measure();
+          form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
+          tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
+          measure();
 
-        /* 2️⃣ Play Tinder demo */
-        const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
-        await window.TinderDemo?.play?.(swipes);
+          /* 2️⃣ Play Tinder demo */
+          const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
+          await window.TinderDemo?.play?.(swipes);
 
-        /* 3️⃣ Show form phase */
-        tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
-        form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
-        measure();
+          /* 3️⃣ Show form phase */
+          tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
+          form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
+          measure();
 
-        overlayText.textContent = 'AI automatically applies for you on the company’s website';
-        overlayText.classList.add('is-visible');
+          overlayText.textContent = 'AI automatically applies for you on the company’s website';
+          overlayText.classList.add('is-visible');
 
-        await window.AIDemo?.runOnce?.();   // form animates and hides itself
-        await pause(800);
+          await window.AIDemo?.runOnce?.();   // form animates and hides itself
+          await pause(800);
 
-        /* 4️⃣ Loop cleanly back to start */
-        resetDeck(); // restore original card order and visibility
-        await pause(800);
-      }
-    })();
-  });
-})();
+          /* 4️⃣ Loop cleanly back to start */
+          resetDeck(); // restore original card order and visibility
+          await pause(800);
+        }
+      })();
+    });
+  })();
+</script>
 
-  </script>
   
   
 {% endblock content %}
