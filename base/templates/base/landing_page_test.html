@@ -777,6 +777,60 @@
   @media (max-width: 480px){
     .social-proof{ --phone-w: 320px; --sp-radius: 20px; }
   }
+
+
+  /* ==== Hero: phone-sized TikTok viewport ==== */
+.hero__phone{
+  --phone-w: clamp(260px, 32vw, 360px);    /* desktop ≈360px, shrink on small */
+  justify-self: center;                    /* center in the right hero column */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;                            /* tiny bezel padding */
+  border-radius: 26px;
+  background: #0b0b0b;
+  box-shadow: 0 14px 38px rgba(0,0,0,.28);
+}
+
+/* Stronger specificity so it overrides any older .sp__rail rules */
+.hero__phone .sp__rail{
+  width: var(--phone-w);
+  max-width: 100%;
+  aspect-ratio: 9 / 16;                    /* phone shape */
+  border-radius: 22px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 10px 30px rgba(0,0,0,.30);
+  position: relative;
+}
+
+/* Keep cards/videos perfectly contained */
+.hero__phone .sp__card{
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(.985);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.hero__phone .sp__card.is-active{ opacity:1; transform: scale(1); z-index:2; }
+.hero__phone .sp__video{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Overlay tidy inside the phone */
+.hero__phone .sp__overlay{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  pointer-events:none;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,.45) 100%);
+}
+.hero__phone .sp__actions{ padding:0 10px 10px; }
+.hero__phone .sp__mute{ pointer-events:auto; }
+
+/* Slightly smaller on very small screens */
+@media (max-width: 480px){
+  .hero__phone{ --phone-w: 88vw; border-radius: 22px; }
+  .hero__phone .sp__rail{ border-radius: 20px; }
+}
+
 </style>
 
 <script>
