@@ -286,16 +286,18 @@
   body{ font-family: var(--font); color:var(--text); }
 
   /* ---------- Hero ---------- */
-  .hero{
-    display: grid;
-    grid-template-columns: minmax(520px, var(--hero-copy-max)) minmax(0,1fr);
-    column-gap: 0 !important; /* 🚫 no gap between text and animation */
-    align-items: center;
-    min-height: 80vh;
-    max-width: var(--container-max);
-    margin: 0 auto;
-    padding: 24px var(--gutter-x) 0;
-  }
+  .hero {
+  display: grid;
+  grid-template-columns: 3fr 1fr; /* 🧭 75% text | 25% phone */
+  column-gap: 0 !important;
+  align-items: center;
+  min-height: 80vh;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 24px var(--gutter-x) 0;
+}
+
+
   .hero__copy{ max-width: var(--hero-copy-max); }
   .hero__title{
     font-size: clamp(60px, 6.8vw, 96px) !important; /* balanced and hero-like */
