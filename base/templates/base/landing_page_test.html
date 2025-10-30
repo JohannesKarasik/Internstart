@@ -499,7 +499,18 @@
   .footer__legal{ font-size:14px; color:#777; }
 
 
-
+/* ---------- Overlay instructional text ---------- */
+.demo-overlay {
+  position: absolute;
+  top: -48px; /* move label above the card container */
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  z-index: 20; /* above cards but outside the animation area */
+  pointer-events: none;
+  font-family: var(--font);
+  text-align: center;
+}
 
 .demo-overlay__text {
   display: inline-block;
@@ -538,6 +549,10 @@
   pointer-events: none;
 }
 
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
 
 .ai-chip{
   margin-left:10px;
