@@ -153,6 +153,107 @@
   </div><!-- /.demo-stage -->
 </section>
 
+
+<!-- =========================
+      AI RESUME SCAN — place below HERO
+========================= -->
+<section id="resume-scan" class="rs" aria-label="{% trans 'How AI scans your resume and fills forms' %}">
+  <div class="rs__inner">
+    <div class="rs__copy">
+      <h2 class="rs__title">
+        {% blocktrans trimmed %}AI scans your resume and <span class="accent">auto-fills job forms</span>{% endblocktrans %}
+      </h2>
+      <p class="rs__sub">
+        {% trans "We parse contact details, links, education and experience—so you skip the repetitive typing." %}
+      </p>
+    </div>
+
+    <div class="rs__grid">
+      <!-- Resume (left) -->
+      <div class="rs-doc" role="img" aria-label="{% trans 'Animated preview of a resume being scanned' %}">
+        <div class="rs-doc__chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="rs-doc__name">Ava_Jensen_Resume.pdf</span>
+        </div>
+
+        <div class="rs-doc__page">
+          <!-- animated scan line -->
+          <div class="rs-scanline" aria-hidden="true"></div>
+
+          <!-- “text” lines with data keys -->
+          <ul class="rs-lines">
+            <li class="rs-line" data-key="name"><strong>Ava Jensen</strong></li>
+            <li class="rs-line" data-key="email">ava.jensen@uni.dk</li>
+            <li class="rs-line" data-key="phone">+45 12 34 56 78</li>
+            <li class="rs-line" data-key="link">linkedin.com/in/avajensen · ava.work</li>
+            <li class="rs-line"><em>{% trans 'Summary' %}:</em> {% trans "Finance student focused on corporate valuation and capital markets." %}</li>
+            <li class="rs-line" data-key="edu"><em>{% trans 'Education' %}:</em> {% trans "Copenhagen Business School, BSc Finance (2026)" %}</li>
+            <li class="rs-line" data-key="exp"><em>{% trans 'Experience' %}:</em> {% trans "Finance Club – DCF/LBO prep; Valuation Challenge (Top 3)" %}</li>
+            <li class="rs-line" data-key="skills"><em>{% trans 'Skills' %}:</em> Excel, PowerPoint, Bloomberg, Python</li>
+          </ul>
+
+          <!-- chips that pop when a field is detected -->
+          <div class="rs-tags" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Extraction panel (right) -->
+      <div class="rs-panel" role="region" aria-labelledby="rs-title">
+        <div class="rs-panel__head">
+          <div class="rs-progress" aria-hidden="true">
+            <div class="rs-progress__bar"></div>
+          </div>
+          <div class="rs-progress__meta">
+            <span class="rs-progress__pct">0%</span>
+            <span class="rs-live" aria-live="polite">{% trans "Scanning resume…" %}</span>
+          </div>
+        </div>
+
+        <ul class="rs-fields">
+          <li class="rs-field" data-key="name">
+            <span class="rs-field__label">{% trans "Full name" %}</span>
+            <span class="rs-field__value">—</span>
+            <span class="rs-field__check" aria-hidden="true">✓</span>
+          </li>
+          <li class="rs-field" data-key="email">
+            <span class="rs-field__label">{% trans "Email" %}</span>
+            <span class="rs-field__value">—</span>
+            <span class="rs-field__check" aria-hidden="true">✓</span>
+          </li>
+          <li class="rs-field" data-key="link">
+            <span class="rs-field__label">{% trans "Portfolio / LinkedIn" %}</span>
+            <span class="rs-field__value">—</span>
+            <span class="rs-field__check" aria-hidden="true">✓</span>
+          </li>
+          <li class="rs-field" data-key="edu">
+            <span class="rs-field__label">{% trans "Education" %}</span>
+            <span class="rs-field__value">—</span>
+            <span class="rs-field__check" aria-hidden="true">✓</span>
+          </li>
+          <li class="rs-field" data-key="exp">
+            <span class="rs-field__label">{% trans "Experience" %}</span>
+            <span class="rs-field__value">—</span>
+            <span class="rs-field__check" aria-hidden="true">✓</span>
+          </li>
+          <li class="rs-field" data-key="skills">
+            <span class="rs-field__label">{% trans "Skills" %}</span>
+            <span class="rs-field__value">—</span>
+            <span class="rs-field__check" aria-hidden="true">✓</span>
+          </li>
+        </ul>
+
+        <div class="rs-foot">
+          <div class="rs-privacy">
+            <span class="shield" aria-hidden="true">🛡️</span>
+            {% trans "Privacy-first: files are processed securely." %}
+          </div>
+          <button type="button" class="btn btn--ghost rs-replay">{% trans "Replay" %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- =========================
       FOOTER
 ========================= -->
@@ -582,6 +683,85 @@
 
 
 </style>
+
+
+<style>
+  /* ===== AI RESUME SCAN ===== */
+  .rs{ --rs-bg:#0b1220; --rs-ink:#0f172a; --rs-card:#ffffff; --rs-muted:#667085; --rs-accent: var(--brand, #FF2F5A);
+       --rs-green:#10B981; --rs-blue:#3B82F6; --rs-border:#e5e7eb; --rs-radius:16px; }
+  .rs{ background:linear-gradient(180deg,#fafbff 0%, #f5f7fb 100%); padding:72px var(--gutter-x); }
+  .rs .accent{ color:transparent; background:linear-gradient(90deg,var(--rs-accent),#ff8a2a); -webkit-background-clip:text; background-clip:text; }
+  .rs__inner{ max-width: var(--container-max); margin:0 auto; }
+  .rs__title{ font-family:var(--font); font-weight:800; font-size: clamp(32px, 3.2vw, 44px); line-height:1.1; margin:0; color:#0f172a; }
+  .rs__sub{ color: var(--muted); margin:12px 0 28px; font-size:16px; max-width:60ch; }
+  .rs__grid{ display:grid; grid-template-columns: minmax(0,1fr) minmax(420px, 520px); gap:28px; align-items:stretch; }
+
+  /* Resume “window” */
+  .rs-doc{ background:var(--rs-card); border:1px solid var(--rs-border); border-radius:var(--rs-radius); box-shadow:0 18px 40px rgba(0,0,0,.12); overflow:hidden; }
+  .rs-doc__chrome{ display:flex; align-items:center; gap:8px; padding:10px 12px; background:linear-gradient(180deg,#f8fafc,#eef2f7); border-bottom:1px solid var(--rs-border); font-family:var(--font); }
+  .rs-doc__chrome .dot{ width:10px; height:10px; border-radius:50%; background:#ff5f56; }
+  .rs-doc__chrome .dot:nth-child(2){ background:#ffbd2e; } .rs-doc__chrome .dot:nth-child(3){ background:#27c93f; }
+  .rs-doc__name{ margin-left:auto; font-size:12px; font-weight:700; color:#334155; }
+
+  .rs-doc__page{ position:relative; padding:18px 18px 22px; min-height:440px; }
+  .rs-lines{ list-style:none; margin:0; padding:0; font-family: var(--font); }
+  .rs-line{ padding:10px 12px; margin:6px 0; border:1px solid #eef2f7; border-radius:12px; background:#fff; color:#111; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .rs-line em{ font-style:normal; color:#475467; font-weight:700; }
+  .rs-line[data-key]{ position:relative; }
+  .rs-line[data-key].is-hit{ border-color: rgba(16,185,129,.6); box-shadow: 0 0 0 3px rgba(16,185,129,.15); background:#f7fffb; }
+
+  /* Scanline */
+  .rs-scanline{ position:absolute; left:0; right:0; top:0; height:54px; pointer-events:none;
+    background: linear-gradient(180deg, rgba(16,185,129,0) 0%, rgba(16,185,129,.12) 40%, rgba(16,185,129,0) 100%);
+    border-top:1px solid rgba(16,185,129,.35); border-bottom:1px solid rgba(16,185,129,.35);
+    filter: blur(.2px); opacity:.75; transform: translateY(-60px);
+    animation: rsSweep 6.5s ease-in-out infinite; }
+  @keyframes rsSweep{
+    0%{ transform: translateY(-60px); }
+    45%{ transform: translateY(calc(100% - 20px)); }
+    55%{ transform: translateY(calc(100% - 20px)); }
+    100%{ transform: translateY(-60px); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .rs-scanline{ animation:none; display:none; }
+  }
+
+  /* Tags popping on the resume */
+  .rs-tags{ position:absolute; inset:0; pointer-events:none; }
+  .rs-tag{ position:absolute; background:#fff; border:1.5px solid #dcfce7; color:#065f46; font-weight:800; font-size:12px;
+           padding:6px 10px; border-radius:999px; box-shadow:0 6px 16px rgba(16,185,129,.18); opacity:0; transform: translateY(-6px) scale(.98); transition:.35s; }
+  .rs-tag.is-on{ opacity:1; transform: translateY(0) scale(1); }
+
+  /* Extraction panel */
+  .rs-panel{ background:#fff; border:1px solid var(--rs-border); border-radius:var(--rs-radius); padding:16px; box-shadow:0 18px 40px rgba(0,0,0,.10); display:flex; flex-direction:column; }
+  .rs-panel__head{ display:flex; align-items:center; gap:12px; justify-content:space-between; margin:4px 2px 8px; }
+  .rs-progress{ flex:1; height:8px; background:#eef2f7; border-radius:999px; overflow:hidden; }
+  .rs-progress__bar{ width:0%; height:100%; background:linear-gradient(90deg, var(--rs-green), var(--rs-blue)); transition: width .3s ease; }
+  .rs-progress__meta{ display:flex; gap:12px; align-items:center; }
+  .rs-progress__pct{ font-size:12px; font-weight:800; color:#111; }
+  .rs-live{ font-size:12px; color:#475467; }
+
+  .rs-fields{ list-style:none; margin:10px 0 0; padding:0; display:grid; grid-template-columns:1fr; gap:10px; }
+  .rs-field{ display:grid; grid-template-columns: 160px 1fr auto; align-items:center; gap:10px; padding:10px 12px; border:1px dashed #e5e7eb; border-radius:12px; background:#fcfcff; }
+  .rs-field__label{ font-size:12px; font-weight:800; color:#475467; }
+  .rs-field__value{ font-size:14px; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rs-field__check{ width:22px; height:22px; display:grid; place-items:center; background:#10B981; color:#fff; border-radius:50%; font-weight:900; transform:scale(.6); opacity:0; transition:.2s ease; }
+  .rs-field.is-filled{ border-style:solid; border-color:#dcfce7; background:#f6fffb; }
+  .rs-field.is-filled .rs-field__check{ transform:scale(1); opacity:1; }
+
+  .rs-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; padding-top:14px; border-top:1px solid #eef2f7; }
+  .rs-privacy{ display:flex; align-items:center; gap:8px; font-size:12px; color:#475467; }
+  .rs-privacy .shield{ filter: grayscale(.1); }
+
+  /* Responsive */
+  @media (max-width: 980px){ .rs__grid{ grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce){
+    .rs-tag{ transition:none; }
+    .rs-progress__bar{ transition:none; }
+  }
+</style>
+
+
 <script>
   /* =========================
      A) AI Form controller (AIDemo)
@@ -1016,6 +1196,146 @@
   })();
 </script>
 
+
+
+<script>
+  /* ===== AI Resume Scan Orchestrator ===== */
+  (() => {
+    const onReady = (fn) => (document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+      : fn());
+  
+    onReady(() => {
+      const root = document.querySelector('#resume-scan');
+      if (!root) return;
+  
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+      // Elements
+      const page  = root.querySelector('.rs-doc__page');
+      const lines = [...root.querySelectorAll('.rs-line[data-key]')];
+      const fields = [...root.querySelectorAll('.rs-field[data-key]')];
+      const tagsWrap = root.querySelector('.rs-tags');
+      const bar   = root.querySelector('.rs-progress__bar');
+      const pctEl = root.querySelector('.rs-progress__pct');
+      const live  = root.querySelector('.rs-live');
+      const replayBtn = root.querySelector('.rs-replay');
+  
+      // Values we’ll “extract”
+      const DATA = {
+        name: 'Ava Jensen',
+        email: 'ava.jensen@uni.dk',
+        link: 'linkedin.com/in/avajensen',
+        edu: 'CBS — BSc Finance (2026)',
+        exp: 'Finance Club · DCF/LBO · Top 3',
+        skills: 'Excel, Bloomberg, Python'
+      };
+  
+      const ORDER = ['name','email','link','edu','exp','skills'];
+  
+      const tagPositions = {
+        name:  { top: 36,  left: 18 },
+        email: { top: 86,  left: 18 },
+        link:  { top: 126, left: 18 },
+        edu:   { top: 202, left: 18 },
+        exp:   { top: 242, left: 18 },
+        skills:{ top: 282, left: 18 },
+      };
+  
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      const setProgress = (i, total) => {
+        const pct = Math.round((i/total) * 100);
+        bar.style.width = pct + '%';
+        pctEl.textContent = pct + '%';
+      };
+  
+      const clearState = () => {
+        lines.forEach(l => l.classList.remove('is-hit'));
+        fields.forEach(f => {
+          f.classList.remove('is-filled');
+          f.querySelector('.rs-field__value').textContent = '—';
+        });
+        bar.style.width = '0%';
+        pctEl.textContent = '0%';
+        live.textContent = '{% trans "Scanning resume…" %}';
+        tagsWrap.querySelectorAll('.rs-tag').forEach(t => t.remove());
+      };
+  
+      const popTag = (key, label) => {
+        const tag = document.createElement('span');
+        tag.className = 'rs-tag';
+        tag.textContent = label;
+        const pos = tagPositions[key] || { top: 24, left: 24 };
+        tag.style.top = pos.top + 'px';
+        tag.style.left = pos.left + 'px';
+        tagsWrap.appendChild(tag);
+        requestAnimationFrame(() => tag.classList.add('is-on'));
+        return tag;
+      };
+  
+      let isRunning = false;
+  
+      const run = async () => {
+        if (isRunning) return;
+        isRunning = true;
+        clearState();
+  
+        const total = ORDER.length;
+        for (let i = 0; i < ORDER.length; i++) {
+          const key = ORDER[i];
+          const resumeLine = lines.find(l => l.dataset.key === key);
+          const field = fields.find(f => f.dataset.key === key);
+          if (!resumeLine || !field) continue;
+  
+          // Announce
+          const label = field.querySelector('.rs-field__label')?.textContent?.trim() || key;
+          live.textContent = `{% trans "Extracting" %} ${label}…`;
+  
+          // Highlight the line being scanned
+          resumeLine.classList.add('is-hit');
+  
+          // Pop a small tag on the left
+          const tag = popTag(key, DATA[key]);
+  
+          // Fancy “transfer” effect (fade tag, fill field)
+          if (!prefersReduced) await pause(350);
+          field.querySelector('.rs-field__value').textContent = DATA[key];
+          field.classList.add('is-filled');
+          if (!prefersReduced) await pause(160);
+          tag.classList.remove('is-on');
+          if (!prefersReduced) await pause(120);
+          tag.remove();
+  
+          setProgress(i + 1, total);
+          if (!prefersReduced) await pause(260);
+        }
+  
+        live.textContent = '{% trans "All set — fields filled." %}';
+        if (!prefersReduced) await pause(1400);
+        // Auto-loop
+        clearState();
+        if (!prefersReduced) await pause(600);
+        isRunning = false;
+        // Run again when the section is in view
+        observeAndRun();
+      };
+  
+      const observeAndRun = () => {
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) {
+            io.disconnect();
+            run();
+          }
+        }, { threshold: 0.35 });
+        io.observe(root);
+      };
+  
+      observeAndRun();
+      replayBtn?.addEventListener('click', run);
+    });
+  })();
+  </script>
   
   
 {% endblock content %}
