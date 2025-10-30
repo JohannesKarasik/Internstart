@@ -1033,6 +1033,118 @@ html { scroll-behavior: smooth; }
 
 
 
+
+
+
+
+/* ==== Modern SaaS grid background for the social-proof section ==== */
+.social-proof{
+  /* spacing (adds space *inside* the top of the section) */
+  --space-top: clamp(56px, 8vw, 110px);
+  --space-bottom: clamp(40px, 6vw, 80px);
+
+  /* colors */
+  --bg-0: #ffffff;
+  --bg-1: #fbfcff;
+  --bg-2: #f6f8fc;
+  --grid: #e9edf5;           /* grid line color */
+  --grid-sub: #eef2f7;       /* sub-grid color */
+  --brand: #FF2F5A;          /* already in :root, kept here for clarity */
+  --accent: #3B82F6;         /* soft blue accent glow */
+
+  position: relative;
+  isolation: isolate;
+  padding: var(--space-top) 0 var(--space-bottom);
+  background:
+    /* subtle vertical wash */
+    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 55%, var(--bg-2) 100%);
+  overflow: hidden; /* clip the glows */
+  border-top: 1px solid #eef2f7;
+}
+
+/* main grid (64px) */
+.social-proof::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px;
+  opacity: .35;
+  pointer-events:none;
+  mask-image: radial-gradient(130% 120% at 50% 10%, #000 55%, transparent 100%); /* soft fade to edges */
+  z-index: -1;
+}
+
+/* sub grid (16px, very faint) */
+.social-proof::after{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(to right, var(--grid-sub) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-sub) 1px, transparent 1px);
+  background-size: 16px 16px, 16px 16px;
+  opacity: .12;
+  pointer-events:none;
+  mask-image: radial-gradient(140% 120% at 50% 0%, #000 40%, transparent 100%);
+  z-index: -1;
+}
+
+/* soft brand/accent glows behind content */
+.sp__inner::before,
+.sp__inner::after{
+  content:"";
+  position:absolute;
+  inset:auto;
+  width: 900px; height: 420px;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: .22;
+  z-index: -1;
+}
+.sp__inner::before{
+  left: max(0px, 8%);
+  top: 0;
+  transform: translateY(-35%);
+  background: radial-gradient(60% 60% at 50% 50%,
+    color-mix(in srgb, var(--brand) 18%, transparent) 0%,
+    transparent 70%);
+}
+.sp__inner::after{
+  right: max(0px, 6%);
+  bottom: -10%;
+  background: radial-gradient(60% 60% at 50% 50%,
+    color-mix(in srgb, var(--accent) 20%, transparent) 0%,
+    transparent 72%);
+}
+
+/* keep the demo panel readable over the background */
+.demo-stage{
+  --panel-pad: clamp(18px, 2.6vw, 30px);
+  position: relative;
+  padding: var(--panel-pad);
+  border-radius: 24px;
+  background: rgba(255,255,255,.88);
+  border: 1px solid #e9edf5;
+  box-shadow:
+    0 24px 60px rgba(16,24,40,.12),
+    0 8px 20px rgba(16,24,40,.06);
+  backdrop-filter: saturate(1.05) blur(4px);
+  -webkit-backdrop-filter: saturate(1.05) blur(4px);
+}
+
+/* tidy heading colors on the new bg */
+.sp__title{ color:#101828; }
+.sp__sub{ color:#667085; }
+
+/* small screens: lighten density / roundings */
+@media (max-width: 640px){
+  .social-proof::before{ background-size: 56px 56px, 56px 56px; opacity:.3; }
+  .social-proof::after{ background-size: 14px 14px, 14px 14px; opacity:.1; }
+  .demo-stage{ border-radius: 18px; }
+}
+
+
 </style>
 
 <script>
