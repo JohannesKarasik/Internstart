@@ -277,6 +277,23 @@
         {% trans "AI is preparing your application…" %}
       </p>
     </form>
+    <!-- Success overlay -->
+    <div class="ai-success" aria-hidden="true">
+      <div class="ai-success__confetti" aria-hidden="true"></div>
+
+      <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{% trans 'Application sent' %}">
+        <div class="ai-success__icon" aria-hidden="true">
+          <svg viewBox="0 0 52 52">
+            <circle class="ring" cx="26" cy="26" r="24" fill="none"/>
+            <path class="mark" d="M16 27l7 7 13-13" fill="none"/>
+          </svg>
+        </div>
+        <h4>{% trans "Application sent!" %}</h4>
+        <p>{% trans "Your application was sent successfully." %}</p>
+        <button type="button" class="btn btn--primary ai-success__ok">{% trans "Nice!" %}</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1059,6 +1076,65 @@ html[lang="da"] .hero__subhead {
 }
 
 
+/* Submit press cue */
+.ai-submit.is-pressed{
+  transform: scale(.96);
+  box-shadow: inset 0 2px 0 rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* Success overlay */
+.ai-success{
+  position: absolute; inset: 0;
+  display: none; place-items: center;
+  background: rgba(17,24,39,.42);
+  backdrop-filter: saturate(120%) blur(3px);
+}
+.ai-success.is-visible{ display: grid; }
+
+.ai-success__card{
+  background:#fff; border-radius:18px;
+  width:min(460px,92%); text-align:center;
+  padding:26px 26px 20px;
+  box-shadow:0 18px 60px rgba(0,0,0,.18);
+  transform:scale(.92); opacity:0;
+  animation: aCardIn .45s cubic-bezier(.22,.61,.36,1) forwards;
+}
+@keyframes aCardIn{ to{ transform:scale(1); opacity:1; } }
+
+.ai-success__icon{ width:84px; height:84px; margin:4px auto 10px; }
+.ai-success__icon .ring{ stroke:#DCFCE7; stroke-width:8; }
+.ai-success__icon .mark{
+  stroke:#10B981; stroke-width:6; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:60; stroke-dashoffset:60; animation: aTick .5s .2s ease forwards;
+}
+@keyframes aTick{ to{ stroke-dashoffset:0; } }
+
+.ai-success h4{ margin:6px 0 4px; font-size:22px; font-weight:800; }
+.ai-success p{ margin:0 0 14px; color:#556; font-size:14px; }
+
+/* Confetti */
+.ai-success__confetti{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.ai-success__confetti span{
+  position:absolute; top:-12px; left:var(--x);
+  width:9px; height:14px; border-radius:2px;
+  background: var(--c, #F43F5E);
+  transform: rotate(calc(var(--rot,0) * 1deg));
+  opacity:0; animation: aConfetti var(--dur,1.1s) ease-out forwards;
+}
+@keyframes aConfetti{
+  0%{ opacity:0; transform: translateY(-10px) rotate(0deg) scale(.7); }
+  15%{ opacity:1; }
+  100%{ transform: translateY(110%) rotate(360deg); opacity:0; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .ai-success__confetti{ display:none !important; }
+  .ai-success__card{ animation:none; opacity:1; transform:none; }
+  .ai-success__icon .mark{ animation:none; stroke-dashoffset:0; }
+}
+
+
   </style>
   
 
@@ -1175,228 +1251,319 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 <script>
-(() => {
-  const onReady = (fn) => {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fn, { once: true });
-    } else { fn(); }
-  };
-
-  onReady(() => {
-    const root = document.querySelector('.ai-demo');
-    if (!root) return;
-
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
-
-    // ---- fields ----
-    const fields = {
-      name:      document.getElementById('ai-name'),
-      email:     document.getElementById('ai-email'),
-      uni:       document.getElementById('ai-uni'),
-      degree:    document.getElementById('ai-degree'),
-      portfolio: document.getElementById('ai-portfolio'),
-      resume:    document.getElementById('ai-resume'),                 // NEW
-      cover:     document.getElementById('ai-cover'),
-      consent:   document.getElementById('ai-consent'),
+  (() => {
+    const onReady = (fn) => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+      } else { fn(); }
     };
-    const resumeBtn  = root.querySelector('.ai-file__btn');
-    const resumeName = root.querySelector('.ai-file__name');
-    const uploadWrap = root.querySelector('.ai-upload');
-    const uploadBar  = root.querySelector('.ai-upload__bar');
-
-    const fieldWrap = (el) => el?.closest('.ai-field');
-
-    // ---- UI bits ----
-    const progressBar = root.querySelector('.ai-demo__bar');
-    const progressPct = root.querySelector('.ai-demo__pct');
-    const statusText  = root.querySelector('#ai-status');
-    const btnSubmit   = root.querySelector('.ai-submit');
-    const btnReplay   = root.querySelector('.ai-replay');
-
-    // ---- Scripted content ----
-    // Resume gets a synthetic "weight" so the global progress feels right.
-    const RESUME_WEIGHT = prefersReduced ? 1 : 60;
-
-    const steps = [
-      { el: fields.name,      text: 'Ava Jensen' },
-      { el: fields.email,     text: 'ava.jensen@uni.dk' },
-      { el: fields.uni,       text: 'Copenhagen Business School (CBS)' },
-      { el: fields.degree,    text: 'BSc International Business, 2026' },
-      { el: fields.portfolio, text: 'https://ava.work' },
-      { el: fields.resume,    upload: true, focusEl: resumeBtn }, // NEW: special step
-      { el: fields.cover,     text:
-        "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
-      },
-      { el: fields.consent,   check: true }
-    ];
-
-    // total “units” for progress: characters typed + synthetic resume weight
-    const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
-    let typedChars   = 0, isRunning = false;
-
-    const setProgress = (val) => {
-      const pct = Math.min(100, Math.max(0, Math.round(val)));
-      progressBar.style.setProperty('--pct', pct + '%');
-      progressPct.textContent = pct + '%';
-    };
-
-    const typeInto = (el, text, speed = 22) => new Promise((resolve) => {
-      if (prefersReduced) { el.value = text; resolve(); return; }
-      let i = 0;
-      el.value = '';
-      const tick = () => {
-        if (i > text.length) return resolve();
-        el.value = text.slice(0, i);
-        if (i > 0) typedChars += 1;
-        setProgress((typedChars / totalChars) * 100);
-        i++;
-        setTimeout(tick, speed + Math.random() * 18);
+  
+    onReady(() => {
+      const root = document.querySelector('.ai-demo');
+      if (!root) return;
+  
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      // ---- fields ----
+      const fields = {
+        name:      document.getElementById('ai-name'),
+        email:     document.getElementById('ai-email'),
+        uni:       document.getElementById('ai-uni'),
+        degree:    document.getElementById('ai-degree'),
+        portfolio: document.getElementById('ai-portfolio'),
+        resume:    document.getElementById('ai-resume'),                 // NEW
+        cover:     document.getElementById('ai-cover'),
+        consent:   document.getElementById('ai-consent'),
       };
-      tick();
-    });
-
-    const checkField = (el) => {
-      const wrap = fieldWrap(el);
-      wrap?.classList.remove('is-active');
-      wrap?.classList.add('is-done');
-    };
-
-    const focusField = (el) => {
-      const wrap = fieldWrap(el) || el?.closest?.('.ai-field');
-      root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
-      wrap?.classList.add('is-active');
-      (el || wrap)?.focus?.();
-      wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
-    };
-
-    // ---- Resume attach animation ----
-    const attachResume = async () => {
-      const DURATION = prefersReduced ? 40 : 1200;
-      const FILE_NAME = 'Ava_Jensen_Resume.pdf';
-      let consumed = 0; // progress units consumed for resume step (0..RESUME_WEIGHT)
-
-      // Status + press animation on the button
-      statusText.textContent = "{% trans 'Attaching resume…' %}";
-      if (resumeBtn) {
-        resumeBtn.classList.add('is-pressed');
-        await pause(200);
-        resumeBtn.classList.remove('is-pressed');
-      }
-
-      // Show upload bar and animate 0 → 100%
-      uploadWrap?.classList.add('is-visible');
-      uploadBar?.style.setProperty('--up', '0%');
-
-      await new Promise((resolve) => {
-        const start = performance.now();
-        const tick = (now) => {
-          const t = Math.min(1, (now - start) / DURATION);
-          const pct = Math.round(t * 100);
-          uploadBar?.style.setProperty('--up', pct + '%');
-
-          // feed into global progress
-          const units = Math.round(RESUME_WEIGHT * t);
-          const diff  = units - consumed;
-          if (diff > 0) {
-            typedChars += diff;
-            consumed += diff;
-            setProgress((typedChars / totalChars) * 100);
-          }
-
-          if (t < 1) requestAnimationFrame(tick);
-          else resolve();
+      const resumeBtn  = root.querySelector('.ai-file__btn');
+      const resumeName = root.querySelector('.ai-file__name');
+      const uploadWrap = root.querySelector('.ai-upload');
+      const uploadBar  = root.querySelector('.ai-upload__bar');
+  
+      const fieldWrap = (el) => el?.closest('.ai-field');
+  
+      // ---- UI bits ----
+      const progressBar = root.querySelector('.ai-demo__bar');
+      const progressPct = root.querySelector('.ai-demo__pct');
+      const statusText  = root.querySelector('#ai-status');
+      const btnSubmit   = root.querySelector('.ai-submit');
+      const btnReplay   = root.querySelector('.ai-replay');
+  
+      /* -------------------------------
+         SUCCESS OVERLAY (auto-created)
+      --------------------------------*/
+      const winEl = root.querySelector('.ai-demo__window') || root;
+      const ensureSuccessUI = () => {
+        let overlay = winEl.querySelector('.ai-success');
+        if (!overlay) {
+          const html = `
+            <div class="ai-success" aria-hidden="true" hidden>
+              <div class="ai-success__confetti" aria-hidden="true"></div>
+              <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{% trans 'Application sent' %}">
+                <div class="ai-success__icon" aria-hidden="true">
+                  <svg viewBox="0 0 52 52">
+                    <circle class="ring" cx="26" cy="26" r="24" fill="none"></circle>
+                    <path class="mark" d="M16 27l7 7 13-13" fill="none"></path>
+                  </svg>
+                </div>
+                <h4>{% trans "Application sent!" %}</h4>
+                <p>{% trans "Your application was sent successfully." %}</p>
+                <button type="button" class="btn btn--primary ai-success__ok">{% trans "Nice!" %}</button>
+              </div>
+            </div>`;
+          winEl.insertAdjacentHTML('beforeend', html);
+          overlay = winEl.querySelector('.ai-success');
+        }
+        return {
+          overlay,
+          confetti: overlay.querySelector('.ai-success__confetti'),
+          ok: overlay.querySelector('.ai-success__ok')
         };
-        requestAnimationFrame(tick);
+      };
+      const success = ensureSuccessUI();
+  
+      const makeConfetti = (count = 40) => {
+        if (prefersReduced || !success.confetti) return;
+        success.confetti.innerHTML = '';
+        const colors = ['#10B981','#3B82F6','#F59E0B','#EF4444','#A855F7'];
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement('span');
+          s.style.setProperty('--x', (Math.random()*100).toFixed(2) + '%');
+          s.style.setProperty('--dur', (0.9 + Math.random()*0.9).toFixed(2) + 's');
+          s.style.setProperty('--rot', Math.floor(Math.random()*360));
+          s.style.setProperty('--c', colors[i % colors.length]);
+          success.confetti.appendChild(s);
+        }
+      };
+  
+      const showSuccess = () => {
+        if (!success.overlay) return;
+        // make visible
+        success.overlay.classList.add('is-visible');
+        success.overlay.removeAttribute('hidden');
+        success.overlay.setAttribute('aria-hidden','false');
+        root.querySelector('.ai-form')?.setAttribute('aria-hidden','true');
+        makeConfetti();
+        success.ok?.focus();
+      };
+  
+      const hideSuccess = () => {
+        if (!success.overlay) return;
+        success.overlay.classList.remove('is-visible');
+        success.overlay.setAttribute('aria-hidden','true');
+        success.overlay.setAttribute('hidden','');
+        root.querySelector('.ai-form')?.removeAttribute('aria-hidden');
+      };
+  
+      const autoPressAndCelebrate = async () => {
+        // visual press
+        btnSubmit.classList.add('is-pressed');
+        await pause(220);
+        btnSubmit.classList.remove('is-pressed');
+  
+        statusText.textContent = "{% trans 'Submitting…' %}";
+        await pause(prefersReduced ? 200 : 650);
+        showSuccess();
+      };
+  
+      // allow manual click to open success too
+      btnSubmit.addEventListener('click', () => {
+        if (!btnSubmit.disabled) showSuccess();
       });
-
-      // Finalize UI
-      if (resumeName) resumeName.textContent = FILE_NAME;
-      uploadWrap?.classList.remove('is-visible');
-      statusText.textContent = "{% trans 'Resume attached.' %}";
-    };
-
-    const run = async () => {
-      if (isRunning) return;
-      isRunning = true;
-
-      // reset UI
-      Object.values(fields).forEach((el) => {
-        if (!el) return;
-        if (el.type === 'checkbox') el.checked = false;
-        else el.value = '';
+  
+      // close overlay
+      success.ok?.addEventListener('click', hideSuccess);
+  
+      // ---- Scripted content ----
+      // Resume gets a synthetic "weight" so the global progress feels right.
+      const RESUME_WEIGHT = prefersReduced ? 1 : 60;
+  
+      const steps = [
+        { el: fields.name,      text: 'Ava Jensen' },
+        { el: fields.email,     text: 'ava.jensen@uni.dk' },
+        { el: fields.uni,       text: 'Copenhagen Business School (CBS)' },
+        { el: fields.degree,    text: 'BSc International Business, 2026' },
+        { el: fields.portfolio, text: 'https://ava.work' },
+        { el: fields.resume,    upload: true, focusEl: resumeBtn }, // NEW: special step
+        { el: fields.cover,     text:
+          "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
+        },
+        { el: fields.consent,   check: true }
+      ];
+  
+      // total “units” for progress: characters typed + synthetic resume weight
+      const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
+      let typedChars   = 0, isRunning = false;
+  
+      const setProgress = (val) => {
+        const pct = Math.min(100, Math.max(0, Math.round(val)));
+        progressBar.style.setProperty('--pct', pct + '%');
+        progressPct.textContent = pct + '%';
+      };
+  
+      const typeInto = (el, text, speed = 22) => new Promise((resolve) => {
+        if (prefersReduced) { el.value = text; resolve(); return; }
+        let i = 0;
+        el.value = '';
+        const tick = () => {
+          if (i > text.length) return resolve();
+          el.value = text.slice(0, i);
+          if (i > 0) typedChars += 1;
+          setProgress((typedChars / totalChars) * 100);
+          i++;
+          setTimeout(tick, speed + Math.random() * 18);
+        };
+        tick();
+      });
+  
+      const checkField = (el) => {
         const wrap = fieldWrap(el);
-        wrap?.classList.remove('is-active','is-done');
-      });
-      // reset resume chip/progress
-      resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
-      uploadWrap?.classList.remove('is-visible');
-      uploadBar?.style.setProperty('--up', '0%');
-
-      btnSubmit.disabled = true;
-      typedChars = 0; setProgress(0);
-      statusText.textContent = "{% trans 'AI is preparing your application…' %}";
-
-      // walk through steps
-      for (const step of steps) {
-        if (!step.el) continue;
-
-        const focusEl = step.focusEl || step.el;
-        focusField(focusEl);
-
-        if (step.check) {
-          // consent checkbox
-          if (prefersReduced) {
-            step.el.checked = true;
-          } else {
-            await pause(300);
-            step.el.checked = true;
-            await pause(200);
+        wrap?.classList.remove('is-active');
+        wrap?.classList.add('is-done');
+      };
+  
+      const focusField = (el) => {
+        const wrap = fieldWrap(el) || el?.closest?.('.ai-field');
+        root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
+        wrap?.classList.add('is-active');
+        (el || wrap)?.focus?.();
+        wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+      };
+  
+      // ---- Resume attach animation ----
+      const attachResume = async () => {
+        const DURATION = prefersReduced ? 40 : 1200;
+        const FILE_NAME = 'Ava_Jensen_Resume.pdf';
+        let consumed = 0; // progress units consumed for resume step (0..RESUME_WEIGHT)
+  
+        // Status + press animation on the button
+        statusText.textContent = "{% trans 'Attaching resume…' %}";
+        if (resumeBtn) {
+          resumeBtn.classList.add('is-pressed');
+          await pause(200);
+          resumeBtn.classList.remove('is-pressed');
+        }
+  
+        // Show upload bar and animate 0 → 100%
+        uploadWrap?.classList.add('is-visible');
+        uploadBar?.style.setProperty('--up', '0%');
+  
+        await new Promise((resolve) => {
+          const start = performance.now();
+          const tick = (now) => {
+            const t = Math.min(1, (now - start) / DURATION);
+            const pct = Math.round(t * 100);
+            uploadBar?.style.setProperty('--up', pct + '%');
+  
+            // feed into global progress
+            const units = Math.round(RESUME_WEIGHT * t);
+            const diff  = units - consumed;
+            if (diff > 0) {
+              typedChars += diff;
+              consumed += diff;
+              setProgress((typedChars / totalChars) * 100);
+            }
+  
+            if (t < 1) requestAnimationFrame(tick);
+            else resolve();
+          };
+          requestAnimationFrame(tick);
+        });
+  
+        // Finalize UI
+        if (resumeName) resumeName.textContent = FILE_NAME;
+        uploadWrap?.classList.remove('is-visible');
+        statusText.textContent = "{% trans 'Resume attached.' %}";
+      };
+  
+      const run = async () => {
+        if (isRunning) return;
+        isRunning = true;
+  
+        // reset UI
+        Object.values(fields).forEach((el) => {
+          if (!el) return;
+          if (el.type === 'checkbox') el.checked = false;
+          else el.value = '';
+          const wrap = fieldWrap(el);
+          wrap?.classList.remove('is-active','is-done');
+        });
+        // reset resume chip/progress
+        resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
+        uploadWrap?.classList.remove('is-visible');
+        uploadBar?.style.setProperty('--up', '0%');
+  
+        // hide any previous success state
+        hideSuccess();
+  
+        btnSubmit.disabled = true;
+        typedChars = 0; setProgress(0);
+        statusText.textContent = "{% trans 'AI is preparing your application…' %}";
+  
+        // walk through steps
+        for (const step of steps) {
+          if (!step.el) continue;
+  
+          const focusEl = step.focusEl || step.el;
+          focusField(focusEl);
+  
+          if (step.check) {
+            // consent checkbox
+            if (prefersReduced) {
+              step.el.checked = true;
+            } else {
+              await pause(300);
+              step.el.checked = true;
+              await pause(200);
+            }
+            checkField(step.el);
+            continue;
           }
+  
+          if (step.upload) {
+            await attachResume();
+            checkField(step.el);
+            // tiny beat after attaching
+            await pause(prefersReduced ? 40 : 180);
+            continue;
+          }
+  
+          statusText.textContent = "{% trans 'Filling' %} " + (step.el.labels?.[0]?.innerText || '') + "…";
+          await typeInto(step.el, step.text);
           checkField(step.el);
-          continue;
-        }
-
-        if (step.upload) {
-          await attachResume();
-          checkField(step.el);
-          // tiny beat after attaching
           await pause(prefersReduced ? 40 : 180);
-          continue;
         }
-
-        statusText.textContent = "{% trans 'Filling' %} " + (step.el.labels?.[0]?.innerText || '') + "…";
-        await typeInto(step.el, step.text);
-        checkField(step.el);
-        await pause(prefersReduced ? 40 : 180);
-      }
-
-      setProgress(100);
-      btnSubmit.disabled = false;
-      statusText.textContent = "{% trans 'Ready to submit — optimized by AI.' %}";
-
-      // subtle button pulse
-      if (!prefersReduced) {
-        btnSubmit.animate(
-          [{ transform:'scale(1)' }, { transform:'scale(1.04)' }, { transform:'scale(1)' }],
-          { duration: 600, easing: 'ease', iterations: 1 }
-        );
-      }
-
-      isRunning = false;
-    };
-
-    btnReplay?.addEventListener('click', run);
-
-    // Auto-start once when in view
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some(e => e.isIntersecting)) { run(); observer.disconnect(); }
-    }, { threshold: .35 });
-    observer.observe(root);
-  });
-})();
-</script>
-
+  
+        setProgress(100);
+        btnSubmit.disabled = false;
+        statusText.textContent = "{% trans 'Ready to submit — optimized by AI.' %}";
+  
+        // subtle button pulse
+        if (!prefersReduced) {
+          btnSubmit.animate(
+            [{ transform:'scale(1)' }, { transform:'scale(1.04)' }, { transform:'scale(1)' }],
+            { duration: 600, easing: 'ease', iterations: 1 }
+          );
+        }
+  
+        // NEW: auto-press submit and show success animation
+        await autoPressAndCelebrate();
+  
+        isRunning = false;
+      };
+  
+      btnReplay?.addEventListener('click', run);
+  
+      // Auto-start once when in view
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)) { run(); observer.disconnect(); }
+      }, { threshold: .35 });
+      observer.observe(root);
+    });
+  })();
+  </script>
+  
   
   <script>
     (function(){
