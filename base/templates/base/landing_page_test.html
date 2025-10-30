@@ -1429,66 +1429,12 @@ html { scroll-behavior: smooth; }
     
         (async function loop(){
           // wait until visible
-// --- Visibility gate (starts on first true intersection, pauses when out) ---
-        const container = document.getElementById('social-proof'); // or stage
-        let shouldRun = false;
-        let startedOnce = false;
-
-        const visObserver = new IntersectionObserver((entries) => {
-          const inView = entries.some(e => e.isIntersecting);
-          shouldRun = inView;
-          if (inView && !startedOnce) {
-            startedOnce = true;
-            kickOff();                 // first start
-          }
-        }, {
-          root: null,
-          threshold: 0.6,              // ~60% visible before starting
-          rootMargin: '0px 0px -10% 0' // tiny bias to ensure it's really in view
-        });
-        visObserver.observe(container);
-
-        // --- main loop, gated by shouldRun ---
-        async function kickOff(){
-          while (true) {
-            // wait if not in view
-            if (!shouldRun) { await new Promise(r => setTimeout(r, 150)); continue; }
-
-            resetDeck();
-            overlayText.classList.remove('is-visible');
-            overlay.classList.add('is-deck');
-            overlay.classList.remove('is-form');
-
-            // show Tinder, hide form
-            form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
-            tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
-            measure();
-
-            const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
-            await window.TinderDemo?.play?.(swipes);
-
-            // bail if user scrolled away during play
-            if (!shouldRun) continue;
-
-            // show form phase
-            tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
-            form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
-            overlay.classList.remove('is-deck-left','is-deck-right');
-            overlay.classList.add('is-form');
-            measure();
-
-            overlayText.textContent = 'AI applies for you';
-            overlayText.classList.add('is-visible');
-
-            await window.AIDemo?.runOnce?.();
-
-            // short rests; each rest yields to visibility gate
-            for (let i = 0; i < 8 && shouldRun; i++) await new Promise(r => setTimeout(r, 100));
-            resetDeck();
-            for (let i = 0; i < 8 && shouldRun; i++) await new Promise(r => setTimeout(r, 100));
-          }
-        }
-
+          await new Promise(res => {
+            const io = new IntersectionObserver((entries) => {
+              if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+            }, { threshold: 0.3 });
+            io.observe(stage);
+          });
     
           while (true) {
             resetDeck();
