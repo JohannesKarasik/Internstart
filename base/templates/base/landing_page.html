@@ -570,6 +570,14 @@
   display: none !important;
 }
 
+/* ✅ Completely hide the green checkmark for the Resume field */
+.ai-field--file .ai-field__check,
+.ai-field--file.is-done .ai-field__check {
+  display: none !important;
+  opacity: 0 !important;
+  transform: scale(0) !important;
+}
+
 
 </style>
 <script>
