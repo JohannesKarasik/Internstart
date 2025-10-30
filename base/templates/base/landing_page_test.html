@@ -31,9 +31,10 @@
 
   <!-- ONE stage in the hero: Tinder on top, Form underneath (same place) -->
   <div class="demo-stage">
-    <div class="demo-overlay" aria-live="polite" style="display:none;">
-      <span class="demo-overlay__text" style="display:none;"></span>
+    <div class="demo-overlay" aria-live="polite">
+      <span class="demo-overlay__text" role="status" aria-atomic="true"></span>
     </div>
+    
 
     <!-- Tinder-style Swipe Demo -->
     <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
@@ -808,7 +809,7 @@
 
 <script>
   /* =========================
-   B) Tinder controller (TinderDemo) + correct per-swipe overlay timing
+   B) Tinder controller (TinderDemo) + timed explainer labels
   ========================= */
   (() => {
     const ready = (fn) =>
@@ -823,7 +824,12 @@
       if (!deck || !section || !stage) return;
 
       // Overlay label
+      const overlayWrap = document.querySelector('.demo-overlay');
       const overlayTextEl = document.querySelector('.demo-overlay__text');
+      // ensure visible if markup had inline display:none
+      overlayWrap?.removeAttribute('style');
+      overlayTextEl?.removeAttribute('style');
+
       const showOverlayText = (text) => {
         if (!overlayTextEl) return;
         overlayTextEl.textContent = text;
@@ -844,8 +850,6 @@
         if (cards[1]) cards[1].classList.add('is-next');
       };
 
-      let swipeIndex = 0; // track how many swipes have occurred
-
       const swipeOnce = async (stepIndex, totalSteps) => {
         const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
         if (!top) return;
@@ -853,11 +857,11 @@
         const btnDismiss = top.querySelector('.action--dismiss');
         const btnApply   = top.querySelector('.action--apply');
 
-        // 1️⃣ determine direction based on index
+        // Decide direction: first cards left, last card right
         const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
         const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
 
-        // 2️⃣ simulate button press
+        // Simulate click press
         if (pressBtn){
           pressBtn.classList.add('is-pressed');
           pressBtn.setAttribute('aria-pressed','true');
@@ -866,25 +870,22 @@
           pressBtn.removeAttribute('aria-pressed');
         }
 
-        // 3️⃣ swipe animation
+        // Swipe animation
         top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
         await new Promise(res => top.addEventListener('animationend', res, { once: true }));
 
-        // 4️⃣ move card to back, rebuild stack
+        // Move to back & restack
         top.classList.remove('swipe-left','swipe-right','is-top');
         top.style.opacity = '0';
         deck.appendChild(top);
         setStack();
 
-        // 5️⃣ update overlay text AFTER swipe finishes
-        if (stepIndex === 0) {
+        // Explainer AFTER the swipe completes
+        if (direction === 'left') {
           showOverlayText('Swipe left to dismiss');
-        } else if (stepIndex === 1) {
-          // after second card swiped, before yellow card appears
+        } else {
           showOverlayText('Swipe right to apply');
         }
-
-        swipeIndex++;
       };
 
       setStack();
@@ -905,9 +906,8 @@
           window.TinderDemo.setVisible(true);
           setStack();
 
-          // initial label for first card
-          showOverlayText('Swipe left to dismiss');
-          await pause(800);
+          // no explainer yet; show only on swipe events
+          await pause(600);
 
           for (let i = 0; i < swipes; i++) {
             await swipeOnce(i, swipes);
@@ -920,9 +920,10 @@
   })();
 </script>
 
+
 <script>
   /* =========================
-     C) ORCHESTRATOR — plays Tinder → Form in the same spot, then fully resets
+     C) ORCHESTRATOR — plays Tinder → Form, then resets
   ========================= */
   (() => {
     const ready = (fn) =>
@@ -954,29 +955,26 @@
       measure();
       addEventListener('resize', measure);
 
-      // 🔄 reset deck to initial card order/state
+      // reset deck order/state
       const resetDeck = () => {
         const cards = [...deck.querySelectorAll('.card')];
-        // restore original HTML order (pink, blue, yellow)
-        cards.sort((a, b) => {
-          const order = ['card--pink', 'card--blue', 'card--yellow'];
-          return order.indexOf([...a.classList].find(c => order.includes(c))) -
-                 order.indexOf([...b.classList].find(c => order.includes(c)));
-        });
-        // clear inline styles/classes
+        const order = ['card--pink', 'card--blue', 'card--yellow'];
+        cards.sort((a, b) =>
+          order.indexOf([...a.classList].find(c => order.includes(c))) -
+          order.indexOf([...b.classList].find(c => order.includes(c)))
+        );
         deck.innerHTML = '';
         cards.forEach(c => {
           c.style.opacity = '';
           c.classList.remove('swipe-left','swipe-right','is-top','is-next');
           deck.appendChild(c);
         });
-        // rebuild stack
         if (cards[0]) cards[0].classList.add('is-top');
         if (cards[1]) cards[1].classList.add('is-next');
       };
 
       (async function loop(){
-        // wait until stage is visible
+        // wait until visible
         await new Promise(res => {
           const io = new IntersectionObserver((entries) => {
             if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
@@ -985,34 +983,33 @@
         });
 
         while (true) {
-          /* 1️⃣ Reset everything like a fresh page */
+          // fresh start
           resetDeck();
-          overlayText.textContent = 'Swipe left to dismiss';
-          overlayText.classList.remove('is-visible');
-          void overlayText.offsetWidth;
-          overlayText.classList.add('is-visible');
+          overlayText?.classList.remove('is-visible');
 
           form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
           tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
           measure();
 
-          /* 2️⃣ Play Tinder demo */
+          // cards phase
           const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
           await window.TinderDemo?.play?.(swipes);
 
-          /* 3️⃣ Show form phase */
+          // form phase + explainer
           tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
           form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
           measure();
 
-          overlayText.textContent = 'AI automatically applies for you on the company’s website';
-          overlayText.classList.add('is-visible');
+          if (overlayText){
+            overlayText.textContent = 'AI appies for you';
+            overlayText.classList.add('is-visible');
+          }
 
           await window.AIDemo?.runOnce?.();   // form animates and hides itself
           await pause(800);
 
-          /* 4️⃣ Loop cleanly back to start */
-          resetDeck(); // restore original card order and visibility
+          // loop back
+          resetDeck();
           await pause(800);
         }
       })();
