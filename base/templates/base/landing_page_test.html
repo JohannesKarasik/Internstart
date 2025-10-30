@@ -891,8 +891,12 @@
 
   /* 👇 critical fix */
   width: fit-content;            /* makes it only as wide as its content */
-  max-width: 100%;               /* prevent overflow on small screens */
-}
+  max-width: 100%;       
+  margin-top: 12px;
+  margin-left: 0; /* ensures it aligns with hero text */
+}        /* prevent overflow on small screens */
+
+
 
 .hero__rating .rating__text{
   font-size: 14px;
