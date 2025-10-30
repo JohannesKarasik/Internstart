@@ -288,11 +288,11 @@
   /* ---------- Hero ---------- */
   .hero {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr; /* shift ratio closer to 60/40 */
+  grid-template-columns: 1.4fr 0.9fr; /* 60/40 → 65/35 */
   align-items: center;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 2vw 0 4vw; /* tighter padding */
+  padding: 0 2vw 0 6vw; /* tighter right padding, stronger left anchor */
   min-height: 85vh;
   column-gap: 0 !important;
 }
@@ -302,9 +302,9 @@
   flex-direction: column;
   justify-content: center;
   align-self: stretch;
-  max-width: 820px; /* allow text block to expand further right */
+  max-width: 880px; /* allow text block to visually meet the phone */
   width: 100%;
-  padding-right: 2vw; /* small buffer before phone */
+  padding-right: 1vw; /* smaller gap */
 }
 
 
