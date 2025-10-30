@@ -481,7 +481,6 @@
 
 
 </style>
-
 <script>
   /* =========================
      A) AI Form controller (AIDemo)
@@ -689,7 +688,7 @@
   
   <script>
   /* =========================
-     B) Tinder controller (TinderDemo) + Overlay text
+     B) Tinder controller (TinderDemo) + per-swipe overlay text
   ========================= */
   (() => {
     const ready = (fn) =>
@@ -703,7 +702,7 @@
       const stage   = document.querySelector('.demo-stage');
       if (!deck || !section || !stage) return;
   
-      // --- Ensure overlay exists ---
+      // Overlay element (use existing or create)
       let overlayTextEl = document.querySelector('.demo-overlay__text');
       if (!overlayTextEl) {
         const overlay = document.createElement('div');
@@ -715,11 +714,9 @@
       }
   
       const showOverlayText = (text) => {
-        if (!overlayTextEl) return;
         overlayTextEl.textContent = text;
         overlayTextEl.classList.remove('is-visible');
-        // reflow to restart CSS transition
-        void overlayTextEl.offsetWidth;
+        void overlayTextEl.offsetWidth; // reflow to restart transition
         overlayTextEl.classList.add('is-visible');
       };
   
@@ -736,25 +733,19 @@
   
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
   
-      let swipeIndex = 0; // 0,1 (left), 2 (right)
-  
-      const swipeOnce = async () => {
+      // swipe a specific step; last step = right, others = left
+      const swipeOnce = async (stepIndex, totalSteps) => {
         const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
         if (!top) return;
   
         const btnDismiss = top.querySelector('.action--dismiss');
         const btnApply   = top.querySelector('.action--apply');
   
-        // messaging BEFORE the swipe triggers
-        if (swipeIndex < 2) {
-          showOverlayText('Swipe left to dismiss');
-        } else {
-          showOverlayText('Swipe right to apply');
-        }
+        const isLast   = (stepIndex === totalSteps - 1);
+        const direction = isLast ? 'right' : 'left';
+        showOverlayText(isLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
   
-        const direction = (swipeIndex < 2) ? 'left' : 'right';
-        const pressBtn  = (direction === 'right') ? btnApply : btnDismiss;
-  
+        const pressBtn  = isLast ? btnApply : btnDismiss;
         if (pressBtn){
           pressBtn.classList.add('is-pressed');
           pressBtn.setAttribute('aria-pressed','true');
@@ -763,17 +754,13 @@
           pressBtn.removeAttribute('aria-pressed');
         }
   
-        // play swipe animation and wait for it to finish
         top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
         await new Promise(res => top.addEventListener('animationend', res, { once: true }));
   
-        // recycle the card
         top.classList.remove('swipe-left','swipe-right','is-top');
         top.style.opacity = '0';
         deck.appendChild(top);
         setStack();
-  
-        swipeIndex = (swipeIndex + 1) % 3;
       };
   
       setStack();
@@ -790,20 +777,18 @@
           }
         },
         play: async (swipes = 3) => {
-          // Always run (even if reduced-motion). If reduced, timings are quicker.
           const PAUSE_BETWEEN = prefersReduced ? 200 : PAUSE;
           const INTRO_DELAY   = prefersReduced ? 300 : 800;
   
           window.TinderDemo.setVisible(true);
           setStack();
   
-          // Set initial helper text
+          // prime helper for the first card
           showOverlayText('Swipe left to dismiss');
-  
           await pause(INTRO_DELAY);
   
           for (let i = 0; i < swipes; i++) {
-            await swipeOnce();
+            await swipeOnce(i, swipes);
             if (i < swipes - 1) await pause(PAUSE_BETWEEN); // no pause after last swipe
           }
           return true;
@@ -881,13 +866,12 @@
           }
   
           await window.AIDemo?.runOnce?.();   // form runs and hides itself at the end
-  
-          // Tiny breather between loops to avoid thrash
-          await pause(400);
+          await pause(400);                   // small breather between loops
         }
       })();
     });
   })();
   </script>
+  
   
 {% endblock content %}
