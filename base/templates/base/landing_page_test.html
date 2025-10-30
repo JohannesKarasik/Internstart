@@ -1009,6 +1009,24 @@ html[lang="da"] .hero__subhead {
 /* textarea variant still works (it lives in the same grid cell) */
 .ai-form .ai-field--textarea textarea{ padding-right: 12px; }
 
+/* Give the cover note textarea extra height and padding */
+.ai-form .ai-field--textarea textarea{
+  /* taller + comfier line height */
+  min-height: 140px;          /* independent of rows=4 */
+  line-height: 1.5;
+
+  /* more vertical padding so the text clears the border */
+  padding: 16px 16px 20px 14px;   /* top right bottom left */
+
+  /* make sure Safari/WebKit draws background inside the border */
+  -webkit-appearance: none;
+  background-clip: padding-box;
+}
+
+/* If you see the resize handle crowding the border, keep vertical-only resize */
+.ai-form .ai-field--textarea textarea{
+  resize: vertical;
+}
 
 
   </style>
