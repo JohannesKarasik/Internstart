@@ -289,7 +289,7 @@
   .hero{
     display: grid;
     grid-template-columns: minmax(520px, var(--hero-copy-max)) minmax(0,1fr);
-    column-gap: clamp(var(--hero-gap-min), 6vw, var(--hero-gap-max));
+    column-gap: 0 !important; /* 🚫 no gap between text and animation */
     align-items: center;
     min-height: 80vh;
     max-width: var(--container-max);
