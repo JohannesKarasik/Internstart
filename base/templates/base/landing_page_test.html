@@ -156,6 +156,95 @@
 
 
 
+<!-- =========================
+      SOCIAL PROOF (TikTok-style)
+========================= -->
+<section class="social-proof" id="social-proof">
+  <div class="sp__inner">
+    <header class="sp__head">
+      <h2 class="sp__title">
+        {% trans "Do like everyone else — apply with AI" %}
+      </h2>
+      <p class="sp__sub">
+        {% trans "Real students auto-applying to dozens of roles in minutes." %}
+      </p>
+    </header>
+
+    <div class="sp__rail" aria-label="{% trans 'User videos' %}">
+      <!-- Card 1 -->
+      <article class="sp__card">
+        <video class="sp__video" playsinline muted loop preload="metadata"
+               src="{% static 'images/internstart1.mp4' %}"></video>
+
+        <div class="sp__overlay">
+          <div class="sp__meta">
+            <div class="sp__handle">@sofia • {% trans "CBS" %}</div>
+            <div class="sp__caption">{% trans "“Sent 40 apps this week.”" %}</div>
+          </div>
+
+          <div class="sp__actions">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div class="sp__stat">❤️ 1.2k</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="sp__card">
+        <video class="sp__video" playsinline muted loop preload="metadata"
+               src="{% static 'images/internstart2.mp4' %}"></video>
+
+        <div class="sp__overlay">
+          <div class="sp__meta">
+            <div class="sp__handle">@mikkel • {% trans "DTU" %}</div>
+            <div class="sp__caption">{% trans "“AI filled my apps while I studied.”" %}</div>
+          </div>
+
+          <div class="sp__actions">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div class="sp__stat">❤️ 980</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="sp__card">
+        <video class="sp__video" playsinline muted loop preload="metadata"
+               src="{% static 'images/internstart3.mp4' %}"></video>
+
+        <div class="sp__overlay">
+          <div class="sp__meta">
+            <div class="sp__handle">@lina • {% trans "KU" %}</div>
+            <div class="sp__caption">{% trans "“2 interviews after one evening.”" %}</div>
+          </div>
+
+          <div class="sp__actions">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div class="sp__stat">❤️ 1.6k</div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="sp__cta">
+      <a href="{% url 'register' %}" class="btn btn--primary">
+        {% trans "Start applying with AI" %}
+      </a>
+    </div>
+  </div>
+</section>
 
 
 <!-- =========================
@@ -591,6 +680,110 @@
 @keyframes pulse { 70%{ box-shadow:0 0 0 8px rgba(34,197,94,0) } }
 @media (prefers-reduced-motion: reduce){ .ai-status::before{ animation:none; } }
 
+/* ---------- Social Proof ---------- */
+.social-proof{
+  --sp-max: var(--container-max, 1280px);
+  --sp-gap: 18px;
+  --sp-card-w: clamp(240px, 22vw, 340px);
+  --sp-radius: 22px;
+  --sp-shadow: 0 18px 40px rgba(0,0,0,.18);
+  --sp-h: 64vh; /* desktop height target */
+  padding: 56px var(--gutter-x, 24px) 24px;
+}
+
+.sp__inner{ max-width: var(--sp-max); margin: 0 auto; }
+.sp__head{ text-align:center; margin-bottom: 22px; }
+.sp__title{
+  margin:0;
+  font-weight: 900;
+  letter-spacing:-0.3px;
+  font-size: clamp(22px, 3vw, 34px);
+}
+.sp__sub{
+  margin:.5rem 0 0;
+  color: var(--muted);
+  font-size: clamp(14px, 1.6vw, 16px);
+}
+
+/* Horizontal snap rail */
+.sp__rail{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--sp-card-w);
+  gap: var(--sp-gap);
+  overflow-x: auto;
+  padding: 10px 2px 14px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Video card (TikTok style) */
+.sp__card{
+  position: relative;
+  background:#000;
+  border-radius: var(--sp-radius);
+  overflow: hidden;
+  height: min(var(--sp-h), 720px);
+  aspect-ratio: 9 / 16;
+  box-shadow: var(--sp-shadow);
+  scroll-snap-align: center;
+}
+.sp__video{
+  width:100%;
+  height:100%;
+  object-fit: cover;
+  display:block;
+}
+
+/* Overlay UI */
+.sp__overlay{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  pointer-events:none;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,.45) 100%);
+}
+.sp__meta{
+  color:#fff; padding:12px 12px 8px;
+  font-family: var(--font);
+}
+.sp__handle{ font-weight:800; font-size:14px; opacity:.95; }
+.sp__caption{ font-size:13px; opacity:.9; margin-top:4px; }
+
+.sp__actions{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 10px 10px;
+}
+.sp__mute{
+  pointer-events:auto;
+  display:inline-grid; place-items:center;
+  width:38px; height:38px; border-radius:999px;
+  background: rgba(255,255,255,.2);
+  color:#fff; border:1px solid rgba(255,255,255,.3);
+  backdrop-filter: blur(6px);
+  transition: transform .15s ease, background .15s ease;
+}
+.sp__mute:hover{ transform: scale(1.05); background: rgba(255,255,255,.28); }
+.sp__mute svg{ width:18px; height:18px; }
+.sp__mute.is-on{ background: rgba(16,185,129,.9); border-color: rgba(16,185,129,.95); }
+
+.sp__stat{
+  color:#fff; font-weight:800; font-size:13px;
+  padding:6px 10px; border-radius:999px;
+  background: rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.26);
+  backdrop-filter: blur(8px);
+}
+
+/* CTA */
+.sp__cta{ display:flex; justify-content:center; margin-top: 20px; }
+
+/* Responsiveness */
+@media (max-width: 1024px){
+  .social-proof{ --sp-h: 70vh; }
+}
+@media (max-width: 640px){
+  .social-proof{ padding-top: 44px; --sp-card-w: 82vw; --sp-h: 72vh; }
+  .sp__title{ font-size: clamp(20px, 6vw, 28px); }
+}
 
 
 </style>
@@ -895,7 +1088,7 @@
 
   // ✅ Add short delay before showing “Swipe right to apply”
   if (stepIndex === 1) {
-    await pause(200); // wait a bit after yellow card appears
+    await pause(500); // wait a bit after yellow card appears
     setDeckSide('right');
     showOverlayText('Swipe right to apply');
   }
@@ -1029,7 +1222,57 @@
     })();
     </script>
     
-
+    <script>
+      (() => {
+        const ready = (fn) =>
+          document.readyState === 'loading'
+            ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+            : fn();
+      
+        ready(() => {
+          const videos = [...document.querySelectorAll('.sp__video')];
+          if (!videos.length) return;
+      
+          // Auto play/pause the video that is most visible
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+              const v = e.target;
+              if (e.isIntersecting && e.intersectionRatio > 0.6) {
+                v.play().catch(() => {});
+              } else {
+                v.pause();
+              }
+            });
+          }, { threshold: [0, .25, .6, .9, 1] });
+      
+          videos.forEach(v => {
+            v.muted = true; // ensure autoplay works
+            v.playsInline = true;
+            io.observe(v);
+          });
+      
+          // Tap to toggle mute
+          document.querySelectorAll('.sp__mute').forEach(btn => {
+            const card = btn.closest('.sp__card');
+            const video = card?.querySelector('video');
+            if (!video) return;
+      
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              video.muted = !video.muted;
+              btn.classList.toggle('is-on', !video.muted);
+              btn.setAttribute('aria-pressed', String(!video.muted));
+              btn.setAttribute('aria-label', video.muted ? 'Unmute video' : 'Mute video');
+              if (!video.paused) video.play().catch(() => {});
+            });
+      
+            // Also allow tapping the video to toggle mute
+            card.addEventListener('click', () => btn.click());
+          });
+        });
+      })();
+      </script>
+      
   
   
 {% endblock content %}
