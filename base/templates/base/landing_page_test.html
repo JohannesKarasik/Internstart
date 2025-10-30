@@ -705,34 +705,33 @@
   font-size: clamp(14px, 1.6vw, 16px);
 }
 
-/* Horizontal snap rail */
-.sp__rail{
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: var(--sp-card-w);
-  gap: var(--sp-gap);
-  overflow-x: auto;
-  padding: 10px 2px 14px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
+/* TikTok-style single-display carousel */
+.sp__rail {
+  position: relative;
+  display: flex;
+  overflow: hidden; /* hide others */
+  height: min(var(--sp-h), 720px);
 }
 
-/* Video card (TikTok style) */
-.sp__card{
-  position: relative;
-  background:#000;
-  border-radius: var(--sp-radius);
-  overflow: hidden;
-  height: min(var(--sp-h), 720px);
-  aspect-ratio: 9 / 16;
-  box-shadow: var(--sp-shadow);
-  scroll-snap-align: center;
+.sp__card {
+  flex: 0 0 100%;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .sp__video{
   width:100%;
   height:100%;
   object-fit: cover;
   display:block;
+}
+
+.sp__card.is-active {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 2;
 }
 
 /* Overlay UI */
@@ -1230,29 +1229,39 @@
             : fn();
       
         ready(() => {
+          const cards = [...document.querySelectorAll('.sp__card')];
           const videos = [...document.querySelectorAll('.sp__video')];
-          if (!videos.length) return;
+          if (!cards.length || !videos.length) return;
       
-          // Auto play/pause the video that is most visible
-          const io = new IntersectionObserver((entries) => {
-            entries.forEach((e) => {
-              const v = e.target;
-              if (e.isIntersecting && e.intersectionRatio > 0.6) {
+          /* ---------- A) TikTok-style rotation ---------- */
+          let index = 0;
+          const DURATION = 5000; // 5 seconds per video
+      
+          const showCard = (i) => {
+            cards.forEach((c, j) => {
+              const v = c.querySelector('video');
+              if (j === i) {
+                c.classList.add('is-active');
+                v.currentTime = 0;
                 v.play().catch(() => {});
               } else {
+                c.classList.remove('is-active');
                 v.pause();
               }
             });
-          }, { threshold: [0, .25, .6, .9, 1] });
+          };
       
-          videos.forEach(v => {
-            v.muted = true; // ensure autoplay works
-            v.playsInline = true;
-            io.observe(v);
-          });
+          // Show the first card immediately
+          showCard(index);
       
-          // Tap to toggle mute
-          document.querySelectorAll('.sp__mute').forEach(btn => {
+          // Auto-advance every few seconds
+          setInterval(() => {
+            index = (index + 1) % cards.length;
+            showCard(index);
+          }, DURATION);
+      
+          /* ---------- B) Tap to toggle mute ---------- */
+          document.querySelectorAll('.sp__mute').forEach((btn) => {
             const card = btn.closest('.sp__card');
             const video = card?.querySelector('video');
             if (!video) return;
@@ -1262,11 +1271,14 @@
               video.muted = !video.muted;
               btn.classList.toggle('is-on', !video.muted);
               btn.setAttribute('aria-pressed', String(!video.muted));
-              btn.setAttribute('aria-label', video.muted ? 'Unmute video' : 'Mute video');
+              btn.setAttribute(
+                'aria-label',
+                video.muted ? 'Unmute video' : 'Mute video'
+              );
               if (!video.paused) video.play().catch(() => {});
             });
       
-            // Also allow tapping the video to toggle mute
+            // Allow tapping the video itself to toggle mute
             card.addEventListener('click', () => btn.click());
           });
         });
