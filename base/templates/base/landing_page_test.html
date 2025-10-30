@@ -173,9 +173,9 @@
     --hero-gap-max: 96px;
 
     /* Cards */
-    --card-w: clamp(320px, 28vw, 380px);
-    --card-h: 540px;
-    --card-pad: 24px;
+    --card-w: clamp(420px, 36vw, 520px);
+    --card-h: 640px;
+    --card-pad: 28px;
 
     /* Action buttons */
     --action-size: 48px;
@@ -229,10 +229,14 @@
   /* ---------- Stage (overlay container) ---------- */
   .demo-stage{
     position: relative;
-    width: min(100%, 560px);  /* matches --ai-w below */
+    width: min(100%, 680px);
     margin: 18px 0 0;
     min-height: var(--card-h);
   }
+
+  .ai-demo{ --ai-w: 680px; --ai-pad: 20px; max-width: var(--ai-w); margin: 0; }
+
+
   .demo-stage .tinder-section,
   .demo-stage .ai-demo{
     position: absolute; inset: 0; margin: 0;
@@ -246,17 +250,17 @@
     height: var(--card-h);
     background:#fff;
     border-radius: 24px;
-    box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    box-shadow: 0 24px 50px rgba(0,0,0,.22);
   }
   .card__body{
     height:100%; padding:var(--card-pad);
     display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center;
   }
   .card__info{ display:flex; flex-direction:column; align-items:center; margin-top:32px; }
-  .card__logo{ max-width:220px; max-height:160px; object-fit:contain; margin-bottom:16px; }
-  .card__role{ font-size:18px; font-weight:600; color:#4b5563; margin:8px 0 6px; }
-  .card__company{ font-size:20px; font-weight:800; color:#2F4858; margin:2px 0; }
-  .card__meta{ font-size:15px; color:var(--meta); margin:6px 0 0; }
+  .card__logo{ max-width:280px; max-height:200px; margin-bottom:20px; }
+  .card__role{ font-size:20px; font-weight:600; color:#4b5563; margin:8px 0 6px; }
+  .card__company{ font-size:24px; font-weight:800; color:#2F4858; margin:2px 0; }
+  .card__meta{ font-size:16px; color:var(--meta); margin:6px 0 0; }
   .card--pink{ background:#FFE7EC; }
   .card--blue{ background:#E7F0FF; }
   .card--yellow{ background:#FFF9E6; }
