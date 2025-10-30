@@ -687,8 +687,8 @@ html[lang="da"] .hero__subhead {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;              /* was 10px */
+  padding: 8px 10px;     /* was 10px 12px */
   background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
   border-bottom: 1px solid #e5e7eb;
 }
@@ -708,14 +708,20 @@ html[lang="da"] .hero__subhead {
 }
 .ai-demo__bar{
   --pct: 0%;
-  width: 120px; height: 8px; border-radius: 999px; background:#e5e7eb; position:relative; overflow:hidden;
+  width: 96px;           /* was 120px */
+  height: 6px;           /* was 8px */
+  border-radius: 999px;
+  background:#e5e7eb;
+  position:relative;
+  overflow:hidden;
 }
+
 .ai-demo__bar::after{
   content:""; position:absolute; left:0; top:0; bottom:0; width: var(--pct);
   background: linear-gradient(90deg, #10B981, #3B82F6);
   transition: width .25s ease;
 }
-.ai-demo__pct{ font-size: 12px; color:#374151; min-width: 32px; text-align:right; }
+.ai-demo__pct{ font-size: 11px; color:#374151; min-width: 32px; text-align:right; }
 
 .ai-form{ padding: 14px var(--ai-pad) 18px; }
 .ai-field{
@@ -1031,7 +1037,7 @@ html[lang="da"] .hero__subhead {
 
 /* --- Wider demo window --- */
 .ai-demo{
-  --ai-w: 760px; /* was 520px */
+  --ai-w: 560px; /* was 760px */
 }
 
 /* --- 2-column form layout --- */
