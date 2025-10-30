@@ -276,15 +276,21 @@
     opacity:0; pointer-events:none;
     transition: transform .6s ease, opacity .35s ease, filter .35s ease;
   }
+  
   .tinder-deck .card.is-top{
-    opacity:1; pointer-events:auto; z-index:3; transform: translateX(-50%) translateY(0) scale(1);
-  }
+  opacity:1;
+  filter:none;                 /* ensure crisp display */
+  pointer-events:auto;
+  z-index:3;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
   .tinder-deck .card.is-next{
     opacity:1; z-index:2; transform: translateX(-50%) translateY(12px) scale(.992);
     pointer-events:none; box-shadow:0 14px 32px rgba(0,0,0,.14);
   }
   .tinder-deck .card:not(.is-top):not(.is-next){ opacity:0; z-index:1; }
-  .tinder-deck .card:not(.is-top) .card__actions{ opacity:0; pointer-events:none; }
+  .tinder-deck .card__actions{ opacity:1; pointer-events:auto; }
 
   @keyframes tSwipeLeft {
     0% { transform: translateX(-50%) translateY(0) rotate(0) scale(1); opacity:1; }
@@ -676,23 +682,23 @@
 
     setStack();
 
-    window.TinderDemo = {
-      count: () => deck.querySelectorAll('.card').length,
-      setVisible: (show) => {
-        if (show) { section.removeAttribute('hidden'); section.removeAttribute('aria-hidden'); }
-        else { section.setAttribute('hidden',''); section.setAttribute('aria-hidden','true'); }
-      },
-      play: async (swipes = 3) => {
-        if (prefersReduced) return true;
-        window.TinderDemo.setVisible(true);
-        setStack();
-        for (let i = 0; i < swipes; i++) {
-          await swipeOnce();
-          await pause(PAUSE);
-        }
-        return true;
+      window.TinderDemo = {
+    play: async (swipes = 3) => {
+      if (prefersReduced) return true;
+      window.TinderDemo.setVisible(true);
+      setStack();
+
+      // 🌟 NEW: wait a bit before first swipe (for visibility)
+      await pause(1800);
+
+      for (let i = 0; i < swipes; i++) {
+        await swipeOnce();
+        await pause(PAUSE);
       }
-    };
+      return true;
+    }
+  };
+
   });
 })();
 </script>
