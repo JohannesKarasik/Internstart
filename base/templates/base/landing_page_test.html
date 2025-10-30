@@ -801,6 +801,15 @@
       const stage   = document.querySelector('.demo-stage');
       if (!deck || !section || !stage) return;
 
+      // Overlay label
+      const overlayTextEl = document.querySelector('.demo-overlay__text');
+      const showOverlayText = (text) => {
+        if (!overlayTextEl) return;
+        overlayTextEl.textContent = text;
+        overlayTextEl.classList.remove('is-visible');
+        void overlayTextEl.offsetWidth; // reflow to restart transition
+        overlayTextEl.classList.add('is-visible');
+      };
 
       const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const PAUSE = 1600, PRESS = 220;
