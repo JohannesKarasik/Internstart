@@ -804,7 +804,14 @@
         measure();
         const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
         await window.TinderDemo?.play?.(swipes);
-        await pause(300);
+// 👇 show form immediately after last swipe animation completes
+        tinder.setAttribute('hidden','');
+        tinder.setAttribute('aria-hidden','true');
+        form.removeAttribute('hidden');
+        form.removeAttribute('aria-hidden');
+        measure();
+        await window.AIDemo?.runOnce?.();   // start form animation right away
+        await pause(400);
 
         // 2) Form in same place
         tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
