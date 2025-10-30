@@ -249,7 +249,7 @@
           <div class="ai-upload__bar"></div>
         </div>
       
-        <div class="ai-field__check" aria-hidden="true">✓</div>
+        
       </div>
       
 
@@ -963,6 +963,52 @@ html[lang="da"] .hero__subhead {
 .tinder-deck .action--apply.is-pressed{
   background:#D1FAE5; border-color:#6EE7B7; color:#059669;
 }
+
+/* Center the ✓ vertically next to the input/textarea */
+.ai-form .ai-field{
+  /* label on row 1, control on row 2; check gets its own narrow column */
+  display: grid;
+  grid-template-columns: 1fr 28px;   /* 22px dot + a little gap */
+  grid-template-rows: auto auto;     /* label, then control */
+  align-items: center;                /* vertically center the control row */
+  gap: 6px 8px;                       /* row gap, col gap */
+  position: relative;                 /* keep for other effects */
+}
+
+/* label spans both columns on the first row */
+.ai-form .ai-field label{
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+/* input/textarea occupies the left column on the second row */
+.ai-form .ai-field input,
+.ai-form .ai-field textarea{
+  grid-column: 1;
+  grid-row: 2;
+  /* no need to reserve space inside the control anymore */
+  padding-right: 12px; /* was 40px */
+}
+
+/* the check sits in the right column, aligned and centered */
+.ai-form .ai-field__check{
+  grid-column: 2;
+  grid-row: 2;
+  position: static;                   /* stop absolute positioning */
+  width: 22px; height: 22px;          /* keep your size */
+  transform: scale(.6);               /* initial state */
+  opacity: 0;                         /* initial state */
+}
+
+/* show animation when field is done */
+.ai-form .ai-field.is-done .ai-field__check{
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* textarea variant still works (it lives in the same grid cell) */
+.ai-form .ai-field--textarea textarea{ padding-right: 12px; }
+
 
 
 
