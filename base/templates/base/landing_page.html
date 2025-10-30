@@ -16,11 +16,11 @@
     <h1 class="hero__title">
       {% blocktrans trimmed %}Apply to <span class="accent">200+ jobs</span> in minutes<br>powered by <span class="accent">AI</span>{% endblocktrans %}
     </h1>
-  
+
     <p class="hero__subhead">
       {% trans "Internstart finds the right opportunities, fills out applications, and sends them for you. Land interviews faster without the endless forms." %}
     </p>
-  
+
     <div class="hero__ctas">
       <a href="{% url 'register' %}" class="btn btn--primary">
         {% trans "Start applying to jobs with AI" %}
@@ -28,98 +28,124 @@
       <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">{% trans "Login" %}</a>
     </div>
   </div>
-  
 
-  <!-- Card deck -->
-  <div class="deck" aria-label="Featured internships">
-    <!-- Card 1 -->
-    <article class="card card--pink">
-      <div class="card__body">
-        <div class="card__info">
-          <img src="{% static 'images/Goldman-Sachs-1869.png' %}" alt="Goldman Sachs logo" class="card__logo">
-          <h4 class="card__role">Investment Banking Intern</h4>
-          <h3 class="card__company">Goldman Sachs</h3>
-          <p class="card__meta">Location: New York, NY</p>
-        </div>
-
-        <div class="card__actions" aria-label="Card actions">
-          <button class="action" aria-label="Undo last swipe" data-label="Undo" title="Undo (U)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
-          </button>
-          <button class="action" aria-label="Pass on this job" data-label="Pass" title="Pass (←)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <button class="action" aria-label="Save for later" data-label="Save" title="Save (S)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
-          </button>
-          <button class="action" aria-label="Apply to this job" data-label="Apply" title="Apply (Enter)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-          <button class="action" aria-label="Boost visibility" data-label="Boost" title="Boost">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </button>
-        </div>
+  <!-- ONE stage in the hero: Tinder on top, Form underneath (same place) -->
+  <div class="demo-stage">
+    <div class="demo-overlay" aria-live="polite">
+      <span class="demo-overlay__text">Swipe left to dismiss</span>
+    </div>
+    <!-- Tinder-style Swipe Demo -->
+    <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
+      <div class="tinder-deck" data-autoplay="true">
+        <!-- T-Card 1 -->
+        <article class="card card--pink">
+          <div class="card__body">
+            <div class="card__info">
+              <img src="{% static 'images/Goldman-Sachs-1869.png' %}" alt="Goldman Sachs logo" class="card__logo">
+              <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
+              <h3 class="card__company">Goldman Sachs</h3>
+              <p class="card__meta">{% trans "Location: New York, NY" %}</p>
+            </div>
+            <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+              <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
+              <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+            </div>
+          </div>
+        </article>
+        <!-- T-Card 2 -->
+        <article class="card card--blue">
+          <div class="card__body">
+            <div class="card__info">
+              <img src="{% static 'images/danske-bank.png' %}" alt="Danske Bank logo" class="card__logo">
+              <h4 class="card__role">{% trans "Corporate Finance Intern" %}</h4>
+              <h3 class="card__company">Danske Bank</h3>
+              <p class="card__meta">{% trans "Location: Copenhagen, Denmark" %}</p>
+            </div>
+            <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+              <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
+              <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+            </div>
+          </div>
+        </article>
+        <!-- T-Card 3 -->
+        <article class="card card--yellow">
+          <div class="card__body">
+            <div class="card__info">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
+              <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
+              <h3 class="card__company">Deutsche Bank</h3>
+              <p class="card__meta">{% trans "Location: Frankfurt, Germany" %}</p>
+            </div>
+            <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+              <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
+              <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+            </div>
+          </div>
+        </article>
       </div>
-    </article>
+    </div>
 
-    <!-- Card 2 -->
-    <article class="card card--blue">
-      <div class="card__body">
-        <div class="card__info">
-          <img src="{% static 'images/danske-bank.png' %}" alt="Danske Bank logo" class="card__logo">
-          <h4 class="card__role">Corporate Finance Intern</h4>
-          <h3 class="card__company">Danske Bank</h3>
-          <p class="card__meta">Location: Copenhagen, Denmark</p>
+    <!-- AI Autofill Demo -->
+    <div class="ai-demo" role="region" aria-label="AI auto-filling a job application">
+      <div class="ai-demo__window">
+        <div class="ai-demo__chrome">
+          <div class="ai-demo__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="ai-demo__title">{% trans "Job Application — Preview" %}</div>
+          <div class="ai-demo__progress" aria-hidden="true">
+            <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
+          </div>
         </div>
-        <div class="card__actions" aria-hidden="true">
-          <button class="action" aria-label="Undo last swipe" data-label="Undo" title="Undo (U)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
-          </button>
-          <button class="action" aria-label="Pass on this job" data-label="Pass" title="Pass (←)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <button class="action" aria-label="Save for later" data-label="Save" title="Save (S)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
-          </button>
-          <button class="action" aria-label="Apply to this job" data-label="Apply" title="Apply (Enter)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-          <button class="action" aria-label="Boost visibility" data-label="Boost" title="Boost">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </button>
-        </div>
-      </div>
-    </article>
 
-    <!-- Card 3 -->
-    <article class="card card--yellow">
-      <div class="card__body">
-        <div class="card__info">
-          <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
-          <h4 class="card__role">Global Markets Intern</h4>
-          <h3 class="card__company">Deutsche Bank</h3>
-          <p class="card__meta">Location: Frankfurt, Germany</p>
-        </div>
-        <div class="card__actions" aria-hidden="true">
-          <button class="action" aria-label="Undo last swipe" data-label="Undo" title="Undo (U)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
-          </button>
-          <button class="action" aria-label="Pass on this job" data-label="Pass" title="Pass (←)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <button class="action" aria-label="Save for later" data-label="Save" title="Save (S)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
-          </button>
-          <button class="action" aria-label="Apply to this job" data-label="Apply" title="Apply (Enter)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-          <button class="action" aria-label="Boost visibility" data-label="Boost" title="Boost">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </button>
-        </div>
+        <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
+          <div class="ai-field">
+            <label for="ai-name">{% trans "Full name" %}</label>
+            <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
+            <div class="ai-field__check" aria-hidden="true">✓</div>
+          </div>
+
+          <div class="ai-field">
+            <label for="ai-email">{% trans "Email" %}</label>
+            <input id="ai-email" type="email" placeholder="name@university.dk" />
+            <div class="ai-field__check" aria-hidden="true">✓</div>
+          </div>
+
+          <div class="ai-field">
+            <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
+            <input id="ai-portfolio" type="url" placeholder="https://…" />
+            <div class="ai-field__check" aria-hidden="true">✓</div>
+          </div>
+
+          <div class="ai-field ai-field--file">
+            <label for="ai-resume">{% trans "Resume" %}</label>
+            <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
+            <div class="ai-file">
+              <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
+              <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">{% trans "No file selected" %}</span>
+            </div>
+            <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
+            <div class="ai-field__check" aria-hidden="true">✓</div>
+          </div>
+
+          <div class="ai-field ai-field--textarea">
+            <label for="ai-cover">{% trans "Short cover note" %}</label>
+            <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
+            <div class="ai-field__check" aria-hidden="true">✓</div>
+          </div>
+
+          <div class="ai-consent">
+            <input id="ai-consent" type="checkbox" />
+            <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
+          </div>
+
+          <div class="ai-actions">
+            <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
+          </div>
+
+          <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
+        </form>
       </div>
-    </article>
-  </div>
+    </div>
+  </div><!-- /.demo-stage -->
 </section>
 
 <!-- =========================
@@ -139,7 +165,6 @@
   </div>
 </footer>
 
-
 <style>
   :root{
     /* Layout */
@@ -148,20 +173,16 @@
     --hero-copy-max: 620px;
     --hero-gap-min: 72px;
     --hero-gap-max: 96px;
-  
+
     /* Cards */
-    --card-w: clamp(320px, 28vw, 380px);
-    --card-h: 540px;
-    --card-pad: 24px;
-  
-    /* ↓ Closer stack + more “backwards” look */
-    --stack-gap: 160px;
-    --stack-tilt: -15deg;
-  
+    --card-w: clamp(360px, 30vw, 440px);
+    --card-h: 600px;
+    --card-pad: 28px;
+
     /* Action buttons */
     --action-size: 48px;
     --action-gap: 14px;
-  
+
     /* Typography */
     --font: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     --text: #111;
@@ -169,11 +190,10 @@
     --meta: #6b7280;
     --brand: #FF2F5A;
   }
-  
-  /* ---------- Base ---------- */
+
   *{ box-sizing:border-box; }
   body{ font-family: var(--font); color:var(--text); }
-  
+
   /* ---------- Hero ---------- */
   .hero{
     display: grid;
@@ -185,7 +205,6 @@
     margin: 0 auto;
     padding: 40px var(--gutter-x) 0;
   }
-  
   .hero__copy{ max-width: var(--hero-copy-max); }
   .hero__title{
     font-size: clamp(48px, 5.4vw, 72px);
@@ -194,424 +213,770 @@
     font-weight: 800;
     margin: 0;
   }
+  .hero__title .accent{ background-color:#FF2F5A; -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero__title .accent::after{ content:none; }
+  .hero__subhead{ margin-top:28px; font-size:18px; line-height:1.55; color:var(--muted); max-width:58ch; }
+  .hero__ctas{ margin-top:24px; display:flex; gap:18px; }
 
-  .hero__title .accent{
-  background-color: #FF2F5A;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  position: relative;
-}
-.hero__title .accent::after{
-  content: none;
-}
-
-  .hero__subhead{
-    margin-top: 28px;
-    font-size: 18px;
-    line-height: 1.55;
-    color: var(--muted);
-    max-width: 58ch;
-  }
-  .hero__ctas{ margin-top: 24px; display:flex; gap: 18px; }
-  
-  /* Buttons */
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
-    height: 56px; padding: 0 22px;
-    border-radius: 12px; font-weight: 700; font-size: 18px;
-    text-decoration: none; transition: all .2s ease;
-    border: 1px solid transparent;
+    height:56px; padding:0 22px; border-radius:12px; font-weight:700; font-size:18px;
+    text-decoration:none; transition:.2s ease; border:1px solid transparent;
   }
-  .btn--primary{ background: var(--brand); color:#fff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-  .btn--primary:hover{ transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+  .btn--primary{ background:var(--brand); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+  .btn--primary:hover{ transform: translateY(-1px); }
   .btn--ghost{ background:#f5f5f5; color:#111; }
   .btn--ghost:hover{ background:#efefef; }
-  
-  /* ---------- Deck & Cards ---------- */
-  .deck{
-    --gap: min(var(--stack-gap), calc((100% - var(--card-w)) / 2));
-    position: relative;
-    min-height: var(--card-h);
-    perspective: 1600px;
-  }
-  
+
+  /* ---------- Stage (overlay container) ---------- */
+/* Keep demo content centered but full-width */
+.demo-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: var(--card-h);
+  margin: 0;
+}
+
+/* Center both layers */
+.demo-stage .tinder-section,
+.demo-stage .ai-demo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+/* --- Restore the normal width of the AI form --- */
+.ai-demo {
+  --ai-w: 760px; /* wider than before (was 560px) */
+  width: var(--ai-w);
+  max-width: 100%;
+  transform: translate(-50%, -50%);
+}
+
+/* Keep form window at that width too */
+.ai-demo__window {
+  width: 100%;
+  max-width: var(--ai-w);
+  margin: 0 auto;
+}
+
+/* On small screens, scale back down gracefully */
+@media (max-width: 900px) {
+  .ai-demo { --ai-w: 520px; }
+}
+@media (max-width: 600px) {
+  .ai-demo { --ai-w: 100%; transform: none; left: 0; }
+}
+
+
+  .ai-demo{ --ai-w: 560px; --ai-pad: 18px; max-width: var(--ai-w); margin: 0; }
+
+
+  .demo-stage .tinder-section,
+.demo-stage .ai-demo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+.demo-stage .tinder-section { z-index: 2; }
+.demo-stage .ai-demo { z-index: 1; }
+
+  /* ---------- Card base (neutral, no 3D rules) ---------- */
   .card{
-    position: absolute; top:0; left:0;
-    width: var(--card-w); height: var(--card-h);
-    background:#fff; border-radius: 24px;
-    box-shadow: 0 18px 40px rgba(0,0,0,.18);
-    transform: translateZ(60px) rotateY(var(--stack-tilt));
-    transition: transform .8s ease-in-out, opacity .6s ease;
+    width: var(--card-w);
+    height: var(--card-h);
+    background:#fff;
+    border-radius: 24px;
+    box-shadow: 0 24px 50px rgba(0,0,0,.22);
   }
-  
-  .card:nth-child(1){
-    transform: translateX(0) translateZ(40px) rotateY(-14deg);
-    z-index:3;
-  }
-  .card:nth-child(2){
-    transform: translateX(var(--gap)) translateZ(10px) rotateY(-20deg);
-    z-index:2;
-  }
-  .card:nth-child(3){
-    transform: translateX(calc(var(--gap)*2)) translateZ(-20px) rotateY(-24deg);
-    z-index:1;
-  }
-  
-  html, body { overflow-x: clip; }
-  
-  /* IMPORTANT: no !important here so animation can override */
-  .card:hover{
-    transform: translateY(-8px) translateZ(60px) rotateY(-10deg);
-  }
-  
-  .card.swiping{ animation: swipe3D .8s ease forwards; pointer-events:none; }
-  
   .card__body{
-    height: 100%;
-    padding: var(--card-pad);
-    display:flex; flex-direction:column; justify-content:space-between; align-items:center;
-    text-align:center;
+    height:100%; padding:var(--card-pad);
+    display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center;
   }
-  
-  .card__info{ display:flex; flex-direction:column; align-items:center; margin-top: 32px; }
-  .card__logo{ max-width: 220px; max-height: 160px; object-fit:contain; margin-bottom: 16px; }
-  .card__role{ font-size: 18px; font-weight: 600; color:#4b5563; margin: 8px 0 6px; }
-  .card__company{ font-size: 20px; font-weight: 800; color:#2F4858; margin: 2px 0; }
-  .card__meta{ font-size: 15px; color: var(--meta); margin: 6px 0 0; }
-  
-  /* Card colors */
-  .card--pink   { background:#FFE7EC; }
-  .card--blue   { background:#E7F0FF; }
-  .card--yellow { background:#FFF9E6; }
-  
-  /* Actions */
-  .card__actions{ display:flex; gap: var(--action-gap); margin-top:auto; padding-bottom: 22px; }
-  .deck .card:not(:first-child) .card__actions{ opacity:0; pointer-events:none; }
-  
-  /* Action button base */
-  .action{
-    width: var(--action-size); height: var(--action-size);
-    border-radius: 50%; background:#fff; border: none; cursor: default;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+
+  .card__info{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:40px;
+  flex:1 0 auto;
+} 
+ .card__logo{
+  width:auto;
+  height:auto;
+  max-width:240px;
+  max-height:140px;
+  object-fit:contain;
+  object-position:center;
+  margin-bottom:22px;
+}
+  .card__role{ font-size:18px; font-weight:600; color:#4b5563; margin:8px 0 6px; }
+  .card__company{ font-size:22px; font-weight:800; color:#2F4858; margin:2px 0; }
+  .card__meta{ font-size:15px; color:var(--meta); margin:6px 0 0; }
+  .card--pink{ background:#FFE7EC; }
+  .card--blue{ background:#E7F0FF; }
+  .card--yellow{ background:#FFF9E6; }
+
+  /* ---------- Tinder deck ---------- */
+  .tinder-section{ margin-top: 0; }
+  .tinder-deck{
     position: relative;
-    outline-offset: 2px;
+    width: var(--card-w);
+    min-height: var(--card-h);
+    margin: 0 auto;
+    perspective:1200px;
   }
-  .action:focus-visible{ outline: 3px solid rgba(59,130,246,.5); }
+  .tinder-deck .card{
+    position:absolute; top:0; left:50%;
+    transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+    opacity:0; pointer-events:none;
+    transition: transform .6s ease, opacity .35s ease, filter .35s ease;
+  }
+
+  .tinder-deck .card__actions{
+  margin-top:auto;
+  padding-bottom:32px;
+}
   
-  /* Tooltips */
-  .action[data-label]::after{
-    content: attr(data-label);
-    position:absolute; bottom: -28px; left:50%; transform: translateX(-50%) translateY(4px);
-    background:#111; color:#fff; font-size:12px; padding:4px 8px; border-radius:6px;
-    white-space:nowrap; opacity:0; pointer-events:none; transition: .18s ease;
+  .tinder-deck .card.is-top{
+  opacity:1;
+  filter:none;                 /* ensure crisp display */
+  pointer-events:auto;
+  z-index:3;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+  .tinder-deck .card.is-next{
+    opacity:1; z-index:2; transform: translateX(-50%) translateY(12px) scale(.992);
+    pointer-events:none; box-shadow:0 14px 32px rgba(0,0,0,.14);
   }
-  .action:hover::after, .action:focus-visible::after{ opacity:1; transform: translateX(-50%) translateY(0); }
-  
-  /* Swipe animation */
-  @keyframes swipe3D{
-    0%   { transform: translateX(0) translateZ(40px) rotateY(-14deg) scale(1); opacity:1; }
-    40%  { transform: translateX(60px) translateZ(80px) rotateY(-10deg) scale(1.05); opacity:1; }
-    100% { transform: translateX(-520px) translateZ(-40px) rotateY(-26deg) scale(.96); opacity:0; }
+  .tinder-deck .card:not(.is-top):not(.is-next){ opacity:0; z-index:1; }
+  .tinder-deck .card__actions{ opacity:1; pointer-events:auto; }
+
+  @keyframes tSwipeLeft {
+    0% { transform: translateX(-50%) translateY(0) rotate(0) scale(1); opacity:1; }
+    100%{ transform: translateX(calc(-50% - 740px)) rotate(0) scale(1); opacity:0; }
   }
-  
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce){
-    .card, .card:hover{ transition: none !important; animation: none !important; transform: none !important; }
+  @keyframes tSwipeRight {
+    0% { transform: translateX(-50%) translateY(0) rotate(0) scale(1); opacity:1; }
+    100%{ transform: translateX(calc(-50% + 740px)) rotate(0) scale(1); opacity:0; }
   }
-  
-  /* ---------- Footer ---------- */
-  .site-footer{
-    background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top: 80px;
-    font-family: var(--font);
+  .tinder-deck { --swipe-duration: 1.8s; }
+  .tinder-deck .card.swipe-left  { animation: tSwipeLeft  var(--swipe-duration) cubic-bezier(.22,.61,.36,1) forwards; }
+  .tinder-deck .card.swipe-right { animation: tSwipeRight var(--swipe-duration) cubic-bezier(.22,.61,.36,1) forwards; }
+
+  .tinder-deck .card__actions{ display:flex; gap:var(--action-gap); justify-content:center; margin-top:auto; padding-bottom:22px; }
+  .tinder-deck .action{
+    height:48px; min-width:116px; padding:0 16px; border-radius:999px;
+    background:#fff; border:1.5px solid #e5e7eb; box-shadow:0 2px 6px rgba(0,0,0,.12);
+    font-weight:800; font-size:14px; letter-spacing:.2px; color:#111;
+    cursor:default; transition: transform .15s ease, background .15s ease, border-color .15s ease;
   }
-  .footer__inner{ max-width: 1000px; margin: 0 auto; }
+  .tinder-deck .action.is-pressed{ transform: scale(.96); box-shadow: inset 0 2px 0 rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.06); }
+  .tinder-deck .action--dismiss{ color:#EF4444; border-color:#FECACA; background:#fff; }
+  .tinder-deck .action--apply{   color:#10B981; border-color:#A7F3D0; background:#fff; }
+
+  /* ---------- AI Autofill Demo ---------- */
+  .ai-demo{ --ai-w: 560px; --ai-pad: 16px; max-width: var(--ai-w); margin: 0; }
+  @media (max-width:1024px){ .ai-demo{ margin: 0; width:min(100%,var(--ai-w)); } }
+  .ai-demo__window{ border-radius:16px; background:#fff; box-shadow:0 18px 40px rgba(0,0,0,.12); border:1px solid #e5e7eb; overflow:hidden; font-family:var(--font); }
+  .ai-demo__chrome{
+    display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px;
+    padding:8px 10px; background:linear-gradient(180deg,#f8fafc 0%, #eef2f7 100%); border-bottom:1px solid #e5e7eb;
+  }
+  .ai-demo__dots span{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; background:#ff5f56; }
+  .ai-demo__dots span:nth-child(2){ background:#ffbd2e; } .ai-demo__dots span:nth-child(3){ background:#27c93f; }
+  .ai-demo__title{ font-weight:700; color:#111; font-size:14px; }
+  .ai-demo__progress{ display:flex; align-items:center; gap:8px; }
+  .ai-demo__bar{ --pct:0%; width:96px; height:6px; border-radius:999px; background:#e5e7eb; position:relative; overflow:hidden; }
+  .ai-demo__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,#10B981,#3B82F6); transition: width .25s ease; }
+  .ai-demo__pct{ font-size:11px; color:#374151; min-width:32px; text-align:right; }
+  .ai-form{ padding:14px var(--ai-pad) 18px; display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:14px 16px; align-items:start; }
+  .ai-field{ position:relative; display:grid; grid-template-columns:1fr 28px; grid-template-rows:auto auto; align-items:center; gap:6px 8px; margin:0; }
+  .ai-field label{ grid-column:1 / -1; grid-row:1; font-size:12px; color:#6b7280; font-weight:600; letter-spacing:.2px; }
+  .ai-field input, .ai-field textarea{ grid-column:1; grid-row:2; width:100%; padding:12px 12px; font-size:14px; line-height:1.35; border-radius:12px; border:1px solid #e5e7eb; background:#fff; color:#111; outline:none; transition: border-color .2s, box-shadow .2s, background .2s; }
+  .ai-field--textarea textarea{ min-height:140px; line-height:1.5; padding:16px 16px 20px 14px; resize:vertical; }
+
+/* Make the short cover note field span full width */
+.ai-field--textarea {
+  grid-column: 1 / -1; /* span across both columns */
+}
+
+
+  .ai-field.is-active input, .ai-field.is-active textarea{ border-color: rgba(59,130,246,.6); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+  .ai-field.is-done input, .ai-field.is-done textarea{ border-color: rgba(16,185,129,.6); box-shadow: 0 0 0 3px rgba(16,185,129,.12); background:#f7fffb; }
+  .ai-field__check{ grid-column:2; grid-row:2; position:static; width:22px; height:22px; border-radius:50%; background:#10B981; color:#fff; display:grid; place-items:center; font-size:14px; transform:scale(.6); opacity:0; transition:.18s; }
+  .ai-field.is-done .ai-field__check{ transform:scale(1); opacity:1; }
+  .ai-consent, .ai-actions, .ai-status{ grid-column:1 / -1; }
+  .ai-consent{ display:flex; gap:10px; align-items:flex-start; margin:6px 0 10px; font-size:13px; color:#374151; }
+  .ai-consent input{ width:18px; height:18px; margin-top:2px; }
+  .ai-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .ai-actions .btn{ height:48px; font-size:16px; }
+  .ai-actions .ai-submit[disabled]{ opacity:.6; cursor:not-allowed; }
+  .ai-status{ margin-top:12px; font-size:13px; color:#6b7280; }
+
+  .ai-file{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ai-file__btn{ height:36px; padding:0 14px; border-radius:10px; background:#fff; border:1.5px solid #e5e7eb; color:#111; font-weight:700; font-size:13px; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:.15s; }
+  .ai-file__btn.is-pressed{ transform:scale(.97); background:#ECFDF5; border-color:#A7F3D0; color:#059669; box-shadow: inset 0 2px 0 rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.06); }
+  .ai-file__name{ flex:1; text-align:right; font-size:13px; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ai-upload{ --up:0%; height:6px; border-radius:999px; background:#eef2f7; overflow:hidden; margin-top:8px; opacity:0; transition:opacity .2s; }
+  .ai-upload.is-visible{ opacity:1; }
+  .ai-upload__bar{ width:var(--up); height:100%; background:linear-gradient(90deg,#10B981,#3B82F6); transition:width .08s linear; }
+
+  .ai-demo__window{ transition: opacity .35s ease, transform .35s ease; }
+  .ai-demo__window.is-fading{ opacity:0; transform: translateY(8px) scale(.98); }
+  .ai-demo[hidden]{ display:none !important; }
+
+  .ai-success{ position:absolute; inset:0; display:grid; place-items:center; background: rgba(255,255,255,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); opacity:0; visibility:hidden; pointer-events:none; transition: opacity .25s, visibility .25s; border-radius:16px; }
+  .ai-success.is-visible{ opacity:1; visibility:visible; pointer-events:auto; }
+  .ai-success__card{ background:#fff; border-radius:16px; padding:24px 28px; width:min(92%,380px); text-align:center; border:1px solid #e5e7eb; box-shadow:0 12px 30px rgba(0,0,0,.14); }
+  .ai-success__card h4{ margin:12px 0 6px; font-weight:800; }
+  .ai-success__card p{ margin:0 0 14px; color:#6b7280; }
+  .ai-success__icon svg{ width:56px; height:56px; }
+  .ai-success__icon .ring{ stroke:#A7F3D0; stroke-width:5; fill:none; opacity:.9; }
+  .ai-success__icon .mark{ stroke:#10B981; stroke-width:5; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:60; stroke-dashoffset:60; animation: aiCheck .6s ease forwards .15s; }
+  @keyframes aiCheck{ to{ stroke-dashoffset:0; } }
+  .ai-demo__window.is-success{ border-color: rgba(16,185,129,.6); box-shadow: 0 0 0 3px rgba(16,185,129,.18), 0 18px 40px rgba(0,0,0,.12); }
+  .ai-form.is-success input, .ai-form.is-success textarea{ border-color: rgba(16,185,129,.7); background:#F0FDF4; }
+  .ai-form.is-success .ai-actions .ai-submit{ background:#10B981; }
+
+  /* ---------- Responsive tweaks ---------- */
+  @media (max-width: 1279px){ .hero{ column-gap: clamp(56px, 6vw, 80px); } .card__logo{ max-width:200px; } }
+  @media (max-width: 1024px){
+    .hero{ grid-template-columns: 1fr; row-gap:24px; padding:32px 28px 0; }
+    .demo-stage{ margin: 0 auto; }
+  }
+  @media (max-width: 640px){
+    :root{ --card-w: 332px; --card-h: 520px; }
+    .hero__ctas{ flex-direction: column; gap:16px; }
+  }
+
+  @media (max-width: 600px){
+    .header,.header .container{ height:50px !important; padding:0 10px !important; margin-bottom:0 !important; }
+    .header + .hero{ margin-top:0 !important; }
+    :root{ --gutter-x:14px; }
+    .hero{ grid-template-columns:1fr; padding:64px var(--gutter-x) 120px !important; row-gap:16px; min-height:auto; flex:1 0 auto; }
+    .hero__copy{ max-width:34rem; margin-top:20px; }
+    .hero__title{ font-size: clamp(40px, 10vw, 54px) !important; line-height:1.1; letter-spacing:-0.6px; margin:0; }
+    .hero__subhead{ margin-top:14px; font-size:20px !important; line-height:1.5; color:#4f5b6a; max-width:34ch; }
+    .hero__ctas{ margin-top:28px; gap:12px; flex-direction:column; }
+    .btn{ height:48px; font-size:17px; padding:0 16px; border-radius:12px; }
+    .btn--ghost{ background:#f3f4f6; border:1px solid #e5e7eb; }
+  }
+  @media (max-width: 380px){
+    .hero__title{ font-size: clamp(36px, 4.4vw, 56px); line-height:1.1; letter-spacing:-0.4px; font-weight:800; margin:0; color:#111; }
+    .hero__subhead{ font-size:15px; }
+    .card__logo{ max-width:150px; }
+  }
+  @media (max-width: 600px){
+    .hero__title{ color:#000 !important; }
+    .hero__title .accent{ background-color:#FF2F5A; -webkit-background-clip:text; background-clip:text; color:transparent; }
+  }
+
+  html[lang="da"] .hero__title{ font-size: clamp(40px, 5vw, 64px); line-height:1.1; max-width:700px; }
+  html[lang="da"] .hero__subhead{ font-size:18px; max-width:600px; }
+  .hero__title br{ display:block; content:""; margin-bottom: .2em; }
+
+  /* Footer */
+  .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
+  .footer__inner{ max-width:1000px; margin:0 auto; }
   .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
   .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
   .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
-  .footer__links{ margin-bottom: 28px; }
+  .footer__links{ margin-bottom:28px; }
   .footer__legal{ font-size:14px; color:#777; }
-  
-  /* ---------- Responsive ---------- */
-  @media (max-width: 1279px){
-    :root{ --stack-gap: 140px; }
-    .hero{ column-gap: clamp(56px, 6vw, 80px); }
-    .card__logo{ max-width: 200px; }
-  }
-  @media (max-width: 1024px){
-    .hero{
-      grid-template-columns: 1fr;
-      row-gap: 24px;
-      padding: 32px 28px 0;
-    }
-    .deck{ margin: 0 auto; }
-  }
-  @media (max-width: 640px){
-    :root{ --card-w: 332px; --card-h: 520px; --stack-gap: 120px; }
-    .hero__ctas{ flex-direction: column; gap: 16px; }
-  }
-  
-  @media (max-width: 600px){
-  
-  /* Trim header so the hero sits higher */
-  .header,
-  .header .container{
-    height: 50px !important;               
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-    margin-bottom: 0 !important;
-  }
-  .header + .hero{ margin-top: 0 !important; }
-  
-  /* Narrow page gutters */
-  :root{ --gutter-x: 14px; }
-  
-  /* Compact hero */
-  .hero{
-    grid-template-columns: 1fr;
-    padding: 64px var(--gutter-x) 80px !important; /* added 80px bottom padding */
-    row-gap: 16px; 
-    min-height: auto;
-    flex: 1 0 auto;
-    padding-bottom: 120px !important; /* was 80px → adds more gap before footer */
-
-  } 
-
-  .hero__copy{ max-width: 34rem;
-    margin-top: 20px; /* adds spacing between title, subhead, and CTAs */
-  }
-  
-  /* Title */
-  .hero__title{
-    font-size: clamp(40px, 10vw, 54px) !important; /* slightly smaller but still bold */
-    line-height: 1.1;
-    letter-spacing: -0.6px;
-    margin: 0;
-  }
-
-  
 
 
+/* ---------- Overlay instructional text ---------- */
+.demo-overlay {
+  position: absolute;
+  top: -48px; /* move label above the card container */
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  z-index: 20; /* above cards but outside the animation area */
+  pointer-events: none;
+  font-family: var(--font);
+  text-align: center;
+}
 
-  .hero__title .accent{
-    background-color: #FF2F5A;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    position: relative;
-  }
-  .hero__title .accent::after{
-    content: none;
-
-  }
-  
-  /* Subhead */
-  .hero__subhead {
-    margin-top: 14px;
-    font-size: 20px !important;   /* bigger than 18px */
-    line-height: 1.5;  /* slightly more breathing room */
-    color: #4f5b6a;
-    max-width: 34ch;   /* a bit wider so the bigger text doesn’t wrap too quickly */
-  }
-  
-  /* CTAs — give more spacing from subhead */
-  .hero__ctas{
-    margin-top: 28px;   /* increased spacing */
-    gap: 12px;          /* more balanced button gap */
-    flex-direction: column;
-  }
-  .btn{
-    height: 48px;
-    font-size: 17px;
-    padding: 0 16px;
-    border-radius: 12px;
-  }
-  .btn--primary{ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-  .btn--ghost{
-    background:#f3f4f6;
-    border: 1px solid #e5e7eb;
-  }
-  
-  /* Hide deck */
-  .deck { display: none !important; }
-  
-  /* Footer stick */
-  html, body { height: 100%; }
-  body{
-    min-height: 100svh;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-  }
-  .site-footer{
-    margin-top: auto !important;
-    padding: 32px 14px;      /* was 22px → more breathing room inside */
-  }
-  }
-  
-  /* Ultra small phones ≤380px */
-  @media (max-width: 380px) {
-    .hero__title {
-      font-size: clamp(36px, 4.4vw, 56px); /* smaller and more balanced */
-      line-height: 1.1;
-      letter-spacing: -0.4px;
-      font-weight: 800;
-      margin: 0;
-      color: #111;
-    }
-    .hero__subhead { font-size: 15px; }
-    .card__logo { max-width: 150px; }
-    .action { width: 40px; height: 40px; }
-    .action svg { width: 18px; height: 18px; }
-  }
-
-  @media (max-width: 600px) {
-  .hero__title {
-    color: #000000 !important; /* non-span text white on mobile */
-  }
-
-  .hero__title .accent {
-    background-color: #FF2F5A;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent; /* keeps “Dream Career” pink */
-  }
+.demo-overlay__text {
+  display: inline-block;
+  background: linear-gradient(90deg, #FF2F5A 0%, #FF5400 100%);
+  color: #fff;
+  padding: 10px 26px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(255, 47, 90, 0.3),
+              0 2px 6px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 
-
-html[lang="da"] .hero__title {
-  font-size: clamp(40px, 5vw, 64px);
-  line-height: 1.1;
-  max-width: 700px;
+.demo-overlay__text.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
-html[lang="da"] .hero__subhead {
-  font-size: 18px;
-  max-width: 600px;
-}
-
-.hero__title br {
-  display: block;
+.demo-overlay__text::after {
   content: "";
-  margin-bottom: 0.2em;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+  mix-blend-mode: overlay;
+  animation: shimmer 2.6s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
 
 
-  </style>
-  
-
+</style>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const deck  = document.querySelector(".deck");
-  if (!deck) return;
-
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const getGap = () => parseFloat(getComputedStyle(deck).getPropertyValue('--gap')) || 140;
-
-  // Match CSS transforms for each index
-  const transformFor = (i, gap) => {
-    if (i === 0) return `translateX(0px) translateZ(40px) rotateY(-14deg)`;
-    if (i === 1) return `translateX(${gap}px) translateZ(10px) rotateY(-20deg)`;
-    return `translateX(${i * gap}px) translateZ(-20px) rotateY(-24deg)`; // i >= 2
-  };
-
-  const reorder = () => {
-    const cards = deck.querySelectorAll(".card");
-    const gap   = getGap();
-    cards.forEach((card, i) => {
-      card.style.zIndex = cards.length - i;         // 1 = back, higher = front
-      card.style.transition = "transform .3s ease-out";
-      card.style.transform  = transformFor(i, gap);
-      setTimeout(() => {
-        card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
-      }, 300);
-    });
-  };
-
-  // Autoplay loop with FADE-IN reinsert (every 2s)
-  let isAnimating = false;
-  const delayBetweenSwipes = 2000;
-
-  const swipeNext = () => {
-    if (prefersReduced || isAnimating) return;
-    const first = deck.querySelector(".card");
-    if (!first) return;
-
-    isAnimating = true;
-
-    // Make absolutely sure the swiping card sits on top of the stack while animating
-    first.style.zIndex = 999;
-
-    // Trigger the swipe animation
-    first.classList.add("swiping");
-
-    first.addEventListener("animationend", () => {
-      // Ensure it's invisible before DOM move to avoid any flash on top
-      first.style.opacity = "0";
-
-      // Move swiped card to end of DOM
-      deck.appendChild(first);
-      first.classList.remove("swiping");
-
-      const cards = deck.querySelectorAll(".card");
-      const gap   = getGap();
-      const lastIndex = cards.length - 1;
-
-      // Place appended card at the BACK immediately, invisible
-      first.style.transition = "none";
-      first.style.zIndex = cards.length - lastIndex;   // lowest z-index (back)
-      first.style.transform = transformFor(lastIndex, gap);
-
-      // Update other cards positions/z-indices smoothly
-      cards.forEach((card, i) => {
-        if (card === first) return;
-        card.style.zIndex = cards.length - i;
-        card.style.transition = "transform .3s ease-out";
-        card.style.transform = transformFor(i, gap);
+  /* =========================
+     A) AI Form controller (AIDemo)
+  ========================= */
+  (() => {
+    const onReady = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    onReady(() => {
+      const root = document.querySelector('.ai-demo');
+      if (!root) return;
+  
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      const fields = {
+        name:      document.getElementById('ai-name'),
+        email:     document.getElementById('ai-email'),
+        portfolio: document.getElementById('ai-portfolio'),
+        resume:    document.getElementById('ai-resume'),
+        cover:     document.getElementById('ai-cover'),
+        consent:   document.getElementById('ai-consent'),
+      };
+  
+      const resumeBtn  = root.querySelector('.ai-file__btn');
+      const winEl      = root.querySelector('.ai-demo__window');
+      const formEl     = root.querySelector('.ai-form');
+  
+      const progressBar = root.querySelector('.ai-demo__bar');
+      const progressPct = root.querySelector('.ai-demo__pct');
+      const statusText  = root.querySelector('#ai-status');
+  
+      // success overlay
+      const ensureSuccessUI = () => {
+        let overlay = winEl.querySelector('.ai-success');
+        if (!overlay) {
+          winEl.insertAdjacentHTML('beforeend', `
+            <div class="ai-success" hidden>
+              <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="Application sent">
+                <div class="ai-success__icon" aria-hidden="true">
+                  <svg viewBox="0 0 52 52">
+                    <circle class="ring" cx="26" cy="26" r="24"></circle>
+                    <path class="mark" d="M16 27l7 7 13-13"></path>
+                  </svg>
+                </div>
+                <h4>Application sent!</h4>
+                <p>Your application was sent successfully.</p>
+                <button type="button" class="btn btn--primary ai-success__ok">Nice!</button>
+              </div>
+            </div>
+          `);
+          overlay = winEl.querySelector('.ai-success');
+        }
+        return { overlay, ok: overlay.querySelector('.ai-success__ok') };
+      };
+      const success = ensureSuccessUI();
+  
+      const setProgress = (v) => {
+        const pct = Math.min(100, Math.max(0, Math.round(v)));
+        progressBar.style.setProperty('--pct', pct + '%');
+        progressPct.textContent = pct + '%';
+      };
+  
+      const typeInto = (el, text, speed = 22, onTick) => new Promise((resolve) => {
+        if (prefersReduced) { el.value = text; onTick?.(text.length); resolve(); return; }
+        let i = 0; el.value = '';
+        const tick = () => {
+          if (i > text.length) return resolve();
+          el.value = text.slice(0, i);
+          onTick?.(1);
+          i++;
+          setTimeout(tick, speed + Math.random() * 18);
+        };
+        tick();
       });
-
-      // Fade the appended card in, already at the back
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          first.style.transition = "opacity .35s ease";
-          first.style.opacity = "1";
-
-          // Restore defaults and continue loop
-          setTimeout(() => {
-            first.style.transition = "transform .8s ease-in-out, opacity .6s ease";
-            cards.forEach(card => {
-              if (card !== first) card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
-            });
-            isAnimating = false;
-            setTimeout(swipeNext, delayBetweenSwipes);
-          }, 380);
+  
+      const RESUME_WEIGHT = prefersReduced ? 1 : 60;
+      const steps = [
+        { el: fields.name,      text: 'Ava Jensen' },
+        { el: fields.email,     text: 'ava.jensen@uni.dk' },
+        { el: fields.portfolio, text: 'https://ava.work' },
+        { el: fields.resume,    upload: true, focusEl: resumeBtn },
+        { el: fields.cover,     text:
+          "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
+        },
+        { el: fields.consent,   check: true }
+      ];
+  
+      const showSuccess = () => {
+        winEl.classList.add('is-success');
+        formEl.classList.add('is-success');
+        success.overlay.removeAttribute('hidden');
+        success.overlay.classList.add('is-visible');
+        success.ok?.focus();
+      };
+      const hideSuccess = () => {
+        success.overlay.classList.remove('is-visible');
+        success.overlay.setAttribute('hidden','');
+        winEl.classList.remove('is-success');
+        formEl.classList.remove('is-success');
+      };
+      const fadeOutAndHide = async (delay = 1100) => {
+        if (prefersReduced) { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); return; }
+        await pause(delay);
+        winEl.classList.add('is-fading');
+        await new Promise(res => winEl.addEventListener('transitionend', res, { once: true }));
+        root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true');
+        winEl.classList.remove('is-fading');
+      };
+      const autoPressAndCelebrate = async () => {
+        statusText.textContent = "Submitting…";
+        await pause(prefersReduced ? 120 : 600);
+        showSuccess();
+        await fadeOutAndHide(prefersReduced ? 0 : 1100);
+      };
+  
+      let isRunning = false;
+      const run = async () => {
+        if (isRunning) return;
+        isRunning = true;
+  
+        hideSuccess();
+        root.removeAttribute('hidden'); root.removeAttribute('aria-hidden');
+  
+        // reset
+        Object.values(fields).forEach((el) => {
+          if (!el) return;
+          if (el.type === 'checkbox') el.checked = false;
+          else el.value = '';
+          el.closest('.ai-field')?.classList.remove('is-active','is-done');
         });
-      });
-    }, { once: true });
-  };
+        const resumeName = root.querySelector('.ai-file__name');
+        const uploadWrap = root.querySelector('.ai-upload');
+        const uploadBar  = root.querySelector('.ai-upload__bar');
+        resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
+        uploadWrap?.classList.remove('is-visible'); uploadBar?.style.setProperty('--up','0%');
+  
+        const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
+        let typed = 0; setProgress(0);
+  
+        const focusField = (el) => {
+          const wrap = el.closest('.ai-field');
+          root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
+          wrap?.classList.add('is-active');
+          wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+        };
+        const checkField = (el) => el.closest('.ai-field')?.classList.add('is-done');
+  
+        const attachResume = async () => {
+          const D = prefersReduced ? 40 : 1200; let used = 0;
+          const btn = root.querySelector('.ai-file__btn');
+          const upW = root.querySelector('.ai-upload');
+          const upB = root.querySelector('.ai-upload__bar');
+          btn?.classList.add('is-pressed'); await new Promise(r=>setTimeout(r,200)); btn?.classList.remove('is-pressed');
+          upW?.classList.add('is-visible'); upB?.style.setProperty('--up','0%');
+          await new Promise((resolve) => {
+            const start = performance.now();
+            const step = (now) => {
+              const t = Math.min(1,(now-start)/D);
+              upB?.style.setProperty('--up', Math.round(t*100)+'%');
+              const add = Math.round(RESUME_WEIGHT * t) - used;
+              if (add > 0){ used += add; typed += add; setProgress(typed/totalChars*100); }
+              if (t<1) requestAnimationFrame(step); else resolve();
+            }; requestAnimationFrame(step);
+          });
+          const nameEl = root.querySelector('.ai-file__name');
+          if (nameEl) nameEl.textContent = 'Ava_Jensen_Resume.pdf';
+          upW?.classList.remove('is-visible');
+        };
+  
+        const pauseStep = prefersReduced ? 40 : 180;
+  
+        for (const s of steps) {
+          if (!s.el) continue;
+          focusField(s.focusEl || s.el);
+  
+          if (s.upload){ await attachResume(); checkField(s.el); await new Promise(r=>setTimeout(r,pauseStep)); continue; }
+          if (s.check){ if (!prefersReduced) await new Promise(r=>setTimeout(r,300)); s.el.checked = true; if (!prefersReduced) await new Promise(r=>setTimeout(r,200)); checkField(s.el); continue; }
+  
+          statusText.textContent = "Filling " + (s.el.labels?.[0]?.innerText || '') + "…";
+          await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
+          checkField(s.el);
+          await new Promise(r=>setTimeout(r,pauseStep));
+        }
+  
+        setProgress(100);
+        root.querySelector('#ai-status').textContent = "Ready to submit — optimized by AI.";
+        await autoPressAndCelebrate();
+        isRunning = false;
+        return true;
+      };
+  
+      root.querySelector('.ai-replay')?.addEventListener('click', run);
+  
+      window.AIDemo = {
+        runOnce: run,
+        hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
+        show: () => { root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); }
+      };
+    });
+  })();
+  </script>
+  
+  <script>
+  /* =========================
+   B) Tinder controller (TinderDemo) + correct per-swipe overlay timing
+========================= */
+(() => {
+  const ready = (fn) =>
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+      : fn();
 
-  // Kick things off
-  reorder();
-  if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
+  ready(() => {
+    const section = document.querySelector('.tinder-section');
+    const deck    = document.querySelector('.tinder-deck');
+    const stage   = document.querySelector('.demo-stage');
+    if (!deck || !section || !stage) return;
 
-  // Keep layout correct on resize
-  window.addEventListener('resize', reorder);
+    // Overlay label
+    const overlayTextEl = document.querySelector('.demo-overlay__text');
+    const showOverlayText = (text) => {
+      if (!overlayTextEl) return;
+      overlayTextEl.textContent = text;
+      overlayTextEl.classList.remove('is-visible');
+      void overlayTextEl.offsetWidth; // reflow to restart transition
+      overlayTextEl.classList.add('is-visible');
+    };
 
-  // Pause/resume when tab visibility changes
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      isAnimating = true;
-    } else {
-      isAnimating = false;
-      reorder();
-      if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
-    }
+    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const PAUSE = 1600, PRESS = 220;
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+    const setStack = () => {
+      const cards = [...deck.querySelectorAll('.card')];
+      cards.forEach(c => c.classList.remove('is-top','is-next'));
+      cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
+      if (cards[0]) cards[0].classList.add('is-top');
+      if (cards[1]) cards[1].classList.add('is-next');
+    };
+
+    let swipeIndex = 0; // track how many swipes have occurred
+
+    const swipeOnce = async (stepIndex, totalSteps) => {
+      const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+      if (!top) return;
+
+      const btnDismiss = top.querySelector('.action--dismiss');
+      const btnApply   = top.querySelector('.action--apply');
+
+      // 1️⃣ determine direction based on index
+      const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
+      const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
+
+      // 2️⃣ simulate button press
+      if (pressBtn){
+        pressBtn.classList.add('is-pressed');
+        pressBtn.setAttribute('aria-pressed','true');
+        await pause(PRESS);
+        pressBtn.classList.remove('is-pressed');
+        pressBtn.removeAttribute('aria-pressed');
+      }
+
+      // 3️⃣ swipe animation
+      top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
+      await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+
+      // 4️⃣ move card to back, rebuild stack
+      top.classList.remove('swipe-left','swipe-right','is-top');
+      top.style.opacity = '0';
+      deck.appendChild(top);
+      setStack();
+
+      // 5️⃣ update overlay text AFTER swipe finishes
+      if (stepIndex === 0) {
+        showOverlayText('Swipe left to dismiss');
+      } else if (stepIndex === 1) {
+        // after second card swiped, before yellow card appears
+        showOverlayText('Swipe right to apply');
+      }
+
+      swipeIndex++;
+    };
+
+    setStack();
+
+    window.TinderDemo = {
+      count: () => deck.querySelectorAll('.card').length,
+      setVisible: (show) => {
+        if (show) {
+          section.removeAttribute('hidden');
+          section.removeAttribute('aria-hidden');
+        } else {
+          section.setAttribute('hidden','');
+          section.setAttribute('aria-hidden','true');
+        }
+      },
+      play: async (swipes = 3) => {
+        if (prefersReduced) return true;
+        window.TinderDemo.setVisible(true);
+        setStack();
+
+        // initial label for first card
+        showOverlayText('Swipe left to dismiss');
+        await pause(800);
+
+        for (let i = 0; i < swipes; i++) {
+          await swipeOnce(i, swipes);
+          if (i < swipes - 1) await pause(PAUSE);
+        }
+        return true;
+      }
+    };
   });
-});
-</script>
+})();
 
+  </script>
+  
+  <script>
+  /* =========================
+     C) ORCHESTRATOR — plays Tinder → Form in the same spot, loops
+  ========================= */
+/* =========================
+   C) ORCHESTRATOR — plays Tinder → Form in the same spot, then fully resets
+========================= */
+(() => {
+  const ready = (fn) =>
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+      : fn();
+
+  ready(() => {
+    const stage  = document.querySelector('.demo-stage');
+    const tinder = document.querySelector('.tinder-section');
+    const deck   = document.querySelector('.tinder-deck');
+    const form   = document.querySelector('.ai-demo');
+    const overlayText = document.querySelector('.demo-overlay__text');
+    if (!stage || !tinder || !form || !deck) return;
+
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+    // keep wrapper height stable
+    const measure = () => {
+      const tHidden = tinder.hasAttribute('hidden');
+      const fHidden = form.hasAttribute('hidden');
+      if (tHidden) tinder.removeAttribute('hidden');
+      if (fHidden) form.removeAttribute('hidden');
+      const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
+      stage.style.minHeight = h + 'px';
+      if (tHidden) tinder.setAttribute('hidden','');
+      if (fHidden) form.setAttribute('hidden','');
+    };
+    measure();
+    addEventListener('resize', measure);
+
+    // 🔄 reset deck to initial card order/state
+    const resetDeck = () => {
+      const cards = [...deck.querySelectorAll('.card')];
+      // restore original HTML order (pink, blue, yellow)
+      cards.sort((a, b) => {
+        const order = ['card--pink', 'card--blue', 'card--yellow'];
+        return order.indexOf([...a.classList].find(c => order.includes(c))) -
+               order.indexOf([...b.classList].find(c => order.includes(c)));
+      });
+      // clear inline styles/classes
+      deck.innerHTML = '';
+      cards.forEach(c => {
+        c.style.opacity = '';
+        c.classList.remove('swipe-left','swipe-right','is-top','is-next');
+        deck.appendChild(c);
+      });
+      // rebuild stack
+      if (cards[0]) cards[0].classList.add('is-top');
+      if (cards[1]) cards[1].classList.add('is-next');
+    };
+
+    (async function loop(){
+      // wait until stage is visible
+      await new Promise(res => {
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+        }, { threshold: 0.3 });
+        io.observe(stage);
+      });
+
+      while (true) {
+        /* 1️⃣ Reset everything like a fresh page */
+        resetDeck();
+        overlayText.textContent = 'Swipe left to dismiss';
+        overlayText.classList.remove('is-visible');
+        void overlayText.offsetWidth;
+        overlayText.classList.add('is-visible');
+
+        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
+        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
+        measure();
+
+        /* 2️⃣ Play Tinder demo */
+        const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
+        await window.TinderDemo?.play?.(swipes);
+
+        /* 3️⃣ Show form phase */
+        tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
+        form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
+        measure();
+
+        overlayText.textContent = 'AI automatically applies for you on the company’s website';
+        overlayText.classList.add('is-visible');
+
+        await window.AIDemo?.runOnce?.();   // form animates and hides itself
+        await pause(800);
+
+        /* 4️⃣ Loop cleanly back to start */
+        resetDeck(); // restore original card order and visibility
+        await pause(800);
+      }
+    })();
+  });
+})();
+
+  </script>
+  
+  
 {% endblock content %}
