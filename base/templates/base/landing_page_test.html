@@ -1273,17 +1273,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const ready = (fn) => (document.readyState === 'loading')
           ? document.addEventListener('DOMContentLoaded', fn, { once: true })
           : fn();
-      
+    
         ready(() => {
           const deck = document.querySelector('.tinder-deck');
           if (!deck) return;
-      
+    
           const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           const PAUSE_BETWEEN_SWIPES = 1600;   // keep your slower beat
-          const PRESS_DURATION = 220;          // button press cue (ms)
+          const PRESS_DURATION       = 220;    // button press cue (ms)
+          const DELAY_BEFORE_SWIPE   = 200;    // extra gap after the press (NEW)
           let swipeRightNext = false;          // left first, then right, alternate
           let running = false;
-      
+    
           const setStack = () => {
             const cards = Array.from(deck.querySelectorAll('.card'));
             cards.forEach(c => c.classList.remove('is-top','is-next'));
@@ -1291,13 +1292,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (cards[0]) cards[0].classList.add('is-top');
             if (cards[1]) cards[1].classList.add('is-next');
           };
-      
+    
           const pause = (ms) => new Promise(r => setTimeout(r, ms));
-      
+    
           const cycleOnce = async () => {
             const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
             if (!top) return;
-      
+    
             // 1) simulate button press on the top card
             const btnDismiss = top.querySelector('.action--dismiss');
             const btnApply   = top.querySelector('.action--apply');
@@ -1308,37 +1309,40 @@ document.addEventListener("DOMContentLoaded", () => {
               await pause(PRESS_DURATION);
               pressBtn.classList.remove('is-pressed');
               pressBtn.removeAttribute('aria-pressed');
+    
+              // extra beat before the card starts moving (NEW)
+              await pause(DELAY_BEFORE_SWIPE);
             }
-      
-            // 2) trigger the swipe with NO tilt (keyframes above are pure translateX)
+    
+            // 2) trigger the swipe with NO tilt (keyframes are pure translateX)
             top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
-      
+    
             // 3) wait for swipe to finish
             await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-      
+    
             // 4) send swiped card to back and rebuild the stack
             top.classList.remove('swipe-left','swipe-right','is-top');
             top.style.opacity = '0';
             deck.appendChild(top);
             setStack();
-      
+    
             // 5) alternate direction and pause between cycles
             swipeRightNext = !swipeRightNext;
             await pause(PAUSE_BETWEEN_SWIPES);
           };
-      
+    
           const run = async () => {
             if (running || prefersReduced) return;
             running = true;
             setStack();
-      
+    
             const start = () => {
               (async () => {
                 while (!prefersReduced) { await cycleOnce(); }
                 running = false;
               })();
             };
-      
+    
             const io = new IntersectionObserver((entries) => {
               if (entries.some(e => e.isIntersecting)) {
                 start();
@@ -1346,16 +1350,16 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             }, { threshold: 0.3 });
             io.observe(deck);
-      
+    
             window.addEventListener('resize', setStack);
             document.addEventListener('visibilitychange', () => { if (!document.hidden) setStack(); });
           };
-      
+    
           run();
         });
       })();
-      </script>
-      
+    </script>
+    
 
 
 {% endblock content %}
