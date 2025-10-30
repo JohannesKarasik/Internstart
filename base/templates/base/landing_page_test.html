@@ -823,8 +823,8 @@ html[lang="da"] .hero__subhead {
 }
 
 /* Helpers to trigger those keyframes */
-.tinder-deck .card.swipe-left  { animation: tSwipeLeft  .9s ease forwards; }
-.tinder-deck .card.swipe-right { animation: tSwipeRight .9s ease forwards; }
+.tinder-deck .card.swipe-left  { animation: tSwipeLeft  1.8s ease forwards; }  /* was .9s */
+.tinder-deck .card.swipe-right { animation: tSwipeRight 1.8s ease forwards; }
 
 /* Reduced motion: keep static, no autoplay */
 @media (prefers-reduced-motion: reduce){
@@ -1163,7 +1163,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!deck) return;
     
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const PAUSE_BETWEEN_SWIPES = 1100; // ms
+        const PAUSE_BETWEEN_SWIPES = 2000; // ms
         let swipeRightNext = false; // left first, then right, alternate
         let running = false;
     
