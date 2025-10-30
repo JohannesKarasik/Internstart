@@ -17,8 +17,8 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      {% blocktrans trimmed %}Apply to <span class="accent">200+ jobs</span><br>
-      in minutes<br>powered by <span class="accent">AI{% endblocktrans %}
+      Apply to <span class="accent">200+ jobs</span> in<br>
+      minutes powered by <span class="accent">AI</span>
     </h1>
 
     <p class="hero__subhead">
@@ -316,10 +316,12 @@
 .hero__title {
   width: 100% !important; 
   font-size: clamp(48px, 5.6vw, 78px) !important; /* refined and balanced */
-  line-height: 1.05;
   letter-spacing: -0.3px;
   font-weight: 800;
   margin: 0 0 24px 0;
+  line-height: 1.05;
+  letter-spacing: -0.3px;
+  max-width: 16ch; /* forces lines to break evenly */
 }
 
 .hero__subhead {
