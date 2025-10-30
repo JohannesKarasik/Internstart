@@ -1114,586 +1114,477 @@ html[lang="da"] .hero__subhead {
   
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const deck  = document.querySelector(".deck");
-  if (!deck) return;
-
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const getGap = () => parseFloat(getComputedStyle(deck).getPropertyValue('--gap')) || 140;
-
-  // Match CSS transforms for each index
-  const transformFor = (i, gap) => {
-    if (i === 0) return `translateX(0px) translateZ(40px) rotateY(-14deg)`;
-    if (i === 1) return `translateX(${gap}px) translateZ(10px) rotateY(-20deg)`;
-    return `translateX(${i * gap}px) translateZ(-20px) rotateY(-24deg)`; // i >= 2
-  };
-
-  const reorder = () => {
-    const cards = deck.querySelectorAll(".card");
-    const gap   = getGap();
-    cards.forEach((card, i) => {
-      card.style.zIndex = cards.length - i;         // 1 = back, higher = front
-      card.style.transition = "transform .3s ease-out";
-      card.style.transform  = transformFor(i, gap);
-      setTimeout(() => {
-        card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
-      }, 300);
-    });
-  };
-
-  // Autoplay loop with FADE-IN reinsert (every 2s)
-  let isAnimating = false;
-  const delayBetweenSwipes = 2000;
-
-  const swipeNext = () => {
-    if (prefersReduced || isAnimating) return;
-    const first = deck.querySelector(".card");
-    if (!first) return;
-
-    isAnimating = true;
-
-    // Make absolutely sure the swiping card sits on top of the stack while animating
-    first.style.zIndex = 999;
-
-    // Trigger the swipe animation
-    first.classList.add("swiping");
-
-    first.addEventListener("animationend", () => {
-      // Ensure it's invisible before DOM move to avoid any flash on top
-      first.style.opacity = "0";
-
-      // Move swiped card to end of DOM
-      deck.appendChild(first);
-      first.classList.remove("swiping");
-
-      const cards = deck.querySelectorAll(".card");
-      const gap   = getGap();
-      const lastIndex = cards.length - 1;
-
-      // Place appended card at the BACK immediately, invisible
-      first.style.transition = "none";
-      first.style.zIndex = cards.length - lastIndex;   // lowest z-index (back)
-      first.style.transform = transformFor(lastIndex, gap);
-
-      // Update other cards positions/z-indices smoothly
-      cards.forEach((card, i) => {
-        if (card === first) return;
-        card.style.zIndex = cards.length - i;
-        card.style.transition = "transform .3s ease-out";
-        card.style.transform = transformFor(i, gap);
-      });
-
-      // Fade the appended card in, already at the back
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          first.style.transition = "opacity .35s ease";
-          first.style.opacity = "1";
-
-          // Restore defaults and continue loop
-          setTimeout(() => {
-            first.style.transition = "transform .8s ease-in-out, opacity .6s ease";
-            cards.forEach(card => {
-              if (card !== first) card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
-            });
-            isAnimating = false;
-            setTimeout(swipeNext, delayBetweenSwipes);
-          }, 380);
-        });
-      });
-    }, { once: true });
-  };
-
-  // Kick things off
-  reorder();
-  if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
-
-  // Keep layout correct on resize
-  window.addEventListener('resize', reorder);
-
-  // Pause/resume when tab visibility changes
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      isAnimating = true;
-    } else {
-      isAnimating = false;
-      reorder();
-      if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
-    }
-  });
-});
-</script>
-
-
-<!-- REPLACE: your existing AI demo JS block with this -->
-<script>
-  (() => {
-    const onReady = (fn) => {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fn, { once: true });
-      } else { fn(); }
+  /* =========================
+     1) Your original 3D .deck script (unchanged)
+  ========================= */
+  document.addEventListener("DOMContentLoaded", () => {
+    const deck  = document.querySelector(".deck");
+    if (!deck) return;
+  
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const getGap = () => parseFloat(getComputedStyle(deck).getPropertyValue('--gap')) || 140;
+  
+    const transformFor = (i, gap) => {
+      if (i === 0) return `translateX(0px) translateZ(40px) rotateY(-14deg)`;
+      if (i === 1) return `translateX(${gap}px) translateZ(10px) rotateY(-20deg)`;
+      return `translateX(${i * gap}px) translateZ(-20px) rotateY(-24deg)`; // i >= 2
     };
   
-    onReady(() => {
-      const root = document.querySelector('.ai-demo');
-      if (!root) return;
-  
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const pause = (ms) => new Promise(r => setTimeout(r, ms));
-  
-      // ---- fields ----
-      const fields = {
-        name:      document.getElementById('ai-name'),
-        email:     document.getElementById('ai-email'),
-        portfolio: document.getElementById('ai-portfolio'),
-        resume:    document.getElementById('ai-resume'),
-        cover:     document.getElementById('ai-cover'),
-        consent:   document.getElementById('ai-consent'),
-      };
-      const resumeBtn  = root.querySelector('.ai-file__btn');
-      const resumeName = root.querySelector('.ai-file__name');
-      const uploadWrap = root.querySelector('.ai-upload');
-      const uploadBar  = root.querySelector('.ai-upload__bar');
-      const winEl      = root.querySelector('.ai-demo__window');
-      const formEl     = root.querySelector('.ai-form');
-  
-      const fieldWrap = (el) => el?.closest('.ai-field');
-  
-      // ---- UI bits ----
-      const progressBar = root.querySelector('.ai-demo__bar');
-      const progressPct = root.querySelector('.ai-demo__pct');
-      const statusText  = root.querySelector('#ai-status');
-      const btnSubmit   = root.querySelector('.ai-submit');
-      const btnReplay   = root.querySelector('.ai-replay');
-  
-      // ----- Success overlay (scoped INSIDE the form card) -----
-      const ensureSuccessUI = () => {
-        let overlay = winEl.querySelector('.ai-success');
-        if (!overlay) {
-          winEl.insertAdjacentHTML('beforeend', `
-            <div class="ai-success" hidden>
-              <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{% trans 'Application sent' %}">
-                <div class="ai-success__icon" aria-hidden="true">
-                  <svg viewBox="0 0 52 52">
-                    <circle class="ring" cx="26" cy="26" r="24"></circle>
-                    <path class="mark" d="M16 27l7 7 13-13"></path>
-                  </svg>
-                </div>
-                <h4>{% trans "Application sent!" %}</h4>
-                <p>{% trans "Your application was sent successfully." %}</p>
-                <button type="button" class="btn btn--primary ai-success__ok">{% trans "Nice!" %}</button>
-              </div>
-            </div>
-          `);
-          overlay = winEl.querySelector('.ai-success');
-        }
-        return {
-          overlay,
-          ok: overlay.querySelector('.ai-success__ok')
-        };
-      };
-      const success = ensureSuccessUI();
-  
-      const setSuccessVisuals = () => {
-        winEl?.classList.add('is-success');
-        formEl?.classList.add('is-success');
-      };
-      const clearSuccessVisuals = () => {
-        winEl?.classList.remove('is-success');
-        formEl?.classList.remove('is-success');
-      };
-  
-      const showSuccess = () => {
-        if (!success.overlay) return;
-        setSuccessVisuals();
-        success.overlay.removeAttribute('hidden');
-        success.overlay.classList.add('is-visible');
-        success.ok?.focus();
-      };
-  
-      const hideSuccess = () => {
-        if (!success.overlay) return;
-        success.overlay.classList.remove('is-visible');
-        success.overlay.setAttribute('hidden', '');
-        clearSuccessVisuals();
-      };
-  
-      // NEW: fade the form card out, then hide the whole demo
-      let hasFaded = false;
-      const fadeOutAndHide = async (delay = 1100) => {
-        if (hasFaded) return;
-        hasFaded = true;
-  
-        if (prefersReduced) { root.setAttribute('hidden',''); return; }
-  
-        await pause(delay);                // let the checkmark / overlay breathe
-        winEl.classList.add('is-fading');  // triggers CSS transition
-  
-        await new Promise(res => winEl.addEventListener('transitionend', res, { once: true }));
-        root.setAttribute('hidden','');    // fully remove from layout
-      };
-  
-      const autoPressAndCelebrate = async () => {
-        // simulate button press, then show in-card success
-        btnSubmit.classList.add('is-pressed');
-        await pause(200);
-        btnSubmit.classList.remove('is-pressed');
-        statusText.textContent = "{% trans 'Submitting…' %}";
-        await pause(prefersReduced ? 120 : 600);
-        showSuccess();
-  
-        // NEW: after success, fade out & hide
-        await fadeOutAndHide(prefersReduced ? 0 : 1100);
-      };
-  
-      // Allow manual “Apply now” click to show scoped success too
-      btnSubmit.addEventListener('click', () => {
-        if (!btnSubmit.disabled) showSuccess();
+    const reorder = () => {
+      const cards = deck.querySelectorAll(".card");
+      const gap   = getGap();
+      cards.forEach((card, i) => {
+        card.style.zIndex = cards.length - i;
+        card.style.transition = "transform .3s ease-out";
+        card.style.transform  = transformFor(i, gap);
+        setTimeout(() => {
+          card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
+        }, 300);
       });
+    };
   
-      // NEW: if user clicks “Nice!”, fade immediately
-      success.ok?.addEventListener('click', async () => {
-        hideSuccess();
-        await fadeOutAndHide(0);
-      });
+    let isAnimating = false;
+    const delayBetweenSwipes = 2000;
   
-      // ---- Scripted content ----
-      const RESUME_WEIGHT = prefersReduced ? 1 : 60;
+    const swipeNext = () => {
+      if (prefersReduced || isAnimating) return;
+      const first = deck.querySelector(".card");
+      if (!first) return;
   
-      const steps = [
-        { el: fields.name,      text: 'Ava Jensen' },
-        { el: fields.email,     text: 'ava.jensen@uni.dk' },
-        { el: fields.uni,       text: 'Copenhagen Business School (CBS)' },
-        { el: fields.degree,    text: 'BSc International Business, 2026' },
-        { el: fields.portfolio, text: 'https://ava.work' },
-        { el: fields.resume,    upload: true, focusEl: resumeBtn },
-        { el: fields.cover,     text:
-          "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
-        },
-        { el: fields.consent,   check: true }
-      ];
+      isAnimating = true;
+      first.style.zIndex = 999;
+      first.classList.add("swiping");
   
-      const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
-      let typedChars = 0, isRunning = false;
+      first.addEventListener("animationend", () => {
+        first.style.opacity = "0";
+        deck.appendChild(first);
+        first.classList.remove("swiping");
   
-      const setProgress = (val) => {
-        const pct = Math.min(100, Math.max(0, Math.round(val)));
-        progressBar.style.setProperty('--pct', pct + '%');
-        progressPct.textContent = pct + '%';
-      };
+        const cards = deck.querySelectorAll(".card");
+        const gap   = getGap();
+        const lastIndex = cards.length - 1;
   
-      const typeInto = (el, text, speed = 22) => new Promise((resolve) => {
-        if (prefersReduced) { el.value = text; resolve(); return; }
-        let i = 0; el.value = '';
-        const tick = () => {
-          if (i > text.length) return resolve();
-          el.value = text.slice(0, i);
-          if (i > 0) typedChars += 1;
-          setProgress((typedChars / totalChars) * 100);
-          i++; setTimeout(tick, speed + Math.random() * 18);
-        };
-        tick();
-      });
+        first.style.transition = "none";
+        first.style.zIndex = cards.length - lastIndex;
+        first.style.transform = transformFor(lastIndex, gap);
   
-      const checkField = (el) => {
-        const wrap = fieldWrap(el);
-        wrap?.classList.remove('is-active');
-        wrap?.classList.add('is-done');
-      };
-  
-      const focusField = (el) => {
-        const wrap = fieldWrap(el) || el?.closest?.('.ai-field');
-        root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
-        wrap?.classList.add('is-active');
-        (el || wrap)?.focus?.();
-        wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
-      };
-  
-      // ---- Resume attach animation ----
-      const attachResume = async () => {
-        const DURATION = prefersReduced ? 40 : 1200;
-        const FILE_NAME = 'Ava_Jensen_Resume.pdf';
-        let consumed = 0;
-  
-        statusText.textContent = "{% trans 'Attaching resume…' %}";
-        if (resumeBtn) { resumeBtn.classList.add('is-pressed'); await pause(200); resumeBtn.classList.remove('is-pressed'); }
-  
-        uploadWrap?.classList.add('is-visible');
-        uploadBar?.style.setProperty('--up', '0%');
-  
-        await new Promise((resolve) => {
-          const start = performance.now();
-          const tick = (now) => {
-            const t = Math.min(1, (now - start) / DURATION);
-            uploadBar?.style.setProperty('--up', Math.round(t * 100) + '%');
-  
-            const units = Math.round(RESUME_WEIGHT * t);
-            const diff  = units - consumed;
-            if (diff > 0) { typedChars += diff; consumed += diff; setProgress((typedChars / totalChars) * 100); }
-  
-            if (t < 1) requestAnimationFrame(tick); else resolve();
-          };
-          requestAnimationFrame(tick);
+        cards.forEach((card, i) => {
+          if (card === first) return;
+          card.style.zIndex = cards.length - i;
+          card.style.transition = "transform .3s ease-out";
+          card.style.transform = transformFor(i, gap);
         });
   
-        if (resumeName) resumeName.textContent = FILE_NAME;
-        uploadWrap?.classList.remove('is-visible');
-        statusText.textContent = "{% trans 'Resume attached.' %}";
-      };
-  
-      const run = async () => {
-        if (isRunning) return;
-        isRunning = true;
-  
-        // reset visual states
-        hideSuccess();
-        hasFaded = false;
-        winEl.classList.remove('is-fading');
-        root.removeAttribute('hidden');
-  
-        // reset fields
-        Object.values(fields).forEach((el) => {
-          if (!el) return;
-          if (el.type === 'checkbox') el.checked = false;
-          else el.value = '';
-          fieldWrap(el)?.classList.remove('is-active','is-done');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            first.style.transition = "opacity .35s ease";
+            first.style.opacity = "1";
+            setTimeout(() => {
+              first.style.transition = "transform .8s ease-in-out, opacity .6s ease";
+              cards.forEach(card => {
+                if (card !== first) card.style.transition = "transform .8s ease-in-out, opacity .6s ease";
+              });
+              isAnimating = false;
+              setTimeout(swipeNext, delayBetweenSwipes);
+            }, 380);
+          });
         });
-        resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
-        uploadWrap?.classList.remove('is-visible');
-        uploadBar?.style.setProperty('--up', '0%');
+      }, { once: true });
+    };
   
-        btnSubmit.disabled = true;
-        typedChars = 0; setProgress(0);
-        statusText.textContent = "{% trans 'AI is preparing your application…' %}";
+    reorder();
+    if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
   
-        // play steps
-        for (const step of steps) {
-          if (!step.el) continue;
-  
-          const focusEl = step.focusEl || step.el;
-          focusField(focusEl);
-  
-          if (step.check) {
-            if (prefersReduced) { step.el.checked = true; }
-            else { await pause(300); step.el.checked = true; await pause(200); }
-            checkField(step.el);
-            continue;
-          }
-  
-          if (step.upload) {
-            await attachResume();
-            checkField(step.el);
-            await pause(prefersReduced ? 40 : 180);
-            continue;
-          }
-  
-          statusText.textContent = "{% trans 'Filling' %} " + (step.el.labels?.[0]?.innerText || '') + "…";
-          await typeInto(step.el, step.text);
-          checkField(step.el);
-          await pause(prefersReduced ? 40 : 180);
-        }
-  
-        setProgress(100);
-        btnSubmit.disabled = false;
-        statusText.textContent = "{% trans 'Ready to submit — optimized by AI.' %}";
-  
-        if (!prefersReduced) {
-          btnSubmit.animate(
-            [{ transform:'scale(1)' }, { transform:'scale(1.04)' }, { transform:'scale(1)' }],
-            { duration: 600, easing: 'ease', iterations: 1 }
-          );
-        }
-  
-        // Auto-press and celebrate (scoped) -> then fade out & hide
-        await autoPressAndCelebrate();
-  
-        isRunning = false;
-      };
-  
-      btnReplay?.addEventListener('click', run);
-  
-      // Auto-start once when in view
-      const observer = new IntersectionObserver((entries) => {
-        if (entries.some(e => e.isIntersecting)) { run(); observer.disconnect(); }
-      }, { threshold: .35 });
-      observer.observe(root);
+    window.addEventListener('resize', reorder);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        isAnimating = true;
+      } else {
+        isAnimating = false;
+        reorder();
+        if (!prefersReduced) setTimeout(swipeNext, delayBetweenSwipes);
+      }
     });
-  })();
+  });
   </script>
   
-  
-  
   <script>
-    (function(){
-      const ready = (fn) => (document.readyState === 'loading')
-        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-        : fn();
+    /* =========================
+       A) AI Form controller (AIDemo)
+    ========================= */
+    (() => {
+      const onReady = (fn) =>
+        document.readyState === 'loading'
+          ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+          : fn();
+    
+      onReady(() => {
+        const root = document.querySelector('.ai-demo');
+        if (!root) return;
+    
+        const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const pause = (ms) => new Promise(r => setTimeout(r, ms));
+    
+        const fields = {
+          name:      document.getElementById('ai-name'),
+          email:     document.getElementById('ai-email'),
+          portfolio: document.getElementById('ai-portfolio'),
+          resume:    document.getElementById('ai-resume'),
+          cover:     document.getElementById('ai-cover'),
+          consent:   document.getElementById('ai-consent'),
+        };
+    
+        const resumeBtn  = root.querySelector('.ai-file__btn');
+        const resumeName = root.querySelector('.ai-file__name');
+        const uploadWrap = root.querySelector('.ai-upload');
+        const uploadBar  = root.querySelector('.ai-upload__bar');
+        const winEl      = root.querySelector('.ai-demo__window');
+        const formEl     = root.querySelector('.ai-form');
+    
+        const progressBar = root.querySelector('.ai-demo__bar');
+        const progressPct = root.querySelector('.ai-demo__pct');
+        const statusText  = root.querySelector('#ai-status');
+        const btnSubmit   = root.querySelector('.ai-submit');
+        const btnReplay   = root.querySelector('.ai-replay');
+    
+        // success overlay (scoped to the card)
+        const ensureSuccessUI = () => {
+          let overlay = winEl.querySelector('.ai-success');
+          if (!overlay) {
+            winEl.insertAdjacentHTML('beforeend', `
+              <div class="ai-success" hidden>
+                <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{% trans 'Application sent' %}">
+                  <div class="ai-success__icon" aria-hidden="true">
+                    <svg viewBox="0 0 52 52">
+                      <circle class="ring" cx="26" cy="26" r="24"></circle>
+                      <path class="mark" d="M16 27l7 7 13-13"></path>
+                    </svg>
+                  </div>
+                  <h4>{% trans "Application sent!" %}</h4>
+                  <p>{% trans "Your application was sent successfully." %}</p>
+                  <button type="button" class="btn btn--primary ai-success__ok">{% trans "Nice!" %}</button>
+                </div>
+              </div>
+            `);
+            overlay = winEl.querySelector('.ai-success');
+          }
+          return { overlay, ok: overlay.querySelector('.ai-success__ok') };
+        };
+        const success = ensureSuccessUI();
+    
+        const setProgress = (v) => {
+          const pct = Math.min(100, Math.max(0, Math.round(v)));
+          progressBar.style.setProperty('--pct', pct + '%');
+          progressPct.textContent = pct + '%';
+        };
+    
+        const typeInto = (el, text, speed = 22, onTick) => new Promise((resolve) => {
+          if (prefersReduced) { el.value = text; onTick?.(text.length); resolve(); return; }
+          let i = 0; el.value = '';
+          const tick = () => {
+            if (i > text.length) return resolve();
+            el.value = text.slice(0, i);
+            onTick?.(1);
+            i++; setTimeout(tick, speed + Math.random() * 18);
+          };
+          tick();
+        });
+    
+        const RESUME_WEIGHT = prefersReduced ? 1 : 60;
+        const steps = [
+          { el: fields.name,      text: 'Ava Jensen' },
+          { el: fields.email,     text: 'ava.jensen@uni.dk' },
+          { el: fields.portfolio, text: 'https://ava.work' },
+          { el: fields.resume,    upload: true, focusEl: resumeBtn },
+          { el: fields.cover,     text:
+            "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
+          },
+          { el: fields.consent,   check: true }
+        ];
+    
+        const showSuccess = () => {
+          winEl.classList.add('is-success');
+          formEl.classList.add('is-success');
+          success.overlay.removeAttribute('hidden');
+          success.overlay.classList.add('is-visible');
+          success.ok?.focus();
+        };
+        const hideSuccess = () => {
+          success.overlay.classList.remove('is-visible');
+          success.overlay.setAttribute('hidden','');
+          winEl.classList.remove('is-success');
+          formEl.classList.remove('is-success');
+        };
+    
+        const fadeOutAndHide = async (delay = 1100) => {
+          if (prefersReduced) { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); return; }
+          await pause(delay);
+          winEl.classList.add('is-fading');
+          await new Promise(res => winEl.addEventListener('transitionend', res, { once: true }));
+          root.setAttribute('hidden','');
+          root.setAttribute('aria-hidden','true');
+          winEl.classList.remove('is-fading');
+        };
+    
+        const autoPressAndCelebrate = async () => {
+          statusText.textContent = "{% trans 'Submitting…' %}";
+          await pause(prefersReduced ? 120 : 600);
+          showSuccess();
+          await fadeOutAndHide(prefersReduced ? 0 : 1100);
+        };
+    
+        let isRunning = false;
+        const run = async () => {
+          if (isRunning) return;
+          isRunning = true;
+    
+          hideSuccess();
+          root.removeAttribute('hidden');
+          root.removeAttribute('aria-hidden');
+    
+          // reset
+          Object.values(fields).forEach((el) => {
+            if (!el) return;
+            if (el.type === 'checkbox') el.checked = false;
+            else el.value = '';
+            el.closest('.ai-field')?.classList.remove('is-active','is-done');
+          });
+          resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
+          uploadWrap?.classList.remove('is-visible');
+          uploadBar?.style.setProperty('--up','0%');
+    
+          const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
+          let typed = 0; setProgress(0);
+          const focusField = (el) => {
+            const wrap = el.closest('.ai-field');
+            root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
+            wrap?.classList.add('is-active');
+            wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+          };
+          const checkField = (el) => el.closest('.ai-field')?.classList.add('is-done');
+    
+          const attachResume = async () => {
+            const D = prefersReduced ? 40 : 1200; let used = 0;
+            uploadWrap?.classList.add('is-visible'); uploadBar?.style.setProperty('--up','0%');
+            await new Promise((resolve) => {
+              const start = performance.now();
+              const step = (now) => {
+                const t = Math.min(1, (now - start) / D);
+                uploadBar?.style.setProperty('--up', Math.round(t*100) + '%');
+                const add = Math.round(RESUME_WEIGHT * t) - used;
+                if (add > 0) { used += add; typed += add; setProgress(typed/totalChars*100); }
+                if (t < 1) requestAnimationFrame(step); else resolve();
+              };
+              requestAnimationFrame(step);
+            });
+            resumeName && (resumeName.textContent = 'Ava_Jensen_Resume.pdf');
+            uploadWrap?.classList.remove('is-visible');
+          };
+    
+          const pauseStep = prefersReduced ? 40 : 180;
+    
+          for (const s of steps) {
+            if (!s.el) continue;
+            focusField(s.focusEl || s.el);
+    
+            if (s.upload) { await attachResume(); checkField(s.el); await pause(pauseStep); continue; }
+            if (s.check)  { if (!prefersReduced) await pause(300); s.el.checked = true; checkField(s.el); if (!prefersReduced) await pause(200); continue; }
+    
+            statusText.textContent = "{% trans 'Filling' %} " + (s.el.labels?.[0]?.innerText || '') + "…";
+            await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
+            checkField(s.el);
+            await pause(pauseStep);
+          }
+    
+          setProgress(100);
+          statusText.textContent = "{% trans 'Ready to submit — optimized by AI.' %}";
+          await autoPressAndCelebrate();
+          isRunning = false;
+          return true;
+        };
+    
+        btnReplay?.addEventListener('click', run);
+    
+        window.AIDemo = {
+          runOnce: run,
+          hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
+          show: () => { root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); }
+        };
+      });
+    })();
+    </script>
+    
+    <script>
+    /* =========================
+       B) Tinder controller (TinderDemo)
+    ========================= */
+    (() => {
+      const ready = (fn) =>
+        document.readyState === 'loading'
+          ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+          : fn();
     
       ready(() => {
-        const deck = document.querySelector('.tinder-deck');
-        if (!deck) return;
+        const section = document.querySelector('.tinder-section');
+        const deck    = document.querySelector('.tinder-deck');
+        if (!deck || !section) return;
     
-        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const PAUSE_BETWEEN_SWIPES = 2000; // ms
-        let swipeRightNext = false; // left first, then right, alternate
-        let running = false;
+        const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const PAUSE = 1600, PRESS = 220;
+        let swipeRightNext = false;
     
         const setStack = () => {
-          const cards = Array.from(deck.querySelectorAll('.card'));
-          // reset classes
+          const cards = [...deck.querySelectorAll('.card')];
           cards.forEach(c => c.classList.remove('is-top','is-next'));
-          // z-index descending from front to back
           cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
-          // mark top + next
           if (cards[0]) cards[0].classList.add('is-top');
           if (cards[1]) cards[1].classList.add('is-next');
         };
     
         const pause = (ms) => new Promise(r => setTimeout(r, ms));
     
-        const cycleOnce = async () => {
+        const swipeOnce = async () => {
           const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
           if (!top) return;
     
-          // swipe the top card
+          const btnDismiss = top.querySelector('.action--dismiss');
+          const btnApply   = top.querySelector('.action--apply');
+          const pressBtn   = swipeRightNext ? btnApply : btnDismiss;
+          if (pressBtn){
+            pressBtn.classList.add('is-pressed');
+            pressBtn.setAttribute('aria-pressed','true');
+            await pause(PRESS);
+            pressBtn.classList.remove('is-pressed');
+            pressBtn.removeAttribute('aria-pressed');
+          }
+    
           top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
-    
-          // wait until animation ends
           await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-    
-          // send to back
           top.classList.remove('swipe-left','swipe-right','is-top');
-          top.style.opacity = '0'; // ensure no flash
+          top.style.opacity = '0';
           deck.appendChild(top);
-    
-          // re-stack so the previously "next" card becomes top and the next one becomes queued
           setStack();
-    
-          // alternate direction and pause a beat
           swipeRightNext = !swipeRightNext;
-          await pause(PAUSE_BETWEEN_SWIPES);
         };
     
-        const run = async () => {
-          if (running || prefersReduced) return;
-          running = true;
+        setStack();
     
-          setStack(); // ensure we show a queued card right away
-    
-          // start when visible
-          const start = () => {
-            (async () => {
-              while (!prefersReduced) { await cycleOnce(); }
-              running = false;
-            })();
-          };
-    
-          const io = new IntersectionObserver((entries) => {
-            if (entries.some(e => e.isIntersecting)) {
-              start();
-              io.disconnect();
+        window.TinderDemo = {
+          count: () => deck.querySelectorAll('.card').length,
+          setVisible: (show) => {
+            if (show) { section.removeAttribute('hidden'); section.removeAttribute('aria-hidden'); }
+            else { section.setAttribute('hidden',''); section.setAttribute('aria-hidden','true'); }
+          },
+          play: async (swipes = 3) => {
+            if (prefersReduced) return true;
+            window.TinderDemo.setVisible(true);
+            setStack();
+            for (let i = 0; i < swipes; i++) {
+              await swipeOnce();
+              await pause(PAUSE);
             }
-          }, { threshold: 0.3 });
-          io.observe(deck);
-    
-          // keep stack tidy on resize or tab restore
-          window.addEventListener('resize', setStack);
-          document.addEventListener('visibilitychange', () => { if (!document.hidden) setStack(); });
+            return true;
+          }
         };
-    
-        run();
       });
     })();
     </script>
     
     <script>
-      (function(){
-        const ready = (fn) => (document.readyState === 'loading')
+    /* =========================
+       C) ORCHESTRATOR
+       - Wraps both in .demo-stage
+       - Stacks them in the SAME place (cards on top)
+       - Plays: Tinder → Form → Tinder → …
+    ========================= */
+    (() => {
+      const ready = (fn) =>
+        document.readyState === 'loading'
           ? document.addEventListener('DOMContentLoaded', fn, { once: true })
           : fn();
-      
-        ready(() => {
-          const deck = document.querySelector('.tinder-deck');
-          if (!deck) return;
-      
-          const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          const PAUSE_BETWEEN_SWIPES = 1600;   // keep your slower beat
-          const PRESS_DURATION = 220;          // button press cue (ms)
-          let swipeRightNext = false;          // left first, then right, alternate
-          let running = false;
-      
-          const setStack = () => {
-            const cards = Array.from(deck.querySelectorAll('.card'));
-            cards.forEach(c => c.classList.remove('is-top','is-next'));
-            cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
-            if (cards[0]) cards[0].classList.add('is-top');
-            if (cards[1]) cards[1].classList.add('is-next');
-          };
-      
-          const pause = (ms) => new Promise(r => setTimeout(r, ms));
-      
-          const cycleOnce = async () => {
-            const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-            if (!top) return;
-      
-            // 1) simulate button press on the top card
-            const btnDismiss = top.querySelector('.action--dismiss');
-            const btnApply   = top.querySelector('.action--apply');
-            const pressBtn   = swipeRightNext ? btnApply : btnDismiss;
-            if (pressBtn){
-              pressBtn.classList.add('is-pressed');
-              pressBtn.setAttribute('aria-pressed','true');
-              await pause(PRESS_DURATION);
-              pressBtn.classList.remove('is-pressed');
-              pressBtn.removeAttribute('aria-pressed');
-            }
-      
-            // 2) trigger the swipe with NO tilt (keyframes above are pure translateX)
-            top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
-      
-            // 3) wait for swipe to finish
-            await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-      
-            // 4) send swiped card to back and rebuild the stack
-            top.classList.remove('swipe-left','swipe-right','is-top');
-            top.style.opacity = '0';
-            deck.appendChild(top);
-            setStack();
-      
-            // 5) alternate direction and pause between cycles
-            swipeRightNext = !swipeRightNext;
-            await pause(PAUSE_BETWEEN_SWIPES);
-          };
-      
-          const run = async () => {
-            if (running || prefersReduced) return;
-            running = true;
-            setStack();
-      
-            const start = () => {
-              (async () => {
-                while (!prefersReduced) { await cycleOnce(); }
-                running = false;
-              })();
-            };
-      
-            const io = new IntersectionObserver((entries) => {
-              if (entries.some(e => e.isIntersecting)) {
-                start();
-                io.disconnect();
-              }
-            }, { threshold: 0.3 });
-            io.observe(deck);
-      
-            window.addEventListener('resize', setStack);
-            document.addEventListener('visibilitychange', () => { if (!document.hidden) setStack(); });
-          };
-      
-          run();
+    
+      ready(() => {
+        const tinder = document.querySelector('.tinder-section');
+        const form   = document.querySelector('.ai-demo');
+        if (!tinder || !form) return;
+    
+        // 1) Create a wrapper right before the Tinder section and move both inside it.
+        let stage = document.querySelector('.demo-stage');
+        if (!stage) {
+          stage = document.createElement('div');
+          stage.className = 'demo-stage';
+          tinder.parentNode.insertBefore(stage, tinder);
+          stage.appendChild(tinder);
+          stage.appendChild(form);
+        }
+    
+        // 2) Force absolute overlay so they occupy the exact same coordinates.
+        Object.assign(stage.style, {
+          position: 'relative',
+          width: 'min(100%, 560px)',         // same as --ai-w
+          margin: '18px 0 0',                // match your form margin
         });
-      })();
-      </script>
-      
+        Object.assign(tinder.style, { position: 'absolute', inset: '0', zIndex: 2, margin: '0' });
+        Object.assign(form.style,   { position: 'absolute', inset: '0', zIndex: 1, margin: '0' });
+    
+        // 3) Start state: show Tinder, hide form.
+        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
+        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
+    
+        // 4) Keep the wrapper tall enough to avoid layout jumps.
+        const measure = () => {
+          const tHidden = tinder.hasAttribute('hidden');
+          const fHidden = form.hasAttribute('hidden');
+          if (tHidden) tinder.removeAttribute('hidden');
+          if (fHidden) form.removeAttribute('hidden');
+          const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
+          stage.style.minHeight = h + 'px';
+          if (tHidden) tinder.setAttribute('hidden','');
+          if (fHidden) form.setAttribute('hidden','');
+        };
+        measure();
+        addEventListener('resize', measure);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) measure(); });
+    
+        // 5) Run in sequence forever.
+        const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReduced) return;
+    
+        const pause = (ms) => new Promise(r => setTimeout(r, ms));
+    
+        (async function loop(){
+          // wait until the stage is actually visible in viewport
+          await new Promise(res => {
+            const io = new IntersectionObserver((entries) => {
+              if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+            }, { threshold: 0.3 });
+            io.observe(stage);
+          });
+    
+          while (true) {
+            // Tinder first (cards visible, form hidden)
+            form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
+            tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
+            measure();
+            const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
+            await window.TinderDemo?.play?.(swipes);
+            await pause(300);
+    
+            // Then form in the exact same place
+            tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
+            form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
+            measure();
+            await window.AIDemo?.runOnce?.();   // hides itself at the end
+            await pause(400);
+    
+            // and loop…
+          }
+        })();
+      });
+    })();
+    </script>
+    
+  
 
 
 {% endblock content %}
