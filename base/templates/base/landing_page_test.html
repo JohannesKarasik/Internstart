@@ -680,31 +680,40 @@
   
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
   
-      const swipeOnce = async () => {
-        const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-        if (!top) return;
-  
-        const btnDismiss = top.querySelector('.action--dismiss');
-        const btnApply   = top.querySelector('.action--apply');
-        const pressBtn   = swipeRightNext ? btnApply : btnDismiss;
-  
-        if (pressBtn){
-          pressBtn.classList.add('is-pressed');
-          pressBtn.setAttribute('aria-pressed','true');
-          await pause(PRESS);
-          pressBtn.classList.remove('is-pressed');
-          pressBtn.removeAttribute('aria-pressed');
-        }
-  
-        top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
-        await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-  
-        top.classList.remove('swipe-left','swipe-right','is-top');
-        top.style.opacity = '0';
-        deck.appendChild(top);
-        setStack();
-        swipeRightNext = !swipeRightNext;
-      };
+      let swipeIndex = 0; // 0-based swipe counter
+
+  const swipeOnce = async () => {
+    const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+    if (!top) return;
+
+    const btnDismiss = top.querySelector('.action--dismiss');
+    const btnApply   = top.querySelector('.action--apply');
+
+    // 👇 define explicit directions: first two left, last right
+    const direction = (swipeIndex < 2) ? 'left' : 'right';
+    const pressBtn  = (direction === 'right') ? btnApply : btnDismiss;
+
+    if (pressBtn){
+      pressBtn.classList.add('is-pressed');
+      pressBtn.setAttribute('aria-pressed','true');
+      await pause(PRESS);
+      pressBtn.classList.remove('is-pressed');
+      pressBtn.removeAttribute('aria-pressed');
+    }
+
+    // trigger proper swipe animation
+    top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
+    await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+
+    top.classList.remove('swipe-left','swipe-right','is-top');
+    top.style.opacity = '0';
+    deck.appendChild(top);
+    setStack();
+
+    swipeIndex++;
+    if (swipeIndex >= 3) swipeIndex = 0; // reset after 3 cards
+  };
+
   
       setStack();
   
