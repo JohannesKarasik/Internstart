@@ -41,6 +41,16 @@
     <span class="dot" aria-hidden="true">•</span>
     <span class="muted">327 {% trans "reviews" %}</span>
   </span>
+
+  <div class="hero__sticky">
+    <a href="#social-proof" class="btn btn--sticky" aria-label="{% trans 'See how it works' %}">
+      {% trans "See how it works" %}
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 16l-6-6h12l-6 6z" fill="currentColor"/>
+      </svg>
+    </a>
+  </div>
+
 </div>
 
 
@@ -309,6 +319,7 @@
   padding: 0 2vw 0 6vw; /* a little more room on left */
   min-height: 80vh;
   column-gap: 0 !important;
+  position: relative;
 }
 
 .hero__copy {
@@ -951,6 +962,54 @@
   .hero__rating .rating__text{ font-size: 13px; }
 }
 
+/* Sticky wrapper pins to bottom of viewport while the hero is in view */
+.hero__sticky{
+  position: sticky;
+  bottom: max(16px, env(safe-area-inset-bottom));  /* iOS safe area */
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;   /* so only the button is clickable */
+  z-index: 5;             /* above phone mock */
+}
+
+/* The actual button */
+.btn--sticky{
+  pointer-events: auto;
+  height: 52px;
+  padding: 0 18px 0 20px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 16px;
+  color: #fff;
+  background: linear-gradient(90deg, #ff2f5a, #ff5f7a);
+  box-shadow: 0 10px 24px rgba(255,47,90,.25), 0 2px 8px rgba(0,0,0,.08);
+  border: 1px solid rgba(255,255,255,.35);
+  display: inline-flex; align-items: center; gap: 10px;
+  backdrop-filter: saturate(1.2) blur(6px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+
+.btn--sticky:hover { transform: translateY(-1px); }
+.btn--sticky:active{ transform: translateY(0); box-shadow: 0 6px 16px rgba(255,47,90,.20); }
+
+.btn--sticky .chev{
+  width: 18px; height: 18px; opacity: .9;
+  transform: rotate(180deg);   /* little down-pointing caret */
+}
+
+/* Smaller on phones */
+@media (max-width: 600px){
+  .btn--sticky{
+    height: 48px; font-size: 15px; padding: 0 16px;
+    width: max-content; max-width: 92vw;
+  }
+}
+
+/* Smooth scroll and header offset if you have a fixed header */
+html { scroll-behavior: smooth; }
+#social-proof { scroll-margin-top: 72px; } /* adjust if header is taller */
 
 </style>
 
@@ -1454,5 +1513,20 @@
       </script>
       
   
-  
+      <script>
+        document.addEventListener('click', function(e){
+          const a = e.target.closest('.btn--sticky[href^="#"]');
+          if(!a) return;
+          const id = a.getAttribute('href');
+          const target = document.querySelector(id);
+          if(!target) return;
+      
+          e.preventDefault();
+          const y = target.getBoundingClientRect().top + window.pageYOffset - 72; // header offset
+          window.scrollTo({ top: y, behavior: 'smooth' });
+      
+          // move focus when scrolling ends (basic)
+          setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
+        });
+      </script>
 {% endblock content %}
