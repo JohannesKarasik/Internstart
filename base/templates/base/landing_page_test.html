@@ -970,44 +970,46 @@
   position: sticky;
   bottom: max(20px, env(safe-area-inset-bottom));
   display: flex;
+  justify-content: flex-start;
   pointer-events: none;
   z-index: 10;
 
-  /* 👇 align directly with the hero copy column */
-  max-width: var(--hero-copy-max, 620px);
-  margin-left: clamp(6vw, 8vw, 120px); /* match hero__copy left inset */
+  /* 👇 NEW: anchor directly to hero__copy left edge */
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  padding-left: 0;
+
+  /* This positions it relative to the hero__copy instead of grid */
+  grid-column: 1 / 2;
+}
+
+.hero__copy {
+  position: relative; /* 👈 add this if not already present */
+}
+
+.hero__copy .hero__sticky {
+  position: sticky;
+  left: 0;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  margin-top: 12px;
   justify-content: flex-start;
+  pointer-events: none;
+  z-index: 5;
 }
 
-.btn--sticky {
+/* keep button clickable */
+.hero__copy .hero__sticky .btn--sticky {
   pointer-events: auto;
-  height: 52px;
-  padding: 0 20px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 16px;
-  color: #fff;
-  background: linear-gradient(90deg, #ff2f5a, #ff5f7a);
-  box-shadow: 0 10px 24px rgba(255,47,90,.25), 0 2px 8px rgba(0,0,0,.08);
-  border: 1px solid rgba(255,255,255,.35);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  backdrop-filter: saturate(1.2) blur(6px);
-  transition: transform .15s ease, box-shadow .2s ease;
 }
 
-.btn--sticky:hover { transform: translateY(-1px); }
-.btn--sticky .chev { width: 18px; height: 18px; opacity: .9; transform: rotate(180deg); }
-
-/* Center again on mobile */
+/* mobile still centered */
 @media (max-width: 768px) {
-  .hero__sticky {
-    margin-left: 0;
+  .hero__copy .hero__sticky {
     justify-content: center;
-    max-width: none;
   }
 }
+
 
 /* Smooth scroll and header offset if you have a fixed header */
 html { scroll-behavior: smooth; }
