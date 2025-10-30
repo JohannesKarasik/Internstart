@@ -1031,6 +1031,75 @@ html { scroll-behavior: smooth; }
   text-decoration:underline;
 }
 
+/* ===== Social-proof section background (brand-friendly) ===== */
+.social-proof{
+  position: relative;
+  isolation: isolate;                 /* keep glows clipped to section */
+  padding: clamp(48px, 6vw, 88px) 0 56px;
+  background:
+    /* brand glow top-left */
+    radial-gradient(900px 420px at 8% -10%,
+      color-mix(in srgb, var(--brand) 10%, transparent) 0%,
+      transparent 60%),
+    /* brand glow bottom-right */
+    radial-gradient(700px 360px at 94% 108%,
+      color-mix(in srgb, var(--brand) 8%, transparent) 0%,
+      transparent 65%),
+    /* soft vertical wash */
+    linear-gradient(180deg, #fff 0%, #fbfcff 55%, #f7f9fc 100%);
+  border-top: 1px solid #eef2f7;
+}
+
+/* optional subtle dot grid (kept *very* faint) */
+.social-proof::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    radial-gradient(circle at 1px 1px, #e9edf5 1px, transparent 0);
+  background-size: 22px 22px;
+  opacity:.25;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  pointer-events:none;
+  z-index:-1;
+}
+
+/* ===== Panel around the demo (matches rounded, soft-shadow card vibe) ===== */
+.demo-stage{
+  --panel-pad: clamp(18px, 2.4vw, 28px);
+  position: relative;
+  padding: var(--panel-pad);
+  border-radius: 24px;
+  background: rgba(255,255,255,.85);
+  border: 1px solid #e9edf5;
+  box-shadow:
+    0 24px 60px rgba(16,24,40,.12),
+    0 8px 20px rgba(16,24,40,.06);
+  backdrop-filter: saturate(1.05) blur(4px);
+  -webkit-backdrop-filter: saturate(1.05) blur(4px);
+}
+
+/* little brand accent ring behind panel */
+.demo-stage::after{
+  content:"";
+  position:absolute; inset:-2px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 20%, transparent);
+  pointer-events:none;
+  opacity:.25;
+}
+
+/* header alignment inside social-proof stays clean on the new bg */
+.sp__head{
+  margin-bottom: clamp(18px, 3.2vw, 26px);
+}
+.sp__title{ color:#0b1324; }
+.sp__sub{ color:#667085; }
+
+/* keep everything crisp on mobile */
+@media (max-width: 640px){
+  .social-proof{ padding: 44px 0 32px; }
+  .demo-stage{ border-radius: 18px; }
+}
 
 
 </style>
