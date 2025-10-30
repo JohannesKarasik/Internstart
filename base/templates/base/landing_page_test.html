@@ -11,6 +11,9 @@
 <!-- =========================
       HERO
 ========================= -->
+<!-- =========================
+      HERO  (now shows TikTok-style phone carousel)
+========================= -->
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
@@ -29,159 +32,18 @@
     </div>
   </div>
 
-  <!-- ONE stage in the hero: Tinder on top, Form underneath (same place) -->
-  <div class="demo-stage">
-    <div class="demo-overlay" aria-live="polite">
-      <span class="demo-overlay__text" role="status" aria-atomic="true"></span>
-    </div>
-    
-
-    <!-- Tinder-style Swipe Demo -->
-    <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
-      <div class="tinder-deck" data-autoplay="true">
-        <!-- T-Card 1 -->
-        <article class="card card--pink">
-          <div class="card__body">
-            <div class="card__info">
-              <img src="{% static 'images/Goldman-Sachs-1869.png' %}" alt="Goldman Sachs logo" class="card__logo">
-              <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
-              <h3 class="card__company">Goldman Sachs</h3>
-              <p class="card__meta">{% trans "Location: New York, NY" %}</p>
-            </div>
-            <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-              <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
-              <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- T-Card 2 -->
-        <article class="card card--blue">
-          <div class="card__body">
-            <div class="card__info">
-              <img src="{% static 'images/danske-bank.png' %}" alt="Danske Bank logo" class="card__logo">
-              <h4 class="card__role">{% trans "Corporate Finance Intern" %}</h4>
-              <h3 class="card__company">Danske Bank</h3>
-              <p class="card__meta">{% trans "Location: Copenhagen, Denmark" %}</p>
-            </div>
-            <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-              <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
-              <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- T-Card 3 -->
-        <article class="card card--yellow">
-          <div class="card__body">
-            <div class="card__info">
-              <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
-              <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
-              <h3 class="card__company">Deutsche Bank</h3>
-              <p class="card__meta">{% trans "Location: Frankfurt, Germany" %}</p>
-            </div>
-            <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-              <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
-              <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-
-    <!-- AI Autofill Demo -->
-    <div class="ai-demo" role="region" aria-label="AI auto-filling a job application">
-      <div class="ai-demo__window">
-        <div class="ai-demo__chrome">
-          <div class="ai-demo__dots"><span></span><span></span><span></span></div>
-          <div class="ai-demo__title">Job Application — Preview</div>
-          <div class="ai-demo__progress">
-            <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
-          </div>
-        </div>
-
-        <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
-          <div class="ai-field">
-            <label for="ai-name">{% trans "Full name" %}</label>
-            <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
-            <div class="ai-field__check" aria-hidden="true">✓</div>
-          </div>
-
-          <div class="ai-field">
-            <label for="ai-email">{% trans "Email" %}</label>
-            <input id="ai-email" type="email" placeholder="name@university.dk" />
-            <div class="ai-field__check" aria-hidden="true">✓</div>
-          </div>
-
-          <div class="ai-field">
-            <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
-            <input id="ai-portfolio" type="url" placeholder="https://…" />
-            <div class="ai-field__check" aria-hidden="true">✓</div>
-          </div>
-
-          <div class="ai-field ai-field--file">
-            <label for="ai-resume">{% trans "Resume" %}</label>
-            <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
-            <div class="ai-file">
-              <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
-              <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">{% trans "No file selected" %}</span>
-            </div>
-            <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
-            <div class="ai-field__check" aria-hidden="true">✓</div>
-          </div>
-
-          <div class="ai-field ai-field--textarea">
-            <label for="ai-cover">{% trans "Short cover note" %}</label>
-            <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
-            <div class="ai-field__check" aria-hidden="true">✓</div>
-          </div>
-
-          <div class="ai-consent">
-            <input id="ai-consent" type="checkbox" />
-            <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
-          </div>
-
-          <div class="ai-actions">
-            <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
-          </div>
-
-          <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
-        </form>
-      </div>
-    </div>
-    <!-- /.AI Autofill Demo -->
-
-  </div><!-- /.demo-stage -->
-</section>
-
-
-
-<!-- =========================
-      SOCIAL PROOF (TikTok-style)
-========================= -->
-<section class="social-proof" id="social-proof">
-  <div class="sp__inner">
-    <header class="sp__head">
-      <h2 class="sp__title">
-        {% trans "Do like everyone else — apply with AI" %}
-      </h2>
-      <p class="sp__sub">
-        {% trans "Real students auto-applying to dozens of roles in minutes." %}
-      </p>
-    </header>
-
+  <!-- Phone-shaped TikTok carousel -->
+  <div class="hero__phone">
     <div class="sp__rail" aria-label="{% trans 'User videos' %}">
       <!-- Card 1 -->
-      <article class="sp__card">
+      <article class="sp__card is-active">
         <video class="sp__video" playsinline muted loop preload="metadata"
                src="{% static 'images/internstart1_small.mp4' %}"></video>
-
         <div class="sp__overlay">
           <div class="sp__meta">
             <div class="sp__handle">@sofia • {% trans "CBS" %}</div>
             <div class="sp__caption">{% trans "“Sent 40 apps this week.”" %}</div>
           </div>
-
           <div class="sp__actions">
             <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -197,13 +59,11 @@
       <article class="sp__card">
         <video class="sp__video" playsinline muted loop preload="metadata"
                src="{% static 'images/internstart2_small.mp4' %}"></video>
-
         <div class="sp__overlay">
           <div class="sp__meta">
             <div class="sp__handle">@mikkel • {% trans "DTU" %}</div>
             <div class="sp__caption">{% trans "“AI filled my apps while I studied.”" %}</div>
           </div>
-
           <div class="sp__actions">
             <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -219,13 +79,11 @@
       <article class="sp__card">
         <video class="sp__video" playsinline muted loop preload="metadata"
                src="{% static 'images/internstart3_small.mp4' %}"></video>
-
         <div class="sp__overlay">
           <div class="sp__meta">
             <div class="sp__handle">@lina • {% trans "KU" %}</div>
             <div class="sp__caption">{% trans "“2 interviews after one evening.”" %}</div>
           </div>
-
           <div class="sp__actions">
             <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -237,14 +95,148 @@
         </div>
       </article>
     </div>
-
-    <div class="sp__cta">
-      <a href="{% url 'register' %}" class="btn btn--primary">
-        {% trans "Start applying with AI" %}
-      </a>
-    </div>
   </div>
 </section>
+
+
+<!-- =========================
+      APPLY DEMO (Tinder cards + AI Form) — now under hero
+========================= -->
+<section class="social-proof" id="social-proof">
+  <div class="sp__inner">
+    <header class="sp__head">
+      <h2 class="sp__title">
+        {% trans "Do like everyone else — apply with AI" %}
+      </h2>
+      <p class="sp__sub">
+        {% trans "Real students auto-applying to dozens of roles in minutes." %}
+      </p>
+    </header>
+
+    <!-- Original demo-stage moved here -->
+    <div class="demo-stage">
+      <div class="demo-overlay" aria-live="polite">
+        <span class="demo-overlay__text" role="status" aria-atomic="true"></span>
+      </div>
+
+      <!-- Tinder-style Swipe Demo -->
+      <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
+        <div class="tinder-deck" data-autoplay="true">
+          <!-- T-Card 1 -->
+          <article class="card card--pink">
+            <div class="card__body">
+              <div class="card__info">
+                <img src="{% static 'images/Goldman-Sachs-1869.png' %}" alt="Goldman Sachs logo" class="card__logo">
+                <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
+                <h3 class="card__company">Goldman Sachs</h3>
+                <p class="card__meta">{% trans "Location: New York, NY" %}</p>
+              </div>
+              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+                <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+              </div>
+            </div>
+          </article>
+
+          <!-- T-Card 2 -->
+          <article class="card card--blue">
+            <div class="card__body">
+              <div class="card__info">
+                <img src="{% static 'images/danske-bank.png' %}" alt="Danske Bank logo" class="card__logo">
+                <h4 class="card__role">{% trans "Corporate Finance Intern" %}</h4>
+                <h3 class="card__company">Danske Bank</h3>
+                <p class="card__meta">{% trans "Location: Copenhagen, Denmark" %}</p>
+              </div>
+              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+                <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+              </div>
+            </div>
+          </article>
+
+          <!-- T-Card 3 -->
+          <article class="card card--yellow">
+            <div class="card__body">
+              <div class="card__info">
+                <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
+                <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
+                <h3 class="card__company">Deutsche Bank</h3>
+                <p class="card__meta">{% trans "Location: Frankfurt, Germany" %}</p>
+              </div>
+              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+                <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply"   aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- AI Autofill Demo -->
+      <div class="ai-demo" role="region" aria-label="AI auto-filling a job application">
+        <div class="ai-demo__window">
+          <div class="ai-demo__chrome">
+            <div class="ai-demo__dots"><span></span><span></span><span></span></div>
+            <div class="ai-demo__title">Job Application — Preview</div>
+            <div class="ai-demo__progress">
+              <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
+            </div>
+          </div>
+
+          <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
+            <div class="ai-field">
+              <label for="ai-name">{% trans "Full name" %}</label>
+              <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
+              <div class="ai-field__check" aria-hidden="true">✓</div>
+            </div>
+
+            <div class="ai-field">
+              <label for="ai-email">{% trans "Email" %}</label>
+              <input id="ai-email" type="email" placeholder="name@university.dk" />
+              <div class="ai-field__check" aria-hidden="true">✓</div>
+            </div>
+
+            <div class="ai-field">
+              <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
+              <input id="ai-portfolio" type="url" placeholder="https://…" />
+              <div class="ai-field__check" aria-hidden="true">✓</div>
+            </div>
+
+            <div class="ai-field ai-field--file">
+              <label for="ai-resume">{% trans "Resume" %}</label>
+              <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
+              <div class="ai-file">
+                <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
+                <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">{% trans "No file selected" %}</span>
+              </div>
+              <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
+              <div class="ai-field__check" aria-hidden="true">✓</div>
+            </div>
+
+            <div class="ai-field ai-field--textarea">
+              <label for="ai-cover">{% trans "Short cover note" %}</label>
+              <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
+              <div class="ai-field__check" aria-hidden="true">✓</div>
+            </div>
+
+            <div class="ai-consent">
+              <input id="ai-consent" type="checkbox" />
+              <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
+            </div>
+
+            <div class="ai-actions">
+              <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
+            </div>
+
+            <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
+          </form>
+        </div>
+      </div>
+      <!-- /.AI Autofill Demo -->
+    </div><!-- /.demo-stage -->
+  </div>
+</section>
+
 
 
 <!-- =========================
