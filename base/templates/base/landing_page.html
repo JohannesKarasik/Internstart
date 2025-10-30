@@ -769,7 +769,7 @@
   
           statusText.textContent = "Filling " + (s.el.labels?.[0]?.innerText || '') + "…";
           await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
-          checkField(s.el);
+          if (!s.upload) checkField(s.el);
           await new Promise(r=>setTimeout(r,pauseStep));
         }
   
