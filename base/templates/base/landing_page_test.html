@@ -217,18 +217,6 @@
       </div>
 
       <div class="ai-field">
-        <label for="ai-uni">{% trans "University" %}</label>
-        <input id="ai-uni" type="text" placeholder="{% trans 'Your university' %}" />
-        <div class="ai-field__check" aria-hidden="true">✓</div>
-      </div>
-
-      <div class="ai-field">
-        <label for="ai-degree">{% trans "Degree" %}</label>
-        <input id="ai-degree" type="text" placeholder="{% trans 'e.g., BSc International Business, 2026' %}" />
-        <div class="ai-field__check" aria-hidden="true">✓</div>
-      </div>
-
-      <div class="ai-field">
         <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
         <input id="ai-portfolio" type="url" placeholder="https://…" />
         <div class="ai-field__check" aria-hidden="true">✓</div>
@@ -1257,8 +1245,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const fields = {
         name:      document.getElementById('ai-name'),
         email:     document.getElementById('ai-email'),
-        uni:       document.getElementById('ai-uni'),
-        degree:    document.getElementById('ai-degree'),
         portfolio: document.getElementById('ai-portfolio'),
         resume:    document.getElementById('ai-resume'),
         cover:     document.getElementById('ai-cover'),
