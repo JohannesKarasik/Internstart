@@ -691,66 +691,56 @@
   
   <script>
   /* =========================
-     B) Tinder controller (TinderDemo) + per-swipe overlay text
-  ========================= */
-  (() => {
-    const ready = (fn) =>
-      document.readyState === 'loading'
-        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-        : fn();
-  
-    ready(() => {
-      const section = document.querySelector('.tinder-section');
-      const deck    = document.querySelector('.tinder-deck');
-      const stage   = document.querySelector('.demo-stage');
-      if (!deck || !section || !stage) return;
-  
-      // Overlay element (use existing or create)
-      let overlayTextEl = document.querySelector('.demo-overlay__text');
-      if (!overlayTextEl) {
-        const overlay = document.createElement('div');
-        overlay.className = 'demo-overlay';
-        overlay.setAttribute('aria-live', 'polite');
-        overlay.innerHTML = `<span class="demo-overlay__text"></span>`;
-        stage.prepend(overlay);
-        overlayTextEl = overlay.querySelector('.demo-overlay__text');
-      }
-  
-      const showOverlayText = (text) => {
-        overlayTextEl.textContent = text;
-        overlayTextEl.classList.remove('is-visible');
-        void overlayTextEl.offsetWidth; // reflow to restart transition
-        overlayTextEl.classList.add('is-visible');
-      };
-  
-      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const PAUSE = 1600, PRESS = 220;
-  
-      const setStack = () => {
-        const cards = [...deck.querySelectorAll('.card')];
-        cards.forEach(c => c.classList.remove('is-top','is-next'));
-        cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
-        if (cards[0]) cards[0].classList.add('is-top');
-        if (cards[1]) cards[1].classList.add('is-next');
-      };
-  
-      const pause = (ms) => new Promise(r => setTimeout(r, ms));
-  
-      const swipeOnce = async (stepIndex, totalSteps) => {
+   B) Tinder controller (TinderDemo) + correct per-swipe overlay timing
+========================= */
+(() => {
+  const ready = (fn) =>
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+      : fn();
+
+  ready(() => {
+    const section = document.querySelector('.tinder-section');
+    const deck    = document.querySelector('.tinder-deck');
+    const stage   = document.querySelector('.demo-stage');
+    if (!deck || !section || !stage) return;
+
+    // Overlay label
+    const overlayTextEl = document.querySelector('.demo-overlay__text');
+    const showOverlayText = (text) => {
+      if (!overlayTextEl) return;
+      overlayTextEl.textContent = text;
+      overlayTextEl.classList.remove('is-visible');
+      void overlayTextEl.offsetWidth; // reflow to restart transition
+      overlayTextEl.classList.add('is-visible');
+    };
+
+    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const PAUSE = 1600, PRESS = 220;
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+    const setStack = () => {
+      const cards = [...deck.querySelectorAll('.card')];
+      cards.forEach(c => c.classList.remove('is-top','is-next'));
+      cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
+      if (cards[0]) cards[0].classList.add('is-top');
+      if (cards[1]) cards[1].classList.add('is-next');
+    };
+
+    let swipeIndex = 0; // track how many swipes have occurred
+
+    const swipeOnce = async (stepIndex, totalSteps) => {
       const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
       if (!top) return;
 
       const btnDismiss = top.querySelector('.action--dismiss');
       const btnApply   = top.querySelector('.action--apply');
 
-      const isLast   = (stepIndex === totalSteps - 1);
-      const direction = isLast ? 'right' : 'left';
+      // 1️⃣ determine direction based on index
+      const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
+      const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
 
-      // 👇 Remove the early label change here
-      // (we’ll move it after the animation instead)
-
-      // simulate button press (visual only)
-      const pressBtn  = isLast ? btnApply : btnDismiss;
+      // 2️⃣ simulate button press
       if (pressBtn){
         pressBtn.classList.add('is-pressed');
         pressBtn.setAttribute('aria-pressed','true');
@@ -759,58 +749,59 @@
         pressBtn.removeAttribute('aria-pressed');
       }
 
-      // start swipe animation
+      // 3️⃣ swipe animation
       top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
       await new Promise(res => top.addEventListener('animationend', res, { once: true }));
 
-      // move card to the back
+      // 4️⃣ move card to back, rebuild stack
       top.classList.remove('swipe-left','swipe-right','is-top');
       top.style.opacity = '0';
       deck.appendChild(top);
       setStack();
 
-      // 🪄 Label updates only *after* the new top card is visible
-      const nextTop = deck.querySelector('.card.is-top');
-      const nextIndex = [...deck.children].indexOf(nextTop);
-      const totalCards = deck.children.length;
-      const isNextLast = (nextIndex === totalCards - 1);
-      showOverlayText(isNextLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
+      // 5️⃣ update overlay text AFTER swipe finishes
+      if (stepIndex === 0) {
+        showOverlayText('Swipe left to dismiss');
+      } else if (stepIndex === 1) {
+        // after second card swiped, before yellow card appears
+        showOverlayText('Swipe right to apply');
+      }
+
+      swipeIndex++;
     };
 
-  
-      setStack();
-  
-      window.TinderDemo = {
-        count: () => deck.querySelectorAll('.card').length,
-        setVisible: (show) => {
-          if (show) {
-            section.removeAttribute('hidden');
-            section.removeAttribute('aria-hidden');
-          } else {
-            section.setAttribute('hidden','');
-            section.setAttribute('aria-hidden','true');
-          }
-        },
-        play: async (swipes = 3) => {
-          const PAUSE_BETWEEN = prefersReduced ? 200 : PAUSE;
-          const INTRO_DELAY   = prefersReduced ? 300 : 800;
-  
-          window.TinderDemo.setVisible(true);
-          setStack();
-  
-          // prime helper for the first card
-          showOverlayText('Swipe left to dismiss');
-          await pause(INTRO_DELAY);
-  
-          for (let i = 0; i < swipes; i++) {
-            await swipeOnce(i, swipes);
-            if (i < swipes - 1) await pause(PAUSE_BETWEEN); // no pause after last swipe
-          }
-          return true;
+    setStack();
+
+    window.TinderDemo = {
+      count: () => deck.querySelectorAll('.card').length,
+      setVisible: (show) => {
+        if (show) {
+          section.removeAttribute('hidden');
+          section.removeAttribute('aria-hidden');
+        } else {
+          section.setAttribute('hidden','');
+          section.setAttribute('aria-hidden','true');
         }
-      };
-    });
-  })();
+      },
+      play: async (swipes = 3) => {
+        if (prefersReduced) return true;
+        window.TinderDemo.setVisible(true);
+        setStack();
+
+        // initial label for first card
+        showOverlayText('Swipe left to dismiss');
+        await pause(800);
+
+        for (let i = 0; i < swipes; i++) {
+          await swipeOnce(i, swipes);
+          if (i < swipes - 1) await pause(PAUSE);
+        }
+        return true;
+      }
+    };
+  });
+})();
+
   </script>
   
   <script>
