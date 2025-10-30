@@ -341,6 +341,24 @@
     transition: transform .6s ease, opacity .35s ease, filter .35s ease;
   }
 
+  /* --- Fade-in animation for the Tinder cards --- */
+@keyframes tDeckFadeIn {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tinder-section.is-fading-in .card {
+  animation: tDeckFadeIn 0.8s ease forwards;
+}
+
+.tinder-section.is-fading-in .card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.tinder-section.is-fading-in .card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+
   .tinder-deck .card__actions{
   margin-top:auto;
   padding-bottom:32px;
@@ -951,9 +969,17 @@
         void overlayText.offsetWidth;
         overlayText.classList.add('is-visible');
 
-        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
-        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
+        // Show Tinder section again with fade-in
+        form.setAttribute('hidden',''); 
+        form.setAttribute('aria-hidden','true');
+        tinder.removeAttribute('hidden');
+        tinder.removeAttribute('aria-hidden');
+        tinder.classList.add('is-fading-in');
         measure();
+
+        // let fade animation play before continuing
+        await pause(600);
+        tinder.classList.remove('is-fading-in');
 
         /* 2️⃣ Play Tinder demo */
         const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
