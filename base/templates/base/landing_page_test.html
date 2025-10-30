@@ -133,7 +133,12 @@
   <div class="sp__inner">
     <header class="sp__head">
       <h2 class="sp__title">
-        {% trans "Do like everyone else — apply with AI" %}
+        <span id="spTitle"
+              data-default="{% trans 'Do like everyone else — apply with AI' %}"
+              data-left="{% trans 'Swipe left to dismiss' %}"
+              data-right="{% trans 'Swipe right to apply' %}">
+          {% trans "Do like everyone else — apply with AI" %}
+        </span>
       </h2>
       <p class="sp__sub">
         {% trans "Real students auto-applying to dozens of roles in minutes." %}
@@ -1378,15 +1383,26 @@ html { scroll-behavior: smooth; }
       document.readyState === 'loading'
         ? document.addEventListener('DOMContentLoaded', fn, { once: true })
         : fn();
-  
+
     ready(() => {
       const section = document.querySelector('.tinder-section');
       const deck    = document.querySelector('.tinder-deck');
       const stage   = document.querySelector('.demo-stage');
       const overlay = document.querySelector('.demo-overlay');
       const overlayTextEl = document.querySelector('.demo-overlay__text');
+      const titleSpan = document.getElementById('spTitle'); // 👈 heading that acts as explainer
       if (!deck || !section || !stage || !overlay || !overlayTextEl) return;
-  
+
+      // 👇 helper to update heading explainer text
+      const setExplainer = (key = 'default') => {
+        if (!titleSpan) return;
+        const next =
+          titleSpan.dataset[key] ||
+          titleSpan.dataset.default ||
+          titleSpan.textContent;
+        titleSpan.textContent = next;
+      };
+
       const setDeckSide = (side) => {
         overlay.classList.remove('is-form','is-deck-left','is-deck-right');
         overlay.classList.add(side === 'left' ? 'is-deck-left' : 'is-deck-right');
@@ -1397,11 +1413,11 @@ html { scroll-behavior: smooth; }
         void overlayTextEl.offsetWidth; // restart transition
         overlayTextEl.classList.add('is-visible');
       };
-  
+
       const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const PAUSE = 1600, PRESS = 220;
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
-  
+
       const setStack = () => {
         const cards = [...deck.querySelectorAll('.card')];
         cards.forEach(c => c.classList.remove('is-top','is-next'));
@@ -1409,65 +1425,66 @@ html { scroll-behavior: smooth; }
         if (cards[0]) cards[0].classList.add('is-top');
         if (cards[1]) cards[1].classList.add('is-next');
       };
-  
+
       const swipeOnce = async (stepIndex, totalSteps) => {
-  const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-  if (!top) return;
+        const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+        if (!top) return;
 
-  const btnDismiss = top.querySelector('.action--dismiss');
-  const btnApply   = top.querySelector('.action--apply');
+        const btnDismiss = top.querySelector('.action--dismiss');
+        const btnApply   = top.querySelector('.action--apply');
 
-  const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
-  const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
+        const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
+        const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
 
-  // --- Overlay logic ---
-  if (stepIndex < 1) {
-    // First cards → swipe left prompt
-    setDeckSide('left');
-    showOverlayText('Swipe left to dismiss');
-  }
+        // --- Overlay + heading explainer logic ---
+        if (stepIndex < 1) {
+          // First cards → swipe left prompt
+          setDeckSide('left');
+          showOverlayText('Swipe left to dismiss');
+          setExplainer('left');                      // 👈 update H2 explainer
+        }
 
-  // Simulate button press
-  if (pressBtn) {
-    pressBtn.classList.add('is-pressed');
-    pressBtn.setAttribute('aria-pressed', 'true');
-    await pause(PRESS);
-    pressBtn.classList.remove('is-pressed');
-    pressBtn.removeAttribute('aria-pressed');
-  }
+        // Simulate button press
+        if (pressBtn) {
+          pressBtn.classList.add('is-pressed');
+          pressBtn.setAttribute('aria-pressed', 'true');
+          await pause(PRESS);
+          pressBtn.classList.remove('is-pressed');
+          pressBtn.removeAttribute('aria-pressed');
+        }
 
-  // Start swipe animation
-  top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
+        // Start swipe animation
+        top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
 
-  // Wait until animation finishes
-  await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+        // Wait until animation finishes
+        await new Promise(res => top.addEventListener('animationend', res, { once: true }));
 
-  // Move card to back and restack
-  top.classList.remove('swipe-left', 'swipe-right', 'is-top');
-  top.style.opacity = '0';
-  deck.appendChild(top);
-  setStack();
+        // Move card to back and restack
+        top.classList.remove('swipe-left', 'swipe-right', 'is-top');
+        top.style.opacity = '0';
+        deck.appendChild(top);
+        setStack();
 
-  // ✅ Add short delay before showing “Swipe right to apply”
-  if (stepIndex === 1) {
-    await pause(500); // wait a bit after yellow card appears
-    setDeckSide('right');
-    showOverlayText('Swipe right to apply');
-  }
-};
+        // ✅ After the second swipe, switch to "Swipe right to apply"
+        if (stepIndex === 1) {
+          await pause(500); // wait a bit after yellow card appears
+          setDeckSide('right');
+          showOverlayText('Swipe right to apply');
+          setExplainer('right');                   // 👈 update H2 explainer
+        }
+      };
 
-
-
-  
       setStack();
       setDeckSide('left'); // default starting side
-  
+      setExplainer('default'); // 👈 ensure heading starts with the default copy
+
       window.TinderDemo = {
         count: () => deck.querySelectorAll('.card').length,
         setVisible: (show) => {
           if (show) {
             section.removeAttribute('hidden'); section.removeAttribute('aria-hidden');
             setDeckSide('left');
+            setExplainer('left'); // 👈 when showing the deck, start with left instruction
           } else {
             section.setAttribute('hidden',''); section.setAttribute('aria-hidden','true');
           }
@@ -1486,8 +1503,8 @@ html { scroll-behavior: smooth; }
       };
     });
   })();
-  </script>
-  
+</script>
+
 
 
   <script>
