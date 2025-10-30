@@ -730,19 +730,21 @@
           }
         },
         play: async (swipes = 3) => {
-          if (prefersReduced) return true;
-          window.TinderDemo.setVisible(true);
-          setStack();
-  
-          // 🌟 Wait a moment before first swipe (lets pink card show clearly)
-          await pause(1800);
-  
-          for (let i = 0; i < swipes; i++) {
-            await swipeOnce();
-            await pause(PAUSE);
-          }
-          return true;
+        if (prefersReduced) return true;
+        window.TinderDemo.setVisible(true);
+        setStack();
+
+        // Wait a moment before first swipe (lets pink card show clearly)
+        await pause(1800);
+
+        for (let i = 0; i < swipes; i++) {
+          await swipeOnce();
+          // only pause *between* swipes, not after the last one
+          if (i < swipes - 1) await pause(PAUSE);
         }
+        return true;
+      }
+
       };
     });
   })();
