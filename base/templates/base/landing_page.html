@@ -969,17 +969,9 @@
         void overlayText.offsetWidth;
         overlayText.classList.add('is-visible');
 
-        // Show Tinder section again with fade-in
-        form.setAttribute('hidden',''); 
-        form.setAttribute('aria-hidden','true');
-        tinder.removeAttribute('hidden');
-        tinder.removeAttribute('aria-hidden');
-        tinder.classList.add('is-fading-in');
+        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
+        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
         measure();
-
-        // let fade animation play before continuing
-        await pause(600);
-        tinder.classList.remove('is-fading-in');
 
         /* 2️⃣ Play Tinder demo */
         const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
