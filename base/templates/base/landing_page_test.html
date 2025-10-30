@@ -846,7 +846,15 @@
         deck.appendChild(top);
         setStack();
 
+        // 5️⃣ update overlay text AFTER swipe finishes
+        if (stepIndex === 0) {
+          showOverlayText('Swipe left to dismiss');
+        } else if (stepIndex === 1) {
+          // after second card swiped, before yellow card appears
+          showOverlayText('Swipe right to apply');
+        }
 
+        swipeIndex++;
       };
 
       setStack();
@@ -897,7 +905,8 @@
       const tinder = document.querySelector('.tinder-section');
       const deck   = document.querySelector('.tinder-deck');
       const form   = document.querySelector('.ai-demo');
-
+      const overlayText = document.querySelector('.demo-overlay__text');
+      if (!stage || !tinder || !form || !deck) return;
 
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
 
