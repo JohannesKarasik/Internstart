@@ -298,16 +298,24 @@
   }
   .hero__copy{ max-width: var(--hero-copy-max); }
   .hero__title{
-    font-size: clamp(48px, 5.4vw, 72px);
-    line-height: 1.08;
+    font-size: clamp(56px, 6.4vw, 86px); /* was 48–72px */
+    line-height: 1.05;
     letter-spacing: -0.3px;
     font-weight: 800;
     margin: 0;
   }
   .hero__title .accent{ background-color:#FF2F5A; -webkit-background-clip:text; background-clip:text; color:transparent; }
   .hero__title .accent::after{ content:none; }
-  .hero__subhead{ margin-top:28px; font-size:18px; line-height:1.55; color:var(--muted); max-width:58ch; }
-  .hero__ctas{ margin-top:24px; display:flex; gap:18px; }
+  
+  .hero__subhead {
+  margin-top: 32px;
+  font-size: clamp(20px, 2vw, 24px); /* was 18px */
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.hero__ctas{ margin-top:24px; display:flex; gap:18px; }
 
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
