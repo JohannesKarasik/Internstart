@@ -860,16 +860,17 @@
       const direction = (stepIndex < totalSteps - 1) ? 'left' : 'right';
       const pressBtn  = direction === 'right' ? btnApply : btnDismiss;
 
-      // ✅ Show explainer immediately as swipe starts
-      if (direction === 'left') {
-        setDeckSide('left');
-        showOverlayText('Swipe left to dismiss');
-      } else {
+      // ✅ When the yellow card becomes visible (after 2nd swipe), switch overlay to “Swipe right to apply”
+      if (stepIndex === 1) { // after the 2nd swipe (0-based)
         setDeckSide('right');
         showOverlayText('Swipe right to apply');
+      } else if (stepIndex < 1) {
+        // For the first card(s), show “Swipe left to dismiss”
+        setDeckSide('left');
+        showOverlayText('Swipe left to dismiss');
       }
 
-      // Simulate the button press
+      // Simulate button press
       if (pressBtn){
         pressBtn.classList.add('is-pressed');
         pressBtn.setAttribute('aria-pressed','true');
@@ -878,18 +879,19 @@
         pressBtn.removeAttribute('aria-pressed');
       }
 
-      // Begin swipe animation
+      // Start swipe animation
       top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
 
       // Wait until animation finishes before restacking
       await new Promise(res => top.addEventListener('animationend', res, { once: true }));
 
-      // Move card to back
+      // Move card to back and restack
       top.classList.remove('swipe-left','swipe-right','is-top');
       top.style.opacity = '0';
       deck.appendChild(top);
       setStack();
     };
+
 
   
       setStack();
