@@ -628,81 +628,93 @@
 </script>
 
 <script>
-/* =========================
-   B) Tinder controller (TinderDemo)
-========================= */
-(() => {
-  const ready = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
-
-  ready(() => {
-    const section = document.querySelector('.tinder-section');
-    const deck    = document.querySelector('.tinder-deck');
-    if (!deck || !section) return;
-
-    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const PAUSE = 1600, PRESS = 220;
-    let swipeRightNext = false;
-
-    const setStack = () => {
-      const cards = [...deck.querySelectorAll('.card')];
-      cards.forEach(c => c.classList.remove('is-top','is-next'));
-      cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
-      if (cards[0]) cards[0].classList.add('is-top');
-      if (cards[1]) cards[1].classList.add('is-next');
-    };
-
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
-
-    const swipeOnce = async () => {
-      const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-      if (!top) return;
-
-      const btnDismiss = top.querySelector('.action--dismiss');
-      const btnApply   = top.querySelector('.action--apply');
-      const pressBtn   = swipeRightNext ? btnApply : btnDismiss;
-      if (pressBtn){
-        pressBtn.classList.add('is-pressed');
-        pressBtn.setAttribute('aria-pressed','true');
-        await pause(PRESS);
-        pressBtn.classList.remove('is-pressed');
-        pressBtn.removeAttribute('aria-pressed');
-      }
-
-      top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
-      await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-      top.classList.remove('swipe-left','swipe-right','is-top');
-      top.style.opacity = '0';
-      deck.appendChild(top);
+  /* =========================
+     B) Tinder controller (TinderDemo)
+  ========================= */
+  (() => {
+    const ready = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    ready(() => {
+      const section = document.querySelector('.tinder-section');
+      const deck    = document.querySelector('.tinder-deck');
+      if (!deck || !section) return;
+  
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const PAUSE = 1600, PRESS = 220;
+      let swipeRightNext = false;
+  
+      const setStack = () => {
+        const cards = [...deck.querySelectorAll('.card')];
+        cards.forEach(c => c.classList.remove('is-top','is-next'));
+        cards.forEach((c, i) => c.style.zIndex = String(cards.length - i));
+        if (cards[0]) cards[0].classList.add('is-top');
+        if (cards[1]) cards[1].classList.add('is-next');
+      };
+  
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      const swipeOnce = async () => {
+        const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+        if (!top) return;
+  
+        const btnDismiss = top.querySelector('.action--dismiss');
+        const btnApply   = top.querySelector('.action--apply');
+        const pressBtn   = swipeRightNext ? btnApply : btnDismiss;
+  
+        if (pressBtn){
+          pressBtn.classList.add('is-pressed');
+          pressBtn.setAttribute('aria-pressed','true');
+          await pause(PRESS);
+          pressBtn.classList.remove('is-pressed');
+          pressBtn.removeAttribute('aria-pressed');
+        }
+  
+        top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
+        await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+  
+        top.classList.remove('swipe-left','swipe-right','is-top');
+        top.style.opacity = '0';
+        deck.appendChild(top);
+        setStack();
+        swipeRightNext = !swipeRightNext;
+      };
+  
       setStack();
-      swipeRightNext = !swipeRightNext;
-    };
-
-    setStack();
-
+  
+      // ✅ FIXED VERSION — restores .setVisible() and keeps startup delay
       window.TinderDemo = {
-    play: async (swipes = 3) => {
-      if (prefersReduced) return true;
-      window.TinderDemo.setVisible(true);
-      setStack();
-
-      // 🌟 NEW: wait a bit before first swipe (for visibility)
-      await pause(1800);
-
-      for (let i = 0; i < swipes; i++) {
-        await swipeOnce();
-        await pause(PAUSE);
-      }
-      return true;
-    }
-  };
-
-  });
-})();
-</script>
-
+        count: () => deck.querySelectorAll('.card').length,
+        setVisible: (show) => {
+          if (show) {
+            section.removeAttribute('hidden');
+            section.removeAttribute('aria-hidden');
+          } else {
+            section.setAttribute('hidden','');
+            section.setAttribute('aria-hidden','true');
+          }
+        },
+        play: async (swipes = 3) => {
+          if (prefersReduced) return true;
+          window.TinderDemo.setVisible(true);
+          setStack();
+  
+          // 🌟 Wait a moment before first swipe (lets pink card show clearly)
+          await pause(1800);
+  
+          for (let i = 0; i < swipes; i++) {
+            await swipeOnce();
+            await pause(PAUSE);
+          }
+          return true;
+        }
+      };
+    });
+  })();
+  </script>
+  
 <script>
 /* =========================
    C) ORCHESTRATOR — plays Tinder → Form in the same spot, loops
