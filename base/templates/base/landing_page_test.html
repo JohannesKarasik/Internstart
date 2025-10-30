@@ -31,6 +31,9 @@
 
   <!-- ONE stage in the hero: Tinder on top, Form underneath (same place) -->
   <div class="demo-stage">
+    <div class="demo-overlay" aria-live="polite">
+      <span class="demo-overlay__text">Swipe left to dismiss</span>
+    </div>
     <!-- Tinder-style Swipe Demo -->
     <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
       <div class="tinder-deck" data-autoplay="true">
@@ -441,6 +444,42 @@
   .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
   .footer__links{ margin-bottom:28px; }
   .footer__legal{ font-size:14px; color:#777; }
+
+
+/* ---------- Overlay instructional text ---------- */
+.demo-overlay {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+  font-family: var(--font);
+}
+
+.demo-overlay__text {
+  display: inline-block;
+  background: rgba(17,17,17,0.75);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.demo-overlay__text.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
 </style>
 
 <script>
@@ -693,6 +732,13 @@
     const direction = (swipeIndex < 2) ? 'left' : 'right';
     const pressBtn  = (direction === 'right') ? btnApply : btnDismiss;
 
+    if (swipeIndex < 2) {
+      showOverlayText('Swipe left to dismiss');
+    } else if (swipeIndex === 2) {
+      showOverlayText('Swipe right to apply');
+    }
+
+
     if (pressBtn){
       pressBtn.classList.add('is-pressed');
       pressBtn.setAttribute('aria-pressed','true');
@@ -709,6 +755,16 @@
     top.style.opacity = '0';
     deck.appendChild(top);
     setStack();
+
+    const overlayText = document.querySelector('.demo-overlay__text');
+    const showOverlayText = (text) => {
+      if (!overlayText) return;
+      overlayText.textContent = text;
+      overlayText.classList.remove('is-visible');
+      void overlayText.offsetWidth; // trigger reflow
+      overlayText.classList.add('is-visible');
+    };
+
 
     swipeIndex++;
     if (swipeIndex >= 3) swipeIndex = 0; // reset after 3 cards
@@ -812,6 +868,14 @@
         form.removeAttribute('hidden');
         form.removeAttribute('aria-hidden');
         measure();
+
+        const overlayText = document.querySelector('.demo-overlay__text');
+          if (overlayText) {
+            overlayText.textContent = 'AI automatically applies for you on the company’s website';
+            overlayText.classList.add('is-visible');
+          }
+
+
         await window.AIDemo?.runOnce?.();   // start form animation right away
         await pause(400);
 
