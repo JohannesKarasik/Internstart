@@ -234,6 +234,25 @@
         <div class="ai-field__check" aria-hidden="true">✓</div>
       </div>
 
+      <div class="ai-field ai-field--file">
+        <label for="ai-resume">{% trans "Resume" %}</label>
+        <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
+        
+        <div class="ai-file">
+          <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
+          <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">
+            {% trans "No file selected" %}
+          </span>
+        </div>
+      
+        <div class="ai-upload" aria-hidden="true">
+          <div class="ai-upload__bar"></div>
+        </div>
+      
+        <div class="ai-field__check" aria-hidden="true">✓</div>
+      </div>
+      
+
       <div class="ai-field ai-field--textarea">
         <label for="ai-cover">{% trans "Short cover note" %}</label>
         <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
@@ -748,6 +767,40 @@ html[lang="da"] .hero__subhead {
   margin-top: 12px; font-size: 13px; color:#6b7280;
 }
 
+/* ---- Resume / file attach ---- */
+.ai-field--file .ai-file{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.ai-file__btn{
+  height: 36px; padding: 0 14px; border-radius: 10px;
+  background:#fff; border:1.5px solid #e5e7eb; color:#111; font-weight:700; font-size:13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.ai-file__btn:hover{ background:#f8fafc; transform: translateY(-1px); }
+.ai-file__btn.is-pressed{
+  transform: scale(.97);
+  background:#ECFDF5; border-color:#A7F3D0; color:#059669;
+  box-shadow: inset 0 2px 0 rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.06);
+}
+
+.ai-file__name{
+  flex:1; text-align:right; font-size:13px; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.ai-upload{
+  --up: 0%;
+  height:6px; border-radius:999px; background:#eef2f7; overflow:hidden; margin-top:8px;
+  opacity:0; transition: opacity .2s ease;
+}
+.ai-upload.is-visible{ opacity:1; }
+.ai-upload__bar{
+  width: var(--up); height:100%;
+  background: linear-gradient(90deg,#10B981,#3B82F6);
+  transition: width .08s linear; /* snappy while “uploading” */
+}
+
+
 /* Reduced Motion: keep UI but skip key animations */
 @media (prefers-reduced-motion: reduce){
   .ai-demo__bar::after{ transition: none !important; }
@@ -1037,64 +1090,72 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   
     onReady(() => {
-      const root      = document.querySelector('.ai-demo');
+      const root = document.querySelector('.ai-demo');
       if (!root) return;
   
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
   
+      // ---- fields ----
       const fields = {
         name:      document.getElementById('ai-name'),
         email:     document.getElementById('ai-email'),
         uni:       document.getElementById('ai-uni'),
         degree:    document.getElementById('ai-degree'),
         portfolio: document.getElementById('ai-portfolio'),
+        resume:    document.getElementById('ai-resume'),                 // NEW
         cover:     document.getElementById('ai-cover'),
         consent:   document.getElementById('ai-consent'),
       };
+      const resumeBtn  = root.querySelector('.ai-file__btn');
+      const resumeName = root.querySelector('.ai-file__name');
+      const uploadWrap = root.querySelector('.ai-upload');
+      const uploadBar  = root.querySelector('.ai-upload__bar');
   
       const fieldWrap = (el) => el?.closest('.ai-field');
   
+      // ---- UI bits ----
       const progressBar = root.querySelector('.ai-demo__bar');
       const progressPct = root.querySelector('.ai-demo__pct');
       const statusText  = root.querySelector('#ai-status');
       const btnSubmit   = root.querySelector('.ai-submit');
       const btnReplay   = root.querySelector('.ai-replay');
   
-      // Scripted content
+      // ---- Scripted content ----
+      // Resume gets a synthetic "weight" so the global progress feels right.
+      const RESUME_WEIGHT = prefersReduced ? 1 : 60;
+  
       const steps = [
         { el: fields.name,      text: 'Ava Jensen' },
         { el: fields.email,     text: 'ava.jensen@uni.dk' },
         { el: fields.uni,       text: 'Copenhagen Business School (CBS)' },
         { el: fields.degree,    text: 'BSc International Business, 2026' },
         { el: fields.portfolio, text: 'https://ava.work' },
+        { el: fields.resume,    upload: true, focusEl: resumeBtn }, // NEW: special step
         { el: fields.cover,     text:
           "I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one."
         },
         { el: fields.consent,   check: true }
       ];
   
-      const totalChars = steps.reduce((n,s) => n + (s.text ? s.text.length : 0), 0) || 1;
+      // total “units” for progress: characters typed + synthetic resume weight
+      const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
       let typedChars   = 0, isRunning = false;
   
       const setProgress = (val) => {
-        const pct = Math.min(100, Math.round(val));
+        const pct = Math.min(100, Math.max(0, Math.round(val)));
         progressBar.style.setProperty('--pct', pct + '%');
         progressPct.textContent = pct + '%';
       };
   
       const typeInto = (el, text, speed = 22) => new Promise((resolve) => {
-        // For reduced motion, dump instantly.
-        if (prefersReduced) {
-          el.value = text;
-          resolve();
-          return;
-        }
+        if (prefersReduced) { el.value = text; resolve(); return; }
         let i = 0;
         el.value = '';
         const tick = () => {
           if (i > text.length) return resolve();
           el.value = text.slice(0, i);
-          typedChars += (i === 0 ? 0 : 1);
+          if (i > 0) typedChars += 1;
           setProgress((typedChars / totalChars) * 100);
           i++;
           setTimeout(tick, speed + Math.random() * 18);
@@ -1109,54 +1170,112 @@ document.addEventListener("DOMContentLoaded", () => {
       };
   
       const focusField = (el) => {
-        const wrap = fieldWrap(el);
+        const wrap = fieldWrap(el) || el?.closest?.('.ai-field');
         root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
         wrap?.classList.add('is-active');
-        el?.focus();
-        el?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+        (el || wrap)?.focus?.();
+        wrap?.scrollIntoView?.({ block: 'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+      };
+  
+      // ---- Resume attach animation ----
+      const attachResume = async () => {
+        const DURATION = prefersReduced ? 40 : 1200;
+        const FILE_NAME = 'Ava_Jensen_Resume.pdf';
+        let consumed = 0; // progress units consumed for resume step (0..RESUME_WEIGHT)
+  
+        // Status + press animation on the button
+        statusText.textContent = "{% trans 'Attaching resume…' %}";
+        if (resumeBtn) {
+          resumeBtn.classList.add('is-pressed');
+          await pause(200);
+          resumeBtn.classList.remove('is-pressed');
+        }
+  
+        // Show upload bar and animate 0 → 100%
+        uploadWrap?.classList.add('is-visible');
+        uploadBar?.style.setProperty('--up', '0%');
+  
+        await new Promise((resolve) => {
+          const start = performance.now();
+          const tick = (now) => {
+            const t = Math.min(1, (now - start) / DURATION);
+            const pct = Math.round(t * 100);
+            uploadBar?.style.setProperty('--up', pct + '%');
+  
+            // feed into global progress
+            const units = Math.round(RESUME_WEIGHT * t);
+            const diff  = units - consumed;
+            if (diff > 0) {
+              typedChars += diff;
+              consumed += diff;
+              setProgress((typedChars / totalChars) * 100);
+            }
+  
+            if (t < 1) requestAnimationFrame(tick);
+            else resolve();
+          };
+          requestAnimationFrame(tick);
+        });
+  
+        // Finalize UI
+        if (resumeName) resumeName.textContent = FILE_NAME;
+        uploadWrap?.classList.remove('is-visible');
+        statusText.textContent = "{% trans 'Resume attached.' %}";
       };
   
       const run = async () => {
         if (isRunning) return;
         isRunning = true;
   
-        // Reset UI
+        // reset UI
         Object.values(fields).forEach((el) => {
           if (!el) return;
           if (el.type === 'checkbox') el.checked = false;
           else el.value = '';
           const wrap = fieldWrap(el);
-          wrap?.classList.remove('is-active', 'is-done');
+          wrap?.classList.remove('is-active','is-done');
         });
+        // reset resume chip/progress
+        resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
+        uploadWrap?.classList.remove('is-visible');
+        uploadBar?.style.setProperty('--up', '0%');
+  
         btnSubmit.disabled = true;
         typedChars = 0; setProgress(0);
         statusText.textContent = "{% trans 'AI is preparing your application…' %}";
   
-        // Walk through steps
+        // walk through steps
         for (const step of steps) {
           if (!step.el) continue;
-          focusField(step.el);
-          statusText.textContent = "{% trans 'Filling' %} " + (step.el.labels?.[0]?.innerText || '') + "…";
+  
+          const focusEl = step.focusEl || step.el;
+          focusField(focusEl);
   
           if (step.check) {
             // consent checkbox
             if (prefersReduced) {
               step.el.checked = true;
             } else {
-              // tiny delay to feel intentional
-              await new Promise(r => setTimeout(r, 300));
+              await pause(300);
               step.el.checked = true;
-              await new Promise(r => setTimeout(r, 200));
+              await pause(200);
             }
             checkField(step.el);
             continue;
           }
   
+          if (step.upload) {
+            await attachResume();
+            checkField(step.el);
+            // tiny beat after attaching
+            await pause(prefersReduced ? 40 : 180);
+            continue;
+          }
+  
+          statusText.textContent = "{% trans 'Filling' %} " + (step.el.labels?.[0]?.innerText || '') + "…";
           await typeInto(step.el, step.text);
           checkField(step.el);
-  
-          // small pause between fields
-          await new Promise(r => setTimeout(r, prefersReduced ? 40 : 180));
+          await pause(prefersReduced ? 40 : 180);
         }
   
         setProgress(100);
@@ -1175,15 +1294,16 @@ document.addEventListener("DOMContentLoaded", () => {
       };
   
       btnReplay?.addEventListener('click', run);
+  
       // Auto-start once when in view
-      const startOnce = () => { run(); observer.disconnect(); };
       const observer = new IntersectionObserver((entries) => {
-        if (entries.some(e => e.isIntersecting)) startOnce();
+        if (entries.some(e => e.isIntersecting)) { run(); observer.disconnect(); }
       }, { threshold: .35 });
       observer.observe(root);
     });
   })();
   </script>
+  
   
   <script>
     (function(){
