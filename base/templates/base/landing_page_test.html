@@ -735,44 +735,32 @@
   
       // swipe a specific step; last step = right, others = left
       const swipeOnce = async (stepIndex, totalSteps) => {
-      const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-      if (!top) return;
-
-      const btnDismiss = top.querySelector('.action--dismiss');
-      const btnApply   = top.querySelector('.action--apply');
-
-      const isLast   = (stepIndex === totalSteps - 1);
-      const direction = isLast ? 'right' : 'left';
-
-      // ⏩ EARLY overlay update — show text for the *next* card before swipe starts
-      const isNextLast = (stepIndex === totalSteps - 2); // second-to-last swipe
-      if (isNextLast) {
-        // show "Swipe right to apply" as soon as the 3rd card becomes visible
-        showOverlayText('Swipe right to apply');
-      } else {
+        const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+        if (!top) return;
+  
+        const btnDismiss = top.querySelector('.action--dismiss');
+        const btnApply   = top.querySelector('.action--apply');
+  
+        const isLast   = (stepIndex === totalSteps - 1);
+        const direction = isLast ? 'right' : 'left';
         showOverlayText(isLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
-      }
-
-      const pressBtn = isLast ? btnApply : btnDismiss;
-      if (pressBtn) {
-        pressBtn.classList.add('is-pressed');
-        pressBtn.setAttribute('aria-pressed','true');
-        await pause(PRESS);
-        pressBtn.classList.remove('is-pressed');
-        pressBtn.removeAttribute('aria-pressed');
-      }
-
-      // Trigger swipe animation
-      top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
-      await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-
-      // Move to back and rebuild stack
-      top.classList.remove('swipe-left','swipe-right','is-top');
-      top.style.opacity = '0';
-      deck.appendChild(top);
-      setStack();
-    };
-
+  
+        const pressBtn  = isLast ? btnApply : btnDismiss;
+        if (pressBtn){
+          pressBtn.classList.add('is-pressed');
+          pressBtn.setAttribute('aria-pressed','true');
+          await pause(PRESS);
+          pressBtn.classList.remove('is-pressed');
+          pressBtn.removeAttribute('aria-pressed');
+        }
+  
+        top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
+        await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+  
+        top.classList.remove('swipe-left','swipe-right','is-top');
+        top.style.opacity = '0';
+        deck.appendChild(top);
+        setStack();
 
         // 🪄 NEW: show correct overlay text as soon as the next card appears
         const nextTop = deck.querySelector('.card.is-top');
