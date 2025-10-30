@@ -288,17 +288,21 @@
   /* ---------- Hero ---------- */
   .hero {
   display: grid;
-  grid-template-columns: 3fr 1fr; /* 🧭 75% text | 25% phone */
-  column-gap: 0 !important;
+  grid-template-columns: 3fr 1fr; /* text = 75%, phone = 25% */
   align-items: center;
+  column-gap: 0 !important;
   min-height: 80vh;
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 24px var(--gutter-x) 0;
 }
 
-
-  .hero__copy{ max-width: var(--hero-copy-max); }
+/* Let the text breathe properly */
+.hero__copy {
+  max-width: none !important; /* remove 620px cap */
+  width: 100%;
+  padding-right: 4vw; /* small spacing before phone */
+}
   .hero__title{
     font-size: clamp(60px, 6.8vw, 96px) !important; /* balanced and hero-like */
     line-height: 1.05;
