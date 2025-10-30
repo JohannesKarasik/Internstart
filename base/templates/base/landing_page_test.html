@@ -31,6 +31,19 @@
       </a>
       <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">{% trans "Login" %}</a>
     </div>
+
+    <div class="hero__rating"
+     aria-label="{% blocktrans %}Rated 4.8 out of 5 from 327 reviews{% endblocktrans %}">
+  <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
+  <span class="rating__text">
+    <strong>4.8</strong>
+    <span class="muted">{% trans "out of" %} 5</span>
+    <span class="dot" aria-hidden="true">•</span>
+    <span class="muted">327 {% trans "reviews" %}</span>
+  </span>
+</div>
+
+
   </div>
 
   <!-- Phone-shaped TikTok carousel -->
@@ -862,6 +875,75 @@
   .hero__phone{ --phone-w: 88vw; border-radius: 22px; }
   .hero__phone .sp__rail{ border-radius: 20px; }
 }
+
+/* ---------- Hero rating pill ---------- */
+.hero__rating{
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #eceef2;
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  color: var(--text);
+  user-select: none;
+}
+
+.hero__rating .rating__text{
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+}
+.hero__rating .rating__text .muted{ color: var(--muted); font-weight: 600; }
+.hero__rating .rating__text .dot{ color: #c6cbd2; margin: 0 .25rem; }
+
+/* Stars with partial fill using CSS only */
+.rating__stars{
+  --star-on: #FFB545;     /* gold */
+  --star-off: #E5E7EB;    /* light grey */
+  --size: 18px;
+  --spacing: 3px;
+  --p: calc((var(--rating) / 5) * 100%);
+
+  position: relative;
+  display: inline-block;
+  font-size: var(--size);
+  line-height: 1;
+  letter-spacing: var(--spacing);
+  font-weight: 900;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+               Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* grey stars (base) */
+.rating__stars::before{
+  content: "★★★★★";
+  color: var(--star-off);
+}
+
+/* gold overlay clipped to the percentage width */
+.rating__stars::after{
+  content: "★★★★★";
+  color: var(--star-on);
+  position: absolute;
+  inset: 0;
+  width: var(--p);
+  overflow: hidden;
+}
+
+/* small screens: keep it tidy */
+@media (max-width: 600px){
+  .hero__rating{
+    padding: 6px 10px;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  }
+  .rating__stars{ --size: 16px; --spacing: 2px; }
+  .hero__rating .rating__text{ font-size: 13px; }
+}
+
 
 </style>
 
