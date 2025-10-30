@@ -1110,6 +1110,13 @@ html[lang="da"] .hero__subhead {
   }
 </style>
 
+<style>
+  /* Fade-out + hide */
+  .ai-demo__window{ transition: opacity .35s ease, transform .35s ease; }
+  .ai-demo__window.is-fading{ opacity: 0; transform: translateY(8px) scale(.98); }
+  .ai-demo[hidden]{ display: none !important; }
+</style>
+
   
 
 <script>
@@ -1319,6 +1326,21 @@ document.addEventListener("DOMContentLoaded", () => {
         clearSuccessVisuals();
       };
   
+      // NEW: fade the form card out, then hide the whole demo
+      let hasFaded = false;
+      const fadeOutAndHide = async (delay = 1100) => {
+        if (hasFaded) return;
+        hasFaded = true;
+  
+        if (prefersReduced) { root.setAttribute('hidden',''); return; }
+  
+        await pause(delay);                // let the checkmark / overlay breathe
+        winEl.classList.add('is-fading');  // triggers CSS transition
+  
+        await new Promise(res => winEl.addEventListener('transitionend', res, { once: true }));
+        root.setAttribute('hidden','');    // fully remove from layout
+      };
+  
       const autoPressAndCelebrate = async () => {
         // simulate button press, then show in-card success
         btnSubmit.classList.add('is-pressed');
@@ -1327,13 +1349,21 @@ document.addEventListener("DOMContentLoaded", () => {
         statusText.textContent = "{% trans 'Submitting…' %}";
         await pause(prefersReduced ? 120 : 600);
         showSuccess();
+  
+        // NEW: after success, fade out & hide
+        await fadeOutAndHide(prefersReduced ? 0 : 1100);
       };
   
       // Allow manual “Apply now” click to show scoped success too
       btnSubmit.addEventListener('click', () => {
         if (!btnSubmit.disabled) showSuccess();
       });
-      success.ok?.addEventListener('click', hideSuccess);
+  
+      // NEW: if user clicks “Nice!”, fade immediately
+      success.ok?.addEventListener('click', async () => {
+        hideSuccess();
+        await fadeOutAndHide(0);
+      });
   
       // ---- Scripted content ----
       const RESUME_WEIGHT = prefersReduced ? 1 : 60;
@@ -1425,6 +1455,9 @@ document.addEventListener("DOMContentLoaded", () => {
   
         // reset visual states
         hideSuccess();
+        hasFaded = false;
+        winEl.classList.remove('is-fading');
+        root.removeAttribute('hidden');
   
         // reset fields
         Object.values(fields).forEach((el) => {
@@ -1479,7 +1512,7 @@ document.addEventListener("DOMContentLoaded", () => {
           );
         }
   
-        // Auto-press and celebrate (scoped)
+        // Auto-press and celebrate (scoped) -> then fade out & hide
         await autoPressAndCelebrate();
   
         isRunning = false;
@@ -1495,6 +1528,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   })();
   </script>
+  
   
   
   <script>
