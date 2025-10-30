@@ -1279,9 +1279,9 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!deck) return;
     
           const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          const PAUSE_BETWEEN_SWIPES = 2000;   // keep your slower beat
-          const PRESS_DURATION       = 620;    // button press cue (ms)
-          const DELAY_BEFORE_SWIPE   = 800;    // extra gap after the press (NEW)
+          const PAUSE_BETWEEN_SWIPES = 1600;   // keep your slower beat
+          const PRESS_DURATION       = 220;    // button press cue (ms)
+          const DELAY_BEFORE_SWIPE   = 450;    // MORE time after press before swipe (was 200)
           let swipeRightNext = false;          // left first, then right, alternate
           let running = false;
     
@@ -1310,11 +1310,11 @@ document.addEventListener("DOMContentLoaded", () => {
               pressBtn.classList.remove('is-pressed');
               pressBtn.removeAttribute('aria-pressed');
     
-              // extra beat before the card starts moving (NEW)
+              // extra beat before the card starts moving
               await pause(DELAY_BEFORE_SWIPE);
             }
     
-            // 2) trigger the swipe with NO tilt (keyframes are pure translateX)
+            // 2) trigger the swipe (no tilt — keyframes are pure translateX)
             top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
     
             // 3) wait for swipe to finish
