@@ -1276,13 +1276,17 @@ document.addEventListener("DOMContentLoaded", () => {
     
         ready(() => {
           const deck = document.querySelector('.tinder-deck');
-          if (!deck) return;
+          if (!deck || deck.dataset.swipeInit === '1') return; // prevent double init
+          deck.dataset.swipeInit = '1';
     
           const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          const PAUSE_BETWEEN_SWIPES = 1600;   // keep your slower beat
-          const PRESS_DURATION       = 220;    // button press cue (ms)
-          const DELAY_BEFORE_SWIPE   = 450;    // MORE time after press before swipe (was 200)
-          let swipeRightNext = false;          // left first, then right, alternate
+    
+          // timings
+          const PAUSE_BETWEEN_SWIPES = 2000;  // beat between completed swipes
+          const PRESS_DURATION       = 220;   // visual press cue
+          const DELAY_BEFORE_SWIPE   = 900;   // << longer pause after press before swipe
+    
+          let swipeRightNext = false;         // left first, then right, alternate
           let running = false;
     
           const setStack = () => {
@@ -1310,11 +1314,11 @@ document.addEventListener("DOMContentLoaded", () => {
               pressBtn.classList.remove('is-pressed');
               pressBtn.removeAttribute('aria-pressed');
     
-              // extra beat before the card starts moving
+              // longer wait before the card moves
               await pause(DELAY_BEFORE_SWIPE);
             }
     
-            // 2) trigger the swipe (no tilt — keyframes are pure translateX)
+            // 2) trigger the swipe (no tilt—CSS keyframes are translateX only)
             top.classList.add(swipeRightNext ? 'swipe-right' : 'swipe-left');
     
             // 3) wait for swipe to finish
@@ -1359,6 +1363,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       })();
     </script>
+    
     
 
 
