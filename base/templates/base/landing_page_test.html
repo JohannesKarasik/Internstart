@@ -174,8 +174,8 @@
 
     /* Cards */
     --card-w: clamp(360px, 30vw, 440px);
-    --card-h: 520px;
-    --card-pad: 24px;
+    --card-h: 600px;
+    --card-pad: 28px;
 
     /* Action buttons */
     --action-size: 48px;
@@ -256,8 +256,23 @@
     height:100%; padding:var(--card-pad);
     display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center;
   }
-  .card__info{ display:flex; flex-direction:column; align-items:center; margin-top:32px; }
-  .card__logo{ max-width:240px; max-height:160px; margin-bottom:16px; }
+
+  .card__info{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:40px;
+  flex:1 0 auto;
+} 
+ .card__logo{
+  width:auto;
+  height:auto;
+  max-width:240px;
+  max-height:140px;
+  object-fit:contain;
+  object-position:center;
+  margin-bottom:22px;
+}
   .card__role{ font-size:18px; font-weight:600; color:#4b5563; margin:8px 0 6px; }
   .card__company{ font-size:22px; font-weight:800; color:#2F4858; margin:2px 0; }
   .card__meta{ font-size:15px; color:var(--meta); margin:6px 0 0; }
@@ -280,6 +295,11 @@
     opacity:0; pointer-events:none;
     transition: transform .6s ease, opacity .35s ease, filter .35s ease;
   }
+
+  .tinder-deck .card__actions{
+  margin-top:auto;
+  padding-bottom:32px;
+}
   
   .tinder-deck .card.is-top{
   opacity:1;
@@ -310,7 +330,7 @@
 
   .tinder-deck .card__actions{ display:flex; gap:var(--action-gap); justify-content:center; margin-top:auto; padding-bottom:22px; }
   .tinder-deck .action{
-    height:44px; min-width:116px; padding:0 16px; border-radius:999px;
+    height:48px; min-width:116px; padding:0 16px; border-radius:999px;
     background:#fff; border:1.5px solid #e5e7eb; box-shadow:0 2px 6px rgba(0,0,0,.12);
     font-weight:800; font-size:14px; letter-spacing:.2px; color:#111;
     cursor:default; transition: transform .15s ease, background .15s ease, border-color .15s ease;
