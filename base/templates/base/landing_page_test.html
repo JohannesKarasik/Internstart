@@ -877,9 +877,8 @@
 }
 
 /* ---------- Hero rating pill ---------- */
-.hero__rating{
-  margin-top: 12px;
-  display: inline-flex;
+.hero__rating {
+  display: inline-flex;          /* already good */
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
@@ -889,6 +888,10 @@
   box-shadow: 0 4px 14px rgba(0,0,0,.06);
   color: var(--text);
   user-select: none;
+
+  /* 👇 critical fix */
+  width: fit-content;            /* makes it only as wide as its content */
+  max-width: 100%;               /* prevent overflow on small screens */
 }
 
 .hero__rating .rating__text{
