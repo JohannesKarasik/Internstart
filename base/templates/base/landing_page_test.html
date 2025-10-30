@@ -298,7 +298,7 @@
   }
   .hero__copy{ max-width: var(--hero-copy-max); }
   .hero__title{
-    font-size: clamp(56px, 6.4vw, 86px); /* was 48–72px */
+    font-size: clamp(56px, 6.4vw, 86px) !important; /* was 48–72px */
     line-height: 1.05;
     letter-spacing: -0.3px;
     font-weight: 800;
@@ -306,7 +306,7 @@
   }
   .hero__title .accent{ background-color:#FF2F5A; -webkit-background-clip:text; background-clip:text; color:transparent; }
   .hero__title .accent::after{ content:none; }
-  
+
   .hero__subhead {
   margin-top: 32px;
   font-size: clamp(20px, 2vw, 24px); /* was 18px */
