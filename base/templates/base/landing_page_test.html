@@ -966,48 +966,50 @@
 }
 
 /* Sticky wrapper pins to bottom of viewport while the hero is in view */
-.hero__sticky {
-  position: sticky;
-  bottom: max(20px, env(safe-area-inset-bottom));
-  display: flex;
-  justify-content: flex-start;
-  pointer-events: none;
-  z-index: 10;
-
-  /* 👇 NEW: anchor directly to hero__copy left edge */
-  width: 100%;
-  max-width: none;
-  margin-left: 0;
-  padding-left: 0;
-
-  /* This positions it relative to the hero__copy instead of grid */
-  grid-column: 1 / 2;
+/* Low-key sticky helper */
+.btn--sticky{
+  pointer-events:auto;
+  height:44px;                      /* smaller */
+  padding:0 14px;
+  border-radius:999px;
+  font-weight:700;                  /* down from 800 */
+  font-size:15px;                   /* smaller */
+  color:#475467;                    /* muted text */
+  background:rgba(255,255,255,.82); /* translucent white */
+  border:1px solid #E7E9EE;         /* soft outline */
+  box-shadow:0 4px 10px rgba(16,24,40,.06); /* subtle shadow */
+  display:inline-flex; align-items:center; gap:8px;
+  backdrop-filter:saturate(1.1) blur(4px);
+  -webkit-backdrop-filter:saturate(1.1) blur(4px);
+  transition:background .15s ease, color .15s ease, transform .12s ease, box-shadow .15s ease;
 }
 
-.hero__copy {
-  position: relative; /* 👈 add this if not already present */
+.btn--sticky .chev{
+  width:16px; height:16px;
+  opacity:.55;                      /* de-emphasize icon */
+  transform:rotate(180deg);
 }
 
-.hero__copy .hero__sticky {
-  position: sticky;
-  left: 0;
-  bottom: max(20px, env(safe-area-inset-bottom));
-  margin-top: 12px;
-  justify-content: flex-start;
-  pointer-events: none;
-  z-index: 5;
+/* hover/focus only nudges it—still secondary */
+.btn--sticky:hover,
+.btn--sticky:focus-visible{
+  background:#fff;
+  color:#374151;
+  box-shadow:0 6px 14px rgba(16,24,40,.08);
+  transform:translateY(-1px);
+  outline:none;
 }
 
-/* keep button clickable */
-.hero__copy .hero__sticky .btn--sticky {
-  pointer-events: auto;
+/* pressed */
+.btn--sticky:active{
+  transform:none;
+  box-shadow:0 3px 8px rgba(16,24,40,.06);
 }
 
-/* mobile still centered */
-@media (max-width: 768px) {
-  .hero__copy .hero__sticky {
-    justify-content: center;
-  }
+/* mobile: keep it compact */
+@media (max-width:768px){
+  .btn--sticky{ height:42px; font-size:14.5px; padding:0 12px; }
+  .btn--sticky .chev{ width:14px; height:14px; }
 }
 
 
