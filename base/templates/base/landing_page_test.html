@@ -230,22 +230,31 @@
   .btn--ghost:hover{ background:#efefef; }
 
   /* ---------- Stage (overlay container) ---------- */
-  .demo-stage{
-    position: relative;
-    width: min(100%, 560px);
-    margin: 18px 0 0;
-    min-height: var(--card-h);
-  }
+  .demo-stage {
+  position: relative;
+  display: flex;
+  align-items: center;      /* center vertically within right column */
+  justify-content: center;  /* center horizontally */
+  width: 100%;
+  height: 100%;
+  min-height: var(--card-h);
+  margin: 0;                /* remove the top margin */
+}
 
   .ai-demo{ --ai-w: 560px; --ai-pad: 18px; max-width: var(--ai-w); margin: 0; }
 
 
   .demo-stage .tinder-section,
-  .demo-stage .ai-demo{
-    position: absolute; inset: 0; margin: 0;
-  }
-  .demo-stage .tinder-section{ z-index: 2; }
-  .demo-stage .ai-demo{ z-index: 1; }
+.demo-stage .ai-demo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+.demo-stage .tinder-section { z-index: 2; }
+.demo-stage .ai-demo { z-index: 1; }
 
   /* ---------- Card base (neutral, no 3D rules) ---------- */
   .card{
