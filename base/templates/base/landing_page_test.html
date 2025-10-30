@@ -545,13 +545,13 @@
 /* next to the form (always on the right) */
 /* Over the form — centered above top border */
 .demo-overlay.is-form {
-  top: calc(50% - var(--ai-w)/2 - 20px);
+  position: absolute;
   left: 50%;
+  top: calc(50% - var(--card-h) / 2 - 28px); /* move above the top border */
   transform: translateX(-50%);
-  margin: 0;
+  width: 100%;
   text-align: center;
   max-width: 100%;
-  width: 100%;
   pointer-events: none;
 }
 
