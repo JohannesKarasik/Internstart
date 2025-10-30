@@ -1028,6 +1028,36 @@ html[lang="da"] .hero__subhead {
   resize: vertical;
 }
 
+/* --- Wider demo window --- */
+.ai-demo{
+  --ai-w: 760px; /* was 520px */
+}
+
+/* --- 2-column form layout --- */
+.ai-form{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;              /* row / column gap */
+  align-items: start;
+}
+
+/* Full-width rows */
+.ai-form .ai-field--textarea,
+.ai-form .ai-consent,
+.ai-form .ai-actions,
+.ai-form .ai-status{
+  grid-column: 1 / -1;
+}
+
+/* Keep buttons tidy if they wrap */
+.ai-actions{ flex-wrap: wrap; }
+
+/* Responsive: collapse to 1 column */
+@media (max-width: 820px){
+  .ai-demo{ --ai-w: 520px; }   /* back to comfy width on smaller screens */
+  .ai-form{ grid-template-columns: 1fr; }
+}
+
 
   </style>
   
