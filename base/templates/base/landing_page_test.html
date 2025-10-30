@@ -761,6 +761,15 @@
         top.style.opacity = '0';
         deck.appendChild(top);
         setStack();
+
+        // 🪄 NEW: show correct overlay text as soon as the next card appears
+        const nextTop = deck.querySelector('.card.is-top');
+        const nextIndex = [...deck.children].indexOf(nextTop);
+        const totalCards = deck.children.length;
+        const isNextLast = (nextIndex === totalCards - 1);
+        showOverlayText(isNextLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
+
+
       };
   
       setStack();
