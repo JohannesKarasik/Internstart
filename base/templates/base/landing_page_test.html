@@ -808,75 +808,104 @@
   /* =========================
      C) ORCHESTRATOR — plays Tinder → Form in the same spot, loops
   ========================= */
-  (() => {
-    const ready = (fn) =>
-      document.readyState === 'loading'
-        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-        : fn();
-  
-    ready(() => {
-      const stage  = document.querySelector('.demo-stage');
-      const tinder = document.querySelector('.tinder-section');
-      const form   = document.querySelector('.ai-demo');
-      if (!stage || !tinder || !form) return;
-  
-      // initial visibility
-      form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
-      tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
-  
-      // keep wrapper height stable
-      const measure = () => {
-        const tHidden = tinder.hasAttribute('hidden');
-        const fHidden = form.hasAttribute('hidden');
-        if (tHidden) tinder.removeAttribute('hidden');
-        if (fHidden) form.removeAttribute('hidden');
-        const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
-        stage.style.minHeight = h + 'px';
-        if (tHidden) tinder.setAttribute('hidden','');
-        if (fHidden) form.setAttribute('hidden','');
-      };
-      measure();
-      addEventListener('resize', measure);
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) measure(); });
-  
-      const pause = (ms) => new Promise(r => setTimeout(r, ms));
-  
-      (async function loop(){
-        // wait until stage is visible
-        await new Promise(res => {
-          const io = new IntersectionObserver((entries) => {
-            if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-          }, { threshold: 0.3 });
-          io.observe(stage);
-        });
-  
-        while (true) {
-          // 1) Cards on top
-          form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
-          tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
-          measure();
-  
-          const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
-          await window.TinderDemo?.play?.(swipes);
-  
-          // 2) Immediately show form after last swipe
-          tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
-          form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
-          measure();
-  
-          // Update overlay message for form phase
-          const overlayText = document.querySelector('.demo-overlay__text');
-          if (overlayText) {
-            overlayText.textContent = 'AI automatically applies for you on the company’s website';
-            overlayText.classList.add('is-visible');
-          }
-  
-          await window.AIDemo?.runOnce?.();   // form runs and hides itself at the end
-          await pause(400);                   // small breather between loops
-        }
-      })();
-    });
-  })();
+/* =========================
+   C) ORCHESTRATOR — plays Tinder → Form in the same spot, then fully resets
+========================= */
+(() => {
+  const ready = (fn) =>
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+      : fn();
+
+  ready(() => {
+    const stage  = document.querySelector('.demo-stage');
+    const tinder = document.querySelector('.tinder-section');
+    const deck   = document.querySelector('.tinder-deck');
+    const form   = document.querySelector('.ai-demo');
+    const overlayText = document.querySelector('.demo-overlay__text');
+    if (!stage || !tinder || !form || !deck) return;
+
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+    // keep wrapper height stable
+    const measure = () => {
+      const tHidden = tinder.hasAttribute('hidden');
+      const fHidden = form.hasAttribute('hidden');
+      if (tHidden) tinder.removeAttribute('hidden');
+      if (fHidden) form.removeAttribute('hidden');
+      const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
+      stage.style.minHeight = h + 'px';
+      if (tHidden) tinder.setAttribute('hidden','');
+      if (fHidden) form.setAttribute('hidden','');
+    };
+    measure();
+    addEventListener('resize', measure);
+
+    // 🔄 reset deck to initial card order/state
+    const resetDeck = () => {
+      const cards = [...deck.querySelectorAll('.card')];
+      // restore original HTML order (pink, blue, yellow)
+      cards.sort((a, b) => {
+        const order = ['card--pink', 'card--blue', 'card--yellow'];
+        return order.indexOf([...a.classList].find(c => order.includes(c))) -
+               order.indexOf([...b.classList].find(c => order.includes(c)));
+      });
+      // clear inline styles/classes
+      deck.innerHTML = '';
+      cards.forEach(c => {
+        c.style.opacity = '';
+        c.classList.remove('swipe-left','swipe-right','is-top','is-next');
+        deck.appendChild(c);
+      });
+      // rebuild stack
+      if (cards[0]) cards[0].classList.add('is-top');
+      if (cards[1]) cards[1].classList.add('is-next');
+    };
+
+    (async function loop(){
+      // wait until stage is visible
+      await new Promise(res => {
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+        }, { threshold: 0.3 });
+        io.observe(stage);
+      });
+
+      while (true) {
+        /* 1️⃣ Reset everything like a fresh page */
+        resetDeck();
+        overlayText.textContent = 'Swipe left to dismiss';
+        overlayText.classList.remove('is-visible');
+        void overlayText.offsetWidth;
+        overlayText.classList.add('is-visible');
+
+        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
+        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
+        measure();
+
+        /* 2️⃣ Play Tinder demo */
+        const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
+        await window.TinderDemo?.play?.(swipes);
+
+        /* 3️⃣ Show form phase */
+        tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
+        form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
+        measure();
+
+        overlayText.textContent = 'AI automatically applies for you on the company’s website';
+        overlayText.classList.add('is-visible');
+
+        await window.AIDemo?.runOnce?.();   // form animates and hides itself
+        await pause(800);
+
+        /* 4️⃣ Loop cleanly back to start */
+        resetDeck(); // restore original card order and visibility
+        await pause(800);
+      }
+    })();
+  });
+})();
+
   </script>
   
   
