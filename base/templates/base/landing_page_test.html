@@ -139,7 +139,6 @@
 
           <div class="ai-actions">
             <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
-            <button type="button" class="btn btn--ghost ai-replay">{% trans "Replay" %}</button>
           </div>
 
           <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
@@ -512,26 +511,46 @@
 
 .demo-overlay__text {
   display: inline-block;
-  background: rgba(17,17,17,0.85);
+  background: linear-gradient(90deg, #FF2F5A 0%, #FF5400 100%);
   color: #fff;
-  padding: 8px 20px;
+  padding: 10px 26px;
   border-radius: 999px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.2px;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 4px 14px rgba(255, 47, 90, 0.3),
+              0 2px 6px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   opacity: 0;
-  transform: translateY(-6px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(-6px) scale(0.98);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
+
 
 .demo-overlay__text.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
+
+.demo-overlay__text::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+  mix-blend-mode: overlay;
+  animation: shimmer 2.6s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
 
 
 </style>
