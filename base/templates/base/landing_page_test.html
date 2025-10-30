@@ -31,9 +31,7 @@
 
   <!-- ONE stage in the hero: Tinder on top, Form underneath (same place) -->
   <div class="demo-stage">
-    <div class="demo-overlay" aria-live="polite">
-      <span class="demo-overlay__text">Swipe left to dismiss</span>
-    </div>
+
 
     <!-- Tinder-style Swipe Demo -->
     <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
@@ -501,18 +499,7 @@
   .footer__legal{ font-size:14px; color:#777; }
 
 
-/* ---------- Overlay instructional text ---------- */
-.demo-overlay {
-  position: absolute;
-  top: -48px; /* move label above the card container */
-  left: 50%;
-  transform: translateX(-50%);
-  width: auto;
-  z-index: 20; /* above cards but outside the animation area */
-  pointer-events: none;
-  font-family: var(--font);
-  text-align: center;
-}
+
 
 .demo-overlay__text {
   display: inline-block;
@@ -551,10 +538,6 @@
   pointer-events: none;
 }
 
-@keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
-}
 
 .ai-chip{
   margin-left:10px;
@@ -818,15 +801,6 @@
       const stage   = document.querySelector('.demo-stage');
       if (!deck || !section || !stage) return;
 
-      // Overlay label
-      const overlayTextEl = document.querySelector('.demo-overlay__text');
-      const showOverlayText = (text) => {
-        if (!overlayTextEl) return;
-        overlayTextEl.textContent = text;
-        overlayTextEl.classList.remove('is-visible');
-        void overlayTextEl.offsetWidth; // reflow to restart transition
-        overlayTextEl.classList.add('is-visible');
-      };
 
       const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const PAUSE = 1600, PRESS = 220;
@@ -872,15 +846,7 @@
         deck.appendChild(top);
         setStack();
 
-        // 5️⃣ update overlay text AFTER swipe finishes
-        if (stepIndex === 0) {
-          showOverlayText('Swipe left to dismiss');
-        } else if (stepIndex === 1) {
-          // after second card swiped, before yellow card appears
-          showOverlayText('Swipe right to apply');
-        }
 
-        swipeIndex++;
       };
 
       setStack();
@@ -931,8 +897,7 @@
       const tinder = document.querySelector('.tinder-section');
       const deck   = document.querySelector('.tinder-deck');
       const form   = document.querySelector('.ai-demo');
-      const overlayText = document.querySelector('.demo-overlay__text');
-      if (!stage || !tinder || !form || !deck) return;
+
 
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
 
