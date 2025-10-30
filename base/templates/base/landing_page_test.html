@@ -736,44 +736,47 @@
   
       const pause = (ms) => new Promise(r => setTimeout(r, ms));
   
-      // swipe a specific step; last step = right, others = left
       const swipeOnce = async (stepIndex, totalSteps) => {
-        const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
-        if (!top) return;
-  
-        const btnDismiss = top.querySelector('.action--dismiss');
-        const btnApply   = top.querySelector('.action--apply');
-  
-        const isLast   = (stepIndex === totalSteps - 1);
-        const direction = isLast ? 'right' : 'left';
-        showOverlayText(isLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
-  
-        const pressBtn  = isLast ? btnApply : btnDismiss;
-        if (pressBtn){
-          pressBtn.classList.add('is-pressed');
-          pressBtn.setAttribute('aria-pressed','true');
-          await pause(PRESS);
-          pressBtn.classList.remove('is-pressed');
-          pressBtn.removeAttribute('aria-pressed');
-        }
-  
-        top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
-        await new Promise(res => top.addEventListener('animationend', res, { once: true }));
-  
-        top.classList.remove('swipe-left','swipe-right','is-top');
-        top.style.opacity = '0';
-        deck.appendChild(top);
-        setStack();
+      const top = deck.querySelector('.card.is-top') || deck.querySelector('.card');
+      if (!top) return;
 
-        // 🪄 NEW: show correct overlay text as soon as the next card appears
-        const nextTop = deck.querySelector('.card.is-top');
-        const nextIndex = [...deck.children].indexOf(nextTop);
-        const totalCards = deck.children.length;
-        const isNextLast = (nextIndex === totalCards - 1);
-        showOverlayText(isNextLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
+      const btnDismiss = top.querySelector('.action--dismiss');
+      const btnApply   = top.querySelector('.action--apply');
 
+      const isLast   = (stepIndex === totalSteps - 1);
+      const direction = isLast ? 'right' : 'left';
 
-      };
+      // 👇 Remove the early label change here
+      // (we’ll move it after the animation instead)
+
+      // simulate button press (visual only)
+      const pressBtn  = isLast ? btnApply : btnDismiss;
+      if (pressBtn){
+        pressBtn.classList.add('is-pressed');
+        pressBtn.setAttribute('aria-pressed','true');
+        await pause(PRESS);
+        pressBtn.classList.remove('is-pressed');
+        pressBtn.removeAttribute('aria-pressed');
+      }
+
+      // start swipe animation
+      top.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
+      await new Promise(res => top.addEventListener('animationend', res, { once: true }));
+
+      // move card to the back
+      top.classList.remove('swipe-left','swipe-right','is-top');
+      top.style.opacity = '0';
+      deck.appendChild(top);
+      setStack();
+
+      // 🪄 Label updates only *after* the new top card is visible
+      const nextTop = deck.querySelector('.card.is-top');
+      const nextIndex = [...deck.children].indexOf(nextTop);
+      const totalCards = deck.children.length;
+      const isNextLast = (nextIndex === totalCards - 1);
+      showOverlayText(isNextLast ? 'Swipe right to apply' : 'Swipe left to dismiss');
+    };
+
   
       setStack();
   
