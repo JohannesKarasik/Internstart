@@ -288,23 +288,25 @@
   /* ---------- Hero ---------- */
   .hero {
   display: grid;
-  grid-template-columns: 1.4fr 0.9fr; /* 60/40 → 65/35 */
+  grid-template-columns: 1.45fr 0.85fr; /* shift ratio ~63/37 */
   align-items: center;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 2vw 0 6vw; /* tighter right padding, stronger left anchor */
-  min-height: 85vh;
+  padding: 0 2vw 0 6vw; /* a little more room on left */
+  min-height: 80vh;
   column-gap: 0 !important;
 }
 
 .hero__copy {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-self: stretch;
-  max-width: 880px; /* allow text block to visually meet the phone */
+  max-width: 900px;
   width: 100%;
-  padding-right: 1vw; /* smaller gap */
+  padding-right: 1vw;
+  padding-top: 8vh; /* Moves text higher */
+
 }
 
 
@@ -814,6 +816,9 @@
   border-radius: 26px;
   background: #0b0b0b;
   box-shadow: 0 14px 38px rgba(0,0,0,.28);
+  align-self: center;
+  margin-top: 2vh; /* nudge down just a little */
+
 }
 
 /* Stronger specificity so it overrides any older .sp__rail rules */
