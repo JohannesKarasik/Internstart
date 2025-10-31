@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 <!-- Font (safe to include inside component; browsers dedupe) -->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
@@ -10,6 +11,7 @@
      APPLY DEMO — One continuous sequence:
      1) Upload resume ▶ 2) AI analyzes ▶ 3) Tinder deck ▶ 4) AI form
 ========================= -->
+
 <section class="social-proof" id="social-proof">
   <div class="sp__inner">
     <header class="sp__head">
@@ -26,521 +28,527 @@
       </p>
     </header>
 
-    <div class="demo-stage">
-      <!-- (Optional) floating explainer -->
-      <div class="demo-overlay" aria-live="polite">
-        <span class="demo-overlay__text" role="status" aria-atomic="true"></span>
-      </div>
+```
+<div class="demo-stage">
+  <!-- (Optional) floating explainer -->
+  <div class="demo-overlay" aria-live="polite">
+    <span class="demo-overlay__text" role="status" aria-atomic="true"></span>
+  </div>
 
-      <!-- ===== STEP 1: Upload Resume (centered) ===== -->
-      <div class="step step--resume" id="resumeStep" hidden>
-        <div class="resume-step__inner">
-          <h3 class="resume-step__title">
-            {% blocktrans %}First, you upload your resume{% endblocktrans %}
-          </h3>
+  <!-- ===== STEP 1: Upload Resume (centered) ===== -->
+  <div class="step step--resume" id="resumeStep" hidden>
+    <div class="resume-step__inner">
+      <h3 class="resume-step__title">
+        {% blocktrans %}First, you upload your resume{% endblocktrans %}
+      </h3>
 
-          <div class="rs" id="resumeDemo" role="group" aria-describedby="rs-live">
-            <!-- Centered Dropzone -->
-            <div class="rs-dropzone" aria-label="{% trans 'Upload your resume' %}">
-              <div class="rs-dropzone__icon" aria-hidden="true">⬆️</div>
-              <div class="rs-dropzone__text">
-                <strong>{% trans "Upload your resume" %}</strong>
-                <span class="rs-dropzone__hint">{% trans "Drag & drop or click to browse" %}</span>
-              </div>
-
-              <!-- Progress -->
-              <div class="rs-progress" aria-hidden="true">
-                <div class="rs-progress__bar"></div>
-                <span class="rs-progress__pct">0%</span>
-              </div>
-
-              <!-- Success -->
-              <div class="rs-done" aria-hidden="true">
-                <svg viewBox="0 0 52 52" class="rs-check">
-                  <circle cx="26" cy="26" r="24" class="ring"></circle>
-                  <path d="M16 27l7 7 13-13" class="mark"></path>
-                </svg>
-                <span>{% trans "Uploaded" %}</span>
-              </div>
-            </div>
-
-            <!-- Draggable file card (starts left of center) -->
-            <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
-              <div class="rs-file__tab"></div>
-              <div class="rs-file__icon" aria-hidden="true">📄</div>
-              <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
-            </figure>
-
-            <!-- Cursor -->
-            <div class="rs-cursor" aria-hidden="true">
-              <svg viewBox="0 0 24 24" class="rs-pointer">
-                <path d="M4 3l13 7.5-6.2 1.9 3.2 6.7-2.2 1-3.2-6.7L6 16.9 4 3z" fill="#111"/>
-              </svg>
-            </div>
-
-            <!-- Live announcements -->
-            <p id="rs-live" class="sr-only" aria-live="polite">{% trans "First you upload your resume" %}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== STEP 2: AI analyzes resume ===== -->
-      <div class="step step--analysis" id="analysisStep" hidden>
-        <div class="ra__inner">
-          <h3 class="ra__title">
-            {% blocktrans %}Next, AI analyzes your resume{% endblocktrans %}
-          </h3>
-
-          <div class="ra" id="raDemo" role="group" aria-describedby="ra-live">
-            <!-- Progress / status -->
-            <div class="ra-top">
-              <div class="ra-progress" aria-hidden="true">
-                <div class="ra-progress__bar"></div>
-                <span class="ra-progress__pct">0%</span>
-              </div>
-              <span class="ra-status" id="ra-live" aria-live="polite">
-                {% trans "Scanning document…" %}
-              </span>
-            </div>
-
-            <!-- Stage: resume preview + extracted fields -->
-            <div class="ra-stage">
-              <!-- Resume -->
-              <div class="ra-viewport" aria-label="{% trans 'Resume preview' %}">
-                <article class="ra-doc" role="document" aria-label="{% trans 'Resume' %}">
-                  <header class="ra-doc__head">
-                    <h2 id="ra-name">Ava Jensen</h2>
-                    <p class="ra-doc__meta">
-                      <span id="ra-email">ava.jensen@uni.dk</span> ·
-                      <span id="ra-phone">+45 12 34 56 78</span> ·
-                      <span id="ra-location">Copenhagen, DK</span>
-                    </p>
-                  </header>
-
-                  <section class="ra-sec">
-                    <h3>Experience</h3>
-                    <div id="ra-exp" class="ra-block">
-                      <h4>Investment Banking Intern — Goldman Sachs</h4>
-                      <p>Built DCFs and LBO models for live deals; prepared client-ready materials; supported due diligence and market comps.</p>
-                      <ul>
-                        <li>Modeled M&amp;A scenarios across 3 cases; presented takeaways to VP team.</li>
-                        <li>Automated comp pulls in Excel; reduced prep time by 35%.</li>
-                      </ul>
-                    </div>
-                  </section>
-
-                  <section class="ra-sec">
-                    <h3>Education</h3>
-                    <div id="ra-edu" class="ra-block">
-                      <h4>Copenhagen Business School — BSc Finance</h4>
-                      <p>Expected 2026 · GPA 3.8/4.0 · CBS Finance Club</p>
-                    </div>
-                  </section>
-
-                  <section class="ra-sec">
-                    <h3>Skills</h3>
-                    <p id="ra-skills" class="ra-inline">Excel, PowerPoint, Bloomberg, Python (pandas), Financial Modeling</p>
-                  </section>
-                </article>
-              </div>
-
-              <!-- Extracted fields -->
-              <aside class="ra-panel" aria-label="{% trans 'Extracted fields' %}">
-                <h4 class="ra-panel__title">{% trans "Extracted fields" %}</h4>
-                <ul class="ra-list"></ul>
-              </aside>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== STEP 3A: Tinder cards ===== -->
-      <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}" hidden>
-        <div class="tinder-deck line" data-autoplay="true">
-          <!-- Card 1 -->
-          <article class="card card--yellow">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
-                  <h3 class="card__company">Deutsche Bank</h3>
-                </div>
-              </header>
-
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Frankfurt, Germany" %}</li>
-                <li>💼 {% trans "Full-time Internship" %}</li>
-                <li>🗓️ {% trans "Start: June 2026" %}</li>
-              </ul>
-
-              <p class="card__desc">
-                {% trans "Support trading desks on macro research, pricing, and risk reporting while learning fixed income & FX products." %}
-              </p>
-
-              <div class="card__tags">
-                <span class="tag">Excel</span><span class="tag">Bloomberg</span><span class="tag">Fixed Income</span><span class="tag">Python</span>
-              </div>
-
-              <footer class="card__footer">
-                <span class="foot-item">⏳ {% trans "Deadline: Nov 30" %}</span>
-              </footer>
-
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 2 -->
-          <article class="card card--blue">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="J.P. Morgan" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
-                  <h3 class="card__company">J.P. Morgan</h3>
-                </div>
-              </header>
-
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "London, UK" %}</li>
-                <li>💼 {% trans "Off-cycle Internship" %}</li>
-                <li>🗓️ {% trans "Start: March 2026" %}</li>
-              </ul>
-
-              <p class="card__desc">
-                {% trans "Work on live M&A, DCM and ECM deals; build valuation models and create client-ready presentations with senior guidance." %}
-              </p>
-
-              <div class="card__tags">
-                <span class="tag">DCF</span><span class="tag">LBO</span><span class="tag">PowerPoint</span><span class="tag">Comps</span>
-              </div>
-
-              <footer class="card__footer">
-                <span class="foot-item">⏳ {% trans "Deadline: Dec 10" %}</span>
-              </footer>
-
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 3 -->
-          <article class="card card--pink">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="McKinsey & Company" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Business Analyst Intern" %}</h4>
-                  <h3 class="card__company">McKinsey &amp; Company</h3>
-                </div>
-              </header>
-
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Copenhagen, DK" %}</li>
-                <li>💼 {% trans "Summer Internship" %}</li>
-                <li>🗓️ {% trans "Start: July 2026" %}</li>
-              </ul>
-
-              <p class="card__desc">
-                {% trans "Analyze markets and customer data, craft insights, and present recommendations that drive measurable client impact." %}
-              </p>
-
-              <div class="card__tags">
-                <span class="tag">SQL</span><span class="tag">Excel</span><span class="tag">Storytelling</span><span class="tag">Slides</span>
-              </div>
-
-              <footer class="card__footer">
-                <span class="foot-item">⏳ {% trans "Deadline: Dec 20" %}</span>
-              </footer>
-
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 4 -->
-          <article class="card card--yellow">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="Spotify" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Data Analyst Intern" %}</h4>
-                  <h3 class="card__company">Spotify</h3>
-                </div>
-              </header>
-
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Stockholm, SE" %}</li>
-                <li>💼 {% trans "Summer Internship" %}</li>
-                <li>🗓️ {% trans "Start: June 2026" %}</li>
-              </ul>
-
-              <p class="card__desc">
-                {% trans "Help product teams experiment and measure features; build dashboards and discover user behavior patterns." %}
-              </p>
-
-              <div class="card__tags">
-                <span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">A/B Testing</span><span class="tag">SQL</span>
-              </div>
-
-              <footer class="card__footer">
-                <span class="foot-item">⏳ {% trans "Deadline: Jan 5" %}</span>
-              </footer>
-
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 5 -->
-          <article class="card card--blue">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="Goldman Sachs" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Markets Spring Intern" %}</h4>
-                  <h3 class="card__company">Goldman Sachs</h3>
-                </div>
-              </header>
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Paris, FR" %}</li>
-                <li>💼 {% trans "Spring Internship" %}</li>
-                <li>🗓️ {% trans "Start: April 2026" %}</li>
-              </ul>
-              <p class="card__desc">{% trans "Rotate across sales & trading, help prepare morning notes, and support trade execution." %}</p>
-              <div class="card__tags"><span class="tag">Markets</span><span class="tag">Python</span><span class="tag">Options</span><span class="tag">Excel</span></div>
-              <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Dec 15" %}</span></footer>
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 6 -->
-          <article class="card card--pink">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="BCG" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Consulting Intern" %}</h4>
-                  <h3 class="card__company">BCG</h3>
-                </div>
-              </header>
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Berlin, DE" %}</li>
-                <li>💼 {% trans "Summer Internship" %}</li>
-                <li>🗓️ {% trans "Start: June 2026" %}</li>
-              </ul>
-              <p class="card__desc">{% trans "Work with case teams, analyze data, and craft recommendations for digital and climate-related projects." %}</p>
-              <div class="card__tags"><span class="tag">Excel</span><span class="tag">SQL</span><span class="tag">Slides</span><span class="tag">Research</span></div>
-              <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Jan 10" %}</span></footer>
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 7 -->
-          <article class="card card--yellow">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="Amazon" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Product Analyst Intern" %}</h4>
-                  <h3 class="card__company">Amazon</h3>
-                </div>
-              </header>
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Luxembourg, LU" %}</li>
-                <li>💼 {% trans "Summer Internship" %}</li>
-                <li>🗓️ {% trans "Start: May 2026" %}</li>
-              </ul>
-              <p class="card__desc">{% trans "Build dashboards, analyze customer journeys, and partner with product to prioritize experiments." %}</p>
-              <div class="card__tags"><span class="tag">SQL</span><span class="tag">Tableau</span><span class="tag">A/B</span><span class="tag">Python</span></div>
-              <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Dec 22" %}</span></footer>
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 8 -->
-          <article class="card card--blue">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="Citi" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Markets Summer Analyst" %}</h4>
-                  <h3 class="card__company">Citi</h3>
-                </div>
-              </header>
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "New York, US" %}</li>
-                <li>💼 {% trans "Summer Internship" %}</li>
-                <li>🗓️ {% trans "Start: June 2026" %}</li>
-              </ul>
-              <p class="card__desc">{% trans "Shadow traders, contribute to desk analytics, and support client pitches across asset classes." %}</p>
-              <div class="card__tags"><span class="tag">Fixed Income</span><span class="tag">S&T</span><span class="tag">VBA</span><span class="tag">Python</span></div>
-              <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Nov 28" %}</span></footer>
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 9 -->
-          <article class="card card--pink">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="EY" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Strategy & Transactions Intern" %}</h4>
-                  <h3 class="card__company">EY</h3>
-                </div>
-              </header>
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Oslo, NO" %}</li>
-                <li>💼 {% trans "Off-cycle Internship" %}</li>
-                <li>🗓️ {% trans "Start: February 2026" %}</li>
-              </ul>
-              <p class="card__desc">{% trans "Support valuations, due diligence, and synergy modeling on live transactions." %}</p>
-              <div class="card__tags"><span class="tag">Valuation</span><span class="tag">Modeling</span><span class="tag">PowerPoint</span><span class="tag">Excel</span></div>
-              <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Dec 05" %}</span></footer>
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 10 -->
-          <article class="card card--yellow">
-            <div class="card__body">
-              <header class="card__header">
-                <div class="card__logo-wrap">
-                  <img src="{% static 'images/deutsche-bank.png' %}" alt="Tesla" class="card__logo">
-                </div>
-                <div class="card__titles">
-                  <h4 class="card__role">{% trans "Data Science Intern" %}</h4>
-                  <h3 class="card__company">Tesla</h3>
-                </div>
-              </header>
-              <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
-                <li>📍 {% trans "Berlin, DE" %}</li>
-                <li>💼 {% trans "Summer Internship" %}</li>
-                <li>🗓️ {% trans "Start: June 2026" %}</li>
-              </ul>
-              <p class="card__desc">{% trans "Prototype ML features for manufacturing analytics and fleet telemetry dashboards." %}</p>
-              <div class="card__tags"><span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">ML</span><span class="tag">Dashboards</span></div>
-              <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Jan 12" %}</span></footer>
-              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
-              </div>
-            </div>
-          </article>
-        </div>
-      </div>
-
-      <!-- ===== STEP 3B: AI Autofill Form ===== -->
-      <div class="ai-demo" hidden role="region" aria-label="{% trans 'AI auto-filling a job application' %}">
-        <div class="ai-demo__window">
-          <div class="ai-demo__chrome">
-            <div class="ai-demo__dots"><span></span><span></span><span></span></div>
-            <div class="ai-demo__title">
-              {% trans "Job Application — Preview" %}
-              <span id="ai-chip" class="ai-chip">{% trans "AI" %}</span>
-            </div>
-            <div class="ai-demo__progress">
-              <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
-            </div>
+      <div class="rs" id="resumeDemo" role="group" aria-describedby="rs-live">
+        <!-- Centered Dropzone -->
+        <div class="rs-dropzone" aria-label="{% trans 'Upload your resume' %}">
+          <div class="rs-dropzone__icon" aria-hidden="true">⬆️</div>
+          <div class="rs-dropzone__text">
+            <strong>{% trans "Upload your resume" %}</strong>
+            <span class="rs-dropzone__hint">{% trans "Drag & drop or click to browse" %}</span>
           </div>
 
-          <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
-            <div class="ai-field">
-              <label for="ai-name">{% trans "Full name" %}</label>
-              <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
-              <div class="ai-field__check" aria-hidden="true">✓</div>
-            </div>
+          <!-- Progress -->
+          <div class="rs-progress" aria-hidden="true">
+            <div class="rs-progress__bar"></div>
+            <span class="rs-progress__pct">0%</span>
+          </div>
 
-            <div class="ai-field">
-              <label for="ai-email">{% trans "Email" %}</label>
-              <input id="ai-email" type="email" placeholder="name@university.dk" />
-              <div class="ai-field__check" aria-hidden="true">✓</div>
-            </div>
+          <!-- Success -->
+          <div class="rs-done" aria-hidden="true">
+            <svg viewBox="0 0 52 52" class="rs-check">
+              <circle cx="26" cy="26" r="24" class="ring"></circle>
+              <path d="M16 27l7 7 13-13" class="mark"></path>
+            </svg>
+            <span>{% trans "Uploaded" %}</span>
+          </div>
+        </div>
 
-            <div class="ai-field">
-              <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
-              <input id="ai-portfolio" type="url" placeholder="https://…" />
-              <div class="ai-field__check" aria-hidden="true">✓</div>
-            </div>
+        <!-- Draggable file card (starts left of center) -->
+        <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
+          <div class="rs-file__tab"></div>
+          <div class="rs-file__icon" aria-hidden="true">📄</div>
+          <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
+        </figure>
 
-            <div class="ai-field ai-field--file">
-              <label for="ai-resume">{% trans "Resume" %}</label>
-              <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
-              <div class="ai-file">
-                <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
-                <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">{% trans "No file selected" %}</span>
-              </div>
-              <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
-              <div class="ai-field__check" aria-hidden="true">✓</div>
-            </div>
+        <!-- Cursor -->
+        <div class="rs-cursor" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="rs-pointer">
+            <path d="M4 3l13 7.5-6.2 1.9 3.2 6.7-2.2 1-3.2-6.7L6 16.9 4 3z" fill="#111"/>
+          </svg>
+        </div>
 
-            <div class="ai-field ai-field--textarea">
-              <label for="ai-cover">{% trans "Short cover note" %}</label>
-              <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
-              <div class="ai-field__check" aria-hidden="true">✓</div>
-            </div>
+        <!-- Live announcements -->
+        <p id="rs-live" class="sr-only" aria-live="polite">{% trans "First you upload your resume" %}</p>
+      </div>
+    </div>
+  </div>
 
-            <div class="ai-consent">
-              <input id="ai-consent" type="checkbox" />
-              <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
-            </div>
+  <!-- ===== STEP 2: AI analyzes resume ===== -->
+  <div class="step step--analysis" id="analysisStep" hidden>
+    <div class="ra__inner">
+      <h3 class="ra__title">
+        {% blocktrans %}Next, AI analyzes your resume{% endblocktrans %}
+      </h3>
 
-            <div class="ai-actions">
-              <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
-            </div>
+      <div class="ra" id="raDemo" role="group" aria-describedby="ra-live">
+        <!-- Progress / status -->
+        <div class="ra-top">
+          <div class="ra-progress" aria-hidden="true">
+            <div class="ra-progress__bar"></div>
+            <span class="ra-progress__pct">0%</span>
+          </div>
+          <span class="ra-status" id="ra-live" aria-live="polite">
+            {% trans "Scanning document…" %}
+          </span>
+        </div>
 
-            <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
-          </form>
+        <!-- Stage: resume preview + extracted fields -->
+        <div class="ra-stage">
+          <!-- Resume -->
+          <div class="ra-viewport" aria-label="{% trans 'Resume preview' %}">
+            <article class="ra-doc" role="document" aria-label="{% trans 'Resume' %}">
+              <header class="ra-doc__head">
+                <h2 id="ra-name">Ava Jensen</h2>
+                <p class="ra-doc__meta">
+                  <span id="ra-email">ava.jensen@uni.dk</span> ·
+                  <span id="ra-phone">+45 12 34 56 78</span> ·
+                  <span id="ra-location">Copenhagen, DK</span>
+                </p>
+              </header>
+
+              <section class="ra-sec">
+                <h3>Experience</h3>
+                <div id="ra-exp" class="ra-block">
+                  <h4>Investment Banking Intern — Goldman Sachs</h4>
+                  <p>Built DCFs and LBO models for live deals; prepared client-ready materials; supported due diligence and market comps.</p>
+                  <ul>
+                    <li>Modeled M&amp;A scenarios across 3 cases; presented takeaways to VP team.</li>
+                    <li>Automated comp pulls in Excel; reduced prep time by 35%.</li>
+                  </ul>
+                </div>
+              </section>
+
+              <section class="ra-sec">
+                <h3>Education</h3>
+                <div id="ra-edu" class="ra-block">
+                  <h4>Copenhagen Business School — BSc Finance</h4>
+                  <p>Expected 2026 · GPA 3.8/4.0 · CBS Finance Club</p>
+                </div>
+              </section>
+
+              <section class="ra-sec">
+                <h3>Skills</h3>
+                <p id="ra-skills" class="ra-inline">Excel, PowerPoint, Bloomberg, Python (pandas), Financial Modeling</p>
+              </section>
+            </article>
+          </div>
+
+          <!-- Extracted fields -->
+          <aside class="ra-panel" aria-label="{% trans 'Extracted fields' %}">
+            <h4 class="ra-panel__title">{% trans "Extracted fields" %}</h4>
+            <ul class="ra-list"></ul>
+          </aside>
         </div>
       </div>
-    </div><!-- /.demo-stage -->
+    </div>
+  </div>
+
+  <!-- ===== STEP 3A: Tinder cards ===== -->
+  <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}" hidden>
+    <div class="tinder-deck line" data-autoplay="true">
+      <!-- Card 1 -->
+      <article class="card card--yellow">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
+              <h3 class="card__company">Deutsche Bank</h3>
+            </div>
+          </header>
+
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Frankfurt, Germany" %}</li>
+            <li>💼 {% trans "Full-time Internship" %}</li>
+            <li>🗓️ {% trans "Start: June 2026" %}</li>
+          </ul>
+
+          <p class="card__desc">
+            {% trans "Support trading desks on macro research, pricing, and risk reporting while learning fixed income & FX products." %}
+          </p>
+
+          <div class="card__tags">
+            <span class="tag">Excel</span><span class="tag">Bloomberg</span><span class="tag">Fixed Income</span><span class="tag">Python</span>
+          </div>
+
+          <footer class="card__footer">
+            <span class="foot-item">⏳ {% trans "Deadline: Nov 30" %}</span>
+          </footer>
+
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="card card--blue">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="J.P. Morgan" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
+              <h3 class="card__company">J.P. Morgan</h3>
+            </div>
+          </header>
+
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "London, UK" %}</li>
+            <li>💼 {% trans "Off-cycle Internship" %}</li>
+            <li>🗓️ {% trans "Start: March 2026" %}</li>
+          </ul>
+
+          <p class="card__desc">
+            {% trans "Work on live M&A, DCM and ECM deals; build valuation models and create client-ready presentations with senior guidance." %}
+          </p>
+
+          <div class="card__tags">
+            <span class="tag">DCF</span><span class="tag">LBO</span><span class="tag">PowerPoint</span><span class="tag">Comps</span>
+          </div>
+
+          <footer class="card__footer">
+            <span class="foot-item">⏳ {% trans "Deadline: Dec 10" %}</span>
+          </footer>
+
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="card card--pink">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="McKinsey & Company" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Business Analyst Intern" %}</h4>
+              <h3 class="card__company">McKinsey &amp; Company</h3>
+            </div>
+          </header>
+
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Copenhagen, DK" %}</li>
+            <li>💼 {% trans "Summer Internship" %}</li>
+            <li>🗓️ {% trans "Start: July 2026" %}</li>
+          </ul>
+
+          <p class="card__desc">
+            {% trans "Analyze markets and customer data, craft insights, and present recommendations that drive measurable client impact." %}
+          </p>
+
+          <div class="card__tags">
+            <span class="tag">SQL</span><span class="tag">Excel</span><span class="tag">Storytelling</span><span class="tag">Slides</span>
+          </div>
+
+          <footer class="card__footer">
+            <span class="foot-item">⏳ {% trans "Deadline: Dec 20" %}</span>
+          </footer>
+
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="card card--yellow">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Spotify" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Data Analyst Intern" %}</h4>
+              <h3 class="card__company">Spotify</h3>
+            </div>
+          </header>
+
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Stockholm, SE" %}</li>
+            <li>💼 {% trans "Summer Internship" %}</li>
+            <li>🗓️ {% trans "Start: June 2026" %}</li>
+          </ul>
+
+          <p class="card__desc">
+            {% trans "Help product teams experiment and measure features; build dashboards and discover user behavior patterns." %}
+          </p>
+
+          <div class="card__tags">
+            <span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">A/B Testing</span><span class="tag">SQL</span>
+          </div>
+
+          <footer class="card__footer">
+            <span class="foot-item">⏳ {% trans "Deadline: Jan 5" %}</span>
+          </footer>
+
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 -->
+      <article class="card card--blue">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Goldman Sachs" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Markets Spring Intern" %}</h4>
+              <h3 class="card__company">Goldman Sachs</h3>
+            </div>
+          </header>
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Paris, FR" %}</li>
+            <li>💼 {% trans "Spring Internship" %}</li>
+            <li>🗓️ {% trans "Start: April 2026" %}</li>
+          </ul>
+          <p class="card__desc">{% trans "Rotate across sales & trading, help prepare morning notes, and support trade execution." %}</p>
+          <div class="card__tags"><span class="tag">Markets</span><span class="tag">Python</span><span class="tag">Options</span><span class="tag">Excel</span></div>
+          <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Dec 15" %}</span></footer>
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6 -->
+      <article class="card card--pink">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="BCG" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Consulting Intern" %}</h4>
+              <h3 class="card__company">BCG</h3>
+            </div>
+          </header>
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Berlin, DE" %}</li>
+            <li>💼 {% trans "Summer Internship" %}</li>
+            <li>🗓️ {% trans "Start: June 2026" %}</li>
+          </ul>
+          <p class="card__desc">{% trans "Work with case teams, analyze data, and craft recommendations for digital and climate-related projects." %}</p>
+          <div class="card__tags"><span class="tag">Excel</span><span class="tag">SQL</span><span class="tag">Slides</span><span class="tag">Research</span></div>
+          <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Jan 10" %}</span></footer>
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 7 -->
+      <article class="card card--yellow">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Amazon" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Product Analyst Intern" %}</h4>
+              <h3 class="card__company">Amazon</h3>
+            </div>
+          </header>
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Luxembourg, LU" %}</li>
+            <li>💼 {% trans "Summer Internship" %}</li>
+            <li>🗓️ {% trans "Start: May 2026" %}</li>
+          </ul>
+          <p class="card__desc">{% trans "Build dashboards, analyze customer journeys, and partner with product to prioritize experiments." %}</p>
+          <div class="card__tags"><span class="tag">SQL</span><span class="tag">Tableau</span><span class="tag">A/B</span><span class="tag">Python</span></div>
+          <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Dec 22" %}</span></footer>
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 8 -->
+      <article class="card card--blue">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Citi" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Markets Summer Analyst" %}</h4>
+              <h3 class="card__company">Citi</h3>
+            </div>
+          </header>
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "New York, US" %}</li>
+            <li>💼 {% trans "Summer Internship" %}</li>
+            <li>🗓️ {% trans "Start: June 2026" %}</li>
+          </ul>
+          <p class="card__desc">{% trans "Shadow traders, contribute to desk analytics, and support client pitches across asset classes." %}</p>
+          <div class="card__tags"><span class="tag">Fixed Income</span><span class="tag">S&T</span><span class="tag">VBA</span><span class="tag">Python</span></div>
+          <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Nov 28" %}</span></footer>
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 9 -->
+      <article class="card card--pink">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="EY" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Strategy & Transactions Intern" %}</h4>
+              <h3 class="card__company">EY</h3>
+            </div>
+          </header>
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Oslo, NO" %}</li>
+            <li>💼 {% trans "Off-cycle Internship" %}</li>
+            <li>🗓️ {% trans "Start: February 2026" %}</li>
+          </ul>
+          <p class="card__desc">{% trans "Support valuations, due diligence, and synergy modeling on live transactions." %}</p>
+          <div class="card__tags"><span class="tag">Valuation</span><span class="tag">Modeling</span><span class="tag">PowerPoint</span><span class="tag">Excel</span></div>
+          <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Dec 05" %}</span></footer>
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 10 -->
+      <article class="card card--yellow">
+        <div class="card__body">
+          <header class="card__header">
+            <div class="card__logo-wrap">
+              <img src="{% static 'images/deutsche-bank.png' %}" alt="Tesla" class="card__logo">
+            </div>
+            <div class="card__titles">
+              <h4 class="card__role">{% trans "Data Science Intern" %}</h4>
+              <h3 class="card__company">Tesla</h3>
+            </div>
+          </header>
+          <ul class="card__meta-list" aria-label="{% trans 'Role details' %}">
+            <li>📍 {% trans "Berlin, DE" %}</li>
+            <li>💼 {% trans "Summer Internship" %}</li>
+            <li>🗓️ {% trans "Start: June 2026" %}</li>
+          </ul>
+          <p class="card__desc">{% trans "Prototype ML features for manufacturing analytics and fleet telemetry dashboards." %}</p>
+          <div class="card__tags"><span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">ML</span><span class="tag">Dashboards</span></div>
+          <footer class="card__footer"><span class="foot-item">⏳ {% trans "Deadline: Jan 12" %}</span></footer>
+          <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+            <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+            <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3B: AI Autofill Form ===== -->
+  <div class="ai-demo" hidden role="region" aria-label="{% trans 'AI auto-filling a job application' %}">
+    <div class="ai-demo__window">
+      <div class="ai-demo__chrome">
+        <div class="ai-demo__dots"><span></span><span></span><span></span></div>
+        <div class="ai-demo__title">
+          {% trans "Job Application — Preview" %}
+          <span id="ai-chip" class="ai-chip">{% trans "AI" %}</span>
+        </div>
+        <div class="ai-demo__progress">
+          <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
+        </div>
+      </div>
+
+      <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
+        <div class="ai-field">
+          <label for="ai-name">{% trans "Full name" %}</label>
+          <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-field">
+          <label for="ai-email">{% trans "Email" %}</label>
+          <input id="ai-email" type="email" placeholder="name@university.dk" />
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-field">
+          <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
+          <input id="ai-portfolio" type="url" placeholder="https://…" />
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-field ai-field--file">
+          <label for="ai-resume">{% trans "Resume" %}</label>
+          <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
+          <div class="ai-file">
+            <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
+            <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">{% trans "No file selected" %}</span>
+          </div>
+          <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-field ai-field--textarea">
+          <label for="ai-cover">{% trans "Short cover note" %}</label>
+          <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-consent">
+          <input id="ai-consent" type="checkbox" />
+          <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
+        </div>
+
+        <div class="ai-actions">
+          <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
+        </div>
+
+        <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
+      </form>
+    </div>
+  </div>
+</div><!-- /.demo-stage -->
+```
+
   </div>
 </section>
 
 <style>
+/* Always hide [hidden] robustly (prevents framework CSS overrides) */
+[hidden]{display:none !important;}
+
 /* ===== Base tokens (scoped-friendly) ===== */
 :root{
   --font:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
@@ -549,7 +557,7 @@
   --container-max: 1480px;
   --card-w: clamp(360px, 30vw, 440px);
   --card-h: 600px;
-  --card-pad: 22px;           /* tighter + cleaner */
+  --card-pad: 22px;
   --action-gap: 12px;
 }
 
@@ -595,12 +603,12 @@
 
 /* ===== Generic step container (centered overlay) ===== */
 .step{
-  position:absolute; inset:0; display:grid; place-items:center;
+  position:absolute; inset:0; display:grid; place-items:center; z-index:10;
 }
 .step > *{ width:min(100%, 980px); }
 
 /* ===== Tinder cards (base) ===== */
-.tinder-section{ margin:0; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; }
+.tinder-section{ margin:0; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10; }
 .tinder-deck{ position:relative; width: var(--card-w); min-height: var(--card-h); margin:0 auto; perspective:1200px; }
 
 /* Card visual refresh */
@@ -668,7 +676,6 @@
   position:absolute; top:0; left:50%;
   transform: translateX(-50%) translateY(var(--ty,0)) scale(.86);
   opacity:0; pointer-events:none;
-  /* no blur, slightly darker look for non-active cards */
   filter: brightness(0.9) saturate(0.95);
   transition:
     transform var(--deck-dur) cubic-bezier(.22,.61,.36,1),
@@ -754,7 +761,7 @@
 .action--apply{ color:#10B981; border-color:#A7F3D0; }
 
 /* ===== AI form ===== */
-.ai-demo{ --ai-w:760px; --ai-pad:18px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1; }
+.ai-demo{ --ai-w:760px; --ai-pad:18px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10; }
 @media (max-width:900px){ .ai-demo{ --ai-w:520px; } }
 @media (max-width:600px){ .ai-demo{ --ai-w:100%; left:0; transform:none; } }
 .ai-demo__window{ width:100%; max-width:var(--ai-w); border:1px solid #e5e7eb; border-radius:16px; background:#fff; box-shadow:0 18px 40px rgba(0,0,0,.12); overflow:hidden; transition: opacity .35s ease, transform .35s ease; }
@@ -1018,10 +1025,10 @@
     };
 
     const runSequence = async ()=>{
-      // ensure correct visibility
+      // ensure tinder visible exclusively
       section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden');
       const form = document.querySelector('.ai-demo');
-      form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true');
+      form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true'); form && (form.style.display='none');
 
       for (let i=0; i<N; i++){
         setActive(i);
@@ -1030,8 +1037,9 @@
       }
 
       await pause(prefersReduced ? 400 : 800);
-      section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true');
-      form?.removeAttribute('hidden'); form?.removeAttribute('aria-hidden');
+      section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); section && (section.style.display='none');
+      form?.removeAttribute('hidden'); form?.removeAttribute('aria-hidden'); form && (form.style.display='');
+
       overlay?.classList.remove('is-deck-right');
       overlay?.classList.add('is-form');
       overlayTextEl && (overlayTextEl.textContent = '{{ _("AI applies for you") }}');
@@ -1056,8 +1064,8 @@
 
     // expose API
     window.TinderDemo = {
-      show(){ section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden'); setActive(0); },
-      hide(){ section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); },
+      show(){ section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden'); section && (section.style.display=''); setActive(0); },
+      hide(){ section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); section && (section.style.display='none'); },
       runOnce: runSequence
     };
   });
@@ -1167,11 +1175,11 @@
       formEl.classList.remove('is-success');
     };
     const fadeOutAndHide = async (delay = 1100) => {
-      if (prefersReduced) { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); return; }
+      if (prefersReduced) { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); root.style.display='none'; return; }
       await pause(delay);
       winEl.classList.add('is-fading');
       await new Promise(res => winEl.addEventListener('transitionend', res, { once:true }));
-      root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true');
+      root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); root.style.display='none';
       winEl.classList.remove('is-fading');
     };
     const autoPressAndCelebrate = async () => {
@@ -1187,7 +1195,7 @@
       isRunning = true;
 
       hideSuccess();
-      root.removeAttribute('hidden'); root.removeAttribute('aria-hidden');
+      root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); root.style.display='';
 
       statusText.textContent = "{{ _('AI is preparing your application…') }}";
       showChip();
@@ -1263,8 +1271,8 @@
 
     window.AIDemo = {
       runOnce: run,
-      hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
-      show: () => { root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); }
+      hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); root.style.display='none'; },
+      show: () => { root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); root.style.display=''; }
     };
   });
 })();
@@ -1392,8 +1400,8 @@
     };
 
     window.ResumeDemo = {
-      show(){ container.removeAttribute('hidden'); container.removeAttribute('aria-hidden'); },
-      hide(){ container.setAttribute('hidden',''); container.setAttribute('aria-hidden','true'); },
+      show(){ container.removeAttribute('hidden'); container.removeAttribute('aria-hidden'); container.style.display=''; },
+      hide(){ container.setAttribute('hidden',''); container.setAttribute('aria-hidden','true'); container.style.display='none'; },
       runOnce: animateOnce
     };
   });
@@ -1473,8 +1481,8 @@
     };
 
     window.RADemo = {
-      show(){ container.removeAttribute('hidden'); container.removeAttribute('aria-hidden'); },
-      hide(){ container.setAttribute('hidden',''); container.setAttribute('aria-hidden','true'); },
+      show(){ container.removeAttribute('hidden'); container.removeAttribute('aria-hidden'); container.style.display=''; },
+      hide(){ container.setAttribute('hidden',''); container.setAttribute('aria-hidden','true'); container.style.display='none'; },
       runOnce
     };
   });
@@ -1483,7 +1491,7 @@
 
 <script>
 /* =========================
-   MASTER ORCHESTRATOR — runs the three steps in sequence
+   MASTER ORCHESTRATOR — runs the three steps in strict sequence (no overlap)
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -1495,6 +1503,25 @@
     const overlay = document.querySelector('.demo-overlay');
     const overlayText = document.querySelector('.demo-overlay__text');
     const spTitle = document.getElementById('spTitle');
+
+    // Helper to toggle visibility reliably (hidden + aria + inline display)
+    const setVisible = (el, show) => {
+      if (!el) return;
+      if (show) { el.removeAttribute('hidden'); el.removeAttribute('aria-hidden'); el.style.display=''; }
+      else { el.setAttribute('hidden',''); el.setAttribute('aria-hidden','true'); el.style.display='none'; }
+    };
+
+    const resumeEl = document.getElementById('resumeStep');
+    const analysisEl = document.getElementById('analysisStep');
+    const tinderEl = document.querySelector('.tinder-section');
+    const formEl = document.querySelector('.ai-demo');
+
+    const exclusive = (name) => {
+      setVisible(resumeEl,  name === 'resume');
+      setVisible(analysisEl,name === 'analysis');
+      setVisible(tinderEl,  name === 'tinder');
+      setVisible(formEl,    name === 'form');
+    };
 
     const showOverlayTop = (text) => {
       overlay?.classList.remove('is-deck-right');
@@ -1508,40 +1535,39 @@
     };
 
     const waitVisible = () => new Promise(res=>{
+      if (!('IntersectionObserver' in window)) return res();
       const io = new IntersectionObserver((entries)=>{
         if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
       }, { threshold: 0.3 });
       stage ? io.observe(stage) : res();
     });
 
-    // ensure everything hidden initially
-    window.ResumeDemo?.hide?.();
-    window.RADemo?.hide?.();
-    window.TinderDemo?.hide?.();
-    window.AIDemo?.hide?.();
+    // Ensure everything hidden initially (guards against SSR / CSS race)
+    exclusive(null);
 
     await waitVisible();
 
-    /* 1) Upload resume */
+    /* 1) Upload resume — only this step visible */
     spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
     showOverlayTop('{{ _("Drop your resume to start") }}');
-    window.ResumeDemo?.show?.();
+    exclusive('resume');
     await window.ResumeDemo?.runOnce?.();
-    window.ResumeDemo?.hide?.();
+    exclusive(null); // hide all between steps
 
-    /* 2) AI analyzes */
+    /* 2) AI analyzes — only this step visible */
     spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
     showOverlayTop('{{ _("Extracting skills & experience…") }}');
-    window.RADemo?.show?.();
+    exclusive('analysis');
     await window.RADemo?.runOnce?.();
-    window.RADemo?.hide?.();
+    exclusive(null);
 
-    /* 3) Tinder deck → AI form */
+    /* 3) Tinder deck → AI form — start with deck only visible */
     spTitle && (spTitle.textContent = '{{ _("Do like everyone else — apply with AI") }}');
     showOverlayDeck('{{ _("Swipe right to apply") }}');
-    window.TinderDemo?.show?.();
-    await window.TinderDemo?.runOnce?.();
-    // AIDemo.runOnce is called by TinderDemo; sequence ends after form success.
+    exclusive('tinder');
+    await window.TinderDemo?.runOnce?.(); // will reveal form and run AIDemo afterwards
+
+    // Nothing else to do: AIDemo will hide itself on success.
   });
 })();
 </script>
