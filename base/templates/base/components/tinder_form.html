@@ -24,7 +24,7 @@
         </span>
       </h2>
       <p class="sp__sub">
-        {% trans "Real students auto-applying to dozens of roles in minutes." %}
+        {% trans "Apply to hundreds of jobs in minutes" %}
       </p>
     </header>
 
@@ -942,7 +942,7 @@
       if (!overlayTextEl) return;
       overlay?.classList.remove('is-form');
       overlay?.classList.add('is-deck-right');
-      spTitle && (spTitle.textContent = '{{ _("Auto-applying across roles") }}');
+      spTitle && (spTitle.textContent = '{{ _("Apply to jobs with one click") }}');
       overlayTextEl.textContent = `${role} — ${company}`;
       overlayTextEl.classList.add('is-visible');
     };
