@@ -13,55 +13,55 @@
 <!-- Optional: logo sizing -->
 <style>
     .logo__img {
-      width: 72px;
-      height: 72px;
+      height: 40px;
+      width: auto;
       object-fit: contain;
-      filter: grayscale(1) contrast(1.05); /* feel free to remove */
+      filter: grayscale(1) brightness(0) invert(0); /* neutral tone look */
+    }
+    .logos__track {
+      display: flex;
+      gap: 3rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
     }
   </style>
   
   <div class="logos__track logos__track--a" data-speed="32">
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/netflix.com?size=72" alt="Netflix logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/airbnb.com?size=72" alt="Airbnb logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/amazon.com?size=72" alt="Amazon logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anthropic.com?size=72" alt="Anthropic logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/adobe.com?size=72" alt="Adobe logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/mailchimp.com?size=72" alt="Mailchimp logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/facebook.com?size=72" alt="Facebook logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/stripe.com?size=72" alt="Stripe logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/slack.com?size=72" alt="Slack logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/spotify.com?size=72" alt="Spotify logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/coinbase.com?size=72" alt="Coinbase logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/goldmansachs.com?size=72" alt="Goldman Sachs logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/dropbox.com?size=72" alt="Dropbox logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/openai.com?size=72" alt="OpenAI logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/cohere.com?size=72" alt="Cohere logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/spacex.com?size=72" alt="SpaceX logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/roblox.com?size=72" alt="Roblox logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/relativityspace.com?size=72" alt="Relativity Space logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/checkout.com?size=72" alt="Checkout.com logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/clickup.com?size=72" alt="ClickUp logo" loading="lazy" decoding="async"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/55/Airbnb_Logo_Bélo.svg" alt="Airbnb"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon"></div>
+    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anthropic.com?size=72" alt="Anthropic"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/59/Adobe_Corporate_logo.svg" alt="Adobe"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/33/Facebook_New_Logo_%282019%29.svg" alt="Facebook"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Stripe_Logo%2C_revised_2016.svg" alt="Stripe"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Spotify_logo_with_text.svg" alt="Spotify"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/6/66/Goldman_Sachs.svg" alt="Goldman Sachs"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Dropbox_logo_2017.svg" alt="Dropbox"></div>
+    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/cohere.com?size=72" alt="Cohere"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/d/de/SpaceX-Logo.svg" alt="SpaceX"></div>
+    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/checkout.com?size=72" alt="Checkout.com"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/4/45/ClickUp_logo.svg" alt="ClickUp"></div>
   </div>
   
-  <!-- Row B (slower for parallax effect) -->
   <div class="logos__track logos__track--b" data-speed="42">
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/twitch.tv?size=72" alt="Twitch logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/canva.com?size=72" alt="Canva logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/discord.com?size=72" alt="Discord logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/benchling.com?size=72" alt="Benchling logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/mistral.ai?size=72" alt="Mistral AI logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/robinhood.com?size=72" alt="Robinhood logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/nubank.com.br?size=72" alt="Nubank logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/vercel.com?size=72" alt="Vercel logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anduril.com?size=72" alt="Anduril logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/twitter.com?size=72" alt="X (Twitter) logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/databricks.com?size=72" alt="Databricks logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/snowflake.com?size=72" alt="Snowflake logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/figma.com?size=72" alt="Figma logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/paypal.com?size=72" alt="PayPal logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/uber.com?size=72" alt="Uber logo" loading="lazy" decoding="async"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/doordash.com?size=72" alt="DoorDash logo" loading="lazy" decoding="async"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/3f/Twitch_logo_wordmark.svg" alt="Twitch"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Canva_Logo.svg" alt="Canva"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo_wordmark_black.svg" alt="Discord"></div>
+    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/benchling.com?size=72" alt="Benchling"></div>
+    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/mistral.ai?size=72" alt="Mistral AI"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Robinhood_Logo.svg" alt="Robinhood"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/2/27/Vercel_logo.svg" alt="Vercel"></div>
+    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anduril.com?size=72" alt="Anduril"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/6/6f/X_logo_2023.svg" alt="X (Twitter)"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/32/Databricks_logo.svg" alt="Databricks"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/e/ea/Snowflake_Logo.svg" alt="Snowflake"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="Figma"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.svg" alt="Uber"></div>
+    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/57/DoorDash_Logo.svg" alt="DoorDash"></div>
   </div>
+  
   
     </div>
   </div>
