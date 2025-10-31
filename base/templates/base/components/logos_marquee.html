@@ -1,5 +1,7 @@
 {# base/templates/base/components/logos_marquee.html #}
 {% load static i18n %}
+{% load static %}
+
 
 <section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
   <div class="logos__inner">
@@ -25,7 +27,7 @@
     <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/55/Airbnb_Logo_Bélo.svg" alt="Airbnb"></div>
     <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon"></div>
     <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anthropic.com?size=72" alt="Anthropic"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/59/Adobe_Corporate_logo.svg" alt="Adobe"></div>
+    <div class="logo"><img class="logo__img" src="{% static 'images/adobe.png' %}" alt="Adobe"></div>
     <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/33/Facebook_New_Logo_%282019%29.svg" alt="Facebook"></div>
     <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Stripe_Logo%2C_revised_2016.svg" alt="Stripe"></div>
     <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Spotify_logo_with_text.svg" alt="Spotify"></div>
