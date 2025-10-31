@@ -22,40 +22,43 @@
     }
   </style>
   
-  <div class="logos__track logos__track--a" data-speed="32">
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/55/Airbnb_Logo_Bélo.svg" alt="Airbnb"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anthropic.com?size=72" alt="Anthropic"></div>
-    <div class="logo"><img class="logo__img" src="{% static 'images/adobe.png' %}" alt="Adobe"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/33/Facebook_New_Logo_%282019%29.svg" alt="Facebook"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Stripe_Logo%2C_revised_2016.svg" alt="Stripe"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Spotify_logo_with_text.svg" alt="Spotify"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/6/66/Goldman_Sachs.svg" alt="Goldman Sachs"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Dropbox_logo_2017.svg" alt="Dropbox"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/cohere.com?size=72" alt="Cohere"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/d/de/SpaceX-Logo.svg" alt="SpaceX"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/checkout.com?size=72" alt="Checkout.com"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/4/45/ClickUp_logo.svg" alt="ClickUp"></div>
-  </div>
-  
-  <div class="logos__track logos__track--b" data-speed="42">
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/3f/Twitch_logo_wordmark.svg" alt="Twitch"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Canva_Logo.svg" alt="Canva"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo_wordmark_black.svg" alt="Discord"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/benchling.com?size=72" alt="Benchling"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/mistral.ai?size=72" alt="Mistral AI"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Robinhood_Logo.svg" alt="Robinhood"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/2/27/Vercel_logo.svg" alt="Vercel"></div>
-    <div class="logo"><img class="logo__img" src="https://logo.clearbit.com/anduril.com?size=72" alt="Anduril"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/6/6f/X_logo_2023.svg" alt="X (Twitter)"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/32/Databricks_logo.svg" alt="Databricks"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/e/ea/Snowflake_Logo.svg" alt="Snowflake"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="Figma"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.svg" alt="Uber"></div>
-    <div class="logo"><img class="logo__img" src="https://upload.wikimedia.org/wikipedia/commons/5/57/DoorDash_Logo.svg" alt="DoorDash"></div>
-  </div>
+  {% load static %}
+
+<div class="logos__track logos__track--a" data-speed="32">
+  <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt="Netflix"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/airbnb.png' %}" alt="Airbnb"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/amazon.png' %}" alt="Amazon"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/anthropic.png' %}" alt="Anthropic"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/adobe.png' %}" alt="Adobe"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/facebook.png' %}" alt="Facebook"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/stripe.png' %}" alt="Stripe"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/spotify.png' %}" alt="Spotify"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/goldmansachs.png' %}" alt="Goldman Sachs"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/dropbox.png' %}" alt="Dropbox"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/cohere.png' %}" alt="Cohere"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/spacex.png' %}" alt="SpaceX"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/checkout.png' %}" alt="Checkout.com"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/clickup.png' %}" alt="ClickUp"></div>
+</div>
+
+<div class="logos__track logos__track--b" data-speed="42">
+  <div class="logo"><img class="logo__img" src="{% static 'images/twitch.png' %}" alt="Twitch"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/canva.png' %}" alt="Canva"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/discord.png' %}" alt="Discord"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/benchling.png' %}" alt="Benchling"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/mistral.png' %}" alt="Mistral AI"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/robinhood.png' %}" alt="Robinhood"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/vercel.png' %}" alt="Vercel"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/anduril.png' %}" alt="Anduril"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/x.png' %}" alt="X (Twitter)"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/databricks.png' %}" alt="Databricks"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/snowflake.png' %}" alt="Snowflake"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/figma.png' %}" alt="Figma"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/paypal.png' %}" alt="PayPal"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt="Uber"></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt="DoorDash"></div>
+</div>
+
   
   
     </div>
