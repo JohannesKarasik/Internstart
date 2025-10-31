@@ -14,7 +14,21 @@
 
 <section class="social-proof" id="social-proof">
   <div class="sp__inner">
+    <header class="sp__head">
+      <h2 class="sp__title">
+        <span id="spTitle"
+              data-default="{% trans 'Do like everyone else — apply with AI' %}"
+              data-left="{% trans 'Swipe left to dismiss' %}"
+              data-right="{% trans 'Swipe right to apply' %}">
+          {% trans "Do like everyone else — apply with AI" %}
+        </span>
+      </h2>
+      <p class="sp__sub">
+        {% trans "Real students auto-applying to dozens of roles in minutes." %}
+      </p>
+    </header>
 
+```
 <div class="demo-stage">
   <!-- (Optional) floating explainer -->
   <div class="demo-overlay" aria-live="polite">
@@ -543,7 +557,7 @@
   --container-max: 1480px;
   --card-w: clamp(360px, 30vw, 440px);
   --card-h: 600px;
-  --card-pad: 22px;
+  --card-pad: 22px;           /* tighter + cleaner */
   --action-gap: 12px;
 }
 
@@ -662,6 +676,7 @@
   position:absolute; top:0; left:50%;
   transform: translateX(-50%) translateY(var(--ty,0)) scale(.86);
   opacity:0; pointer-events:none;
+  /* no blur, slightly darker look for non-active cards */
   filter: brightness(0.9) saturate(0.95);
   transition:
     transform var(--deck-dur) cubic-bezier(.22,.61,.36,1),
@@ -670,58 +685,30 @@
     box-shadow .45s ease, outline-color .45s ease;
 }
 
-/* Center card — crisp and bright */
+/* Center + two neighbors only (exactly 3 visible) */
 .tinder-deck.line .card.is-center{
   transform: translateX(-50%) translateY(var(--ty,0)) scale(1);
   opacity:1; pointer-events:auto; z-index:10;
   filter: brightness(1) saturate(1);
 }
-
-/* Gradually darker as cards move away */
 .tinder-deck.line .card.is-left1,
 .tinder-deck.line .card.is-right1{
   transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.94);
-  opacity:.96; z-index:9;
-  filter: brightness(0.95) saturate(0.94);
+  opacity:.98; z-index:9;
+  filter: brightness(0.96) saturate(0.95);
 }
 .tinder-deck.line .card.is-left1{  --shift: calc(-1 * var(--gap1)); }
 .tinder-deck.line .card.is-right1{ --shift: var(--gap1); }
 
+/* (Any positions beyond left1/right1 are hidden to guarantee only 3 visible) */
 .tinder-deck.line .card.is-left2,
-.tinder-deck.line .card.is-right2{
-  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.90);
-  opacity:.85; z-index:8;
-  filter: brightness(0.9) saturate(0.9);
-}
-.tinder-deck.line .card.is-left2{  --shift: calc(-1 * var(--gap2)); }
-.tinder-deck.line .card.is-right2{ --shift: var(--gap2); }
-
 .tinder-deck.line .card.is-left3,
-.tinder-deck.line .card.is-right3{
-  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.88);
-  opacity:.72; z-index:7;
-  filter: brightness(0.85) saturate(0.88);
-}
-.tinder-deck.line .card.is-left3{  --shift: calc(-1 * var(--gap3)); }
-.tinder-deck.line .card.is-right3{ --shift: var(--gap3); }
-
 .tinder-deck.line .card.is-left4,
-.tinder-deck.line .card.is-right4{
-  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.86);
-  opacity:.60; z-index:6;
-  filter: brightness(0.82) saturate(0.85);
-}
-.tinder-deck.line .card.is-left4{  --shift: calc(-1 * var(--gap4)); }
-.tinder-deck.line .card.is-right4{ --shift: var(--gap4); }
-
 .tinder-deck.line .card.is-left5,
-.tinder-deck.line .card.is-right5{
-  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.84);
-  opacity:.48; z-index:5;
-  filter: brightness(0.8) saturate(0.8);
-}
-.tinder-deck.line .card.is-left5{  --shift: calc(-1 * var(--gap5)); }
-.tinder-deck.line .card.is-right5{ --shift: var(--gap5); }
+.tinder-deck.line .card.is-right2,
+.tinder-deck.line .card.is-right3,
+.tinder-deck.line .card.is-right4,
+.tinder-deck.line .card.is-right5{ opacity:0 !important; visibility:hidden !important; pointer-events:none !important; }
 
 /* applied state (after simulated click) — subtle rise feedback */
 .tinder-deck.line .card.is-center.is-applied{ --ty: 0px; }
@@ -747,7 +734,7 @@
 .action--apply{ color:#10B981; border-color:#A7F3D0; }
 
 /* ===== AI form ===== */
-.ai-demo{ --ai-w:760px; --ai-pad:18px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10; }
+.ai-demo{ --ai-w:760px; --ai-pad:18px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1; }
 @media (max-width:900px){ .ai-demo{ --ai-w:520px; } }
 @media (max-width:600px){ .ai-demo{ --ai-w:100%; left:0; transform:none; } }
 .ai-demo__window{ width:100%; max-width:var(--ai-w); border:1px solid #e5e7eb; border-radius:16px; background:#fff; box-shadow:0 18px 40px rgba(0,0,0,.12); overflow:hidden; transition: opacity .35s ease, transform .35s ease; }
@@ -926,6 +913,8 @@
 <script>
 /* =========================
    STEP 3A — Tinder line deck (exposes window.TinderDemo)
+   ➜ Modified to ONLY show 3 cards at any time:
+     active center + 1 neighbor left + 1 neighbor right
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -947,7 +936,7 @@
 
     let idx = 0;
     const N = cards.length;
-    const MAX_NEI = Math.min(5, Math.floor(N/2)); // show up to 5 neighbors each side
+    const MAX_NEI = 1; // <<< only one neighbor on each side (3 cards visible)
 
     const setOverlay = (role, company) => {
       if (!overlayTextEl) return;
