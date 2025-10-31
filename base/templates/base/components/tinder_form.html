@@ -848,24 +848,25 @@
 @keyframes rsCheck{ to { stroke-dashoffset:0; } }
 
 /* Move file card visibly to the left of center */
+/* Make resume file start much farther left */
 .rs-file {
   position: absolute;
   top: 50%;
-  left: calc(50% - 340px); /* adjust: more negative = further left */
+  left: calc(50% - 600px); /* farther left — increase this number for more distance */
   transform: translateY(-50%);
   width: 240px;
   height: 140px;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 10px 26px rgba(2, 8, 23, 0.08);
-  margin: 0;
+  box-shadow: 0 10px 26px rgba(2,8,23,.08);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 10px;
 }
+
 .rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
 .rs-file__icon{ font-size:26px; }
 .rs-file__name{ font: 800 12px/1.2 var(--font); color:#111827; padding:0 12px; text-align:center; }
