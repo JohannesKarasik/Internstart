@@ -556,6 +556,50 @@
 })();
 </script>
 
+<script>
+    /* =========================
+       C) Simplified orchestrator — show Tinder first, run AI after swipe
+    ========================= */
+    (() => {
+      const ready = (fn) => (document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+        : fn());
+    
+      ready(() => {
+        const stage   = document.querySelector('.demo-stage');
+        const tinder  = document.querySelector('.tinder-section');
+        const form    = document.querySelector('.ai-demo');
+        const overlay = document.querySelector('.demo-overlay');
+        const overlayText = document.querySelector('.demo-overlay__text');
+    
+        if (!stage || !tinder || !form || !overlay || !overlayText) return;
+    
+        // Wait until section is visible before showing the Tinder card
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) {
+            io.disconnect();
+    
+            // ✅ Show Tinder, hide AI form initially
+            tinder.removeAttribute('hidden');
+            tinder.removeAttribute('aria-hidden');
+            form.setAttribute('hidden', '');
+            form.setAttribute('aria-hidden', 'true');
+    
+            // ✅ Update overlay text to match "Swipe right to apply"
+            overlay.classList.remove('is-form');
+            overlay.classList.remove('is-deck-left');
+            overlay.classList.add('is-deck-right');
+            overlayText.textContent = '{{ _("Swipe right to apply") }}';
+            overlayText.classList.add('is-visible');
+          }
+        }, { threshold: 0.3 });
+    
+        io.observe(stage);
+      });
+    })();
+    </script>
+    
+
 
 
 <!-- =========================
@@ -1173,4 +1217,5 @@
     });
   })();
   </script>
+  
   
