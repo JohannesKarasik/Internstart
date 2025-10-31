@@ -798,7 +798,7 @@
   background: #fff;
   border:1px solid var(--line);
   box-shadow: 0 12px 30px rgba(2,8,23,.06);
-  overflow: hidden;
+    overflow: visible;
   max-width: 920px;          /* center the whole animation block */
   margin: 0 auto;
 }
@@ -930,8 +930,8 @@
       progBar.style.setProperty('--pct', '0%');
       progPct.textContent = '0%';
       fileCard.style.transition = 'none';
-      fileCard.style.left = 'calc(50% - 340px)'; // visible to the left of center
-    fileCard.style.opacity = '1';               // start visible
+      fileCard.style.left = 'calc(50% - 720px)'; // much farther left
+      fileCard.style.opacity = '1';               // start visible
     fileCard.style.transform = 'translate(0, -50%)';
 
       const rRoot = rect(root);
