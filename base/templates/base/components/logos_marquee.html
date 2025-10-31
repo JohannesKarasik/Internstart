@@ -2,7 +2,6 @@
 {% load static i18n %}
 {% load static %}
 
-
 <section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
   <div class="logos__inner">
     <h3 class="logos__title">
@@ -11,65 +10,55 @@
 
     <!-- Masked viewport -->
     <div class="logos__viewport" aria-hidden="true">
+
       <!-- Row A -->
-<!-- Optional: logo sizing -->
-<style>
-    .logo__img {
-      width: 72px;
-      height: 72px;
-      object-fit: contain;
-      filter: grayscale(1) contrast(1.05); /* feel free to remove */
-    }
-  </style>
-  
-  {% load static %}
+      <div class="logos__track logos__track--a" data-speed="32">
+        <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt="Netflix"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/airbnb.png' %}" alt="Airbnb"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/amazon.png' %}" alt="Amazon"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/anthropic.png' %}" alt="Anthropic"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/adobe.png' %}" alt="Adobe"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/facebook.png' %}" alt="Facebook"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/stripe.png' %}" alt="Stripe"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/spotify.png' %}" alt="Spotify"></div>
+      </div>
 
-<div class="logos__track logos__track--a" data-speed="32">
-  <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt="Netflix"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/airbnb.png' %}" alt="Airbnb"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/amazon.png' %}" alt="Amazon"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/anthropic.png' %}" alt="Anthropic"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/adobe.png' %}" alt="Adobe"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/facebook.png' %}" alt="Facebook"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/stripe.png' %}" alt="Stripe"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/spotify.png' %}" alt="Spotify"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/goldmansachs.png' %}" alt="Goldman Sachs"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/dropbox.png' %}" alt="Dropbox"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/cohere.png' %}" alt="Cohere"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/spacex.png' %}" alt="SpaceX"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/checkout.png' %}" alt="Checkout.com"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/clickup.png' %}" alt="ClickUp"></div>
-</div>
+      <!-- Row B -->
+      <div class="logos__track logos__track--b" data-speed="42">
+        <div class="logo"><img class="logo__img" src="{% static 'images/goldmansachs.png' %}" alt="Goldman Sachs"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/dropbox.png' %}" alt="Dropbox"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/cohere.png' %}" alt="Cohere"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/spacex.png' %}" alt="SpaceX"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/checkout.png' %}" alt="Checkout.com"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/clickup.png' %}" alt="ClickUp"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/twitch.png' %}" alt="Twitch"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/canva.png' %}" alt="Canva"></div>
+      </div>
 
-<div class="logos__track logos__track--b" data-speed="42">
-  <div class="logo"><img class="logo__img" src="{% static 'images/twitch.png' %}" alt="Twitch"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/canva.png' %}" alt="Canva"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/discord.png' %}" alt="Discord"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/benchling.png' %}" alt="Benchling"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/mistral.png' %}" alt="Mistral AI"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/robinhood.png' %}" alt="Robinhood"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/vercel.png' %}" alt="Vercel"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/anduril.png' %}" alt="Anduril"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/x.png' %}" alt="X (Twitter)"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/databricks.png' %}" alt="Databricks"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/snowflake.png' %}" alt="Snowflake"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/figma.png' %}" alt="Figma"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/paypal.png' %}" alt="PayPal"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt="Uber"></div>
-  <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt="DoorDash"></div>
-</div>
+      <!-- Row C -->
+      <div class="logos__track logos__track--c" data-speed="52">
+        <div class="logo"><img class="logo__img" src="{% static 'images/discord.png' %}" alt="Discord"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/benchling.jpeg' %}" alt="Benchling"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/mistral.png' %}" alt="Mistral AI"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/robinhood.png' %}" alt="Robinhood"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/vercel.png' %}" alt="Vercel"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/anduril.png' %}" alt="Anduril"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/x.png' %}" alt="X (Twitter)"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/databricks.png' %}" alt="Databricks"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/snowflake.png' %}" alt="Snowflake"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/figma.png' %}" alt="Figma"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/paypal.png' %}" alt="PayPal"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt="Uber"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt="DoorDash"></div>
+      </div>
 
-  
-  
     </div>
   </div>
 </section>
 
 <style>
-  :root{
+  :root {
     --logos-bg: #f5f7fb;
-    --logos-ink: #0f172a;
-    --logos-muted: #667085;
     --logos-card: #ffffff;
     --logos-border: #e7edf5;
     --logos-shadow: 0 6px 20px rgba(2,8,23,.06);
@@ -77,58 +66,52 @@
     --logos-pad-y: clamp(22px, 3vw, 32px);
   }
 
-  .logos{
+  .logos {
     background: var(--logos-bg);
     padding: clamp(28px, 5vw, 48px) 0;
     border-top: 1px solid #eef2f7;
   }
-  .logos__inner{
+  .logos__inner {
     max-width: min(1480px, 94vw);
     margin: 0 auto;
     padding: 0 12px;
   }
-
-  .logos__title{
-    margin: 0 0 10px;
-    font-family: var(--font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto);
-    font-weight: 800;
-    letter-spacing: -0.2px;
-    color: var(--logos-ink);
+  .logos__title {
     text-align: center;
+    font-weight: 800;
     font-size: clamp(16px, 2.3vw, 22px);
+    color: #0f172a;
+    margin-bottom: 16px;
   }
-
-  .logos__viewport{
-    position: relative;
+  .logos__viewport {
     overflow: hidden;
     border-radius: 16px;
     padding: var(--logos-pad-y) 0;
-    /* nice edge fades */
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
 
-  .logos__track{
+  .logos__track {
     display: flex;
     align-items: center;
     gap: var(--logos-gap);
-    will-change: transform;
-    padding: 6px 0;
-    /* duplicated via JS for seamless loop; animation set in @keyframes */
     animation: marquee linear infinite;
-    animation-duration: 32s; /* default; overridden per row */
-  }
-  .logos__track--b{
-    animation-duration: 44s;
-    opacity: .95;
+    will-change: transform;
   }
 
-  @keyframes marquee{
+  .logos__track--a { animation-duration: 32s; }
+  .logos__track--b { animation-duration: 42s; opacity: .95; }
+  .logos__track--c { animation-duration: 52s; opacity: .9; }
+
+  @keyframes marquee {
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
   }
 
-  .logo{
+  .logo {
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -142,45 +125,25 @@
     box-shadow: var(--logos-shadow);
   }
 
-  /* mock “logos” (text) — swap with <img> later */
-  .logo__img{
-    font-weight: 800;
-    color: #111827;
-    font-size: clamp(16px, 2vw, 20px);
-    letter-spacing: .1px;
-    white-space: nowrap;
-    opacity: .92;
-  }
-
-  /* If you replace with <img> tags, these help */
-  .logo img{
+  .logo__img {
     display: block;
     max-height: 28px;
     max-width: 140px;
-    width: auto;
-    height: auto;
     object-fit: contain;
     filter: saturate(0.9) contrast(1);
   }
 
-  /* Pause on hover/focus within */
   .logos__viewport:hover .logos__track,
-  .logos__viewport:focus-within .logos__track{
+  .logos__viewport:focus-within .logos__track {
     animation-play-state: paused;
   }
 
-  /* Respect reduced motion */
-  @media (prefers-reduced-motion: reduce){
-    .logos__track{ animation: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    .logos__track { animation: none !important; }
   }
 </style>
 
 <script>
-/*
-  Seamless marquee helper:
-  - Duplicates each track's children so the width >= 200%,
-    letting the CSS animation translate to -50% for an infinite loop.
-*/
 (() => {
   const onReady = (fn) => document.readyState === 'loading'
     ? document.addEventListener('DOMContentLoaded', fn, { once: true })
@@ -190,10 +153,8 @@
     const tracks = document.querySelectorAll('.logos__track');
     tracks.forEach(track => {
       const speed = Number(track.dataset.speed || 32);
-      // Clone children once to make 2x content
       const children = Array.from(track.children);
       children.forEach(node => track.appendChild(node.cloneNode(true)));
-      // Set duration based on speed (lower = faster)
       track.style.animationDuration = `${Math.max(16, speed)}s`;
     });
   });
