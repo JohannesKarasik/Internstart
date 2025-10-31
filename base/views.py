@@ -2731,3 +2731,10 @@ def process_text_page(request):
 def landing_page_test(request):
     return render(request, "base/landing_page_test.html")
 
+
+def blog_index(request):
+    return render(request, 'blog/index.html')
+
+def blog_resume_internship(request):
+    return render(request, 'blog/how_to_write_resume_for_internship.html')
+
