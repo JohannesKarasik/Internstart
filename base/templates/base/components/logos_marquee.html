@@ -1,0 +1,192 @@
+{# base/templates/base/components/logos_marquee.html #}
+{% load static i18n %}
+
+<section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
+  <div class="logos__inner">
+    <h3 class="logos__title">
+      {% blocktrans %}58,100+ interviews landed from the top companies and organizations{% endblocktrans %}
+    </h3>
+
+    <!-- Masked viewport -->
+    <div class="logos__viewport" aria-hidden="true">
+      <!-- Row A -->
+      <div class="logos__track logos__track--a" data-speed="32">
+        <div class="logo"><span class="logo__img">Netflix</span></div>
+        <div class="logo"><span class="logo__img">Airbnb</span></div>
+        <div class="logo"><span class="logo__img">Amazon</span></div>
+        <div class="logo"><span class="logo__img">Anthropic</span></div>
+        <div class="logo"><span class="logo__img">Adobe</span></div>
+        <div class="logo"><span class="logo__img">Mailchimp</span></div>
+        <div class="logo"><span class="logo__img">Facebook</span></div>
+        <div class="logo"><span class="logo__img">Stripe</span></div>
+        <div class="logo"><span class="logo__img">Slack</span></div>
+        <div class="logo"><span class="logo__img">Spotify</span></div>
+        <div class="logo"><span class="logo__img">Coinbase</span></div>
+        <div class="logo"><span class="logo__img">Goldman&nbsp;Sachs</span></div>
+        <div class="logo"><span class="logo__img">Dropbox</span></div>
+        <div class="logo"><span class="logo__img">OpenAI</span></div>
+        <div class="logo"><span class="logo__img">Cohere</span></div>
+        <div class="logo"><span class="logo__img">SpaceX</span></div>
+        <div class="logo"><span class="logo__img">Roblox</span></div>
+        <div class="logo"><span class="logo__img">Relativity</span></div>
+        <div class="logo"><span class="logo__img">Checkout.com</span></div>
+        <div class="logo"><span class="logo__img">ClickUp</span></div>
+      </div>
+
+      <!-- Row B (slower for parallax effect) -->
+      <div class="logos__track logos__track--b" data-speed="42">
+        <div class="logo"><span class="logo__img">Twitch</span></div>
+        <div class="logo"><span class="logo__img">Canva</span></div>
+        <div class="logo"><span class="logo__img">Discord</span></div>
+        <div class="logo"><span class="logo__img">Benchling</span></div>
+        <div class="logo"><span class="logo__img">Mistral</span></div>
+        <div class="logo"><span class="logo__img">Robinhood</span></div>
+        <div class="logo"><span class="logo__img">Nubank</span></div>
+        <div class="logo"><span class="logo__img">Vercel</span></div>
+        <div class="logo"><span class="logo__img">Anduril</span></div>
+        <div class="logo"><span class="logo__img">X (Twitter)</span></div>
+        <div class="logo"><span class="logo__img">Databricks</span></div>
+        <div class="logo"><span class="logo__img">Snowflake</span></div>
+        <div class="logo"><span class="logo__img">Figma</span></div>
+        <div class="logo"><span class="logo__img">PayPal</span></div>
+        <div class="logo"><span class="logo__img">Uber</span></div>
+        <div class="logo"><span class="logo__img">DoorDash</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  :root{
+    --logos-bg: #f5f7fb;
+    --logos-ink: #0f172a;
+    --logos-muted: #667085;
+    --logos-card: #ffffff;
+    --logos-border: #e7edf5;
+    --logos-shadow: 0 6px 20px rgba(2,8,23,.06);
+    --logos-gap: clamp(16px, 2.3vw, 28px);
+    --logos-pad-y: clamp(22px, 3vw, 32px);
+  }
+
+  .logos{
+    background: var(--logos-bg);
+    padding: clamp(28px, 5vw, 48px) 0;
+    border-top: 1px solid #eef2f7;
+  }
+  .logos__inner{
+    max-width: min(1480px, 94vw);
+    margin: 0 auto;
+    padding: 0 12px;
+  }
+
+  .logos__title{
+    margin: 0 0 10px;
+    font-family: var(--font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto);
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    color: var(--logos-ink);
+    text-align: center;
+    font-size: clamp(16px, 2.3vw, 22px);
+  }
+
+  .logos__viewport{
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    padding: var(--logos-pad-y) 0;
+    /* nice edge fades */
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+  }
+
+  .logos__track{
+    display: flex;
+    align-items: center;
+    gap: var(--logos-gap);
+    will-change: transform;
+    padding: 6px 0;
+    /* duplicated via JS for seamless loop; animation set in @keyframes */
+    animation: marquee linear infinite;
+    animation-duration: 32s; /* default; overridden per row */
+  }
+  .logos__track--b{
+    animation-duration: 44s;
+    opacity: .95;
+  }
+
+  @keyframes marquee{
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .logo{
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 18px;
+    min-width: clamp(140px, 16vw, 220px);
+    height: clamp(52px, 6vw, 68px);
+    background: var(--logos-card);
+    border: 1px solid var(--logos-border);
+    border-radius: 14px;
+    box-shadow: var(--logos-shadow);
+  }
+
+  /* mock “logos” (text) — swap with <img> later */
+  .logo__img{
+    font-weight: 800;
+    color: #111827;
+    font-size: clamp(16px, 2vw, 20px);
+    letter-spacing: .1px;
+    white-space: nowrap;
+    opacity: .92;
+  }
+
+  /* If you replace with <img> tags, these help */
+  .logo img{
+    display: block;
+    max-height: 28px;
+    max-width: 140px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: saturate(0.9) contrast(1);
+  }
+
+  /* Pause on hover/focus within */
+  .logos__viewport:hover .logos__track,
+  .logos__viewport:focus-within .logos__track{
+    animation-play-state: paused;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .logos__track{ animation: none !important; }
+  }
+</style>
+
+<script>
+/*
+  Seamless marquee helper:
+  - Duplicates each track's children so the width >= 200%,
+    letting the CSS animation translate to -50% for an infinite loop.
+*/
+(() => {
+  const onReady = (fn) => document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+    : fn();
+
+  onReady(() => {
+    const tracks = document.querySelectorAll('.logos__track');
+    tracks.forEach(track => {
+      const speed = Number(track.dataset.speed || 32);
+      // Clone children once to make 2x content
+      const children = Array.from(track.children);
+      children.forEach(node => track.appendChild(node.cloneNode(true)));
+      // Set duration based on speed (lower = faster)
+      track.style.animationDuration = `${Math.max(16, speed)}s`;
+    });
+  });
+})();
+</script>
