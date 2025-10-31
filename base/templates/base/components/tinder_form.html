@@ -1011,21 +1011,13 @@
         fileCard.style.left = leftPx + 'px'; // ready for next loop
       };
   
-        // Play when visible, then loop (lower threshold + fallback)
-        const playWhenVisible = () => new Promise(res => {
-        let done = false;
-        const finish = () => { if (!done) { done = true; res(); } };
-
-        // fire when just ~10% is visible
+      // Play when visible, then loop
+      const playWhenVisible = () => new Promise(res => {
         const io = new IntersectionObserver((entries) => {
-            if (entries.some(e => e.isIntersecting)) { io.disconnect(); finish(); }
-        }, { threshold: 0.1 });
+          if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+        }, { threshold: 0.35 });
         io.observe(root);
-
-        // fallback in case IO never triggers (small screens, layout shifts, etc.)
-        setTimeout(finish, 1200);
-        });
-
+      });
   
       (async function run(){
         await playWhenVisible();
