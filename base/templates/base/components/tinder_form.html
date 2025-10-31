@@ -1042,4 +1042,308 @@
 })();
 </script>
 
+<!-- =========================
+     AI ANALYSIS ANIMATION: "We analyze your resume"
+========================= -->
+<section class="ra-step" aria-label="{% trans 'Second step: AI analyzes your resume' %}">
+    <div class="ra__inner">
+      <h3 class="ra__title">
+        {% blocktrans %}Next, AI analyzes your resume{% endblocktrans %}
+      </h3>
+  
+      <div class="ra" id="raDemo" role="group" aria-describedby="ra-live">
+        <!-- Progress / status -->
+        <div class="ra-top">
+          <div class="ra-progress" aria-hidden="true">
+            <div class="ra-progress__bar"></div>
+            <span class="ra-progress__pct">0%</span>
+          </div>
+          <span class="ra-status" id="ra-live" aria-live="polite">
+            {% trans "Scanning document…" %}
+          </span>
+        </div>
+  
+        <!-- Stage: resume viewport + findings -->
+        <div class="ra-stage">
+          <!-- Left: resume viewport -->
+          <div class="ra-viewport" aria-label="{% trans 'Resume preview' %}">
+            <!-- Camera (we move/zoom this wrapper) -->
+            <div class="ra-cam">
+              <article class="ra-doc" role="document" aria-label="{% trans 'Resume' %}">
+                <header class="ra-doc__head">
+                  <h2 id="ra-name">Ava Jensen</h2>
+                  <p class="ra-doc__meta">
+                    <span id="ra-email">ava.jensen@uni.dk</span> ·
+                    <span id="ra-phone">+45 12 34 56 78</span> ·
+                    <span id="ra-location">Copenhagen, DK</span>
+                  </p>
+                </header>
+  
+                <section class="ra-sec">
+                  <h3>Experience</h3>
+                  <div id="ra-exp" class="ra-block">
+                    <h4>Investment Banking Intern — Goldman Sachs</h4>
+                    <p>Built DCFs and LBO models for live deals; prepared client-ready materials; supported due diligence and market comps.</p>
+                    <ul>
+                      <li>Modeled M&amp;A scenarios across 3 cases; presented takeaways to VP team.</li>
+                      <li>Automated comp pulls in Excel; reduced prep time by 35%.</li>
+                    </ul>
+                  </div>
+                </section>
+  
+                <section class="ra-sec">
+                  <h3>Education</h3>
+                  <div id="ra-edu" class="ra-block">
+                    <h4>Copenhagen Business School — BSc Finance</h4>
+                    <p>Expected 2026 · GPA 3.8/4.0 · CBS Finance Club</p>
+                  </div>
+                </section>
+  
+                <section class="ra-sec">
+                  <h3>Skills</h3>
+                  <p id="ra-skills" class="ra-inline">Excel, PowerPoint, Bloomberg, Python (pandas), Financial Modeling</p>
+                </section>
+              </article>
+            </div>
+  
+            <!-- Moving highlight "lens" -->
+            <div class="ra-lens" aria-hidden="true"></div>
+  
+            <!-- Floating callout (text changes per focus) -->
+            <div class="ra-callout" aria-hidden="true">
+              <div class="ra-callout__dot"></div>
+              <div class="ra-callout__card">
+                <div class="ra-callout__icon">🤖</div>
+                <div class="ra-callout__text"></div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Right: extracted fields panel -->
+          <aside class="ra-panel" aria-label="{% trans 'Extracted fields' %}">
+            <h4 class="ra-panel__title">{% trans "Extracted fields" %}</h4>
+            <ul class="ra-list"></ul>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <style>
+  /* ========== Layout / section ========== */
+  .ra-step{ padding: clamp(36px,6vw,68px) 0; border-top:1px solid #eef2f7; }
+  .ra__inner{ max-width: min(1100px, 94vw); margin:0 auto; padding:0 16px; }
+  .ra__title{ margin:0 0 18px; text-align:center; font:900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui); color:#101828; }
+  
+  /* ========== Stage wrapper ========== */
+  .ra{ --line:#e7edf5; --muted:#667085; --ink:#0f172a; --ok:#10B981; --accent:#3B82F6;
+       --soft:#f8fafc; --chip:#ecfeff;
+       border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 10px 30px rgba(2,8,23,.06); }
+  .ra-top{ display:flex; align-items:center; gap:14px; padding:12px 14px; border-bottom:1px solid #eef2f7; }
+  .ra-status{ margin-left:auto; font:700 12px/1 var(--font); color:#475467; }
+  
+  /* Progress */
+  .ra-progress{ display:flex; align-items:center; gap:10px; }
+  .ra-progress__bar{ --pct:0%; width:180px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
+  .ra-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition:width .15s linear; }
+  .ra-progress__pct{ font:800 12px/1 var(--font); color:#475467; min-width:28px; text-align:right; }
+  
+  /* Stage columns */
+  .ra-stage{ display:grid; grid-template-columns:1fr minmax(280px, 340px); gap:18px; padding:16px; }
+  @media (max-width:900px){ .ra-stage{ grid-template-columns:1fr; } }
+  
+  /* ========== Resume viewport ========== */
+  .ra-viewport{ position:relative; height:520px; border:1px dashed #cfe0ff; border-radius:14px; background:linear-gradient(180deg,#f9fbff, #fff 60%); overflow:hidden; }
+  @media (max-width:900px){ .ra-viewport{ height:460px; } }
+  
+  .ra-cam{ width:100%; height:100%; display:grid; place-items:center; transform: translate3d(0,0,0) scale(1); transition: transform .9s cubic-bezier(.22,.61,.36,1); }
+  
+  /* Document */
+  .ra-doc{ width:min(720px, 92%); background:#fff; border:1px solid #e7eef7; border-radius:12px; padding:22px 26px; color:#0f172a; box-shadow:0 8px 24px rgba(2,8,23,.05); }
+  .ra-doc__head h2{ margin:0 0 4px; font:900 26px/1.15 var(--font,'Manrope',system-ui); }
+  .ra-doc__meta{ margin:0; color:#64748b; font:600 13px/1.4 var(--font); }
+  .ra-sec{ margin-top:18px; }
+  .ra-sec h3{ margin:0 0 8px; font:800 14px/1 var(--font); letter-spacing:.3px; color:#111827; text-transform:uppercase; }
+  .ra-block h4{ margin:0 0 6px; font:800 15px/1.2 var(--font); }
+  .ra-doc p,.ra-doc li,.ra-inline{ font:500 13.5px/1.5 var(--font); color:#0f172a; }
+  .ra-doc ul{ margin:8px 0 0 18px; }
+  
+  /* Highlight lens */
+  .ra-lens{ position:absolute; inset:auto; width:180px; height:100px; border-radius:12px; border:2px solid #93c5fd; box-shadow:0 0 0 4px rgba(147,197,253,.18), 0 10px 28px rgba(2,8,23,.12);
+            opacity:0; transform: translate3d(-50%,-50%,0) scale(.9); transition: opacity .25s ease, transform .35s ease; pointer-events:none; }
+  .ra-lens.is-on{ opacity:1; transform: translate3d(var(--x,0), var(--y,0), 0) scale(1); }
+  
+  /* Callout */
+  .ra-callout{ position:absolute; inset:0; pointer-events:none; opacity:0; transition:.25s ease; }
+  .ra-callout.is-on{ opacity:1; }
+  .ra-callout__dot{ position:absolute; width:10px; height:10px; border-radius:50%; background:#3b82f6; box-shadow:0 0 0 6px rgba(59,130,246,.18); transform:translate(-50%,-50%); }
+  .ra-callout__card{ position:absolute; transform: translate(8px,-50%); background:#fff; border:1px solid #e7eef7; border-radius:10px; padding:10px 12px; box-shadow:0 10px 24px rgba(2,8,23,.12); display:flex; gap:8px; align-items:flex-start; max-width:260px; }
+  .ra-callout__icon{ width:22px; height:22px; display:grid; place-items:center; background:#ecfeff; border:1px solid #bae6fd; border-radius:8px; font-size:14px; }
+  .ra-callout__text{ font:700 12.5px/1.35 var(--font); color:#0f172a; }
+  
+  /* ========== Findings panel ========== */
+  .ra-panel{ border:1px dashed #e5eaf3; border-radius:12px; background:#fafcff; padding:12px; }
+  .ra-panel__title{ margin:0 0 8px; font:900 13px/1 var(--font); color:#0f172a; text-transform:uppercase; letter-spacing:.35px; }
+  .ra-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+  .ra-item{ display:grid; grid-template-columns:92px 1fr auto; align-items:center; gap:8px; padding:8px 10px; background:#fff; border:1px solid #eef2f7; border-radius:10px; opacity:0; transform: translateY(6px); transition:.25s ease; }
+  .ra-item.is-in{ opacity:1; transform:none; }
+  .ra-k{ font:800 11.5px/1 var(--font); color:#64748b; text-transform:uppercase; letter-spacing:.3px; }
+  .ra-v{ font:700 12.5px/1.2 var(--font); color:#111827; }
+  .ra-ok{ color:#10B981; font:900 12px/1 var(--font); }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .ra-cam,.ra-lens,.ra-callout,.ra-item{ transition:none !important; }
+  }
+  </style>
+  
+  <script>
+  /* =========================
+     AI analysis animation controller
+  ========================= */
+  (() => {
+    const ready = (fn) => (document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+      : fn());
+  
+    ready(() => {
+      const root = document.getElementById('raDemo');
+      if (!root) return;
+  
+      // Elements
+      const viewport = root.querySelector('.ra-viewport');
+      const cam      = root.querySelector('.ra-cam');
+      const lens     = root.querySelector('.ra-lens');
+      const callout  = root.querySelector('.ra-callout');
+      const callTxt  = root.querySelector('.ra-callout__text');
+      const dot      = root.querySelector('.ra-callout__dot');
+      const panel    = root.querySelector('.ra-list');
+      const progBar  = root.querySelector('.ra-progress__bar');
+      const progPct  = root.querySelector('.ra-progress__pct');
+      const status   = root.querySelector('.ra-status');
+  
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const rect = (el) => el.getBoundingClientRect();
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      // Where to zoom (elements + what to say/show)
+      const steps = [
+        { id:'#ra-name',   k:'Name',      v:'Ava Jensen',                               say:'Detected name: Ava Jensen',               scale:1.25 },
+        { id:'#ra-email',  k:'Email',     v:'ava.jensen@uni.dk',                        say:'Found email address',                     scale:1.35 },
+        { id:'#ra-edu',    k:'Education', v:'CBS — BSc Finance (2026)',                say:'Parsed education & graduation year',      scale:1.25 },
+        { id:'#ra-skills', k:'Skills',    v:'Excel · PPT · Bloomberg · Python',        say:'Extracted skills and tools',              scale:1.3  },
+        { id:'#ra-exp',    k:'Experience',v:'IB Intern — valuation & modeling',        say:'Summarized key experience bullets',       scale:1.22 }
+      ];
+  
+      const setProgress = (pct) => {
+        const p = Math.max(0, Math.min(100, Math.round(pct)));
+        progBar.style.setProperty('--pct', p + '%');
+        progPct.textContent = p + '%';
+      };
+  
+      // Move/zoom the "camera" so target center is in viewport center
+      const focus = async (targetEl, scale = 1.25, dur = 900) => {
+        const rV = rect(viewport);
+        const rT = rect(targetEl);
+  
+        const cxV = rV.left + rV.width / 2;
+        const cyV = rV.top  + rV.height/ 2;
+        const cxT = rT.left + rT.width / 2;
+        const cyT = rT.top  + rT.height/ 2;
+  
+        const dx = cxV - cxT;
+        const dy = cyV - cyT;
+  
+        cam.style.transition = `transform ${prefersReduced ? 0 : dur}ms cubic-bezier(.22,.61,.36,1)`;
+        cam.style.transform  = `translate3d(${dx}px, ${dy}px, 0) scale(${prefersReduced ? 1 : scale})`;
+  
+        // Position lens + callout over target
+        const lx = (rT.left + rT.width/2) - rV.left;  // local to viewport
+        const ly = (rT.top  + rT.height/2) - rV.top;
+  
+        lens.style.setProperty('--x',  lx + 'px');
+        lens.style.setProperty('--y',  ly + 'px');
+        lens.style.left = lx + 'px';
+        lens.style.top  = ly + 'px';
+        lens.classList.add('is-on');
+  
+        dot.style.left = lx + 'px';
+        dot.style.top  = ly + 'px';
+        callout.style.opacity = '0'; // reset fast
+        callout.classList.add('is-on');
+        callout.querySelector('.ra-callout__card').style.left = (lx + 14) + 'px';
+        callout.querySelector('.ra-callout__card').style.top  = ly + 'px';
+  
+        await pause(dur);
+      };
+  
+      const addFinding = (k, v) => {
+        const li = document.createElement('li');
+        li.className = 'ra-item';
+        li.innerHTML = `<div class="ra-k">${k}</div><div class="ra-v">${v}</div><div class="ra-ok">✓</div>`;
+        panel.appendChild(li);
+        requestAnimationFrame(() => li.classList.add('is-in'));
+      };
+  
+      const analyzeOnce = async () => {
+        // reset
+        status.textContent = '{{ _("Scanning document…") }}';
+        setProgress(0);
+        cam.style.transition = 'none';
+        cam.style.transform  = 'translate3d(0,0,0) scale(1)';
+        lens.classList.remove('is-on');
+        callout.classList.remove('is-on');
+        panel.innerHTML = '';
+  
+        // Wait until visible in viewport
+        await new Promise(res => {
+          const io = new IntersectionObserver((entries) => {
+            if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+          }, { threshold: 0.35 });
+          io.observe(root);
+        });
+  
+        // Walk steps
+        for (let i = 0; i < steps.length; i++){
+          const s = steps[i];
+          const el = root.querySelector(s.id);
+          if (!el) continue;
+  
+          status.textContent = s.say;
+          callTxt.textContent = s.say;
+  
+          await focus(el, s.scale);
+  
+          // “Capture”: small pulse
+          lens.style.transition = 'transform .18s ease, opacity .25s ease';
+          lens.style.transform  = `translate3d(var(--x), var(--y), 0) scale(1.04)`;
+          await pause(150);
+          lens.style.transform  = `translate3d(var(--x), var(--y), 0) scale(1)`;
+  
+          // Add finding to the panel
+          addFinding(s.k, s.v);
+  
+          setProgress(((i+1)/steps.length)*100);
+          await pause(420);
+        }
+  
+        // Finish
+        status.textContent = '{{ _("Analysis complete") }}';
+        lens.classList.remove('is-on');
+        callout.classList.remove('is-on');
+  
+        // Gently reset camera
+        cam.style.transition = `transform ${prefersReduced ? 0 : 600}ms cubic-bezier(.22,.61,.36,1)`;
+        cam.style.transform  = 'translate3d(0,0,0) scale(1)';
+      };
+  
+      // Run once, then optionally loop
+      (async function run(){
+        await analyzeOnce();
+        // subtle loop every ~10s
+        setInterval(analyzeOnce, 10000);
+      })();
+    });
+  })();
+  </script>
   
