@@ -1528,7 +1528,6 @@
     
         /* ========== STEP 2: AI Analyzes ========== */
         spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
-        showOverlayTop('{{ _("Extracting skills & experience…") }}');
         exclusive('analysis');
         await window.RADemo?.runOnce?.();
     
