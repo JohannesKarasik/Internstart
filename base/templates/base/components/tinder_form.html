@@ -989,14 +989,15 @@
         fileCard.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
 
         // move both in sync
-        cursor.style.transform = `translate3d(${dxcx}px, ${dzcy}px, 0)`;
-        fileCard.style.transform = `translate(${dx}px, calc(-50% + ${dy}px))`;
+        cursor.style.transform = `translate3d(${dzcx}px, ${dzcy}px, 0)`; // fixed variable
+        fileCard.style.transform = `translate(${dx - 20}px, calc(-50% + ${dy - 10}px))`; // keep cursor near top-left “grab” spot
 
         await new Promise(r => setTimeout(r, duration + 40));
 
-        // fade out file after reaching center
-        fileCard.style.transition = 'opacity .22s ease';
+        // fade out the file once it reaches the dropzone
+        fileCard.style.transition = 'opacity .25s ease';
         fileCard.style.opacity = '0';
+
 
 
       // 4) Upload progress
