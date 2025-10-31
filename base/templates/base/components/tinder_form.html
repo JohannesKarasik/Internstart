@@ -402,8 +402,9 @@
   opacity:.7; z-index:3;
 }
 
-/* applied state (after simulated click) — slow drop feedback */
-.tinder-deck.line .card.is-center.is-applied{ --ty: 16px; }
+/* applied state (after simulated click) — subtle rise feedback
+   NOTE: We keep --ty at 0 here so JS can raise AFTER the click visually completes. */
+.tinder-deck.line .card.is-center.is-applied{ --ty: 0px; }
 .tinder-deck.line .card.is-applied{
   box-shadow: 0 22px 60px rgba(16,185,129,.18);
   outline: 2px solid rgba(16,185,129,.5);
@@ -488,6 +489,7 @@
 <script>
 /* =========================
    A) Line deck controller — sequential auto-apply (slower)
+   Change: click Apply first, THEN nudge the card slightly UP.
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -553,12 +555,21 @@
 
     const simulateApply = async (card) => {
       const btn = card.querySelector('.action--apply');
+
+      // 1) Visual click first
       await press(btn);
-      card.classList.add('is-applied');          // triggers slow drop via CSS var
+
+      // 2) Mark as applied (badge/outline), but NO movement yet
+      card.classList.add('is-applied');
+
+      // 3) After a short beat, nudge up slightly (very subtle)
+      await pause(prefersReduced ? 60 : 120);
       if (card.classList.contains('is-center')) {
-        card.style.setProperty('--ty','16px');   // explicit, in case class order changes
+        card.style.setProperty('--ty','-8px');   // subtle rise
       }
-      await pause(prefersReduced ? 400 : 900);    // slower “apply” pause
+
+      // 4) Hold briefly before advancing
+      await pause(prefersReduced ? 400 : 900);
     };
 
     const runSequence = async ()=>{
@@ -571,8 +582,8 @@
 
       for (let i=0; i<cards.length; i++){
         setActive(i);
-        await pause(prefersReduced ? 500 : 900);  // slower settle animation
-        await simulateApply(cards[i]);            // "click" Apply
+        await pause(prefersReduced ? 500 : 900);  // settle animation
+        await simulateApply(cards[i]);            // Apply → slight upward nudge
       }
 
       // after last card → show AI form
@@ -617,6 +628,215 @@
   });
 })();
 </script>
+
+<script>
+/* =========================
+   B) AI Form controller (unchanged)
+========================= */
+(() => {
+  const ready = (fn) => (document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+    : fn());
+
+  ready(() => {
+    const root = document.querySelector('.ai-demo');
+    if (!root) return;
+
+    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+    const fields = {
+      name:      root.querySelector('#ai-name'),
+      email:     root.querySelector('#ai-email'),
+      portfolio: root.querySelector('#ai-portfolio'),
+      resume:    root.querySelector('#ai-resume'),
+      cover:     root.querySelector('#ai-cover'),
+      consent:   root.querySelector('#ai-consent'),
+    };
+
+    const resumeBtn  = root.querySelector('.ai-file__btn');
+    const winEl      = root.querySelector('.ai-demo__window');
+    const formEl     = root.querySelector('.ai-form');
+
+    const progressBar = root.querySelector('.ai-demo__bar');
+    const progressPct = root.querySelector('.ai-demo__pct');
+    const statusText  = root.querySelector('#ai-status');
+    const chip        = root.querySelector('#ai-chip');
+
+    const showChip = (ms = 2200) => { if (!chip) return; chip.classList.add('is-on'); setTimeout(()=>chip.classList.remove('is-on'), ms); };
+
+    const ensureSuccessUI = () => {
+      let overlay = winEl.querySelector('.ai-success');
+      if (!overlay) {
+        winEl.insertAdjacentHTML('beforeend', `
+          <div class="ai-success" hidden>
+            <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{{ _('Application sent') }}">
+              <div class="ai-success__icon" aria-hidden="true">
+                <svg viewBox="0 0 52 52">
+                  <circle class="ring" cx="26" cy="26" r="24"></circle>
+                  <path class="mark" d="M16 27l7 7 13-13"></path>
+                </svg>
+              </div>
+              <h4>{{ _('Application sent!') }}</h4>
+              <p>{{ _('Your application was sent successfully.') }}</p>
+              <button type="button" class="btn btn--primary ai-success__ok">{{ _('Nice!') }}</button>
+            </div>
+          </div>
+        `);
+        overlay = winEl.querySelector('.ai-success');
+      }
+      return { overlay, ok: overlay.querySelector('.ai-success__ok') };
+    };
+    const success = ensureSuccessUI();
+
+    const setProgress = (v) => {
+      const pct = Math.min(100, Math.max(0, Math.round(v)));
+      progressBar.style.setProperty('--pct', pct + '%');
+      progressPct.textContent = pct + '%';
+    };
+
+    const typeInto = (el, text, speed = 22, onTick) => new Promise((resolve) => {
+      if (prefersReduced) { el.value = text; onTick?.(text.length); resolve(); return; }
+      let i = 0; el.value = '';
+      const tick = () => {
+        if (i > text.length) return resolve();
+        el.value = text.slice(0, i);
+        onTick?.(1);
+        i++;
+        setTimeout(tick, speed + Math.random() * 18);
+      };
+      tick();
+    });
+
+    const RESUME_WEIGHT = prefersReduced ? 1 : 60;
+    const steps = [
+      { el: fields.name,      text: 'Ava Jensen' },
+      { el: fields.email,     text: 'ava.jensen@uni.dk' },
+      { el: fields.portfolio, text: 'https://ava.work' },
+      { el: fields.resume,    upload: true, focusEl: resumeBtn },
+      { el: fields.cover,     text: "{{ 'I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one.'|escapejs }}" },
+      { el: fields.consent,   check: true }
+    ];
+
+    const showSuccess = () => {
+      winEl.classList.add('is-success');
+      formEl.classList.add('is-success');
+      success.overlay.removeAttribute('hidden');
+      success.overlay.classList.add('is-visible');
+      success.ok?.focus();
+    };
+    const hideSuccess = () => {
+      success.overlay.classList.remove('is-visible');
+      success.overlay.setAttribute('hidden','');
+      winEl.classList.remove('is-success');
+      formEl.classList.remove('is-success');
+    };
+    const fadeOutAndHide = async (delay = 1100) => {
+      if (prefersReduced) { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); return; }
+      await pause(delay);
+      winEl.classList.add('is-fading');
+      await new Promise(res => winEl.addEventListener('transitionend', res, { once:true }));
+      root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true');
+      winEl.classList.remove('is-fading');
+    };
+    const autoPressAndCelebrate = async () => {
+      statusText.textContent = "{{ _('Submitting…') }}";
+      await pause(prefersReduced ? 120 : 600);
+      showSuccess();
+      await fadeOutAndHide(prefersReduced ? 0 : 1100);
+    };
+
+    let isRunning = false;
+    const run = async () => {
+      if (isRunning) return;
+      isRunning = true;
+
+      hideSuccess();
+      root.removeAttribute('hidden'); root.removeAttribute('aria-hidden');
+
+      statusText.textContent = "{{ _('AI is preparing your application…') }}";
+      showChip();
+
+      Object.values(fields).forEach((el) => {
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = false;
+        else el.value = '';
+        el.closest('.ai-field')?.classList.remove('is-active','is-done');
+      });
+      const resumeName = root.querySelector('.ai-file__name');
+      const uploadWrap = root.querySelector('.ai-upload');
+      const uploadBar  = root.querySelector('.ai-upload__bar');
+      resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
+      uploadWrap?.classList.remove('is-visible'); uploadBar?.style.setProperty('--up','0%');
+
+      const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
+      let typed = 0; setProgress(0);
+
+      const focusField = (el) => {
+        const wrap = el.closest('.ai-field');
+        root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
+        wrap?.classList.add('is-active');
+        wrap?.scrollIntoView?.({ block:'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
+      };
+      const checkField = (el) => el.closest('.ai-field')?.classList.add('is-done');
+
+      const attachResume = async () => {
+        statusText.textContent = "{{ _('AI is uploading your CV…') }}";
+        const D = prefersReduced ? 40 : 1200; let used = 0;
+        const btn = root.querySelector('.ai-file__btn');
+        const upW = root.querySelector('.ai-upload');
+        const upB = root.querySelector('.ai-upload__bar');
+        btn?.classList.add('is-pressed'); await new Promise(r=>setTimeout(r,200)); btn?.classList.remove('is-pressed');
+        upW?.classList.add('is-visible'); upB?.style.setProperty('--up','0%');
+        await new Promise((resolve) => {
+          const start = performance.now();
+          const step = (now) => {
+            const t = Math.min(1,(now-start)/D);
+            upB?.style.setProperty('--up', Math.round(t*100)+'%');
+            const add = Math.round(RESUME_WEIGHT * t) - used;
+            if (add > 0){ used += add; typed += add; setProgress(typed/totalChars*100); }
+            t<1 ? requestAnimationFrame(step) : resolve();
+          }; requestAnimationFrame(step);
+        });
+        const nameEl = root.querySelector('.ai-file__name');
+        if (nameEl) nameEl.textContent = 'Ava_Jensen_Resume.pdf';
+        upW?.classList.remove('is-visible');
+      };
+
+      const pauseStep = prefersReduced ? 40 : 180;
+
+      for (const s of steps) {
+        if (!s.el) continue;
+        focusField(s.focusEl || s.el);
+
+        if (s.upload){ await attachResume(); checkField(s.el); await new Promise(r=>setTimeout(r,pauseStep)); continue; }
+        if (s.check){ if (!prefersReduced) await new Promise(r=>setTimeout(r,300)); s.el.checked = true; if (!prefersReduced) await new Promise(r=>setTimeout(r,200)); checkField(s.el); continue; }
+
+        const label = (s.el.labels?.[0]?.innerText || '').trim();
+        statusText.textContent = `{{ _('AI is filling') }} “${label}”…`;
+        await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
+        checkField(s.el);
+        await new Promise(r=>setTimeout(r,pauseStep));
+      }
+
+      setProgress(100);
+      statusText.textContent = "{{ _('Ready to submit — optimized by AI.') }}";
+      await autoPressAndCelebrate();
+      isRunning = false;
+      return true;
+    };
+
+    root.querySelector('.ai-replay')?.addEventListener('click', run);
+
+    window.AIDemo = {
+      runOnce: run,
+      hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
+      show: () => { root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); }
+    };
+  });
+})();
+</script>
+
 
 <script>
 /* =========================
