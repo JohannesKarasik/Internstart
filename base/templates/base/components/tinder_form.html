@@ -1139,8 +1139,26 @@
   @media (max-width:900px){ .ra-stage{ grid-template-columns:1fr; } }
   
   /* Resume viewport */
-  .ra-viewport{ position:relative; height:520px; border:1px dashed #cfe0ff; border-radius:14px; background:linear-gradient(180deg,#f9fbff,#fff 60%); overflow:hidden; align-items: center;}
-  @media (max-width:900px){ .ra-viewport{ height:460px; } }
+  .ra-viewport {
+  position: relative;
+  height: 520px;
+  border: 1px dashed #cfe0ff;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f9fbff, #fff 60%);
+  overflow: hidden;
+
+  /* ✅ Center resume content vertically + horizontally */
+  display: flex;
+  align-items: center;      /* vertical centering */
+  justify-content: center;  /* horizontal centering */
+}
+
+@media (max-width: 900px) {
+  .ra-viewport {
+    height: 460px;
+  }
+}
+
   
   /* Document mock */
   .ra-doc{ width:min(720px,94%); margin:14px auto; background:#fff; border:1px solid #e7eef7; border-radius:12px; padding:22px 26px; color:#0f172a; box-shadow:0 8px 24px rgba(2,8,23,.05);   min-height: calc(100% - 74px);
