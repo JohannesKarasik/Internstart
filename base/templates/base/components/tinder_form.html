@@ -751,7 +751,7 @@
       </div>
 
       <!-- Draggable file card (starts left of center) -->
-      <figure class="rs-file" aria-label="{% trans 'Resume file' %}" style="margin-right: 300px !important;">
+      <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
         <div class="rs-file__tab"></div>
         <div class="rs-file__icon" aria-hidden="true">📄</div>
         <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
@@ -847,15 +847,24 @@
 .rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
 @keyframes rsCheck{ to { stroke-dashoffset:0; } }
 
-/* ===== File card (starts left of center) */
-.rs-file{
-  position:absolute;
-  top: 50%; left: calc(50% - 320px);   /* 320px to the LEFT of center */
-  transform: translate(0, -50%);       /* we will animate extra X via JS */
-  width: 240px; height: 140px;
-  background:#fff; border:1px solid var(--line); border-radius:14px;
-  box-shadow: 0 10px 26px rgba(2,8,23,.08);
-  margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
+/* Move file card visibly to the left of center */
+.rs-file {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 340px); /* adjust: more negative = further left */
+  transform: translateY(-50%);
+  width: 240px;
+  height: 140px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(2, 8, 23, 0.08);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 .rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
 .rs-file__icon{ font-size:26px; }
@@ -920,8 +929,9 @@
       progBar.style.setProperty('--pct', '0%');
       progPct.textContent = '0%';
       fileCard.style.transition = 'none';
-      fileCard.style.transform  = 'translate(0, -50%)'; // reset to start (left of center)
-      fileCard.style.opacity = '';
+      fileCard.style.left = 'calc(50% - 340px)'; // visible to the left of center
+    fileCard.style.opacity = '1';               // start visible
+    fileCard.style.transform = 'translate(0, -50%)';
 
       const rRoot = rect(root);
       const rFile = rect(fileCard);
