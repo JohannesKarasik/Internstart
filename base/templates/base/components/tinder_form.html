@@ -28,7 +28,7 @@
       </p>
     </header>
 
-```
+
 <div class="demo-stage">
   <!-- (Optional) floating explainer -->
   <div class="demo-overlay" aria-live="polite">
@@ -538,7 +538,7 @@
     </div>
   </div>
 </div><!-- /.demo-stage -->
-```
+
 
   </div>
 </section>
@@ -1364,12 +1364,15 @@
       progWrap.classList.remove('is-visible');
       done.classList.add('is-visible');
       announce('{{ _("Uploaded successfully") }}');
-      await new Promise(r => setTimeout(r, 900));
-      dz.classList.remove('is-over');
-      fileCard.classList.remove('is-grabbed');
-      fileCard.style.opacity = '';
-      fileCard.style.transition = 'none';
-      fileCard.style.transform  = 'translate(0, -50%)';
+        // ✅ Leave final state visible (no reset)
+        await new Promise(r => setTimeout(r, 900));
+        // Keep "Uploaded" card + 100% visible until orchestrator hides step
+        // (comment out reset)
+        dz.classList.remove('is-over');
+        fileCard.classList.remove('is-grabbed');
+        // fileCard.style.opacity = '';
+        // fileCard.style.transition = 'none';
+        // fileCard.style.transform  = 'translate(0, -50%)';
     };
 
     window.ResumeDemo = {
