@@ -32,7 +32,7 @@
       </div>
 
       <!-- Tinder-style card deck -->
-      <div class="tinder-section" hidden aria-label="{% trans 'Automatic swipe demo' %}">
+      <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
         <div class="tinder-deck" data-autoplay="true">
           <!-- Card 1 -->
 
@@ -561,93 +561,41 @@
 /* =========================
    C) Orchestrator (switches deck → form → repeat)
 ========================= */
+/* =========================
+   C) Simplified orchestrator — single Tinder card
+========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
     ? document.addEventListener('DOMContentLoaded', fn, { once:true })
     : fn());
 
   ready(() => {
-    const stage  = document.querySelector('.demo-stage');
-    const tinder = document.querySelector('.tinder-section');
-    const deck   = document.querySelector('.tinder-deck');
-    const form   = document.querySelector('.ai-demo');
+    const stage   = document.querySelector('.demo-stage');
+    const tinder  = document.querySelector('.tinder-section');
+    const form    = document.querySelector('.ai-demo');
     const overlay = document.querySelector('.demo-overlay');
     const overlayText = document.querySelector('.demo-overlay__text');
-    if (!stage || !tinder || !form || !deck || !overlay || !overlayText) return;
+    if (!stage || !tinder || !form || !overlay || !overlayText) return;
 
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
-
-    const measure = () => {
-      const tHidden = tinder.hasAttribute('hidden');
-      const fHidden = form.hasAttribute('hidden');
-      if (tHidden) tinder.removeAttribute('hidden');
-      if (fHidden) form.removeAttribute('hidden');
-      const h = Math.max(tinder.offsetHeight || 0, form.offsetHeight || 0, 420);
-      stage.style.minHeight = h + 'px';
-      if (tHidden) tinder.setAttribute('hidden','');
-      if (fHidden) form.setAttribute('hidden','');
-    };
-    measure();
-    addEventListener('resize', measure);
-
-    const resetDeck = () => {
-      const cards = [...deck.querySelectorAll('.card')];
-      const order = ['card--pink','card--blue','card--yellow'];
-      cards.sort((a,b) =>
-        order.indexOf([...a.classList].find(c => order.includes(c))) -
-        order.indexOf([...b.classList].find(c => order.includes(c)))
-      );
-      deck.innerHTML = '';
-      cards.forEach(c => {
-        c.style.opacity = '';
-        c.classList.remove('swipe-left','swipe-right','is-top','is-next');
-        deck.appendChild(c);
-      });
-      if (cards[0]) cards[0].classList.add('is-top');
-      if (cards[1]) cards[1].classList.add('is-next');
-    };
-
-    (async function loop(){
-      // wait until this section is visible
-      await new Promise(res => {
-        const io = new IntersectionObserver((entries) => {
-          if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-        }, { threshold: 0.3 });
-        io.observe(stage);
-      });
-
-      while (true) {
-        resetDeck();
-        overlayText.classList.remove('is-visible');
-        overlay.classList.add('is-deck');
+    // Show Tinder card when visible
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        observer.disconnect();
+        tinder.removeAttribute('hidden');
+        tinder.removeAttribute('aria-hidden');
+        form.setAttribute('hidden', '');
+        form.setAttribute('aria-hidden', 'true');
         overlay.classList.remove('is-form');
-
-        form.setAttribute('hidden',''); form.setAttribute('aria-hidden','true');
-        tinder.removeAttribute('hidden'); tinder.removeAttribute('aria-hidden');
-        measure();
-
-        const swipes = Math.max(3, window.TinderDemo?.count?.() || 3);
-        await window.TinderDemo?.play?.(swipes);
-
-        // switch to form
-        tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
-        form.removeAttribute('hidden');   form.removeAttribute('aria-hidden');
-        overlay.classList.remove('is-deck-left','is-deck-right');
-        overlay.classList.add('is-form');
-        measure();
-
-        overlayText.textContent = '{{ _("AI applies for you") }}';
+        overlay.classList.add('is-deck-right');
+        overlayText.textContent = '{{ _("Swipe right to apply") }}';
         overlayText.classList.add('is-visible');
-
-        await window.AIDemo?.runOnce?.();
-        await pause(800);
-
-        resetDeck();
-        await pause(800);
       }
-    })();
+    }, { threshold: 0.3 });
+
+    observer.observe(stage);
   });
 })();
+
 </script>
 
 
