@@ -790,18 +790,26 @@
 }
 
 /* ===== Demo stage (boxed and centered) */
-.rs{
-  --box: #ffffff; --line:#e7edf5; --ink:#0f172a; --muted:#667085; --ok:#10B981; --accent:#3B82F6;
+.rs {
+  --box: #ffffff;
+  --line: #e7edf5;
+  --ink: #0f172a;
+  --muted: #667085;
+  --ok: #10B981;
+  --accent: #3B82F6;
+
   position: relative;
   height: 380px;
-  border-radius: 18px;
-  background: #fff;
-  border:1px solid var(--line);
-  box-shadow: 0 12px 30px rgba(2,8,23,.06);
-    overflow: visible;
-  max-width: 920px;          /* center the whole animation block */
+  overflow: visible;
+  max-width: 920px;
   margin: 0 auto;
+
+  /* ✂️ Remove the modal look */
+  background: transparent;   /* no white box */
+  border: none;              /* no border */
+  box-shadow: none;          /* no shadow */
 }
+
 @media (max-width:720px){ .rs{ height: 340px; } }
 
 /* ===== Centered dropzone */
