@@ -1410,7 +1410,6 @@
 
 
 
-
     const addFinding = (k, v) => {
       const li = document.createElement('li');
       li.className = 'ra-item';
@@ -1518,7 +1517,7 @@
     
         /* ========== STEP 1: Upload Resume ========== */
         spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
-   
+        showOverlayTop('{{ _("Drop your resume to start") }}');
         exclusive('resume');
         await window.ResumeDemo?.runOnce?.();
     
@@ -1528,6 +1527,7 @@
     
         /* ========== STEP 2: AI Analyzes ========== */
         spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
+        showOverlayTop('{{ _("Extracting skills & experience…") }}');
         exclusive('analysis');
         await window.RADemo?.runOnce?.();
     
