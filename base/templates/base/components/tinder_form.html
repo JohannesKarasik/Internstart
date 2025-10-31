@@ -720,313 +720,313 @@
      FIRST STEP ANIMATION: "Upload your resume" (centered; file fades in from outside)
 ========================= -->
 <section class="resume-step" aria-label="{% trans 'First step: upload your resume' %}">
-    <div class="resume-step__inner">
-      <h3 class="resume-step__title">
-        {% blocktrans %}First, you upload your resume{% endblocktrans %}
-      </h3>
-  
-      <div class="rs" id="resumeDemo" role="group" aria-describedby="rs-live">
-        <!-- Centered Dropzone -->
-        <div class="rs-dropzone" aria-label="{% trans 'Upload your resume' %}">
-          <div class="rs-dropzone__icon" aria-hidden="true">⬆️</div>
-          <div class="rs-dropzone__text">
-            <strong>{% trans "Upload your resume" %}</strong>
-            <span class="rs-dropzone__hint">{% trans "Drag & drop or click to browse" %}</span>
-          </div>
-  
-          <!-- Progress -->
-          <div class="rs-progress" aria-hidden="true">
-            <div class="rs-progress__bar"></div>
-            <span class="rs-progress__pct">0%</span>
-          </div>
-  
-          <!-- Success -->
-          <div class="rs-done" aria-hidden="true">
-            <svg viewBox="0 0 52 52" class="rs-check">
-              <circle cx="26" cy="26" r="24" class="ring"></circle>
-              <path d="M16 27l7 7 13-13" class="mark"></path>
-            </svg>
-            <span>{% trans "Uploaded" %}</span>
-          </div>
+  <div class="resume-step__inner">
+    <h3 class="resume-step__title">
+      {% blocktrans %}First, you upload your resume{% endblocktrans %}
+    </h3>
+
+    <div class="rs" id="resumeDemo" role="group" aria-describedby="rs-live">
+      <!-- Centered Dropzone -->
+      <div class="rs-dropzone" aria-label="{% trans 'Upload your resume' %}">
+        <div class="rs-dropzone__icon" aria-hidden="true">⬆️</div>
+        <div class="rs-dropzone__text">
+          <strong>{% trans "Upload your resume" %}</strong>
+          <span class="rs-dropzone__hint">{% trans "Drag & drop or click to browse" %}</span>
         </div>
-  
-        <!-- Draggable file card (starts outside the dropzone, fades in, then drags in) -->
-        <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
-          <div class="rs-file__tab"></div>
-          <div class="rs-file__icon" aria-hidden="true">📄</div>
-          <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
-        </figure>
-  
-        <!-- Cursor -->
-        <div class="rs-cursor" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="rs-pointer">
-            <path d="M4 3l13 7.5-6.2 1.9 3.2 6.7-2.2 1-3.2-6.7L6 16.9 4 3z" fill="#111"/>
+
+        <!-- Progress -->
+        <div class="rs-progress" aria-hidden="true">
+          <div class="rs-progress__bar"></div>
+          <span class="rs-progress__pct">0%</span>
+        </div>
+
+        <!-- Success -->
+        <div class="rs-done" aria-hidden="true">
+          <svg viewBox="0 0 52 52" class="rs-check">
+            <circle cx="26" cy="26" r="24" class="ring"></circle>
+            <path d="M16 27l7 7 13-13" class="mark"></path>
           </svg>
+          <span>{% trans "Uploaded" %}</span>
         </div>
-  
-        <!-- Live announcements -->
-        <p id="rs-live" class="sr-only" aria-live="polite">{% trans "First you upload your resume" %}</p>
       </div>
+
+      <!-- Draggable file card (starts outside the dropzone, fades in, then drags in) -->
+      <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
+        <div class="rs-file__tab"></div>
+        <div class="rs-file__icon" aria-hidden="true">📄</div>
+        <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
+      </figure>
+
+      <!-- Cursor -->
+      <div class="rs-cursor" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="rs-pointer">
+          <path d="M4 3l13 7.5-6.2 1.9 3.2 6.7-2.2 1-3.2-6.7L6 16.9 4 3z" fill="#111"/>
+        </svg>
+      </div>
+
+      <!-- Live announcements -->
+      <p id="rs-live" class="sr-only" aria-live="polite">{% trans "First you upload your resume" %}</p>
     </div>
-  </section>
-  
-  <style>
-  /* ===== Section layout (center on page) */
-  .resume-step{
-    padding: clamp(36px,6vw,68px) 0;
-    background: linear-gradient(180deg,#f6f8fc 0%, #fff 100%);
-    border-top:1px solid #eef2f7;
-  }
-  .resume-step__inner{
-    max-width: min(1000px, 92vw);
-    margin: 0 auto;
-    padding: 0 16px;
-  }
-  .resume-step__title{
-    margin:0 0 18px;
-    text-align:center;
-    font: 900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui);
-    color:#101828;
-  }
-  
-  /* ===== Demo stage (boxed and centered) */
-  .rs{
-    --box: #ffffff; --line:#e7edf5; --ink:#0f172a; --muted:#667085; --ok:#10B981; --accent:#3B82F6;
-    position: relative;
-    height: 380px;
-    border-radius: 18px;
-    background: #fff;
-    border:1px solid var(--line);
-    box-shadow: 0 12px 30px rgba(2,8,23,.06);
-    overflow: hidden;
-    max-width: 920px;
-    margin: 0 auto;
-  }
-  @media (max-width:720px){ .rs{ height: 340px; } }
-  
-  /* ===== Centered dropzone */
-  .rs-dropzone{
-    position:absolute; z-index:1;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    width: min(520px, 88%);
-    min-width: 300px;
-    background: var(--box);
-    border: 2px dashed #cfe0ff;
-    border-radius: 16px;
-    padding: 20px;
-    display:flex; align-items:center; gap:14px;
-    box-shadow: 0 8px 24px rgba(2,8,23,.05);
-  }
-  .rs-dropzone.is-over{ border-color:#93c5fd; background:#f8fbff; }
-  .rs-dropzone__icon{
-    width:42px; height:42px; display:grid; place-items:center;
-    font-size:22px; background:#eef6ff; color:#1d4ed8; border-radius:12px;
-  }
-  .rs-dropzone__text{ display:flex; flex-direction:column; gap:4px; color:#0f172a; font-family:var(--font); }
-  .rs-dropzone__text strong{ font-weight:800; letter-spacing:.1px; }
-  .rs-dropzone__hint{ color:#667085; font-weight:600; font-size:12px; }
-  
-  .rs-progress{
-    display:flex; align-items:center; gap:10px; margin-left:auto;
-    opacity:0; transform: translateY(6px); transition:.25s ease;
-  }
-  .rs-progress.is-visible{ opacity:1; transform:none; }
-  .rs-progress__bar{ --pct:0%; width:140px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
-  .rs-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition: width .08s linear; }
-  .rs-progress__pct{ font:700 12px/1 var(--font); color:#475467; min-width:32px; text-align:right; }
-  
-  .rs-done{
-    display:flex; align-items:center; gap:8px; margin-left:auto;
-    opacity:0; transform:translateY(6px); transition:.25s ease;
-  }
-  .rs-done.is-visible{ opacity:1; transform:none; }
-  .rs-check{ width:22px; height:22px; }
-  .rs-check .ring{ fill:none; stroke:#A7F3D0; stroke-width:4; opacity:.9 }
-  .rs-check .mark{ fill:none; stroke:#10B981; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-dasharray:60; stroke-dashoffset:60; }
-  @keyframes rsCheck{ to { stroke-dashoffset:0; } }
-  .rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
-  
-  /* ===== File card (JS sets left so it sits outside the dropzone) */
-  .rs-file{
-    position:absolute; z-index:2;
-    top: 50%;
-    left: 16px; /* overridden by JS each run */
-    width: 240px; height: 140px;
-    background:#fff; border:1px solid var(--line); border-radius:14px;
-    box-shadow: 0 10px 26px rgba(2,8,23,.08);
-    margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
-  
-    /* start OUTSIDE + hidden; then fade/slide in with .is-visible */
-    opacity: 0;
-    transform: translate(-20px, -50%);
-    transition: opacity 320ms ease, transform 340ms cubic-bezier(.2,.9,.2,1);
-  }
-  .rs-file.is-visible{ opacity: 1; transform: translate(0, -50%); }
-  .rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
-  .rs-file__icon{ font-size:26px; }
-  .rs-file__name{ font: 800 12px/1.2 var(--font); color:#111827; padding:0 12px; text-align:center; }
-  .rs-file.is-grabbed{ transform: translate(0, -50%) scale(1.03); box-shadow: 0 12px 30px rgba(2,8,23,.12); }
-  
-  /* ===== Cursor (starts near file) */
-  .rs-cursor{ position:absolute; width:24px; height:24px; transform: translate3d(0,0,0); }
-  .rs-pointer{ width:100%; height:100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
-  
-  /* ===== Utilities */
-  .sr-only{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
-  
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce){
-    .rs-cursor{ display:none; }
-    .rs{ transition:none !important; }
-  }
-  </style>
-  
-  <script>
-  /* =========================
-     "Upload your resume" animation controller (file fades in outside, then drags in)
-  ========================= */
-  (() => {
-    const ready = (fn) => (document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-      : fn());
-  
-    ready(() => {
-      const root = document.getElementById('resumeDemo');
-      if (!root) return;
-  
-      const cursor   = root.querySelector('.rs-cursor');
-      const fileCard = root.querySelector('.rs-file');
-      const dz       = root.querySelector('.rs-dropzone');
-      const progWrap = root.querySelector('.rs-progress');
-      const progBar  = root.querySelector('.rs-progress__bar');
-      const progPct  = root.querySelector('.rs-progress__pct');
-      const done     = root.querySelector('.rs-done');
-      const live     = root.querySelector('#rs-live');
-  
-      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const rect = (el) => el.getBoundingClientRect();
-  
-      const moveTo = (el, x, y, dur = 600, ease = 'cubic-bezier(.22,.61,.36,1)') =>
-        new Promise(res => {
-          el.style.transition = `transform ${dur}ms ${ease}`;
-          el.style.transform  = `translate3d(${x}px, ${y}px, 0)`;
-          const doneFn = () => { el.removeEventListener('transitionend', doneFn); res(); };
-          el.addEventListener('transitionend', doneFn, { once:true });
-          setTimeout(res, dur + 40);
-        });
-  
-      const announce = (msg) => { if (live) live.textContent = msg; };
-  
-      const animateOnce = async () => {
-        // Reset UI
-        dz.classList.remove('is-over');
-        fileCard.classList.remove('is-grabbed','is-visible');
-        progWrap.classList.remove('is-visible');
-        done.classList.remove('is-visible');
-        progBar.style.setProperty('--pct', '0%');
-        progPct.textContent = '0%';
-  
-        // Position file just OUTSIDE the left edge of the centered dropzone
-        const rRoot = rect(root);
-        const rDz   = rect(dz);
-        const fileW = fileCard.offsetWidth || 240;
-        const gap   = 24;
-        let leftPx  = (rDz.left - rRoot.left) - fileW - gap;
-        leftPx = Math.max(12, leftPx); // keep inside stage
-        fileCard.style.left = leftPx + 'px';
-        fileCard.style.opacity = '0';
-        fileCard.style.transform = 'translate(-20px, -50%)';
-  
-        // Fade/slide in BEFORE dragging
-        requestAnimationFrame(() => fileCard.classList.add('is-visible'));
-        await new Promise(r => setTimeout(r, 360));
-  
-        // Recompute positions after visible
-        const rFile = rect(fileCard);
-        const fcx = rFile.left - rRoot.left + rFile.width / 2;
-        const fcy = rFile.top  - rRoot.top  + rFile.height / 2;
-        const dzcx = rDz.left  - rRoot.left + rDz.width  / 2;
-        const dzcy = rDz.top   - rRoot.top  + rDz.height / 2;
-  
-        // Cursor near file
-        const startX = fcx + 16;
-        const startY = fcy + 10;
-        cursor.style.transition = 'none';
-        cursor.style.transform  = `translate3d(${startX}px, ${startY}px, 0)`;
-  
-        if (prefersReduced){
-          announce('{{ _("First you upload your resume") }}');
-          fileCard.classList.add('is-grabbed');
-          dz.classList.add('is-over');
-          progWrap.classList.add('is-visible');
-          let pct = 0;
-          const t = setInterval(() => {
-            pct += 10;
-            if (pct >= 100){ pct = 100; clearInterval(t); progWrap.classList.remove('is-visible'); done.classList.add('is-visible'); }
-            progBar.style.setProperty('--pct', pct + '%');
-            progPct.textContent = pct + '%';
-          }, 70);
-          return;
-        }
-  
-        // 1) Move cursor to file (grab)
-        await moveTo(cursor, startX, startY, 360);
+  </div>
+</section>
+
+<style>
+/* ===== Section layout (center on page) */
+.resume-step{
+  padding: clamp(36px,6vw,68px) 0;
+  background: linear-gradient(180deg,#f6f8fc 0%, #fff 100%);
+  border-top:1px solid #eef2f7;
+}
+.resume-step__inner{
+  max-width: min(1000px, 92vw);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.resume-step__title{
+  margin:0 0 18px;
+  text-align:center;
+  font: 900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui);
+  color:#101828;
+}
+
+/* ===== Demo stage (boxed and centered) */
+.rs{
+  --box: #ffffff; --line:#e7edf5; --ink:#0f172a; --muted:#667085; --ok:#10B981; --accent:#3B82F6;
+  position: relative;
+  height: 380px;
+  border-radius: 18px;
+  background: #fff;
+  border:1px solid var(--line);
+  box-shadow: 0 12px 30px rgba(2,8,23,.06);
+  overflow: hidden;
+  max-width: 920px;
+  margin: 0 auto;
+}
+@media (max-width:720px){ .rs{ height: 340px; } }
+
+/* ===== Centered dropzone */
+.rs-dropzone{
+  position:absolute; z-index:1;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 88%);
+  min-width: 300px;
+  background: var(--box);
+  border: 2px dashed #cfe0ff;
+  border-radius: 16px;
+  padding: 20px;
+  display:flex; align-items:center; gap:14px;
+  box-shadow: 0 8px 24px rgba(2,8,23,.05);
+}
+.rs-dropzone.is-over{ border-color:#93c5fd; background:#f8fbff; }
+.rs-dropzone__icon{
+  width:42px; height:42px; display:grid; place-items:center;
+  font-size:22px; background:#eef6ff; color:#1d4ed8; border-radius:12px;
+}
+.rs-dropzone__text{ display:flex; flex-direction:column; gap:4px; color:#0f172a; font-family:var(--font); }
+.rs-dropzone__text strong{ font-weight:800; letter-spacing:.1px; }
+.rs-dropzone__hint{ color:#667085; font-weight:600; font-size:12px; }
+
+.rs-progress{
+  display:flex; align-items:center; gap:10px; margin-left:auto;
+  opacity:0; transform: translateY(6px); transition:.25s ease;
+}
+.rs-progress.is-visible{ opacity:1; transform:none; }
+.rs-progress__bar{ --pct:0%; width:140px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
+.rs-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition: width .08s linear; }
+.rs-progress__pct{ font:700 12px/1 var(--font); color:#475467; min-width:32px; text-align:right; }
+
+.rs-done{
+  display:flex; align-items:center; gap:8px; margin-left:auto;
+  opacity:0; transform:translateY(6px); transition:.25s ease;
+}
+.rs-done.is-visible{ opacity:1; transform:none; }
+.rs-check{ width:22px; height:22px; }
+.rs-check .ring{ fill:none; stroke:#A7F3D0; stroke-width:4; opacity:.9 }
+.rs-check .mark{ fill:none; stroke:#10B981; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-dasharray:60; stroke-dashoffset:60; }
+@keyframes rsCheck{ to { stroke-dashoffset:0; } }
+.rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
+
+/* ===== File card (JS sets left so it sits outside the dropzone) */
+.rs-file{
+  position:absolute; z-index:2;
+  top: 50%;
+  left: 16px; /* overridden by JS each run */
+  width: 240px; height: 140px;
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  box-shadow: 0 10px 26px rgba(2,8,23,.08);
+  margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
+
+  /* start OUTSIDE + hidden; then fade/slide in with .is-visible */
+  opacity: 0;
+  transform: translate(-20px, -50%);
+  transition: opacity 320ms ease, transform 340ms cubic-bezier(.2,.9,.2,1);
+}
+.rs-file.is-visible{ opacity: 1; transform: translate(0, -50%); }
+.rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
+.rs-file__icon{ font-size:26px; }
+.rs-file__name{ font: 800 12px/1.2 var(--font); color:#111827; padding:0 12px; text-align:center; }
+.rs-file.is-grabbed{ transform: translate(0, -50%) scale(1.03); box-shadow: 0 12px 30px rgba(2,8,23,.12); }
+
+/* ===== Cursor (starts near file) */
+.rs-cursor{ position:absolute; width:24px; height:24px; transform: translate3d(0,0,0); }
+.rs-pointer{ width:100%; height:100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+
+/* ===== Utilities */
+.sr-only{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .rs-cursor{ display:none; }
+  .rs{ transition:none !important; }
+}
+</style>
+
+<script>
+/* =========================
+   "Upload your resume" animation controller (file fades in outside, then drags in)
+========================= */
+(() => {
+  const ready = (fn) => (document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+    : fn());
+
+  ready(() => {
+    const root = document.getElementById('resumeDemo');
+    if (!root) return;
+
+    const cursor   = root.querySelector('.rs-cursor');
+    const fileCard = root.querySelector('.rs-file');
+    const dz       = root.querySelector('.rs-dropzone');
+    const progWrap = root.querySelector('.rs-progress');
+    const progBar  = root.querySelector('.rs-progress__bar');
+    const progPct  = root.querySelector('.rs-progress__pct');
+    const done     = root.querySelector('.rs-done');
+    const live     = root.querySelector('#rs-live');
+
+    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const rect = (el) => el.getBoundingClientRect();
+
+    const moveTo = (el, x, y, dur = 600, ease = 'cubic-bezier(.22,.61,.36,1)') =>
+      new Promise(res => {
+        el.style.transition = `transform ${dur}ms ${ease}`;
+        el.style.transform  = `translate3d(${x}px, ${y}px, 0)`;
+        const doneFn = () => { el.removeEventListener('transitionend', doneFn); res(); };
+        el.addEventListener('transitionend', doneFn, { once:true });
+        setTimeout(res, dur + 40);
+      });
+
+    const announce = (msg) => { if (live) live.textContent = msg; };
+
+    const animateOnce = async () => {
+      // Reset UI
+      dz.classList.remove('is-over');
+      fileCard.classList.remove('is-grabbed','is-visible');
+      progWrap.classList.remove('is-visible');
+      done.classList.remove('is-visible');
+      progBar.style.setProperty('--pct', '0%');
+      progPct.textContent = '0%';
+
+      // Position file just OUTSIDE the left edge of the centered dropzone
+      const rRoot = rect(root);
+      const rDz   = rect(dz);
+      const fileW = fileCard.offsetWidth || 240;
+      const gap   = 24;
+      let leftPx  = (rDz.left - rRoot.left) - fileW - gap;
+      leftPx = Math.max(12, leftPx); // keep inside stage
+      fileCard.style.left = leftPx + 'px';
+      fileCard.style.opacity = '0';
+      fileCard.style.transform = 'translate(-20px, -50%)';
+
+      // Fade/slide in BEFORE dragging
+      requestAnimationFrame(() => fileCard.classList.add('is-visible'));
+      await new Promise(r => setTimeout(r, 360));
+
+      // Recompute positions after visible
+      const rFile = rect(fileCard);
+      const fcx = rFile.left - rRoot.left + rFile.width / 2;
+      const fcy = rFile.top  - rRoot.top  + rFile.height / 2;
+      const dzcx = rDz.left  - rRoot.left + rDz.width  / 2;
+      const dzcy = rDz.top   - rRoot.top  + rDz.height / 2;
+
+      // Cursor near file
+      const startX = fcx + 16;
+      const startY = fcy + 10;
+      cursor.style.transition = 'none';
+      cursor.style.transform  = `translate3d(${startX}px, ${startY}px, 0)`;
+
+      if (prefersReduced){
         announce('{{ _("First you upload your resume") }}');
         fileCard.classList.add('is-grabbed');
-  
-        // 2) Move cursor to center (dropzone center)
         dz.classList.add('is-over');
-        await moveTo(cursor, dzcx, dzcy, 900);
-  
-        // 3) Slide file into the center
-        const dx = dzcx - fcx;
-        fileCard.style.transition = 'transform 260ms cubic-bezier(.2,.9,.2,1), opacity .22s ease';
-        fileCard.style.transform  = `translate(${dx}px, -50%) scale(.96)`;
-        await new Promise(r => setTimeout(r, 280));
-        fileCard.style.opacity = '0';
-  
-        // 4) Upload progress
         progWrap.classList.add('is-visible');
-        announce('{{ _("Uploading resume…") }}');
         let pct = 0;
-        const timer = setInterval(() => {
-          pct += 6 + Math.random()*8;
-          if (pct >= 100){ pct = 100; clearInterval(timer); }
-          progBar.style.setProperty('--pct', Math.round(pct) + '%');
-          progPct.textContent = Math.round(pct) + '%';
-        }, 80);
-        await new Promise(r => setTimeout(r, 1600));
-  
-        // 5) Success and reset
-        progWrap.classList.remove('is-visible');
-        done.classList.add('is-visible');
-        announce('{{ _("Uploaded successfully") }}');
-  
-        await new Promise(r => setTimeout(r, 900));
-        dz.classList.remove('is-over');
-        fileCard.classList.remove('is-grabbed','is-visible');
-        fileCard.style.opacity = '0';
-        fileCard.style.transform = 'translate(-20px, -50%)';
-        fileCard.style.left = leftPx + 'px'; // ready for next loop
-      };
-  
-      // Play when visible, then loop
-      const playWhenVisible = () => new Promise(res => {
-        const io = new IntersectionObserver((entries) => {
-          if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-        }, { threshold: 0.35 });
-        io.observe(root);
-      });
-  
-      (async function run(){
-        await playWhenVisible();
-        await animateOnce();
-        setInterval(animateOnce, 8000);
-      })();
+        const t = setInterval(() => {
+          pct += 10;
+          if (pct >= 100){ pct = 100; clearInterval(t); progWrap.classList.remove('is-visible'); done.classList.add('is-visible'); }
+          progBar.style.setProperty('--pct', pct + '%');
+          progPct.textContent = pct + '%';
+        }, 70);
+        return;
+      }
+
+      // 1) Move cursor to file (grab)
+      await moveTo(cursor, startX, startY, 360);
+      announce('{{ _("First you upload your resume") }}');
+      fileCard.classList.add('is-grabbed');
+
+      // 2) Move cursor to center (dropzone center)
+      dz.classList.add('is-over');
+      await moveTo(cursor, dzcx, dzcy, 900);
+
+      // 3) Slide file into the center
+      const dx = dzcx - fcx;
+      fileCard.style.transition = 'transform 260ms cubic-bezier(.2,.9,.2,1), opacity .22s ease';
+      fileCard.style.transform  = `translate(${dx}px, -50%) scale(.96)`;
+      await new Promise(r => setTimeout(r, 280));
+      fileCard.style.opacity = '0';
+
+      // 4) Upload progress
+      progWrap.classList.add('is-visible');
+      announce('{{ _("Uploading resume…") }}');
+      let pct = 0;
+      const timer = setInterval(() => {
+        pct += 6 + Math.random()*8;
+        if (pct >= 100){ pct = 100; clearInterval(timer); }
+        progBar.style.setProperty('--pct', Math.round(pct) + '%');
+        progPct.textContent = Math.round(pct) + '%';
+      }, 80);
+      await new Promise(r => setTimeout(r, 1600));
+
+      // 5) Success and reset
+      progWrap.classList.remove('is-visible');
+      done.classList.add('is-visible');
+      announce('{{ _("Uploaded successfully") }}');
+
+      await new Promise(r => setTimeout(r, 900));
+      dz.classList.remove('is-over');
+      fileCard.classList.remove('is-grabbed','is-visible');
+      fileCard.style.opacity = '0';
+      fileCard.style.transform = 'translate(-20px, -50%)';
+      fileCard.style.left = leftPx + 'px'; // ready for next loop
+    };
+
+    // Play when visible, then loop
+    const playWhenVisible = () => new Promise(res => {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+      }, { threshold: 0.35 });
+      io.observe(root);
     });
-  })();
-  </script>
-  
+
+    (async function run(){
+      await playWhenVisible();
+      await animateOnce();
+      setInterval(animateOnce, 8000);
+    })();
+  });
+})();
+</script>
+
 
   
