@@ -536,11 +536,13 @@
   .tinder-deck.line{ --gap1: 160px; --gap2: 280px; --gap3: 400px; --gap4: 520px; --gap5: 640px; }
 }
 
+/* Stronger default blur for all non-center cards */
 .tinder-deck.line .card{
   position:absolute; top:0; left:50%;
   transform: translateX(-50%) translateY(var(--ty,0)) scale(.86);
   opacity:0; pointer-events:none;
-  filter: saturate(.94) blur(.15px);
+  /* ↑ bump blur from .15px to 1.2px */
+  filter: saturate(.92) blur(1.2px);
   transition:
     transform var(--deck-dur) cubic-bezier(.22,.61,.36,1),
     opacity .45s ease,
@@ -548,51 +550,57 @@
     box-shadow .45s ease, outline-color .45s ease;
 }
 
-/* center + neighbors */
+/* Center card stays crisp */
 .tinder-deck.line .card.is-center{
   transform: translateX(-50%) translateY(var(--ty,0)) scale(1);
   opacity:1; pointer-events:auto; z-index:10; filter:none;
 }
-.tinder-deck.line .card.is-left1{
-  transform: translateX(calc(-50% - var(--gap1))) translateY(0) scale(.94);
-  opacity:.96; z-index:9;
-}
+
+/* Gradually increase blur as cards are further from center */
+.tinder-deck.line .card.is-left1,
 .tinder-deck.line .card.is-right1{
-  transform: translateX(calc(-50% + var(--gap1))) translateY(0) scale(.94);
+  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.94);
   opacity:.96; z-index:9;
+  filter: saturate(.90) blur(1.0px);
 }
-.tinder-deck.line .card.is-left2{
-  transform: translateX(calc(-50% - var(--gap2))) translateY(0) scale(.90);
-  opacity:.85; z-index:8;
-}
+.tinder-deck.line .card.is-left1{  --shift: calc(-1 * var(--gap1)); }
+.tinder-deck.line .card.is-right1{ --shift: var(--gap1); }
+
+.tinder-deck.line .card.is-left2,
 .tinder-deck.line .card.is-right2{
-  transform: translateX(calc(-50% + var(--gap2))) translateY(0) scale(.90);
+  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.90);
   opacity:.85; z-index:8;
+  filter: saturate(.88) blur(1.4px);
 }
-.tinder-deck.line .card.is-left3{
-  transform: translateX(calc(-50% - var(--gap3))) translateY(0) scale(.88);
-  opacity:.72; z-index:7;
-}
+.tinder-deck.line .card.is-left2{  --shift: calc(-1 * var(--gap2)); }
+.tinder-deck.line .card.is-right2{ --shift: var(--gap2); }
+
+.tinder-deck.line .card.is-left3,
 .tinder-deck.line .card.is-right3{
-  transform: translateX(calc(-50% + var(--gap3))) translateY(0) scale(.88);
+  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.88);
   opacity:.72; z-index:7;
+  filter: saturate(.86) blur(1.8px);
 }
-.tinder-deck.line .card.is-left4{
-  transform: translateX(calc(-50% - var(--gap4))) translateY(0) scale(.86);
-  opacity:.60; z-index:6;
-}
+.tinder-deck.line .card.is-left3{  --shift: calc(-1 * var(--gap3)); }
+.tinder-deck.line .card.is-right3{ --shift: var(--gap3); }
+
+.tinder-deck.line .card.is-left4,
 .tinder-deck.line .card.is-right4{
-  transform: translateX(calc(-50% + var(--gap4))) translateY(0) scale(.86);
+  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.86);
   opacity:.60; z-index:6;
+  filter: saturate(.84) blur(2.2px);
 }
-.tinder-deck.line .card.is-left5{
-  transform: translateX(calc(-50% - var(--gap5))) translateY(0) scale(.84);
-  opacity:.48; z-index:5;
-}
+.tinder-deck.line .card.is-left4{  --shift: calc(-1 * var(--gap4)); }
+.tinder-deck.line .card.is-right4{ --shift: var(--gap4); }
+
+.tinder-deck.line .card.is-left5,
 .tinder-deck.line .card.is-right5{
-  transform: translateX(calc(-50% + var(--gap5))) translateY(0) scale(.84);
+  transform: translateX(calc(-50% + var(--shift,0))) translateY(0) scale(.84);
   opacity:.48; z-index:5;
+  filter: saturate(.82) blur(2.6px);
 }
+.tinder-deck.line .card.is-left5{  --shift: calc(-1 * var(--gap5)); }
+.tinder-deck.line .card.is-right5{ --shift: var(--gap5); }
 
 /* applied state (after simulated click) — subtle rise feedback */
 .tinder-deck.line .card.is-center.is-applied{ --ty: 0px; }
