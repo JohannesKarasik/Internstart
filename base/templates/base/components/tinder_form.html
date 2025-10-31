@@ -1518,7 +1518,7 @@
     
         /* ========== STEP 1: Upload Resume ========== */
         spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
-        showOverlayTop('{{ _("Drop your resume to start") }}');
+   
         exclusive('resume');
         await window.ResumeDemo?.runOnce?.();
     
