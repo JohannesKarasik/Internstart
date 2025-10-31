@@ -717,7 +717,7 @@
 
 
 <!-- =========================
-     FIRST STEP ANIMATION: "Upload your resume" (centered; file fades in from outside)
+     FIRST STEP ANIMATION: "Upload your resume" (centered)
 ========================= -->
 <section class="resume-step" aria-label="{% trans 'First step: upload your resume' %}">
   <div class="resume-step__inner">
@@ -750,7 +750,7 @@
         </div>
       </div>
 
-      <!-- Draggable file card (starts outside the dropzone, fades in, then drags in) -->
+      <!-- Draggable file card (starts left of center) -->
       <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
         <div class="rs-file__tab"></div>
         <div class="rs-file__icon" aria-hidden="true">📄</div>
@@ -799,16 +799,16 @@
   border:1px solid var(--line);
   box-shadow: 0 12px 30px rgba(2,8,23,.06);
   overflow: hidden;
-  max-width: 920px;
+  max-width: 920px;          /* center the whole animation block */
   margin: 0 auto;
 }
 @media (max-width:720px){ .rs{ height: 340px; } }
 
 /* ===== Centered dropzone */
 .rs-dropzone{
-  position:absolute; z-index:1;
+  position:absolute;
   left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%); /* dead center */
   width: min(520px, 88%);
   min-width: 300px;
   background: var(--box);
@@ -844,25 +844,19 @@
 .rs-check{ width:22px; height:22px; }
 .rs-check .ring{ fill:none; stroke:#A7F3D0; stroke-width:4; opacity:.9 }
 .rs-check .mark{ fill:none; stroke:#10B981; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-dasharray:60; stroke-dashoffset:60; }
-@keyframes rsCheck{ to { stroke-dashoffset:0; } }
 .rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
+@keyframes rsCheck{ to { stroke-dashoffset:0; } }
 
-/* ===== File card (JS sets left so it sits outside the dropzone) */
+/* ===== File card (starts left of center) */
 .rs-file{
-  position:absolute; z-index:2;
-  top: 50%;
-  left: 16px; /* overridden by JS each run */
+  position:absolute;
+  top: 50%; left: calc(50% - 320px);   /* 320px to the LEFT of center */
+  transform: translate(0, -50%);       /* we will animate extra X via JS */
   width: 240px; height: 140px;
   background:#fff; border:1px solid var(--line); border-radius:14px;
   box-shadow: 0 10px 26px rgba(2,8,23,.08);
   margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
-
-  /* start OUTSIDE + hidden; then fade/slide in with .is-visible */
-  opacity: 0;
-  transform: translate(-20px, -50%);
-  transition: opacity 320ms ease, transform 340ms cubic-bezier(.2,.9,.2,1);
 }
-.rs-file.is-visible{ opacity: 1; transform: translate(0, -50%); }
 .rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
 .rs-file__icon{ font-size:26px; }
 .rs-file__name{ font: 800 12px/1.2 var(--font); color:#111827; padding:0 12px; text-align:center; }
@@ -884,7 +878,7 @@
 
 <script>
 /* =========================
-   "Upload your resume" animation controller (file fades in outside, then drags in)
+   "Upload your resume" animation controller (centered)
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -911,45 +905,35 @@
       new Promise(res => {
         el.style.transition = `transform ${dur}ms ${ease}`;
         el.style.transform  = `translate3d(${x}px, ${y}px, 0)`;
-        const doneFn = () => { el.removeEventListener('transitionend', doneFn); res(); };
-        el.addEventListener('transitionend', doneFn, { once:true });
+        const done = () => { el.removeEventListener('transitionend', done); res(); };
+        el.addEventListener('transitionend', done, { once:true });
         setTimeout(res, dur + 40);
       });
 
     const announce = (msg) => { if (live) live.textContent = msg; };
 
     const animateOnce = async () => {
-      // Reset UI
       dz.classList.remove('is-over');
-      fileCard.classList.remove('is-grabbed','is-visible');
+      fileCard.classList.remove('is-grabbed');
       progWrap.classList.remove('is-visible');
       done.classList.remove('is-visible');
       progBar.style.setProperty('--pct', '0%');
       progPct.textContent = '0%';
+      fileCard.style.transition = 'none';
+      fileCard.style.transform  = 'translate(0, -50%)'; // reset to start (left of center)
+      fileCard.style.opacity = '';
 
-      // Position file just OUTSIDE the left edge of the centered dropzone
       const rRoot = rect(root);
-      const rDz   = rect(dz);
-      const fileW = fileCard.offsetWidth || 240;
-      const gap   = 24;
-      let leftPx  = (rDz.left - rRoot.left) - fileW - gap;
-      leftPx = Math.max(12, leftPx); // keep inside stage
-      fileCard.style.left = leftPx + 'px';
-      fileCard.style.opacity = '0';
-      fileCard.style.transform = 'translate(-20px, -50%)';
-
-      // Fade/slide in BEFORE dragging
-      requestAnimationFrame(() => fileCard.classList.add('is-visible'));
-      await new Promise(r => setTimeout(r, 360));
-
-      // Recompute positions after visible
       const rFile = rect(fileCard);
+      const rDz   = rect(dz);
+
+      // Centers
       const fcx = rFile.left - rRoot.left + rFile.width / 2;
       const fcy = rFile.top  - rRoot.top  + rFile.height / 2;
       const dzcx = rDz.left  - rRoot.left + rDz.width  / 2;
       const dzcy = rDz.top   - rRoot.top  + rDz.height / 2;
 
-      // Cursor near file
+      // Cursor start (near the file)
       const startX = fcx + 16;
       const startY = fcy + 10;
       cursor.style.transition = 'none';
@@ -971,7 +955,7 @@
       }
 
       // 1) Move cursor to file (grab)
-      await moveTo(cursor, startX, startY, 360);
+      await moveTo(cursor, startX, startY, 380);
       announce('{{ _("First you upload your resume") }}');
       fileCard.classList.add('is-grabbed');
 
@@ -979,8 +963,8 @@
       dz.classList.add('is-over');
       await moveTo(cursor, dzcx, dzcy, 900);
 
-      // 3) Slide file into the center
-      const dx = dzcx - fcx;
+      // 3) Slide file into the center (match its center to dropzone center)
+      const dx = dzcx - fcx; // horizontal delta needed
       fileCard.style.transition = 'transform 260ms cubic-bezier(.2,.9,.2,1), opacity .22s ease';
       fileCard.style.transform  = `translate(${dx}px, -50%) scale(.96)`;
       await new Promise(r => setTimeout(r, 280));
@@ -1005,10 +989,10 @@
 
       await new Promise(r => setTimeout(r, 900));
       dz.classList.remove('is-over');
-      fileCard.classList.remove('is-grabbed','is-visible');
-      fileCard.style.opacity = '0';
-      fileCard.style.transform = 'translate(-20px, -50%)';
-      fileCard.style.left = leftPx + 'px'; // ready for next loop
+      fileCard.classList.remove('is-grabbed');
+      fileCard.style.opacity = '';
+      fileCard.style.transition = 'none';
+      fileCard.style.transform  = 'translate(0, -50%)';
     };
 
     // Play when visible, then loop
@@ -1027,6 +1011,5 @@
   });
 })();
 </script>
-
 
   
