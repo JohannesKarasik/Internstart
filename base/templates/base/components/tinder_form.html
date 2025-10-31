@@ -1139,11 +1139,17 @@
   @media (max-width:900px){ .ra-stage{ grid-template-columns:1fr; } }
   
   /* Resume viewport */
-  .ra-viewport{ position:relative; height:520px; border:1px dashed #cfe0ff; border-radius:14px; background:linear-gradient(180deg,#f9fbff,#fff 60%); overflow:auto; }
+  .ra-viewport{ position:relative; height:520px; border:1px dashed #cfe0ff; border-radius:14px; background:linear-gradient(180deg,#f9fbff,#fff 60%); overflow:hidden; }
   @media (max-width:900px){ .ra-viewport{ height:460px; } }
   
   /* Document mock */
-  .ra-doc{ width:min(720px,94%); margin:14px auto; background:#fff; border:1px solid #e7eef7; border-radius:12px; padding:22px 26px; color:#0f172a; box-shadow:0 8px 24px rgba(2,8,23,.05); }
+  .ra-doc{ width:min(720px,94%); margin:14px auto; background:#fff; border:1px solid #e7eef7; border-radius:12px; padding:22px 26px; color:#0f172a; box-shadow:0 8px 24px rgba(2,8,23,.05);   min-height: calc(100% - 74px);
+  display: flex;            /* keeps layout tidy even when taller */
+  flex-direction: column; }
+
+  .ra-doc::after{ content:""; flex:1 1 auto; }
+
+
   .ra-doc__head h2{ margin:0 0 4px; font:900 26px/1.15 var(--font); }
   .ra-doc__meta{ margin:0; color:#64748b; font:600 13px/1.4 var(--font); }
   .ra-sec{ margin-top:18px; }
