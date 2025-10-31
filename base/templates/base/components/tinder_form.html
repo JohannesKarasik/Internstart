@@ -978,16 +978,26 @@
       announce('{{ _("First you upload your resume") }}');
       fileCard.classList.add('is-grabbed');
 
-      // 2) Move cursor to center (dropzone center)
-      dz.classList.add('is-over');
-      await moveTo(cursor, dzcx, dzcy, 900);
+        // 2) Move cursor and file together toward the dropzone center
+        dz.classList.add('is-over');
 
-      // 3) Slide file into the center (match its center to dropzone center)
-      const dx = dzcx - fcx; // horizontal delta needed
-      fileCard.style.transition = 'transform 260ms cubic-bezier(.2,.9,.2,1), opacity .22s ease';
-      fileCard.style.transform  = `translate(${dx}px, -50%) scale(.96)`;
-      await new Promise(r => setTimeout(r, 280));
-      fileCard.style.opacity = '0';
+        const dx = dzcx - fcx; // horizontal distance to center
+        const dy = dzcy - fcy; // vertical (usually small)
+        const duration = 900;
+
+        cursor.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
+        fileCard.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
+
+        // move both in sync
+        cursor.style.transform = `translate3d(${dxcx}px, ${dzcy}px, 0)`;
+        fileCard.style.transform = `translate(${dx}px, calc(-50% + ${dy}px))`;
+
+        await new Promise(r => setTimeout(r, duration + 40));
+
+        // fade out file after reaching center
+        fileCard.style.transition = 'opacity .22s ease';
+        fileCard.style.opacity = '0';
+
 
       // 4) Upload progress
       progWrap.classList.add('is-visible');
