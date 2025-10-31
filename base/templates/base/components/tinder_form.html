@@ -805,7 +805,7 @@
   
   /* ===== Centered dropzone */
   .rs-dropzone{
-    position:absolute;
+    position:absolute; z-index:1;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
     width: min(520px, 88%);
@@ -846,17 +846,19 @@
   @keyframes rsCheck{ to { stroke-dashoffset:0; } }
   .rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
   
-  /* ===== File card (starts off to the side, hidden) */
+  /* ===== File card (dynamic left via JS; starts off to side and hidden) */
   .rs-file{
-    position:absolute;
+    position:absolute; z-index:2;   /* ensure above dropzone */
     top: 50%;
-    left: calc(50% - 420px);       /* farther left of center so it never overlaps the DZ */
-    transform: translate(-80px, -50%);  /* extra offset so it sits off to the side */
-    opacity: 0;                    /* hidden initially — we fade it in */
+    left: 16px;                    /* gets overridden by JS each cycle */
     width: 240px; height: 140px;
     background:#fff; border:1px solid var(--line); border-radius:14px;
     box-shadow: 0 10px 26px rgba(2,8,23,.08);
     margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
+  
+    /* hidden & slightly left so it fades/slides in */
+    opacity: 0;
+    transform: translate(-20px, -50%);
   }
   .rs-file.is-visible{ opacity: 1; transform: translate(0, -50%); }
   .rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
@@ -912,7 +914,7 @@
           setTimeout(res, dur + 40);
         });
   
-      const waitTransition = (el, max = 420) =>
+      const waitTransition = (el, max = 480) =>
         new Promise(res => {
           const done = () => { el.removeEventListener('transitionend', done); res(); };
           el.addEventListener('transitionend', done, { once:true });
@@ -929,20 +931,25 @@
         done.classList.remove('is-visible');
         progBar.style.setProperty('--pct', '0%');
         progPct.textContent = '0%';
-        fileCard.style.transition = 'none';
+  
+        // Position the file dynamically just to the LEFT of the centered dropzone
+        const rRoot = rect(root);
+        const rDz   = rect(dz);
+        const fileW = fileCard.offsetWidth || 240;
+        let leftPx  = (rDz.left - rRoot.left) - fileW - 24; // 24px gap from DZ
+        if (leftPx < 12) leftPx = 12;                       // keep within viewport
+        fileCard.style.left = leftPx + 'px';
         fileCard.style.opacity = '0';
-        fileCard.style.transform = 'translate(-80px, -50%)'; // off to the side
+        fileCard.style.transition = 'none';
+        fileCard.style.transform  = 'translate(-20px, -50%)';
   
         // 0) Fade file in from the side BEFORE dragging
-        fileCard.style.transition = 'opacity 300ms ease, transform 320ms cubic-bezier(.2,.9,.2,1)';
+        fileCard.style.transition = 'opacity 320ms ease, transform 340ms cubic-bezier(.2,.9,.2,1)';
         requestAnimationFrame(() => fileCard.classList.add('is-visible'));
         await waitTransition(fileCard, 360);
   
-        // Recompute positions after fade-in (so cursor targets the visible card)
-        const rRoot = rect(root);
+        // Recompute positions after fade-in
         const rFile = rect(fileCard);
-        const rDz   = rect(dz);
-  
         const fcx = rFile.left - rRoot.left + rFile.width / 2;
         const fcy = rFile.top  - rRoot.top  + rFile.height / 2;
         const dzcx = rDz.left  - rRoot.left + rDz.width  / 2;
@@ -1007,7 +1014,8 @@
         fileCard.classList.remove('is-grabbed','is-visible');
         fileCard.style.transition = 'none';
         fileCard.style.opacity = '0';
-        fileCard.style.transform = 'translate(-80px, -50%)';
+        fileCard.style.transform = 'translate(-20px, -50%)';
+        fileCard.style.left = leftPx + 'px'; // keep ready for next loop
       };
   
       // Play when visible, then loop
