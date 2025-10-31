@@ -7,7 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
 
 <!-- =========================
-     APPLY DEMO (Linear cards + AI Form)
+     APPLY DEMO — One continuous sequence:
+     1) Upload resume ▶ 2) AI analyzes ▶ 3) Tinder deck ▶ 4) AI form
 ========================= -->
 <section class="social-proof" id="social-proof">
   <div class="sp__inner">
@@ -31,8 +32,130 @@
         <span class="demo-overlay__text" role="status" aria-atomic="true"></span>
       </div>
 
-      <!-- Linear card row -->
-      <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
+      <!-- ===== STEP 1: Upload Resume (centered) ===== -->
+      <div class="step step--resume" id="resumeStep" hidden>
+        <div class="resume-step__inner">
+          <h3 class="resume-step__title">
+            {% blocktrans %}First, you upload your resume{% endblocktrans %}
+          </h3>
+
+          <div class="rs" id="resumeDemo" role="group" aria-describedby="rs-live">
+            <!-- Centered Dropzone -->
+            <div class="rs-dropzone" aria-label="{% trans 'Upload your resume' %}">
+              <div class="rs-dropzone__icon" aria-hidden="true">⬆️</div>
+              <div class="rs-dropzone__text">
+                <strong>{% trans "Upload your resume" %}</strong>
+                <span class="rs-dropzone__hint">{% trans "Drag & drop or click to browse" %}</span>
+              </div>
+
+              <!-- Progress -->
+              <div class="rs-progress" aria-hidden="true">
+                <div class="rs-progress__bar"></div>
+                <span class="rs-progress__pct">0%</span>
+              </div>
+
+              <!-- Success -->
+              <div class="rs-done" aria-hidden="true">
+                <svg viewBox="0 0 52 52" class="rs-check">
+                  <circle cx="26" cy="26" r="24" class="ring"></circle>
+                  <path d="M16 27l7 7 13-13" class="mark"></path>
+                </svg>
+                <span>{% trans "Uploaded" %}</span>
+              </div>
+            </div>
+
+            <!-- Draggable file card (starts left of center) -->
+            <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
+              <div class="rs-file__tab"></div>
+              <div class="rs-file__icon" aria-hidden="true">📄</div>
+              <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
+            </figure>
+
+            <!-- Cursor -->
+            <div class="rs-cursor" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="rs-pointer">
+                <path d="M4 3l13 7.5-6.2 1.9 3.2 6.7-2.2 1-3.2-6.7L6 16.9 4 3z" fill="#111"/>
+              </svg>
+            </div>
+
+            <!-- Live announcements -->
+            <p id="rs-live" class="sr-only" aria-live="polite">{% trans "First you upload your resume" %}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 2: AI analyzes resume ===== -->
+      <div class="step step--analysis" id="analysisStep" hidden>
+        <div class="ra__inner">
+          <h3 class="ra__title">
+            {% blocktrans %}Next, AI analyzes your resume{% endblocktrans %}
+          </h3>
+
+          <div class="ra" id="raDemo" role="group" aria-describedby="ra-live">
+            <!-- Progress / status -->
+            <div class="ra-top">
+              <div class="ra-progress" aria-hidden="true">
+                <div class="ra-progress__bar"></div>
+                <span class="ra-progress__pct">0%</span>
+              </div>
+              <span class="ra-status" id="ra-live" aria-live="polite">
+                {% trans "Scanning document…" %}
+              </span>
+            </div>
+
+            <!-- Stage: resume preview + extracted fields -->
+            <div class="ra-stage">
+              <!-- Resume -->
+              <div class="ra-viewport" aria-label="{% trans 'Resume preview' %}">
+                <article class="ra-doc" role="document" aria-label="{% trans 'Resume' %}">
+                  <header class="ra-doc__head">
+                    <h2 id="ra-name">Ava Jensen</h2>
+                    <p class="ra-doc__meta">
+                      <span id="ra-email">ava.jensen@uni.dk</span> ·
+                      <span id="ra-phone">+45 12 34 56 78</span> ·
+                      <span id="ra-location">Copenhagen, DK</span>
+                    </p>
+                  </header>
+
+                  <section class="ra-sec">
+                    <h3>Experience</h3>
+                    <div id="ra-exp" class="ra-block">
+                      <h4>Investment Banking Intern — Goldman Sachs</h4>
+                      <p>Built DCFs and LBO models for live deals; prepared client-ready materials; supported due diligence and market comps.</p>
+                      <ul>
+                        <li>Modeled M&amp;A scenarios across 3 cases; presented takeaways to VP team.</li>
+                        <li>Automated comp pulls in Excel; reduced prep time by 35%.</li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="ra-sec">
+                    <h3>Education</h3>
+                    <div id="ra-edu" class="ra-block">
+                      <h4>Copenhagen Business School — BSc Finance</h4>
+                      <p>Expected 2026 · GPA 3.8/4.0 · CBS Finance Club</p>
+                    </div>
+                  </section>
+
+                  <section class="ra-sec">
+                    <h3>Skills</h3>
+                    <p id="ra-skills" class="ra-inline">Excel, PowerPoint, Bloomberg, Python (pandas), Financial Modeling</p>
+                  </section>
+                </article>
+              </div>
+
+              <!-- Extracted fields -->
+              <aside class="ra-panel" aria-label="{% trans 'Extracted fields' %}">
+                <h4 class="ra-panel__title">{% trans "Extracted fields" %}</h4>
+                <ul class="ra-list"></ul>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 3A: Tinder cards ===== -->
+      <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}" hidden>
         <div class="tinder-deck line" data-autoplay="true">
           <!-- Card 1 -->
           <article class="card card--yellow">
@@ -71,7 +194,7 @@
               </div>
             </div>
           </article>
-      
+
           <!-- Card 2 -->
           <article class="card card--blue">
             <div class="card__body">
@@ -109,7 +232,7 @@
               </div>
             </div>
           </article>
-      
+
           <!-- Card 3 -->
           <article class="card card--pink">
             <div class="card__body">
@@ -147,7 +270,7 @@
               </div>
             </div>
           </article>
-      
+
           <!-- Card 4 -->
           <article class="card card--yellow">
             <div class="card__body">
@@ -347,11 +470,10 @@
               </div>
             </div>
           </article>
-          
         </div>
       </div>
 
-      <!-- AI Autofill Form -->
+      <!-- ===== STEP 3B: AI Autofill Form ===== -->
       <div class="ai-demo" hidden role="region" aria-label="{% trans 'AI auto-filling a job application' %}">
         <div class="ai-demo__window">
           <div class="ai-demo__chrome">
@@ -470,6 +592,12 @@
 .demo-overlay__text.is-visible{ opacity:1; transform:none; }
 .demo-overlay.is-deck-right{ top:50%; left:50%; margin-left: calc(var(--card-w)/2 + 22px); transform: translateY(-50%); text-align:left; }
 .demo-overlay.is-form{ left:50%; top: calc(50% - var(--card-h)/2 - 28px); transform: translateX(-50%); width:100%; text-align:center; }
+
+/* ===== Generic step container (centered overlay) ===== */
+.step{
+  position:absolute; inset:0; display:grid; place-items:center;
+}
+.step > *{ width:min(100%, 980px); }
 
 /* ===== Tinder cards (base) ===== */
 .tinder-section{ margin:0; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; }
@@ -602,22 +730,6 @@
 .tinder-deck.line .card.is-left5{  --shift: calc(-1 * var(--gap5)); }
 .tinder-deck.line .card.is-right5{ --shift: var(--gap5); }
 
-/* applied state (unchanged) */
-.tinder-deck.line .card.is-center.is-applied{ --ty: 0px; }
-.tinder-deck.line .card.is-applied{
-  box-shadow: 0 22px 60px rgba(16,185,129,.18);
-  outline: 2px solid rgba(16,185,129,.5);
-}
-.tinder-deck.line .card.is-applied .action--apply{
-  border-color:#BBF7D0; color:#059669;
-}
-.tinder-deck.line .card.is-applied::after{
-  content:"{% trans 'Applied' %} ✓";
-  position:absolute; top:12px; right:12px;
-  font:800 11px/1 var(--font); color:#065f46;
-  background:#ecfdf5; border:1px solid #bbf7d0; border-radius:999px; padding:6px 8px;
-}
-
 /* applied state (after simulated click) — subtle rise feedback */
 .tinder-deck.line .card.is-center.is-applied{ --ty: 0px; }
 .tinder-deck.line .card.is-applied{
@@ -689,6 +801,123 @@
 .ai-demo__window.is-success{ border-color: rgba(16,185,129,.6); box-shadow: 0 0 0 3px rgba(16,185,129,.18), 0 18px 40px rgba(0,0,0,.12); }
 .ai-form.is-success input,.ai-form.is-success textarea{ border-color: rgba(16,185,129,.7); background:#F0FDF4; }
 
+/* ===== Upload resume (inside step) ===== */
+.resume-step__inner{ width:min(980px,96vw); }
+.resume-step__title{
+  margin:0 0 18px;
+  text-align:center;
+  font:900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui);
+  color:#101828;
+}
+.rs {
+  --box: #ffffff;
+  --line: #e7edf5;
+  --ink: #0f172a;
+  --muted: #667085;
+  --ok: #10B981;
+  --accent: #3B82F6;
+  position: relative;
+  height: 380px;
+  overflow: visible;
+  max-width: 920px;
+  margin: 0 auto;
+  background: transparent; border: none; box-shadow: none;
+}
+@media (max-width:720px){ .rs{ height: 340px; } }
+.rs-dropzone{
+  position:absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+  width: min(520px, 88%); min-width:300px; background: var(--box);
+  border: 2px dashed #cfe0ff; border-radius: 16px; padding: 20px;
+  display:flex; align-items:center; gap:14px; box-shadow: 0 8px 24px rgba(2,8,23,.05);
+}
+.rs-dropzone.is-over{ border-color:#93c5fd; background:#f8fbff; }
+.rs-dropzone__icon{ width:42px; height:42px; display:grid; place-items:center; font-size:22px; background:#eef6ff; color:#1d4ed8; border-radius:12px; }
+.rs-dropzone__text{ display:flex; flex-direction:column; gap:4px; color:#0f172a; font-family:var(--font); }
+.rs-dropzone__text strong{ font-weight:800; letter-spacing:.1px; }
+.rs-dropzone__hint{ color:#667085; font-weight:600; font-size:12px; }
+
+.rs-progress{ display:flex; align-items:center; gap:10px; margin-left:auto; opacity:0; transform: translateY(6px); transition:.25s ease; }
+.rs-progress.is-visible{ opacity:1; transform:none; }
+.rs-progress__bar{ --pct:0%; width:140px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
+.rs-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition: width .08s linear; }
+.rs-progress__pct{ font:700 12px/1 var(--font); color:#475467; min-width:32px; text-align:right; }
+
+.rs-done{ display:flex; align-items:center; gap:8px; margin-left:auto; opacity:0; transform:translateY(6px); transition:.25s ease; }
+.rs-done.is-visible{ opacity:1; transform:none; }
+.rs-check{ width:22px; height:22px; }
+.rs-check .ring{ fill:none; stroke:#A7F3D0; stroke-width:4; opacity:.9 }
+.rs-check .mark{ fill:none; stroke:#10B981; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-dasharray:60; stroke-dashoffset:60; }
+.rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
+@keyframes rsCheck{ to { stroke-dashoffset:0; } }
+
+/* Resume file (start far left) */
+.rs-file{
+  position: absolute; top:50%; left: calc(50% - 600px); transform: translateY(-50%);
+  width: 240px; height: 140px; background:#fff; border:1px solid var(--line); border-radius:14px;
+  box-shadow: 0 10px 26px rgba(2,8,23,.08);
+  display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
+}
+.rs-file__tab{ width:56px; height:8px; background:#f2f4f7; border-radius:999px; }
+.rs-file__icon{ font-size:26px; }
+.rs-file__name{ font:800 12px/1.2 var(--font); color:#111827; padding:0 12px; text-align:center; }
+.rs-file.is-grabbed{ transform: translate(0, -50%) scale(1.03); box-shadow: 0 12px 30px rgba(2,8,23,.12); }
+
+.rs-cursor{ position:absolute; width:24px; height:24px; transform: translate3d(0,0,0); }
+.rs-pointer{ width:100%; height:100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+.sr-only{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+
+/* ===== AI Analysis styles (inside step) ===== */
+.ra__inner{ width:min(1100px,96vw); }
+.ra__title{ margin:0 0 18px; text-align:center; font:900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui); color:#101828; }
+.ra{ --hl-bg:#ECFDF5; --hl-edge:#BBF7D0; --hl-glow:rgba(16,185,129,.18);
+     border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 10px 30px rgba(2,8,23,.06); }
+.ra-top{ display:flex; align-items:center; gap:14px; padding:12px 14px; border-bottom:1px solid #eef2f7; }
+.ra-status{ margin-left:auto; font:700 12px/1 var(--font); color:#475467; }
+.ra-progress{ display:flex; align-items:center; gap:10px; }
+.ra-progress__bar{ --pct:0%; width:220px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
+.ra-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition:width .15s linear; }
+.ra-progress__pct{ font:800 12px/1 var(--font); color:#475467; min-width:32px; text-align:right; }
+.ra-stage{ display:grid; grid-template-columns:1fr minmax(280px, 340px); gap:18px; padding:16px; }
+@media (max-width:900px){ .ra-stage{ grid-template-columns:1fr; } }
+.ra-viewport{ position: relative; height: 520px; border:1px dashed #cfe0ff; border-radius:14px; background: linear-gradient(180deg, #f9fbff, #fff 60%); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+@media (max-width:900px){ .ra-viewport{ height:460px; } }
+
+.ra-doc{ width:min(720px,94%); margin:14px auto; background:#fff; border:1px solid #e7eef7; border-radius:12px; padding:22px 26px; color:#0f172a; box-shadow:0 8px 24px rgba(2,8,23,.05); min-height: calc(100% - 74px); display:flex; flex-direction:column; }
+.ra-doc::after{ content:""; flex:1 1 auto; }
+.ra-doc__head h2{ margin:0 0 4px; font:900 26px/1.15 var(--font); }
+.ra-doc__meta{ margin:0; color:#64748b; font:600 13px/1.4 var(--font); }
+.ra-sec{ margin-top:18px; }
+.ra-sec h3{ margin:0 0 8px; font:800 14px/1 var(--font); letter-spacing:.3px; color:#111827; text-transform:uppercase; }
+.ra-block h4{ margin:0 0 6px; font:800 15px/1.2 var(--font); }
+.ra-doc p,.ra-doc li,.ra-inline{ font:500 13.5px/1.5 var(--font); color:#0f172a; }
+.ra-doc ul{ margin:8px 0 0 18px; }
+
+.ra-focus{ position:relative; z-index:0; }
+.ra-focus::before{
+  content:""; position:absolute; inset:-3px -6px; background: var(--hl-bg); border:1.5px solid var(--hl-edge);
+  border-radius:10px; box-shadow: 0 6px 18px var(--hl-glow) inset, 0 8px 20px rgba(2,8,23,.06); z-index:-1; opacity:0; transform: translateY(2px); transition: opacity .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+@keyframes raSweepBg{ from{ box-shadow: 0 6px 18px var(--hl-glow) inset, 0 8px 20px rgba(2,8,23,.06);} to{ box-shadow: 0 10px 26px var(--hl-glow) inset, 0 10px 24px rgba(2,8,23,.08);} }
+.ra-focus.is-on::before{ opacity:1; transform:none; animation: raSweepBg .9s ease; }
+.ra-focus.is-inline{ display:inline-block; border-radius:6px; }
+
+/* Extracted panel */
+.ra-panel{ border:1px dashed #e5eaf3; border-radius:12px; background:#fafcff; padding:12px; }
+.ra-panel__title{ margin:0 0 8px; font:900 13px/1 var(--font); color:#0f172a; text-transform:uppercase; letter-spacing:.35px; }
+.ra-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.ra-item{ display:grid; grid-template-columns:92px 1fr auto; align-items:center; gap:8px; padding:8px 10px; background:#fff; border:1px solid #eef2f7; border-radius:10px; opacity:0; transform: translateY(6px); transition:.25s ease; }
+.ra-item.is-in{ opacity:1; transform:none; }
+.ra-k{ font:800 11.5px/1 var(--font); color:#64748b; text-transform:uppercase; letter-spacing:.3px; }
+.ra-v{ font:700 12.5px/1.2 var(--font); color:#111827; }
+.ra-ok{ color:#10B981; font:900 12px/1 var(--font); }
+
+/* Reduced motion tweaks */
+@media (prefers-reduced-motion: reduce){
+  .rs-cursor{ display:none; }
+  .rs,.ra-item,.ra-progress__bar::after{ transition:none !important; }
+  .ra-focus.is-on::before{ animation:none !important; }
+  .ai-demo__window{ transition:none !important; }
+}
 @media (max-width:1024px){
   .demo-overlay{ top:auto !important; bottom:-18px; left:50% !important; right:auto !important; margin:0 !important; transform: translateX(-50%) !important; text-align:center; max-width:90vw; }
 }
@@ -703,10 +932,7 @@
 
 <script>
 /* =========================
-   A) Line deck controller — sequential auto-apply (slower)
-   Changes:
-   • Circular (wrap-around) layout so there are neighbors on BOTH sides at all times
-   • Upward nudge AFTER the Apply click (very subtle)
+   STEP 3A — Tinder line deck (exposes window.TinderDemo)
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -717,6 +943,7 @@
     const deck = document.querySelector('.tinder-deck.line');
     if (!deck) return;
 
+    const section = document.querySelector('.tinder-section');
     const cards = Array.from(deck.querySelectorAll('.card'));
     const overlay = document.querySelector('.demo-overlay');
     const overlayTextEl = document.querySelector('.demo-overlay__text');
@@ -744,10 +971,9 @@
       'is-right1','is-right2','is-right3','is-right4','is-right5'
     ];
 
-    // Signed shortest circular distance from idx -> k
     const circDelta = (k, i, n) => {
-      const fwd = (k - i + n) % n;    // steps to the right
-      const back = (i - k + n) % n;   // steps to the left
+      const fwd = (k - i + n) % n;
+      const back = (i - k + n) % n;
       return (fwd <= back) ? fwd : -back;
     };
 
@@ -757,18 +983,15 @@
         c.style.opacity = 0;
         c.style.removeProperty('--ty');
 
-        const d = circDelta(k, idx, N); // signed
-        if (d === 0) {
-          c.classList.add('is-center');
-        } else {
+        const d = circDelta(k, idx, N);
+        if (d === 0) c.classList.add('is-center');
+        else {
           const ad = Math.abs(d);
           if (ad <= MAX_NEI) c.classList.add(d < 0 ? `is-left${ad}` : `is-right${ad}`);
         }
       });
-
-      // restore opacity for visible positions
-      allPosClasses.forEach(cls=>{
-        deck.querySelectorAll('.'+cls).forEach(el=>el.style.opacity='');
+      allPosClasses.forEach(cls => {
+        deck.querySelectorAll('.'+cls).forEach(el => el.style.opacity = '');
       });
 
       const role = cards[idx]?.querySelector('.card__role')?.textContent?.trim() || '';
@@ -776,58 +999,43 @@
       setOverlay(role, company);
     };
 
-    const setActive = (i) => {
-      idx = (i + N) % N;
-      layout();
-    };
+    const setActive = (i) => { idx = (i + N) % N; layout(); };
 
     const press = async (btn)=>{
       if (!btn) return;
       btn.classList.add('is-pressed');
-      await pause(prefersReduced ? 120 : 240);   // slower click feedback
+      await pause(prefersReduced ? 120 : 240);
       btn.classList.remove('is-pressed');
     };
 
     const simulateApply = async (card) => {
       const btn = card.querySelector('.action--apply');
-
-      // 1) Visual click first
       await press(btn);
-
-      // 2) Mark as applied (badge/outline), but NO movement yet
       card.classList.add('is-applied');
-
-      // 3) After a short beat, nudge up slightly (very subtle)
       await pause(prefersReduced ? 60 : 120);
-      if (card.classList.contains('is-center')) {
-        card.style.setProperty('--ty','-8px');   // subtle rise
-      }
-
-      // 4) Hold briefly before advancing
+      if (card.classList.contains('is-center')) card.style.setProperty('--ty','-8px');
       await pause(prefersReduced ? 400 : 900);
     };
 
     const runSequence = async ()=>{
-      const tinder = document.querySelector('.tinder-section');
-      const form = document.querySelector('.ai-demo');
-
       // ensure correct visibility
-      tinder?.removeAttribute('hidden'); tinder?.removeAttribute('aria-hidden');
+      section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden');
+      const form = document.querySelector('.ai-demo');
       form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true');
 
       for (let i=0; i<N; i++){
         setActive(i);
-        await pause(prefersReduced ? 500 : 900);  // settle animation
-        await simulateApply(cards[idx]);          // Apply → slight upward nudge
+        await pause(prefersReduced ? 500 : 900);
+        await simulateApply(cards[idx]);
       }
 
-      // after last card → show AI form
       await pause(prefersReduced ? 400 : 800);
-      tinder?.setAttribute('hidden',''); tinder?.setAttribute('aria-hidden','true');
+      section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true');
       form?.removeAttribute('hidden'); form?.removeAttribute('aria-hidden');
       overlay?.classList.remove('is-deck-right');
       overlay?.classList.add('is-form');
       overlayTextEl && (overlayTextEl.textContent = '{{ _("AI applies for you") }}');
+
       window.AIDemo?.runOnce?.();
     };
 
@@ -846,27 +1054,19 @@
       }
     });
 
-    // Start when the stage is visible
-    const stage = document.querySelector('.demo-stage');
-    const startWhenVisible = () => new Promise(res=>{
-      const io = new IntersectionObserver((entries)=>{
-        if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-      }, { threshold: 0.3 });
-      stage ? io.observe(stage) : res();
-    });
-
-    (async function init(){
-      setActive(0);              // already shows neighbors on both sides thanks to circular layout
-      await startWhenVisible();
-      await runSequence();
-    })();
+    // expose API
+    window.TinderDemo = {
+      show(){ section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden'); setActive(0); },
+      hide(){ section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); },
+      runOnce: runSequence
+    };
   });
 })();
 </script>
 
 <script>
 /* =========================
-   B) AI Form controller (unchanged)
+   STEP 3B — AI Form controller (exposes window.AIDemo)
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -897,41 +1097,15 @@
     const progressPct = root.querySelector('.ai-demo__pct');
     const statusText  = root.querySelector('#ai-status');
     const chip        = root.querySelector('#ai-chip');
+
+    const setProgress = (v) => {
+      const pct = Math.min(100, Math.max(0, Math.round(v)));
+      if (progressBar) progressBar.style.setProperty('--pct', pct + '%');
+      if (progressPct) progressPct.textContent = pct + '%';
+    };
 
     const showChip = (ms = 2200) => { if (!chip) return; chip.classList.add('is-on'); setTimeout(()=>chip.classList.remove('is-on'), ms); };
 
-    const ensureSuccessUI = () => {
-      let overlay = winEl.querySelector('.ai-success');
-      if (!overlay) {
-        winEl.insertAdjacentHTML('beforeend', `
-          <div class="ai-success" hidden>
-            <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{{ _('Application sent') }}">
-              <div class="ai-success__icon" aria-hidden="true">
-                <svg viewBox="0 0 52 52">
-                  <circle class="ring" cx="26" cy="26" r="24"></circle>
-                  <path class="mark" d="M16 27l7 7 13-13"></path>
-                </svg>
-              </div>
-              <h4>{{ _('Application sent!') }}</h4>
-              <p>{{ _('Your application was sent successfully.') }}</p>
-              <button type="button" class="btn btn--primary ai-success__ok">{{ _('Nice!') }}</button>
-            </div>
-          </div>
-        `);
-        overlay = winEl.querySelector('.ai-success');
-      }
-      return { overlay, ok: overlay.querySelector('.ai-success__ok') };
-    };
-    const success = ensureSuccessUI();
-
-    const setProgress = (v) => {
-      const pct = Math.min(100, Math.max(0, Math.round(v)));
-      const bar = root.querySelector('.ai-demo__bar');
-      const pctEl = root.querySelector('.ai-demo__pct');
-      if (bar) bar.style.setProperty('--pct', pct + '%');
-      if (pctEl) pctEl.textContent = pct + '%';
-    };
-
     const typeInto = (el, text, speed = 22, onTick) => new Promise((resolve) => {
       if (prefersReduced) { el.value = text; onTick?.(text.length); resolve(); return; }
       let i = 0; el.value = '';
@@ -944,184 +1118,6 @@
       };
       tick();
     });
-
-    const RESUME_WEIGHT = prefersReduced ? 1 : 60;
-    const steps = [
-      { el: fields.name,      text: 'Ava Jensen' },
-      { el: fields.email,     text: 'ava.jensen@uni.dk' },
-      { el: fields.portfolio, text: 'https://ava.work' },
-      { el: fields.resume,    upload: true, focusEl: resumeBtn },
-      { el: fields.cover,     text: "{{ 'I’m excited to apply for the Investment Banking Intern role. At CBS Finance Club, I led a 4-member team on DCF/LBO case prep and placed top 3 in a regional valuation challenge. I’m comfortable with Excel, PowerPoint, and Bloomberg, and I’m eager to contribute from day one.'|escapejs }}" },
-      { el: fields.consent,   check: true }
-    ];
-
-    const showSuccess = () => {
-      winEl.classList.add('is-success');
-      formEl.classList.add('is-success');
-      success.overlay.removeAttribute('hidden');
-      success.overlay.classList.add('is-visible');
-      success.ok?.focus();
-    };
-    const hideSuccess = () => {
-      success.overlay.classList.remove('is-visible');
-      success.overlay.setAttribute('hidden','');
-      winEl.classList.remove('is-success');
-      formEl.classList.remove('is-success');
-    };
-    const fadeOutAndHide = async (delay = 1100) => {
-      if (prefersReduced) { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); return; }
-      await pause(delay);
-      const winEl = root.querySelector('.ai-demo__window');
-      winEl?.classList.add('is-fading');
-      await new Promise(res => winEl?.addEventListener('transitionend', res, { once:true }));
-      root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true');
-      winEl?.classList.remove('is-fading');
-    };
-    const autoPressAndCelebrate = async () => {
-      const statusText  = root.querySelector('#ai-status');
-      if (statusText) statusText.textContent = "{{ _('Submitting…') }}";
-      await pause(prefersReduced ? 120 : 600);
-      showSuccess();
-      await fadeOutAndHide(prefersReduced ? 0 : 1100);
-    };
-
-    let isRunning = false;
-    const run = async () => {
-      if (isRunning) return;
-      isRunning = true;
-
-      hideSuccess();
-      root.removeAttribute('hidden'); root.removeAttribute('aria-hidden');
-
-      const statusText  = root.querySelector('#ai-status');
-      const chip        = root.querySelector('#ai-chip');
-      statusText && (statusText.textContent = "{{ _('AI is preparing your application…') }}");
-      chip && (chip.classList.add('is-on'), setTimeout(()=>chip.classList.remove('is-on'), 2200));
-
-      Object.values(fields).forEach((el) => {
-        if (!el) return;
-        if (el.type === 'checkbox') el.checked = false;
-        else el.value = '';
-        el.closest('.ai-field')?.classList.remove('is-active','is-done');
-      });
-      const resumeName = root.querySelector('.ai-file__name');
-      const uploadWrap = root.querySelector('.ai-upload');
-      const uploadBar  = root.querySelector('.ai-upload__bar');
-      resumeName && (resumeName.textContent = resumeName.getAttribute('data-empty') || '');
-      uploadWrap?.classList.remove('is-visible'); uploadBar?.style.setProperty('--up','0%');
-
-      const totalChars = steps.reduce((n, s) => n + (s.text ? s.text.length : 0), 0) + RESUME_WEIGHT || 1;
-      let typed = 0; setProgress(0);
-
-      const focusField = (el) => {
-        const wrap = el.closest('.ai-field');
-        root.querySelectorAll('.ai-field').forEach(w => w.classList.remove('is-active'));
-        wrap?.classList.add('is-active');
-        wrap?.scrollIntoView?.({ block:'nearest', behavior: prefersReduced ? 'auto' : 'smooth' });
-      };
-      const checkField = (el) => el.closest('.ai-field')?.classList.add('is-done');
-
-      const attachResume = async () => {
-        const statusText  = root.querySelector('#ai-status');
-        statusText && (statusText.textContent = "{{ _('AI is uploading your CV…') }}");
-        const D = prefersReduced ? 40 : 1200; let used = 0;
-        const btn = root.querySelector('.ai-file__btn');
-        const upW = root.querySelector('.ai-upload');
-        const upB = root.querySelector('.ai-upload__bar');
-        btn?.classList.add('is-pressed'); await new Promise(r=>setTimeout(r,200)); btn?.classList.remove('is-pressed');
-        upW?.classList.add('is-visible'); upB?.style.setProperty('--up','0%');
-        await new Promise((resolve) => {
-          const start = performance.now();
-          const step = (now) => {
-            const t = Math.min(1,(now-start)/D);
-            upB?.style.setProperty('--up', Math.round(t*100)+'%');
-            const add = Math.round(RESUME_WEIGHT * t) - used;
-            if (add > 0){ used += add; typed += add; setProgress(typed/totalChars*100); }
-            t<1 ? requestAnimationFrame(step) : resolve();
-          }; requestAnimationFrame(step);
-        });
-        const nameEl = root.querySelector('.ai-file__name');
-        if (nameEl) nameEl.textContent = 'Ava_Jensen_Resume.pdf';
-        upW?.classList.remove('is-visible');
-      };
-
-      const pauseStep = prefersReduced ? 40 : 180;
-
-      for (const s of steps) {
-        if (!s.el) continue;
-        focusField(s.focusEl || s.el);
-
-        if (s.upload){ await attachResume(); checkField(s.el); await new Promise(r=>setTimeout(r,pauseStep)); continue; }
-        if (s.check){ if (!prefersReduced) await new Promise(r=>setTimeout(r,300)); s.el.checked = true; if (!prefersReduced) await new Promise(r=>setTimeout(r,200)); checkField(s.el); continue; }
-
-        const label = (s.el.labels?.[0]?.innerText || '').trim();
-        const statusText  = root.querySelector('#ai-status');
-        statusText && (statusText.textContent = `{{ _('AI is filling') }} “${label}”…`);
-        await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
-        checkField(s.el);
-        await new Promise(r=>setTimeout(r,pauseStep));
-      }
-
-      setProgress(100);
-      const statusText2  = root.querySelector('#ai-status');
-      statusText2 && (statusText2.textContent = "{{ _('Ready to submit — optimized by AI.') }}");
-      await autoPressAndCelebrate();
-      isRunning = false;
-      return true;
-    };
-
-    root.querySelector('.ai-replay')?.addEventListener('click', run);
-
-    window.AIDemo = {
-      runOnce: run,
-      hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
-      show: () => { root.removeAttribute('hidden'); root.removeAttribute('aria-hidden'); }
-    };
-  });
-})();
-</script>
-
-    
-
-<script>
-/* =========================
-   B) AI Form controller (type, upload, success)
-========================= */
-(() => {
-  const ready = (fn) => (document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-    : fn());
-
-  ready(() => {
-    const root = document.querySelector('.ai-demo');
-    if (!root) return;
-
-    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
-
-    const fields = {
-      name:      root.querySelector('#ai-name'),
-      email:     root.querySelector('#ai-email'),
-      portfolio: root.querySelector('#ai-portfolio'),
-      resume:    root.querySelector('#ai-resume'),
-      cover:     root.querySelector('#ai-cover'),
-      consent:   root.querySelector('#ai-consent'),
-    };
-
-    const resumeBtn  = root.querySelector('.ai-file__btn');
-    const winEl      = root.querySelector('.ai-demo__window');
-    const formEl     = root.querySelector('.ai-form');
-
-    const progressBar = root.querySelector('.ai-demo__bar');
-    const progressPct = root.querySelector('.ai-demo__pct');
-    const statusText  = root.querySelector('#ai-status');
-    const chip        = root.querySelector('#ai-chip');
-
-    const showChip = (ms = 2200) => {
-      if (!chip) return;
-      chip.classList.add('is-on');
-      setTimeout(() => chip.classList.remove('is-on'), ms);
-    };
 
     const ensureSuccessUI = () => {
       let overlay = winEl.querySelector('.ai-success');
@@ -1146,25 +1142,6 @@
       return { overlay, ok: overlay.querySelector('.ai-success__ok') };
     };
     const success = ensureSuccessUI();
-
-    const setProgress = (v) => {
-      const pct = Math.min(100, Math.max(0, Math.round(v)));
-      progressBar.style.setProperty('--pct', pct + '%');
-      progressPct.textContent = pct + '%';
-    };
-
-    const typeInto = (el, text, speed = 22, onTick) => new Promise((resolve) => {
-      if (prefersReduced) { el.value = text; onTick?.(text.length); resolve(); return; }
-      let i = 0; el.value = '';
-      const tick = () => {
-        if (i > text.length) return resolve();
-        el.value = text.slice(0, i);
-        onTick?.(1);
-        i++;
-        setTimeout(tick, speed + Math.random() * 18);
-      };
-      tick();
-    });
 
     const RESUME_WEIGHT = prefersReduced ? 1 : 60;
     const steps = [
@@ -1284,8 +1261,6 @@
       return true;
     };
 
-    root.querySelector('.ai-replay')?.addEventListener('click', run);
-
     window.AIDemo = {
       runOnce: run,
       hide: () => { root.setAttribute('hidden',''); root.setAttribute('aria-hidden','true'); },
@@ -1296,232 +1271,8 @@
 </script>
 
 <script>
-    /* =========================
-       C) Simplified orchestrator — show Tinder first, run AI after swipe
-    ========================= */
-    (() => {
-      const ready = (fn) => (document.readyState === 'loading'
-        ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-        : fn());
-    
-      ready(() => {
-        const stage   = document.querySelector('.demo-stage');
-        const tinder  = document.querySelector('.tinder-section');
-        const form    = document.querySelector('.ai-demo');
-        const overlay = document.querySelector('.demo-overlay');
-        const overlayText = document.querySelector('.demo-overlay__text');
-    
-        if (!stage || !tinder || !form || !overlay || !overlayText) return;
-    
-        // Wait until section is visible before showing the Tinder card
-        const io = new IntersectionObserver((entries) => {
-          if (entries.some(e => e.isIntersecting)) {
-            io.disconnect();
-    
-            // ✅ Show Tinder, hide AI form initially
-            tinder.removeAttribute('hidden');
-            tinder.removeAttribute('aria-hidden');
-            form.setAttribute('hidden', '');
-            form.setAttribute('aria-hidden', 'true');
-    
-            // ✅ Update overlay text to match "Swipe right to apply"
-            overlay.classList.remove('is-form');
-            overlay.classList.remove('is-deck-left');
-            overlay.classList.add('is-deck-right');
-            overlayText.textContent = '{{ _("Swipe right to apply") }}';
-            overlayText.classList.add('is-visible');
-          }
-        }, { threshold: 0.3 });
-    
-        io.observe(stage);
-      });
-    })();
-    </script>
-    
-
-
-
-<!-- =========================
-     FIRST STEP ANIMATION: "Upload your resume" (centered)
-========================= -->
-<section class="resume-step" aria-label="{% trans 'First step: upload your resume' %}">
-  <div class="resume-step__inner">
-    <h3 class="resume-step__title">
-      {% blocktrans %}First, you upload your resume{% endblocktrans %}
-    </h3>
-
-    <div class="rs" id="resumeDemo" role="group" aria-describedby="rs-live">
-      <!-- Centered Dropzone -->
-      <div class="rs-dropzone" aria-label="{% trans 'Upload your resume' %}">
-        <div class="rs-dropzone__icon" aria-hidden="true">⬆️</div>
-        <div class="rs-dropzone__text">
-          <strong>{% trans "Upload your resume" %}</strong>
-          <span class="rs-dropzone__hint">{% trans "Drag & drop or click to browse" %}</span>
-        </div>
-
-        <!-- Progress -->
-        <div class="rs-progress" aria-hidden="true">
-          <div class="rs-progress__bar"></div>
-          <span class="rs-progress__pct">0%</span>
-        </div>
-
-        <!-- Success -->
-        <div class="rs-done" aria-hidden="true">
-          <svg viewBox="0 0 52 52" class="rs-check">
-            <circle cx="26" cy="26" r="24" class="ring"></circle>
-            <path d="M16 27l7 7 13-13" class="mark"></path>
-          </svg>
-          <span>{% trans "Uploaded" %}</span>
-        </div>
-      </div>
-
-      <!-- Draggable file card (starts left of center) -->
-      <figure class="rs-file" aria-label="{% trans 'Resume file' %}">
-        <div class="rs-file__tab"></div>
-        <div class="rs-file__icon" aria-hidden="true">📄</div>
-        <figcaption class="rs-file__name">Ava_Jensen_Resume.pdf</figcaption>
-      </figure>
-
-      <!-- Cursor -->
-      <div class="rs-cursor" aria-hidden="true">
-        <svg viewBox="0 0 24 24" class="rs-pointer">
-          <path d="M4 3l13 7.5-6.2 1.9 3.2 6.7-2.2 1-3.2-6.7L6 16.9 4 3z" fill="#111"/>
-        </svg>
-      </div>
-
-      <!-- Live announcements -->
-      <p id="rs-live" class="sr-only" aria-live="polite">{% trans "First you upload your resume" %}</p>
-    </div>
-  </div>
-</section>
-
-<style>
-/* ===== Section layout (center on page) */
-.resume-step{
-  padding: clamp(36px,6vw,68px) 0;
-  background: linear-gradient(180deg,#f6f8fc 0%, #fff 100%);
-  border-top:1px solid #eef2f7;
-}
-.resume-step__inner{
-  max-width: min(1000px, 92vw);
-  margin: 0 auto;
-  padding: 0 16px;
-}
-.resume-step__title{
-  margin:0 0 18px;
-  text-align:center;
-  font: 900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui);
-  color:#101828;
-}
-
-/* ===== Demo stage (boxed and centered) */
-.rs {
-  --box: #ffffff;
-  --line: #e7edf5;
-  --ink: #0f172a;
-  --muted: #667085;
-  --ok: #10B981;
-  --accent: #3B82F6;
-
-  position: relative;
-  height: 380px;
-  overflow: visible;
-  max-width: 920px;
-  margin: 0 auto;
-
-  /* ✂️ Remove the modal look */
-  background: transparent;   /* no white box */
-  border: none;              /* no border */
-  box-shadow: none;          /* no shadow */
-}
-
-@media (max-width:720px){ .rs{ height: 340px; } }
-
-/* ===== Centered dropzone */
-.rs-dropzone{
-  position:absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%); /* dead center */
-  width: min(520px, 88%);
-  min-width: 300px;
-  background: var(--box);
-  border: 2px dashed #cfe0ff;
-  border-radius: 16px;
-  padding: 20px;
-  display:flex; align-items:center; gap:14px;
-  box-shadow: 0 8px 24px rgba(2,8,23,.05);
-}
-.rs-dropzone.is-over{ border-color:#93c5fd; background:#f8fbff; }
-.rs-dropzone__icon{
-  width:42px; height:42px; display:grid; place-items:center;
-  font-size:22px; background:#eef6ff; color:#1d4ed8; border-radius:12px;
-}
-.rs-dropzone__text{ display:flex; flex-direction:column; gap:4px; color:#0f172a; font-family:var(--font); }
-.rs-dropzone__text strong{ font-weight:800; letter-spacing:.1px; }
-.rs-dropzone__hint{ color:#667085; font-weight:600; font-size:12px; }
-
-.rs-progress{
-  display:flex; align-items:center; gap:10px; margin-left:auto;
-  opacity:0; transform: translateY(6px); transition:.25s ease;
-}
-.rs-progress.is-visible{ opacity:1; transform:none; }
-.rs-progress__bar{ --pct:0%; width:140px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
-.rs-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition: width .08s linear; }
-.rs-progress__pct{ font:700 12px/1 var(--font); color:#475467; min-width:32px; text-align:right; }
-
-.rs-done{
-  display:flex; align-items:center; gap:8px; margin-left:auto;
-  opacity:0; transform:translateY(6px); transition:.25s ease;
-}
-.rs-done.is-visible{ opacity:1; transform:none; }
-.rs-check{ width:22px; height:22px; }
-.rs-check .ring{ fill:none; stroke:#A7F3D0; stroke-width:4; opacity:.9 }
-.rs-check .mark{ fill:none; stroke:#10B981; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-dasharray:60; stroke-dashoffset:60; }
-.rs-done.is-visible .mark{ animation: rsCheck .6s ease forwards .1s; }
-@keyframes rsCheck{ to { stroke-dashoffset:0; } }
-
-/* Move file card visibly to the left of center */
-/* Make resume file start much farther left */
-.rs-file {
-  position: absolute;
-  top: 50%;
-  left: calc(50% - 600px); /* farther left — increase this number for more distance */
-  transform: translateY(-50%);
-  width: 240px;
-  height: 140px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 10px 26px rgba(2,8,23,.08);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.rs-file__tab{ width: 56px; height: 8px; background:#f2f4f7; border-radius:999px; }
-.rs-file__icon{ font-size:26px; }
-.rs-file__name{ font: 800 12px/1.2 var(--font); color:#111827; padding:0 12px; text-align:center; }
-.rs-file.is-grabbed{ transform: translate(0, -50%) scale(1.03); box-shadow: 0 12px 30px rgba(2,8,23,.12); }
-
-/* ===== Cursor (starts near file) */
-.rs-cursor{ position:absolute; width:24px; height:24px; transform: translate3d(0,0,0); }
-.rs-pointer{ width:100%; height:100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
-
-/* ===== Utilities */
-.sr-only{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .rs-cursor{ display:none; }
-  .rs{ transition:none !important; }
-}
-</style>
-
-<script>
 /* =========================
-   "Upload your resume" animation controller (centered)
+   STEP 1 — "Upload your resume" controller (exposes window.ResumeDemo)
 ========================= */
 (() => {
   const ready = (fn) => (document.readyState === 'loading'
@@ -1529,8 +1280,9 @@
     : fn());
 
   ready(() => {
+    const container = document.getElementById('resumeStep');
     const root = document.getElementById('resumeDemo');
-    if (!root) return;
+    if (!root || !container) return;
 
     const cursor   = root.querySelector('.rs-cursor');
     const fileCard = root.querySelector('.rs-file');
@@ -1563,21 +1315,19 @@
       progBar.style.setProperty('--pct', '0%');
       progPct.textContent = '0%';
       fileCard.style.transition = 'none';
-      fileCard.style.left = 'calc(50% - 720px)'; // much farther left
-      fileCard.style.opacity = '1';               // start visible
-    fileCard.style.transform = 'translate(0, -50%)';
+      fileCard.style.left = 'calc(50% - 720px)';
+      fileCard.style.opacity = '1';
+      fileCard.style.transform = 'translate(0, -50%)';
 
       const rRoot = rect(root);
       const rFile = rect(fileCard);
       const rDz   = rect(dz);
 
-      // Centers
       const fcx = rFile.left - rRoot.left + rFile.width / 2;
       const fcy = rFile.top  - rRoot.top  + rFile.height / 2;
       const dzcx = rDz.left  - rRoot.left + rDz.width  / 2;
       const dzcy = rDz.top   - rRoot.top  + rDz.height / 2;
 
-      // Cursor start (near the file)
       const startX = fcx + 16;
       const startY = fcy + 10;
       cursor.style.transition = 'none';
@@ -1589,59 +1339,50 @@
         dz.classList.add('is-over');
         progWrap.classList.add('is-visible');
         let pct = 0;
-        const t = setInterval(() => {
-          pct += 10;
-          if (pct >= 100){ pct = 100; clearInterval(t); progWrap.classList.remove('is-visible'); done.classList.add('is-visible'); }
-          progBar.style.setProperty('--pct', pct + '%');
-          progPct.textContent = pct + '%';
-        }, 70);
+        await new Promise((resolve) => {
+          const t = setInterval(() => {
+            pct += 10;
+            if (pct >= 100){ pct = 100; clearInterval(t); progWrap.classList.remove('is-visible'); done.classList.add('is-visible'); resolve(); }
+            progBar.style.setProperty('--pct', pct + '%');
+            progPct.textContent = pct + '%';
+          }, 70);
+        });
         return;
       }
 
-      // 1) Move cursor to file (grab)
       await moveTo(cursor, startX, startY, 380);
       announce('{{ _("First you upload your resume") }}');
       fileCard.classList.add('is-grabbed');
 
-        // 2) Move cursor and file together toward the dropzone center
-        dz.classList.add('is-over');
+      dz.classList.add('is-over');
+      const dx = dzcx - fcx;
+      const dy = dzcy - fcy;
+      const duration = 900;
 
-        const dx = dzcx - fcx; // horizontal distance to center
-        const dy = dzcy - fcy; // vertical (usually small)
-        const duration = 900;
+      cursor.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
+      fileCard.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
+      cursor.style.transform = `translate3d(${dzcx}px, ${dzcy}px, 0)`;
+      fileCard.style.transform = `translate(${dx - 20}px, calc(-50% + ${dy - 10}px))`;
 
-        cursor.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
-        fileCard.style.transition = `transform ${duration}ms cubic-bezier(.22,.61,.36,1)`;
+      await new Promise(r => setTimeout(r, duration + 40));
+      fileCard.style.transition = 'opacity .25s ease';
+      fileCard.style.opacity = '0';
 
-        // move both in sync
-        cursor.style.transform = `translate3d(${dzcx}px, ${dzcy}px, 0)`; // fixed variable
-        fileCard.style.transform = `translate(${dx - 20}px, calc(-50% + ${dy - 10}px))`; // keep cursor near top-left “grab” spot
-
-        await new Promise(r => setTimeout(r, duration + 40));
-
-        // fade out the file once it reaches the dropzone
-        fileCard.style.transition = 'opacity .25s ease';
-        fileCard.style.opacity = '0';
-
-
-
-      // 4) Upload progress
       progWrap.classList.add('is-visible');
       announce('{{ _("Uploading resume…") }}');
       let pct = 0;
-      const timer = setInterval(() => {
-        pct += 6 + Math.random()*8;
-        if (pct >= 100){ pct = 100; clearInterval(timer); }
-        progBar.style.setProperty('--pct', Math.round(pct) + '%');
-        progPct.textContent = Math.round(pct) + '%';
-      }, 80);
-      await new Promise(r => setTimeout(r, 1600));
+      await new Promise((resolve) => {
+        const timer = setInterval(() => {
+          pct += 6 + Math.random()*8;
+          if (pct >= 100){ pct = 100; clearInterval(timer); resolve(); }
+          progBar.style.setProperty('--pct', Math.round(pct) + '%');
+          progPct.textContent = Math.round(pct) + '%';
+        }, 80);
+      });
 
-      // 5) Success and reset
       progWrap.classList.remove('is-visible');
       done.classList.add('is-visible');
       announce('{{ _("Uploaded successfully") }}');
-
       await new Promise(r => setTimeout(r, 900));
       dz.classList.remove('is-over');
       fileCard.classList.remove('is-grabbed');
@@ -1650,311 +1391,157 @@
       fileCard.style.transform  = 'translate(0, -50%)';
     };
 
-    // Play when visible, then loop
-    const playWhenVisible = () => new Promise(res => {
-      const io = new IntersectionObserver((entries) => {
-        if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-      }, { threshold: 0.35 });
-      io.observe(root);
-    });
-
-    (async function run(){
-      await playWhenVisible();
-      await animateOnce();
-      setInterval(animateOnce, 8000);
-    })();
+    window.ResumeDemo = {
+      show(){ container.removeAttribute('hidden'); container.removeAttribute('aria-hidden'); },
+      hide(){ container.setAttribute('hidden',''); container.setAttribute('aria-hidden','true'); },
+      runOnce: animateOnce
+    };
   });
 })();
 </script>
 
-<!-- =========================
-     AI ANALYSIS ANIMATION (no zoom; green highlight → extract)
-========================= -->
-<section class="ra-step" aria-label="{% trans 'Second step: AI analyzes your resume' %}">
-    <div class="ra__inner">
-      <h3 class="ra__title">
-        {% blocktrans %}Next, AI analyzes your resume{% endblocktrans %}
-      </h3>
-  
-      <div class="ra" id="raDemo" role="group" aria-describedby="ra-live">
-        <!-- Progress / status -->
-        <div class="ra-top">
-          <div class="ra-progress" aria-hidden="true">
-            <div class="ra-progress__bar"></div>
-            <span class="ra-progress__pct">0%</span>
-          </div>
-          <span class="ra-status" id="ra-live" aria-live="polite">
-            {% trans "Scanning document…" %}
-          </span>
-        </div>
-  
-        <!-- Stage: resume preview + extracted fields -->
-        <div class="ra-stage">
-          <!-- Resume -->
-          <div class="ra-viewport" aria-label="{% trans 'Resume preview' %}">
-            <article class="ra-doc" role="document" aria-label="{% trans 'Resume' %}">
-              <header class="ra-doc__head">
-                <h2 id="ra-name">Ava Jensen</h2>
-                <p class="ra-doc__meta">
-                  <span id="ra-email">ava.jensen@uni.dk</span> ·
-                  <span id="ra-phone">+45 12 34 56 78</span> ·
-                  <span id="ra-location">Copenhagen, DK</span>
-                </p>
-              </header>
-  
-              <section class="ra-sec">
-                <h3>Experience</h3>
-                <div id="ra-exp" class="ra-block">
-                  <h4>Investment Banking Intern — Goldman Sachs</h4>
-                  <p>Built DCFs and LBO models for live deals; prepared client-ready materials; supported due diligence and market comps.</p>
-                  <ul>
-                    <li>Modeled M&amp;A scenarios across 3 cases; presented takeaways to VP team.</li>
-                    <li>Automated comp pulls in Excel; reduced prep time by 35%.</li>
-                  </ul>
-                </div>
-              </section>
-  
-              <section class="ra-sec">
-                <h3>Education</h3>
-                <div id="ra-edu" class="ra-block">
-                  <h4>Copenhagen Business School — BSc Finance</h4>
-                  <p>Expected 2026 · GPA 3.8/4.0 · CBS Finance Club</p>
-                </div>
-              </section>
-  
-              <section class="ra-sec">
-                <h3>Skills</h3>
-                <p id="ra-skills" class="ra-inline">Excel, PowerPoint, Bloomberg, Python (pandas), Financial Modeling</p>
-              </section>
-            </article>
-          </div>
-  
-          <!-- Extracted fields -->
-          <aside class="ra-panel" aria-label="{% trans 'Extracted fields' %}">
-            <h4 class="ra-panel__title">{% trans "Extracted fields" %}</h4>
-            <ul class="ra-list"></ul>
-          </aside>
-        </div>
-      </div>
-    </div>
-  </section>
-  
-  <style>
-  /* ===== Section layout ===== */
-  .ra-step{ padding: clamp(36px,6vw,68px) 0; border-top:1px solid #eef2f7; }
-  .ra__inner{ max-width:min(1100px,94vw); margin:0 auto; padding:0 16px; }
-  .ra__title{ margin:0 0 18px; text-align:center; font:900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui); color:#101828; }
-  
-  /* ===== Frame ===== */
-  .ra{  --hl-bg:#ECFDF5;         /* very light green */
-     --hl-edge:#BBF7D0;       /* subtle border */
-     --hl-glow:rgba(16,185,129,.18);
-       border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 10px 30px rgba(2,8,23,.06); }
-  .ra-top{ display:flex; align-items:center; gap:14px; padding:12px 14px; border-bottom:1px solid #eef2f7; }
-  .ra-status{ margin-left:auto; font:700 12px/1 var(--font); color:#475467; }
-  
-  /* Progress */
-  .ra-progress{ display:flex; align-items:center; gap:10px; }
-  .ra-progress__bar{ --pct:0%; width:220px; height:8px; background:#eef2f7; border-radius:999px; position:relative; overflow:hidden; }
-  .ra-progress__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition:width .15s linear; }
-  .ra-progress__pct{ font:800 12px/1 var(--font); color:#475467; min-width:32px; text-align:right; }
-  
-  /* Stage columns */
-  .ra-stage{ display:grid; grid-template-columns:1fr minmax(280px, 340px); gap:18px; padding:16px; }
-  @media (max-width:900px){ .ra-stage{ grid-template-columns:1fr; } }
-  
-  /* Resume viewport */
-  .ra-viewport {
-  position: relative;
-  height: 520px;
-  border: 1px dashed #cfe0ff;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #f9fbff, #fff 60%);
-  overflow: hidden;
+<script>
+/* =========================
+   STEP 2 — AI Analysis controller (exposes window.RADemo)
+========================= */
+(() => {
+  const ready = (fn) => (document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+    : fn());
 
-  /* ✅ Center resume content vertically + horizontally */
-  display: flex;
-  align-items: center;      /* vertical centering */
-  justify-content: center;  /* horizontal centering */
-}
+  ready(() => {
+    const container = document.getElementById('analysisStep');
+    const root = document.getElementById('raDemo');
+    if (!root || !container) return;
 
-@media (max-width: 900px) {
-  .ra-viewport {
-    height: 460px;
-  }
-}
+    const panel   = root.querySelector('.ra-list');
+    const progBar = root.querySelector('.ra-progress__bar');
+    const progPct = root.querySelector('.ra-progress__pct');
+    const status  = root.querySelector('.ra-status');
 
-  
-  /* Document mock */
-  .ra-doc{ width:min(720px,94%); margin:14px auto; background:#fff; border:1px solid #e7eef7; border-radius:12px; padding:22px 26px; color:#0f172a; box-shadow:0 8px 24px rgba(2,8,23,.05);   min-height: calc(100% - 74px);
-  display: flex;            /* keeps layout tidy even when taller */
-  flex-direction: column; }
-
-  .ra-doc::after{ content:""; flex:1 1 auto; }
-
-
-  .ra-doc__head h2{ margin:0 0 4px; font:900 26px/1.15 var(--font); }
-  .ra-doc__meta{ margin:0; color:#64748b; font:600 13px/1.4 var(--font); }
-  .ra-sec{ margin-top:18px; }
-  .ra-sec h3{ margin:0 0 8px; font:800 14px/1 var(--font); letter-spacing:.3px; color:#111827; text-transform:uppercase; }
-  .ra-block h4{ margin:0 0 6px; font:800 15px/1.2 var(--font); }
-  .ra-doc p,.ra-doc li,.ra-inline{ font:500 13.5px/1.5 var(--font); color:#0f172a; }
-  .ra-doc ul{ margin:8px 0 0 18px; }
-  
-  /* ===== Green highlight (no zoom) ===== */
-  .ra-focus{ position:relative; z-index:0; }
-  .ra-focus::before{
-  content:"";
-  position:absolute;
-  inset:-3px -6px;                 /* small padding around text/block */
-  background: var(--hl-bg);
-  border:1.5px solid var(--hl-edge);
-  border-radius:10px;
-  box-shadow: 0 6px 18px var(--hl-glow) inset, 0 8px 20px rgba(2,8,23,.06);
-  z-index:-1;
-  opacity:0;
-  transform: translateY(2px);
-  transition: opacity .18s ease, transform .18s ease, box-shadow .18s ease;
-}
-
-@keyframes raSweepBg{
-  from{ box-shadow: 0 6px 18px var(--hl-glow) inset, 0 8px 20px rgba(2,8,23,.06); }
-  to  { box-shadow: 0 10px 26px var(--hl-glow) inset, 0 10px 24px rgba(2,8,23,.08); }
-}
-.ra-focus.is-on::before{
-  opacity:1;
-  transform:none;
-  animation: raSweepBg .9s ease;
-}
-  .ra-focus .ra-tint{
-    color:#065f46; font-weight:800;
-  }
-  @keyframes raSweep{
-    from{ background-position:-140% 0; }
-    to  { background-position: 140% 0; }
-  }
-  .ra-focus.is-on::before{ background-size:200% 100%; animation: raSweep .9s ease; }
-
-  .ra-focus.is-inline{ display:inline-block; border-radius:6px; }
-
-/* Remove the old text tint so color stays normal */
-.ra-focus .ra-tint{ color:inherit; font-weight:inherit; }
-  
-  /* ===== Extracted panel ===== */
-  .ra-panel{ border:1px dashed #e5eaf3; border-radius:12px; background:#fafcff; padding:12px; }
-  .ra-panel__title{ margin:0 0 8px; font:900 13px/1 var(--font); color:#0f172a; text-transform:uppercase; letter-spacing:.35px; }
-  .ra-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
-  .ra-item{ display:grid; grid-template-columns:92px 1fr auto; align-items:center; gap:8px; padding:8px 10px; background:#fff; border:1px solid #eef2f7; border-radius:10px; opacity:0; transform: translateY(6px); transition:.25s ease; }
-  .ra-item.is-in{ opacity:1; transform:none; }
-  .ra-k{ font:800 11.5px/1 var(--font); color:#64748b; text-transform:uppercase; letter-spacing:.3px; }
-  .ra-v{ font:700 12.5px/1.2 var(--font); color:#111827; }
-  .ra-ok{ color:#10B981; font:900 12px/1 var(--font); }
-  
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce){
-    .ra-item,.ra-progress__bar::after{ transition:none !important; }
-    .ra-focus.is-on::before{ animation:none !important; }
-  }
-  </style>
-  
-  <script>
-  /* =========================
-     Controller (highlight → extract; no zoom)
-  ========================= */
-  (() => {
-    const ready = (fn) => (document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-      : fn());
-  
-    ready(() => {
-      const root    = document.getElementById('raDemo');
-      if (!root) return;
-  
-      const panel   = root.querySelector('.ra-list');
-      const progBar = root.querySelector('.ra-progress__bar');
-      const progPct = root.querySelector('.ra-progress__pct');
-      const status  = root.querySelector('.ra-status');
-  
-      const pause = (ms) => new Promise(r => setTimeout(r, ms));
-      const setProgress = (v) => {
-        const p = Math.max(0, Math.min(100, Math.round(v)));
-        progBar.style.setProperty('--pct', p + '%');
-        progPct.textContent = p + '%';
-      };
-  
-      // Which fields to highlight/extract (element, key, value, status text)
-      const steps = [
-        { sel:'#ra-name',   key:'Name',       value:'Ava Jensen',                        say:'{{ _("Reading name") }}' },
-        { sel:'#ra-email',  key:'Email',      value:'ava.jensen@uni.dk',                 say:'{{ _("Found email address") }}' },
-        { sel:'#ra-edu',    key:'Education',  value:'CBS — BSc Finance (2026)',         say:'{{ _("Parsing education") }}' },
-        { sel:'#ra-skills', key:'Skills',     value:'Excel · PPT · Bloomberg · Python', say:'{{ _("Extracting skills") }}' },
-        { sel:'#ra-exp',    key:'Experience', value:'IB Intern — valuation & modeling', say:'{{ _("Summarizing experience") }}' }
-      ];
-  
-      // Add a pretty list row
-      const addFinding = (k, v) => {
-        const li = document.createElement('li');
-        li.className = 'ra-item';
-        li.innerHTML = `<div class="ra-k">${k}</div>
-                        <div class="ra-v">${v}</div>
-                        <div class="ra-ok">✓</div>`;
-        panel.appendChild(li);
-        requestAnimationFrame(() => li.classList.add('is-in'));
-      };
-  
-      // Briefly highlight the element in green
-    // Briefly highlight the element with a light-green background
-    const highlight = async (el, say) => {
-    status.textContent = say;
-
-    // If the target is inline, let the pseudo-element sit behind it
-    const isInline = getComputedStyle(el).display === 'inline';
-    if (isInline) el.classList.add('is-inline');
-
-    // No text recolor — just background highlight
-    el.classList.add('ra-focus','is-on');
-    await pause(900);
-    el.classList.remove('is-on');
-    if (isInline) el.classList.remove('is-inline');
-    await pause(150);
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+    const setProgress = (v) => {
+      const p = Math.max(0, Math.min(100, Math.round(v)));
+      progBar.style.setProperty('--pct', p + '%');
+      progPct.textContent = p + '%';
     };
 
-  
-      const runOnce = async () => {
-        // reset
-        status.textContent = '{{ _("Scanning document…") }}';
-        setProgress(0);
-        panel.innerHTML = '';
-  
-        // Wait until visible
-        await new Promise(res => {
-          const io = new IntersectionObserver((entries) => {
-            if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-          }, { threshold: 0.3 });
-          io.observe(root);
-        });
-  
-        for (let i = 0; i < steps.length; i++) {
-          const s = steps[i];
-          const el = root.querySelector(s.sel);
-          if (!el) continue;
-  
-          await highlight(el, s.say);
-          addFinding(s.key, s.value);
-  
-          setProgress(((i+1)/steps.length) * 100);
-          await pause(320);
-        }
-  
-        status.textContent = '{{ _("Analysis complete") }}';
-      };
-  
-      (async function cycle(){
-        await runOnce();
-        setInterval(runOnce, 10000);
-      })();
+    const steps = [
+      { sel:'#ra-name',   key:'Name',       value:'Ava Jensen',                        say:'{{ _("Reading name") }}' },
+      { sel:'#ra-email',  key:'Email',      value:'ava.jensen@uni.dk',                 say:'{{ _("Found email address") }}' },
+      { sel:'#ra-edu',    key:'Education',  value:'CBS — BSc Finance (2026)',         say:'{{ _("Parsing education") }}' },
+      { sel:'#ra-skills', key:'Skills',     value:'Excel · PPT · Bloomberg · Python', say:'{{ _("Extracting skills") }}' },
+      { sel:'#ra-exp',    key:'Experience', value:'IB Intern — valuation & modeling', say:'{{ _("Summarizing experience") }}' }
+    ];
+
+    const addFinding = (k, v) => {
+      const li = document.createElement('li');
+      li.className = 'ra-item';
+      li.innerHTML = `<div class="ra-k">${k}</div>
+                      <div class="ra-v">${v}</div>
+                      <div class="ra-ok">✓</div>`;
+      panel.appendChild(li);
+      requestAnimationFrame(() => li.classList.add('is-in'));
+    };
+
+    const highlight = async (el, say) => {
+      status.textContent = say;
+      const isInline = getComputedStyle(el).display === 'inline';
+      if (isInline) el.classList.add('is-inline');
+      el.classList.add('ra-focus','is-on');
+      await pause(900);
+      el.classList.remove('is-on');
+      if (isInline) el.classList.remove('is-inline');
+      await pause(150);
+    };
+
+    const runOnce = async () => {
+      status.textContent = '{{ _("Scanning document…") }}';
+      setProgress(0);
+      panel.innerHTML = '';
+
+      for (let i = 0; i < steps.length; i++) {
+        const s = steps[i];
+        const el = root.querySelector(s.sel);
+        if (!el) continue;
+        await highlight(el, s.say);
+        addFinding(s.key, s.value);
+        setProgress(((i+1)/steps.length) * 100);
+        await pause(320);
+      }
+      status.textContent = '{{ _("Analysis complete") }}';
+    };
+
+    window.RADemo = {
+      show(){ container.removeAttribute('hidden'); container.removeAttribute('aria-hidden'); },
+      hide(){ container.setAttribute('hidden',''); container.setAttribute('aria-hidden','true'); },
+      runOnce
+    };
+  });
+})();
+</script>
+
+<script>
+/* =========================
+   MASTER ORCHESTRATOR — runs the three steps in sequence
+========================= */
+(() => {
+  const ready = (fn) => (document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+    : fn());
+
+  ready(async () => {
+    const stage   = document.querySelector('.demo-stage');
+    const overlay = document.querySelector('.demo-overlay');
+    const overlayText = document.querySelector('.demo-overlay__text');
+    const spTitle = document.getElementById('spTitle');
+
+    const showOverlayTop = (text) => {
+      overlay?.classList.remove('is-deck-right');
+      overlay?.classList.add('is-form');
+      if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
+    };
+    const showOverlayDeck = (text) => {
+      overlay?.classList.remove('is-form');
+      overlay?.classList.add('is-deck-right');
+      if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
+    };
+
+    const waitVisible = () => new Promise(res=>{
+      const io = new IntersectionObserver((entries)=>{
+        if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
+      }, { threshold: 0.3 });
+      stage ? io.observe(stage) : res();
     });
-  })();
-  </script>
-  
-  
+
+    // ensure everything hidden initially
+    window.ResumeDemo?.hide?.();
+    window.RADemo?.hide?.();
+    window.TinderDemo?.hide?.();
+    window.AIDemo?.hide?.();
+
+    await waitVisible();
+
+    /* 1) Upload resume */
+    spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
+    showOverlayTop('{{ _("Drop your resume to start") }}');
+    window.ResumeDemo?.show?.();
+    await window.ResumeDemo?.runOnce?.();
+    window.ResumeDemo?.hide?.();
+
+    /* 2) AI analyzes */
+    spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
+    showOverlayTop('{{ _("Extracting skills & experience…") }}');
+    window.RADemo?.show?.();
+    await window.RADemo?.runOnce?.();
+    window.RADemo?.hide?.();
+
+    /* 3) Tinder deck → AI form */
+    spTitle && (spTitle.textContent = '{{ _("Do like everyone else — apply with AI") }}');
+    showOverlayDeck('{{ _("Swipe right to apply") }}');
+    window.TinderDemo?.show?.();
+    await window.TinderDemo?.runOnce?.();
+    // AIDemo.runOnce is called by TinderDemo; sequence ends after form success.
+  });
+})();
+</script>
