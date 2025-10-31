@@ -1121,7 +1121,9 @@
   .ra__title{ margin:0 0 18px; text-align:center; font:900 clamp(20px,2.6vw,28px)/1.15 var(--font,'Manrope',system-ui); color:#101828; }
   
   /* ===== Frame ===== */
-  .ra{ --line:#e7edf5; --muted:#667085; --ink:#0f172a; --ok:#10B981; --accent:#3B82F6;
+  .ra{  --hl-bg:#ECFDF5;         /* very light green */
+     --hl-edge:#BBF7D0;       /* subtle border */
+     --hl-glow:rgba(16,185,129,.18);
        border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 10px 30px rgba(2,8,23,.06); }
   .ra-top{ display:flex; align-items:center; gap:14px; padding:12px 14px; border-bottom:1px solid #eef2f7; }
   .ra-status{ margin-left:auto; font:700 12px/1 var(--font); color:#475467; }
@@ -1151,19 +1153,30 @@
   .ra-doc ul{ margin:8px 0 0 18px; }
   
   /* ===== Green highlight (no zoom) ===== */
-  .ra-focus{ position:relative; }
+  .ra-focus{ position:relative; z-index:0; }
   .ra-focus::before{
-    content:"";
-    position:absolute; inset:-2px -4px;
-    background:
-      linear-gradient(90deg, #ecfdf5 0%, #d1fae5 40%, #ecfdf5 100%);
-    border-radius:10px;
-    z-index:-1;
-    opacity:0;
-    transform: translateY(2px);
-    transition:opacity .18s ease, transform .18s ease;
-  }
-  .ra-focus.is-on::before{ opacity:1; transform:none; }
+  content:"";
+  position:absolute;
+  inset:-3px -6px;                 /* small padding around text/block */
+  background: var(--hl-bg);
+  border:1.5px solid var(--hl-edge);
+  border-radius:10px;
+  box-shadow: 0 6px 18px var(--hl-glow) inset, 0 8px 20px rgba(2,8,23,.06);
+  z-index:-1;
+  opacity:0;
+  transform: translateY(2px);
+  transition: opacity .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+@keyframes raSweepBg{
+  from{ box-shadow: 0 6px 18px var(--hl-glow) inset, 0 8px 20px rgba(2,8,23,.06); }
+  to  { box-shadow: 0 10px 26px var(--hl-glow) inset, 0 10px 24px rgba(2,8,23,.08); }
+}
+.ra-focus.is-on::before{
+  opacity:1;
+  transform:none;
+  animation: raSweepBg .9s ease;
+}
   .ra-focus .ra-tint{
     color:#065f46; font-weight:800;
   }
@@ -1172,6 +1185,11 @@
     to  { background-position: 140% 0; }
   }
   .ra-focus.is-on::before{ background-size:200% 100%; animation: raSweep .9s ease; }
+
+  .ra-focus.is-inline{ display:inline-block; border-radius:6px; }
+
+/* Remove the old text tint so color stays normal */
+.ra-focus .ra-tint{ color:inherit; font-weight:inherit; }
   
   /* ===== Extracted panel ===== */
   .ra-panel{ border:1px dashed #e5eaf3; border-radius:12px; background:#fafcff; padding:12px; }
@@ -1236,20 +1254,22 @@
       };
   
       // Briefly highlight the element in green
-      const highlight = async (el, say) => {
-        status.textContent = say;
-        // Wrap text in a tint span so the text darkens slightly during highlight
-        if (!el.querySelector('.ra-tint')) {
-          const span = document.createElement('span');
-          span.className = 'ra-tint';
-          while (el.firstChild) span.appendChild(el.firstChild);
-          el.appendChild(span);
-        }
-        el.classList.add('ra-focus','is-on');
-        await pause(900);
-        el.classList.remove('is-on');     // fade highlight away
-        await pause(150);
-      };
+    // Briefly highlight the element with a light-green background
+    const highlight = async (el, say) => {
+    status.textContent = say;
+
+    // If the target is inline, let the pseudo-element sit behind it
+    const isInline = getComputedStyle(el).display === 'inline';
+    if (isInline) el.classList.add('is-inline');
+
+    // No text recolor — just background highlight
+    el.classList.add('ra-focus','is-on');
+    await pause(900);
+    el.classList.remove('is-on');
+    if (isInline) el.classList.remove('is-inline');
+    await pause(150);
+    };
+
   
       const runOnce = async () => {
         // reset
