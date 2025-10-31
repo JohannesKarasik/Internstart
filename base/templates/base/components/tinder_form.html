@@ -1408,7 +1408,13 @@
       progPct.textContent = p + '%';
     };
 
-
+    const steps = [
+      { sel:'#ra-name',   key:'Name',       value:'Ava Jensen',                        say:'{{ _("Reading name") }}' },
+      { sel:'#ra-email',  key:'Email',      value:'ava.jensen@uni.dk',                 say:'{{ _("Found email address") }}' },
+      { sel:'#ra-edu',    key:'Education',  value:'CBS — BSc Finance (2026)',         say:'{{ _("Parsing education") }}' },
+      { sel:'#ra-skills', key:'Skills',     value:'Excel · PPT · Bloomberg · Python', say:'{{ _("Extracting skills") }}' },
+      { sel:'#ra-exp',    key:'Experience', value:'IB Intern — valuation & modeling', say:'{{ _("Summarizing experience") }}' }
+    ];
 
     const addFinding = (k, v) => {
       const li = document.createElement('li');
