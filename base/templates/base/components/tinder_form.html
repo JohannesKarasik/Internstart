@@ -557,46 +557,6 @@
 })();
 </script>
 
-<script>
-/* =========================
-   C) Orchestrator (switches deck → form → repeat)
-========================= */
-/* =========================
-   C) Simplified orchestrator — single Tinder card
-========================= */
-(() => {
-  const ready = (fn) => (document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-    : fn());
-
-  ready(() => {
-    const stage   = document.querySelector('.demo-stage');
-    const tinder  = document.querySelector('.tinder-section');
-    const form    = document.querySelector('.ai-demo');
-    const overlay = document.querySelector('.demo-overlay');
-    const overlayText = document.querySelector('.demo-overlay__text');
-    if (!stage || !tinder || !form || !overlay || !overlayText) return;
-
-    // Show Tinder card when visible
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some(e => e.isIntersecting)) {
-        observer.disconnect();
-        tinder.removeAttribute('hidden');
-        tinder.removeAttribute('aria-hidden');
-        form.setAttribute('hidden', '');
-        form.setAttribute('aria-hidden', 'true');
-        overlay.classList.remove('is-form');
-        overlay.classList.add('is-deck-right');
-        overlayText.textContent = '{{ _("Swipe right to apply") }}';
-        overlayText.classList.add('is-visible');
-      }
-    }, { threshold: 0.3 });
-
-    observer.observe(stage);
-  });
-})();
-
-</script>
 
 
 <!-- =========================
