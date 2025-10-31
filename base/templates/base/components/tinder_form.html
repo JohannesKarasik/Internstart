@@ -33,19 +33,67 @@
 
       <!-- Tinder-style card deck -->
       <div class="tinder-section" aria-label="{% trans 'Automatic swipe demo' %}">
-        <div class="tinder-deck" data-autoplay="true">
+        <div class="tinder-deck carousel" data-autoplay="true">
           <!-- Card 1 -->
-          <article class="card card--yellow is-top">
+          <article class="card card--yellow">
             <div class="card__body">
               <div class="card__info">
-                <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank logo" class="card__logo">
+                <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank" class="card__logo">
                 <h4 class="card__role">{% trans "Global Markets Intern" %}</h4>
                 <h3 class="card__company">Deutsche Bank</h3>
-                <p class="card__meta">{% trans "Location: Frankfurt, Germany" %}</p>
+                <p class="card__meta">{% trans "Frankfurt, Germany" %}</p>
               </div>
               <div class="card__actions" aria-label="{% trans 'Card actions' %}">
-                <button type="button" class="action action--dismiss" aria-label="{% trans 'Dismiss' %}">{% trans "Dismiss" %}</button>
-                <button type="button" class="action action--apply" aria-label="{% trans 'Apply' %}">{% trans "Apply" %}</button>
+                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+              </div>
+            </div>
+          </article>
+      
+          <!-- Card 2 -->
+          <article class="card card--blue">
+            <div class="card__body">
+              <div class="card__info">
+                <img src="{% static 'images/deutsche-bank.png' %}" alt="J.P. Morgan" class="card__logo">
+                <h4 class="card__role">{% trans "Investment Banking Intern" %}</h4>
+                <h3 class="card__company">J.P. Morgan</h3>
+                <p class="card__meta">{% trans "London, UK" %}</p>
+              </div>
+              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+              </div>
+            </div>
+          </article>
+      
+          <!-- Card 3 -->
+          <article class="card card--pink">
+            <div class="card__body">
+              <div class="card__info">
+                <img src="{% static 'images/deutsche-bank.png' %}" alt="McKinsey" class="card__logo">
+                <h4 class="card__role">{% trans "Business Analyst Intern" %}</h4>
+                <h3 class="card__company">McKinsey & Company</h3>
+                <p class="card__meta">{% trans "Copenhagen, DK" %}</p>
+              </div>
+              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
+              </div>
+            </div>
+          </article>
+      
+          <!-- Card 4 -->
+          <article class="card card--yellow">
+            <div class="card__body">
+              <div class="card__info">
+                <img src="{% static 'images/deutsche-bank.png' %}" alt="Spotify" class="card__logo">
+                <h4 class="card__role">{% trans "Data Analyst Intern" %}</h4>
+                <h3 class="card__company">Spotify</h3>
+                <p class="card__meta">{% trans "Stockholm, SE" %}</p>
+              </div>
+              <div class="card__actions" aria-label="{% trans 'Card actions' %}">
+                <button type="button" class="action action--dismiss">{% trans "Dismiss" %}</button>
+                <button type="button" class="action action--apply">{% trans "Apply" %}</button>
               </div>
             </div>
           </article>
@@ -263,86 +311,183 @@
 @media (max-width:600px){
   .demo-overlay{ display:none; }
 }
+
+/* ===== 3D Carousel for cards ===== */
+.tinder-deck.carousel{
+  position: relative;
+  width: var(--card-w);
+  min-height: var(--card-h);
+  margin: 0 auto;
+  perspective: 1600px;
+  transform-style: preserve-3d;
+  --ring: calc(var(--card-w) * 1.25);  /* radius */
+  --step: 60deg;                       /* overwritten by JS = 360 / N */
+  --rot: 0deg;
+  transition: transform 1000ms cubic-bezier(.22,.61,.36,1);
+}
+.tinder-deck.carousel { transform: rotateY(var(--rot)); }
+
+.tinder-deck.carousel .card{
+  position:absolute; top:0; left:50%;
+  transform-style: preserve-3d;
+  opacity:.55; filter:saturate(.9) blur(.1px);
+  pointer-events:none;
+  transition:
+    transform 1000ms cubic-bezier(.22,.61,.36,1),
+    opacity .4s ease,
+    filter .4s ease;
+  /* place item around ring */
+  transform: translateX(-50%)
+             rotateY(calc(var(--i) * var(--step)))
+             translateZ(var(--ring));
+}
+
+/* Active/front card */
+.tinder-deck.carousel .card.is-active{
+  opacity:1; filter:none; pointer-events:auto;
+  transform: translateX(-50%)
+             rotateY(calc(var(--i) * var(--step)))
+             translateZ(var(--ring)) scale(1.02);
+}
+
+/* “Turn around” flip when applying */
+@keyframes carouselFlip {
+  to {
+    transform: translateX(-50%)
+               rotateY(calc(var(--i) * var(--step) + 180deg))
+               translateZ(var(--ring)) scale(1.02);
+  }
+}
+.tinder-deck.carousel .card.is-flipping{ animation: carouselFlip .8s cubic-bezier(.22,.61,.36,1) forwards; }
+
+@media (prefers-reduced-motion: reduce){
+  .tinder-deck.carousel, .tinder-deck.carousel .card { transition: none !important; }
+}
+
+
+
+
 </style>
 
 <script>
-/* =========================
-   A) Tinder controller (auto swipes + explainer)
-========================= */
-/* =========================
-   Simplified Tinder controller — single card (Apply → swipe right)
-========================= */
-(() => {
-  const ready = (fn) => (document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-    : fn());
-
-  ready(() => {
-    const deck = document.querySelector('.tinder-deck');
-    const card = deck?.querySelector('.card');
-    if (!card) return;
-
-    const applyBtn = card.querySelector('.action--apply');
-    const dismissBtn = card.querySelector('.action--dismiss');
-    const overlay = document.querySelector('.demo-overlay');
-    const overlayTextEl = document.querySelector('.demo-overlay__text');
-    const titleSpan = document.getElementById('spTitle');
-    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
-
-    // Helper to show overlay text
-    const showText = (txt) => {
-      overlayTextEl.textContent = txt;
-      overlayTextEl.classList.remove('is-visible');
-      void overlayTextEl.offsetWidth;
-      overlayTextEl.classList.add('is-visible');
-    };
-
-    // Initial overlay setup
-    overlay.classList.remove('is-form', 'is-deck-left');
-    overlay.classList.add('is-deck-right');
-    titleSpan.textContent = '{{ _("Swipe right to apply") }}';
-    showText('{{ _("Swipe right to apply") }}');
-
-    // Only trigger swipe right on Apply
-    const swipeRight = async () => {
-      applyBtn.classList.add('is-pressed');
-      await pause(180);
-      applyBtn.classList.remove('is-pressed');
-
-      card.classList.add('swipe-right');
-      await new Promise((res) => card.addEventListener('animationend', res, { once: true }));
-
-      // Hide card after swipe
-      card.style.opacity = '0';
-      card.style.pointerEvents = 'none';
-
-      // Transition to AI form
-      const tinder = document.querySelector('.tinder-section');
-      const form = document.querySelector('.ai-demo');
-      if (tinder && form) {
-        await pause(400);
-        tinder.setAttribute('hidden', '');
-        tinder.setAttribute('aria-hidden', 'true');
-        form.removeAttribute('hidden');
-        form.removeAttribute('aria-hidden');
-        overlay.classList.remove('is-deck-right');
-        overlay.classList.add('is-form');
-        showText('{{ _("AI applies for you") }}');
-        window.AIDemo?.runOnce?.();
-      }
-    };
-
-    // Disable dismiss
-    dismissBtn.disabled = true;
-    dismissBtn.style.opacity = 0.5;
-    dismissBtn.style.cursor = 'not-allowed';
-
-    applyBtn.addEventListener('click', swipeRight);
-  });
-})();
-
-</script>
+    /* =========================
+       A) Carousel controller — 3D ring + flip-on-apply
+    ========================= */
+    (() => {
+      const ready = (fn) => (document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+        : fn());
+    
+      ready(() => {
+        const deck = document.querySelector('.tinder-deck.carousel');
+        if (!deck) return;
+    
+        const cards = Array.from(deck.querySelectorAll('.card'));
+        const overlay = document.querySelector('.demo-overlay');
+        const overlayTextEl = document.querySelector('.demo-overlay__text');
+        const spTitle = document.getElementById('spTitle');
+    
+        const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const pause = (ms) => new Promise(r => setTimeout(r, ms));
+    
+        // Setup ring
+        const n = Math.max(1, cards.length);
+        const step = 360 / n;
+        deck.style.setProperty('--step', step + 'deg');
+        cards.forEach((c, i) => c.style.setProperty('--i', i));
+    
+        let idx = 0; // front card index
+        let timer = null;
+    
+        const showText = (txt) => {
+          overlayTextEl.textContent = txt;
+          overlayTextEl.classList.remove('is-visible');
+          void overlayTextEl.offsetWidth; // reflow for transition
+          overlayTextEl.classList.add('is-visible');
+        };
+    
+        const setActive = (i) => {
+          idx = (i + n) % n;
+          const rot = (-idx * step) + 'deg';
+          deck.style.setProperty('--rot', rot);
+          deck.style.transform = `rotateY(${rot})`;
+          cards.forEach((c, k) => c.classList.toggle('is-active', k === idx));
+    
+          // Update overlay
+          const role = cards[idx].querySelector('.card__role')?.textContent?.trim() || '';
+          const company = cards[idx].querySelector('.card__company')?.textContent?.trim() || '';
+          spTitle && (spTitle.textContent = '{{ _("Rotate to choose") }}');
+          overlay && overlay.classList.remove('is-form');
+          overlay && overlay.classList.add('is-deck-right');
+          showText(`${role} — ${company}`);
+        };
+    
+        const next = () => setActive(idx + 1);
+        const prev = () => setActive(idx - 1);
+    
+        const start = () => {
+          if (prefersReduced || deck.dataset.autoplay === 'false') return;
+          stop();
+          timer = setInterval(next, 2600);
+        };
+        const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+    
+        // Click handlers for actions on the ACTIVE card
+        deck.addEventListener('click', async (e) => {
+          const applyBtn = e.target.closest('.action--apply');
+          const dismissBtn = e.target.closest('.action--dismiss');
+    
+          // Ensure click belongs to the active card
+          const active = cards[idx];
+          if (!active) return;
+          if (applyBtn && !active.contains(applyBtn)) return;
+          if (dismissBtn && !active.contains(dismissBtn)) return;
+    
+          if (dismissBtn) {
+            stop(); next(); start(); return;
+          }
+    
+          if (applyBtn) {
+            stop();
+            // “Turn around” flip animation then go to AI form
+            active.classList.add('is-flipping');
+            await pause(prefersReduced ? 80 : 820);
+    
+            // Hide carousel, show AI form (same flow you already use)
+            const tinder = document.querySelector('.tinder-section');
+            const form = document.querySelector('.ai-demo');
+            if (tinder && form) {
+              tinder.setAttribute('hidden',''); tinder.setAttribute('aria-hidden','true');
+              form.removeAttribute('hidden'); form.removeAttribute('aria-hidden');
+              overlay && overlay.classList.remove('is-deck-right');
+              overlay && overlay.classList.add('is-form');
+              showText('{{ _("AI applies for you") }}');
+              window.AIDemo?.runOnce?.();
+            }
+          }
+        });
+    
+        // Optional: keyboard navigation
+        window.addEventListener('keydown', (e) => {
+          if (document.activeElement && /input|textarea|select/i.test(document.activeElement.tagName)) return;
+          if (e.key === 'ArrowRight') { stop(); next(); start(); }
+          if (e.key === 'ArrowLeft')  { stop(); prev(); start(); }
+        });
+    
+        // Start when visible
+        const stage = document.querySelector('.demo-stage');
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) {
+            io.disconnect();
+            setActive(0);
+            start();
+          }
+        }, { threshold: 0.3 });
+        stage ? io.observe(stage) : (setActive(0), start());
+      });
+    })();
+    </script>
+    
 
 <script>
 /* =========================
