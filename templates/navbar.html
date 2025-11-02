@@ -78,11 +78,12 @@
       <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
 
         <div class="lang-select-wrapper" style="position:relative; margin-right: 10px;">
-          <select onchange="location=this.value" class="lang-select">
-            <option value="https://internstart.com/">🇺🇸 US</option>
-            <option value="https://internstart.com/uk/">🇬🇧 UK</option>
-            <option value="https://internstart.com/dk/">🇩🇰 DK</option>
+          <select onchange="window.location.href=this.value" class="lang-select">
+            <option data-emoji="🇺🇸" value="{% url 'landing_page' %}">🇺🇸 US</option>
+            <option data-emoji="🇬🇧" value="{% url 'landing_page_uk' %}">🇬🇧 UK</option>
+            <option data-emoji="🇩🇰" value="{% url 'landing_page_dk' %}">🇩🇰 DK</option>
           </select>
+          
         </div>
     
         <a href="{% url 'app_login' %}" 
@@ -362,10 +363,19 @@
     pointer-events:none;
 }
 
-
-/* hide text when not open */
 .lang-select:not(:focus):not(:active) option:not(:checked) {
     display: none;
+}
+
+/* this forces the option content to only show the emoji, not text */
+.lang-select:not(:focus):not(:active) option:checked {
+    font-size: 0; /* hide text */
+}
+
+
+.lang-select:not(:focus):not(:active) option:checked::before {
+    content: attr(data-emoji);
+    font-size: 16px; /* size of emoji */
 }
 
 
