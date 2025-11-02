@@ -1100,7 +1100,7 @@
       if (!overlay) {
         winEl.insertAdjacentHTML('beforeend', `
           <div class="ai-success" hidden>
-            <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{{ _('Ansøgning sendt') }}">
+            <div class="ai-success__card" role="dialog" aria-modal="true" aria-label="{{ _('Application sent') }}">
               <div class="ai-success__icon" aria-hidden="true">
                 <svg viewBox="0 0 52 52">
                   <circle class="ring" cx="26" cy="26" r="24"></circle>
@@ -1406,12 +1406,11 @@
     };
 
     const steps = [
-    { sel:'#ra-name',   key:'Navn',       value:'Ava Jensen',                        say:'{{ _("Læser navn") }}' },
-    { sel:'#ra-email',  key:'Email',      value:'ava.jensen@uni.dk',                 say:'{{ _("Fandt emailadresse") }}' },
-    { sel:'#ra-edu',    key:'Uddannelse', value:'CBS — BSc Finance (2026)',         say:'{{ _("Fortolker uddannelse") }}' },
-    { sel:'#ra-skills', key:'Færdigheder',value:'Excel · PPT · Bloomberg · Python', say:'{{ _("Finder færdigheder") }}' },
-    { sel:'#ra-exp',    key:'Erfaring',   value:'IB Intern — valuation & modeling', say:'{{ _("Opsummerer erfaring") }}' },
-
+      { sel:'#ra-name',   key:'Name',       value:'Ava Jensen',                        say:'{{ _("Reading name") }}' },
+      { sel:'#ra-email',  key:'Email',      value:'ava.jensen@uni.dk',                 say:'{{ _("Found email address") }}' },
+      { sel:'#ra-edu',    key:'Education',  value:'CBS — BSc Finance (2026)',         say:'{{ _("Parsing education") }}' },
+      { sel:'#ra-skills', key:'Skills',     value:'Excel · PPT · Bloomberg · Python', say:'{{ _("Extracting skills") }}' },
+      { sel:'#ra-exp',    key:'Experience', value:'IB Intern — valuation & modeling', say:'{{ _("Summarizing experience") }}' }
     ];
 
     const addFinding = (k, v) => {
