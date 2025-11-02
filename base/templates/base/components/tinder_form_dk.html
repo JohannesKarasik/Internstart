@@ -907,6 +907,12 @@
   margin-bottom: 22px; /* or whatever value */
 }
 
+.ai-analyze-padding {
+  margin-bottom: 16px; /* juster som du vil */
+}
+
+
+
 </style>
 
 <script>
@@ -1537,7 +1543,10 @@
         exclusive(null);
     
         /* ========== STEP 2: AI Analyzes ========== */
-        spTitle && (spTitle.textContent = '{{ _("AI analyserer dit CV") }}');
+        if (spTitle) {
+          spTitle.textContent = '{{ _("AI analyserer dit CV") }}';
+          spTitle.classList.add("ai-analyze-padding");
+        }
         exclusive('analysis');
         await window.RADemo?.runOnce?.();
     
