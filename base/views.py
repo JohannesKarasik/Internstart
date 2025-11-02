@@ -2731,6 +2731,10 @@ def process_text_page(request):
 def landing_page_test(request):
     return render(request, "base/landing_page_test.html")
 
+def landing_page_dk(request):
+    return render(request, 'landing_page_dk.html')
+
+
 
 def blog_index(request):
     return render(request, 'blog/index.html')
