@@ -571,6 +571,28 @@
       text-decoration: underline;
     }
 
+    .blog-hero {
+  display: grid;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+@media(min-width:900px){
+  .blog-hero {
+    grid-template-columns: 1fr 420px;
+    align-items: center;
+  }
+}
+.blog-hero-author {
+  font-size: 14px;
+  color: var(--text-1);
+  margin-top: 6px;
+}
+.blog-hero img {
+  width: 100%;
+  border-radius: 16px;
+}
+
+
   </style>
 
   <script>
@@ -633,14 +655,25 @@
     =========================-->
     <article class="blog-article">
 
-      <div class="post-header-eyebrow">Internship Resume Guide 2025</div>
-      <h1 class="post-title">How to Write Resume for Internship (Step-by-Step Guide for Students)</h1>
+      <div class="blog-hero">
 
-      <div class="post-subinfo">
-        <div>Updated: Oct 31, 2025</div>
-        <div class="post-meta-chip">Internship resume format</div>
-        <div class="post-meta-chip">No experience? No problem</div>
+        <div>
+          <div class="post-header-eyebrow">Internship Resume Guide 2025</div>
+          <h1 class="post-title">How to Write Resume for Internship (Step-by-Step Guide for Students)</h1>
+          <div class="blog-hero-author">Written by <strong>Anna Blanchard</strong></div>
+          <div class="post-subinfo" style="margin-top:18px;">
+            <div>Updated: Oct 31, 2025</div>
+            <div class="post-meta-chip">Internship resume format</div>
+            <div class="post-meta-chip">No experience? No problem</div>
+          </div>
+        </div>
+      
+        <div>
+          <img src="/static/images/blog/how-to-write-resume-for-internship.jpg" alt="Resume writing hero image">
+        </div>
+      
       </div>
+      
 
       <div class="intro-box">
         <p>
