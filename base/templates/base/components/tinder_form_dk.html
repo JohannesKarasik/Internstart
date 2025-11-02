@@ -947,10 +947,8 @@
       if (!overlayTextEl) return;
       overlay?.classList.remove('is-form');
       overlay?.classList.add('is-deck-right');
-      if(spTitle){
-        spTitle.textContent = '{{ _("Ansøg til jobs med ét klik") }}'
-        spTitle.classList.add('cta-title-spacing')
-      }
+      spTitle?.classList.add('cta-title-spacing');
+
       overlayTextEl.textContent = `${role} — ${company}`;
       overlayTextEl.classList.add('is-visible');
     };
@@ -1008,27 +1006,46 @@
     };
 
     const runSequence = async ()=>{
-      // ensure tinder visible exclusively
-      section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden');
-      const form = document.querySelector('.ai-demo');
-      form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true'); form && (form.style.display='none');
+  // ensure tinder visible exclusively
+  section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden');
+  section && (section.style.display='');
+  const form = document.querySelector('.ai-demo');
+  form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true');
+  form && (form.style.display='none');
 
-      for (let i=0; i<N; i++){
-        setActive(i);
-        await pause(prefersReduced ? 500 : 900);
-        await simulateApply(cards[idx]);
-      }
+  for (let i=0; i<N; i++){
+    setActive(i);
+    await pause(prefersReduced ? 500 : 900);
+    await simulateApply(cards[idx]);
+  }
 
-      await pause(prefersReduced ? 400 : 800);
-      section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); section && (section.style.display='none');
-      form?.removeAttribute('hidden'); form?.removeAttribute('aria-hidden'); form && (form.style.display='');
+  await pause(prefersReduced ? 400 : 800);
 
-      overlay?.classList.remove('is-deck-right');
-      overlay?.classList.add('is-form');
-      overlayTextEl && (overlayTextEl.textContent = '{{ _("") }}');
+  // hide tinder deck
+  section?.setAttribute('hidden','');
+  section?.setAttribute('aria-hidden','true');
+  section && (section.style.display='none');
 
-      window.AIDemo?.runOnce?.();
-    };
+  // show AI form
+  form?.removeAttribute('hidden');
+  form?.removeAttribute('aria-hidden');
+  form && (form.style.display='');
+
+  // 🔥 NEW: kill the "Ansøg til jobs..." headline when form is visible
+  if (spTitle) {
+    spTitle.textContent = '';
+    spTitle.style.display = 'none';
+  }
+
+  overlay?.classList.remove('is-deck-right');
+  overlay?.classList.add('is-form');
+  overlayTextEl && (overlayTextEl.textContent = '{{ _("") }}');
+
+  window.AIDemo?.runOnce?.();
+};
+
+
+    
 
     // Optional manual controls
     deck.addEventListener('click', async (e)=>{
