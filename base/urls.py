@@ -63,7 +63,7 @@ urlpatterns = [
     path("process-text/", views.process_text_page, name="process_text_page"),
     path("test-landing/", views.landing_page_test, name="landing_page_test"),
     path('blog/', views.blog_index, name='blog_index'),
-    path('blog/how-to-write-resume-for-internship/', views.blog_resume_internship, name='blog_resume_internship'),
+return render(request, 'base/blog/how_to_write_resume_for_internship.html')
 
 
 
