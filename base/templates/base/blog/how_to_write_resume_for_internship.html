@@ -149,20 +149,21 @@
       gap: 24px;
     }
 
-    @media(min-width: 1024px){
-      .page-shell {
-        grid-template-columns: minmax(0,var(--content-width)) minmax(260px,1fr);
-        align-items: start;
-      }
+      @media(min-width: 1024px){
+    .page-shell {
+      grid-template-columns: 1fr;
     }
+  }
+
 
     /* ========================
        ARTICLE
     =========================*/
     article.blog-article {
-      background-color: var(--bg-0);
-      max-width: var(--content-width);
-    }
+  background-color: var(--bg-0);
+  max-width: 100%;
+}
+
 
     .post-header-eyebrow {
       color: var(--accent);
@@ -436,12 +437,6 @@
       filter: brightness(1.05);
     }
 
-    /* ========================
-       SIDEBAR
-    =========================*/
-    aside.sidebar {
-      position: relative;
-    }
 
     .toc-card {
       position: sticky;
@@ -573,11 +568,13 @@
       text-decoration: underline;
     }
 
-    .blog-hero {
-  display: grid;
-  gap: 32px;
-  margin-bottom: 40px;
+    @media(min-width:900px){
+  .blog-hero {
+    grid-template-columns: 1fr 600px;
+    align-items: center;
+  }
 }
+
 @media(min-width:900px){
   .blog-hero {
     grid-template-columns: 1fr 420px;
@@ -995,63 +992,7 @@
     <!-- ========================
          SIDEBAR
          Includes upward link (/blog/) + sideways links + downward link (/apply-with-ai/)
-    =========================-->
-    <aside class="sidebar">
 
-      <div class="toc-card">
-        <h3>On this page</h3>
-        <ul class="toc-list">
-          <li><a href="#step-by-step">Internship Resume Format</a></li>
-          <li><a href="#mistakes">Common Mistakes</a></li>
-          <li><a href="#examples">Resume Examples</a></li>
-          <li><a href="#stand-out">Stand Out from Others</a></li>
-          <li><a href="#ai-internships">AI Advantage</a></li>
-          <li><a href="#final-cta">Next Step</a></li>
-        </ul>
-
-        <!-- Downward link: product conversion CTA -->
-        <a class="cta-inline" href="/apply-with-ai/">Try Internstart</a>
-      </div>
-
-      <!-- Upward & sideways content suggestions -->
-      <div class="related-card">
-        <h4>More from the blog</h4>
-        <ul class="related-list">
-
-          <!-- Upward link: back to blog index -->
-          <li>
-            <a href="/blog/">← Back to all blog posts</a>
-            <div class="related-desc">Browse more guides for landing interviews faster.</div>
-          </li>
-
-          <!-- Sideways link #1 -->
-          <li>
-            <a href="/blog/how-to-write-cover-letter-for-internship/">
-              Cover letter tips for internships
-            </a>
-            <div class="related-desc">Stop overthinking the intro paragraph. Here’s a plug-and-play format.</div>
-          </li>
-
-          <!-- Sideways link #2 -->
-          <li>
-            <a href="/blog/ai-tools-for-internships/">
-              Find internships automatically (with AI)
-            </a>
-            <div class="related-desc">How AI can match you to roles and apply for you while you sleep.</div>
-          </li>
-
-          <!-- Downward link #3 -->
-          <li>
-            <a href="/apply-with-ai/">
-              Apply to internships with AI
-            </a>
-            <div class="related-desc">Upload resume once. We apply for you.</div>
-          </li>
-
-        </ul>
-      </div>
-
-    </aside>
 
   </main>
 
