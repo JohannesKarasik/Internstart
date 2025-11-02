@@ -901,6 +901,12 @@
 @media (max-width:600px){
   .demo-overlay{ display:none; }
 }
+
+.cta-title-spacing {
+  display: block;
+  margin-bottom: 22px; /* or whatever value */
+}
+
 </style>
 
 <script>
@@ -935,7 +941,10 @@
       if (!overlayTextEl) return;
       overlay?.classList.remove('is-form');
       overlay?.classList.add('is-deck-right');
-      spTitle && (spTitle.textContent = '{{ _("Ansøg til jobs med ét klik") }}');
+      if(spTitle){
+        spTitle.textContent = '{{ _("Ansøg til jobs med ét klik") }}'
+        spTitle.classList.add('cta-title-spacing')
+      }
       overlayTextEl.textContent = `${role} — ${company}`;
       overlayTextEl.classList.add('is-visible');
     };
