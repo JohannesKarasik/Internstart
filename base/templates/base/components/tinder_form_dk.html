@@ -24,7 +24,6 @@
             </span>
       </h2>
       <p class="sp__sub">
-        {% trans "Apply to hundreds of jobs in minutes" %}
       </p>
     </header>
 
@@ -936,7 +935,7 @@
       if (!overlayTextEl) return;
       overlay?.classList.remove('is-form');
       overlay?.classList.add('is-deck-right');
-      spTitle && (spTitle.textContent = '{{ _("Apply to jobs with one click") }}');
+      spTitle && (spTitle.textContent = '{{ _("Ansøg til jobs med ét klik") }}');
       overlayTextEl.textContent = `${role} — ${company}`;
       overlayTextEl.classList.add('is-visible');
     };
@@ -1011,7 +1010,7 @@
 
       overlay?.classList.remove('is-deck-right');
       overlay?.classList.add('is-form');
-      overlayTextEl && (overlayTextEl.textContent = '{{ _("AI applies for you") }}');
+      overlayTextEl && (overlayTextEl.textContent = '{{ _("") }}');
 
       window.AIDemo?.runOnce?.();
     };
