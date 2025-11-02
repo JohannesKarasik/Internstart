@@ -64,6 +64,10 @@ urlpatterns = [
     path("test-landing/", views.landing_page_test, name="landing_page_test"),
     path('blog/', views.blog_index, name='blog_index'),
     path('blog/how-to-write-resume-for-internship/', views.blog_resume_internship, name='blog_resume_internship'),
+    path('', views.landing_page, name='landing_page'),       # US default
+    path('uk/', views.landing_page_uk, name='landing_page_uk'),
+    path('dk/', views.landing_page_dk, name='landing_page_dk'),
+
 
 
 

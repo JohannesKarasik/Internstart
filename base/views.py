@@ -2731,6 +2731,9 @@ def process_text_page(request):
 def landing_page_test(request):
     return render(request, "base/landing_page_test.html")
 
+def landing_page_uk(request):
+    return render(request, 'landing_page_uk.html')
+
 def landing_page_dk(request):
     return render(request, 'landing_page_dk.html')
 
