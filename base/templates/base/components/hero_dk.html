@@ -1,0 +1,274 @@
+{# base/templates/base/components/hero.html #}
+{% load static i18n %}
+
+<!-- Google Font (safe to include here; duplicate loads are ignored by browser) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+
+<section class="hero">
+  <div class="hero__copy">
+    <h1 class="hero__title">
+      Søg <span class="accent">200+ jobs</span> på få<br>
+      minutter med <span class="accent">AI</span>
+      
+    </h1>
+
+    <p class="hero__subhead">
+      Internstart finder de rigtige jobs, udfylder ansøgningerne og sender dem for dig. Få samtaler hurtigere – uden at du selv skal bruge timer på det.    </p>
+
+    <div class="hero__ctas">
+      <a href="{% url 'register' %}" class="btn btn--primary">
+        {% trans "Start applying to jobs with AI" %}
+      </a>
+      <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;">
+        {% trans "Login" %}
+      </a>
+    </div>
+
+    <div class="hero__rating"
+         aria-label="{% blocktrans %}Rated 4.8 out of 5 from 327 reviews{% endblocktrans %}">
+      <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
+      <span class="rating__text">
+        <strong>4.8</strong>
+        <span class="muted">{% trans "out of" %} 5</span>
+        <span class="dot" aria-hidden="true">•</span>
+        <span class="muted">327 {% trans "reviews" %}</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Phone-shaped TikTok-style carousel -->
+  <div class="hero__phone">
+    <div class="sp__rail" aria-label="{% trans 'User videos' %}">
+      <!-- Card 1 -->
+      <article class="sp__card is-active">
+        <video class="sp__video" playsinline muted loop preload="metadata"
+               src="{% static 'images/internstart1_small.mp4' %}"></video>
+        <div class="sp__overlay">
+          <div class="sp__meta">
+            <div class="sp__handle">@sofia • {% trans "CBS" %}</div>
+            <div class="sp__caption">{% trans "“Sent 40 apps this week.”" %}</div>
+          </div>
+          <div class="sp__actions">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div class="sp__stat">❤️ 1.2k</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="sp__card">
+        <video class="sp__video" playsinline muted loop preload="metadata"
+               src="{% static 'images/internstart2_small.mp4' %}"></video>
+        <div class="sp__overlay">
+          <div class="sp__meta">
+            <div class="sp__handle">@Sophi • {% trans "UF" %}</div>
+            <div class="sp__caption">{% trans "“AI filled my apps while I studied.”" %}</div>
+          </div>
+          <div class="sp__actions">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div class="sp__stat">❤️ 980</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="sp__card">
+        <video class="sp__video" playsinline muted loop preload="metadata"
+               src="{% static 'images/internstart3_small.mp4' %}"></video>
+        <div class="sp__overlay">
+          <div class="sp__meta">
+            <div class="sp__handle">@Anas • {% trans "NCU" %}</div>
+            <div class="sp__caption">{% trans "“2 interviews after one evening.”" %}</div>
+          </div>
+          <div class="sp__actions">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div class="sp__stat">❤️ 1.6k</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="hero__sticky">
+    <a href="#social-proof" class="btn btn--sticky" aria-label="{% trans 'See how it works' %}">
+      {% trans "See how it works" %}
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 16l-6-6h12l-6 6z" fill="currentColor"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<style>
+/* ===== Hero (self-contained) ===== */
+:root{
+  --container-max: 1480px;
+  --font: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --text: #111;
+  --muted: #667085;
+  --brand: #FF2F5A;
+}
+
+.hero{
+  display:grid; grid-template-columns: 1.45fr 0.85fr;
+  align-items:center; max-width:var(--container-max);
+  margin:0 auto; padding: 0 2vw 0 6vw; min-height:80vh; position:relative;
+  padding-bottom: 40px;
+}
+.hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; align-self:stretch; max-width:900px; padding-top:8vh; }
+.hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
+.hero__title .accent{ background-color:var(--brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero__subhead{ font-family:var(--font); font-size: clamp(20px, 2vw, 26px); line-height:1.6; color: var(--muted); max-width: 65ch; margin: 0 0 36px; }
+
+.btn{ display:inline-flex; align-items:center; justify-content:center; height:56px; padding:0 22px; border-radius:12px; font-weight:700; font-size:18px; text-decoration:none; transition:.2s ease; border:1px solid transparent; }
+.btn--primary{ background:var(--brand); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+.btn--primary:hover{ transform: translateY(-1px); }
+.btn--ghost{ background:#f5f5f5; color:#111; }
+.btn--ghost:hover{ background:#efefef; }
+
+/* Phone viewport */
+.hero__phone{
+  --phone-w: clamp(260px, 32vw, 360px);
+  justify-self:center; display:flex; align-items:center; justify-content:center;
+  padding:6px; border-radius:26px; background:#0b0b0b; box-shadow:0 14px 38px rgba(0,0,0,.28); align-self:center; margin-top:2vh;
+}
+.hero__phone .sp__rail{
+  width:var(--phone-w); aspect-ratio:9/16; border-radius:22px; overflow:hidden; background:#000; box-shadow:0 10px 30px rgba(0,0,0,.30); position:relative;
+}
+.hero__phone .sp__card{ position:absolute; inset:0; opacity:0; transform:scale(.985); transition: opacity .6s ease, transform .6s ease; }
+.hero__phone .sp__card.is-active{ opacity:1; transform:scale(1); z-index:2; }
+.hero__phone .sp__video{ width:100%; height:100%; object-fit:cover; display:block; border-radius:inherit; }
+.hero__phone .sp__overlay{
+  position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end;
+  pointer-events:none; background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,.45) 100%);
+}
+.sp__meta{ color:#fff; padding:12px 12px 8px; font-family:var(--font); }
+.sp__handle{ font-weight:800; font-size:14px; opacity:.95; }
+.sp__caption{ font-size:13px; opacity:.9; margin-top:4px; }
+.sp__actions{ display:flex; align-items:center; justify-content:space-between; padding:0 10px 10px; }
+.sp__mute{
+  pointer-events:auto; display:inline-grid; place-items:center; width:38px; height:38px; border-radius:999px;
+  background: rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.3);
+  backdrop-filter: blur(6px); transition: transform .15s ease, background .15s ease;
+}
+.sp__mute:hover{ transform: scale(1.05); background: rgba(255,255,255,.28); }
+.sp__mute.is-on{ background: rgba(16,185,129,.9); border-color: rgba(16,185,129,.95); }
+.sp__stat{ color:#fff; font-weight:800; font-size:13px; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.26); backdrop-filter: blur(8px); }
+
+/* Rating pill */
+.hero__rating{ display:inline-flex; align-items:center; gap:10px; padding:8px 12px; border-radius:999px; background:#fff; border:1px solid #eceef2; box-shadow:0 4px 14px rgba(0,0,0,.06); color:var(--text); width:fit-content; max-width:100%; margin-top:12px; }
+.rating__stars{
+  --star-on:#FFB545; --star-off:#E5E7EB; --size:18px; --spacing:3px; --p: calc((var(--rating) / 5) * 100%);
+  position:relative; display:inline-block; font-size:var(--size); line-height:1; letter-spacing:var(--spacing); font-weight:900;
+}
+.rating__stars::before{ content:"★★★★★"; color:var(--star-off); }
+.rating__stars::after{ content:"★★★★★"; color:var(--star-on); position:absolute; inset:0; width:var(--p); overflow:hidden; }
+.rating__text{ font-size:14px; line-height:1; font-weight:700; }
+.rating__text .muted{ color:var(--muted); font-weight:600; }
+.rating__text .dot{ color:#c6cbd2; margin:0 .25rem; }
+
+/* Sticky CTA */
+.btn--sticky{
+  pointer-events:auto; height:44px; padding:0 14px; border-radius:999px; font-weight:700; font-size:15px;
+  color:#475467; background:rgba(255,255,255,.82); border:1px solid #E7E9EE; box-shadow:0 4px 10px rgba(16,24,40,.06);
+  display:inline-flex; align-items:center; gap:8px; backdrop-filter:saturate(1.1) blur(4px); -webkit-backdrop-filter:saturate(1.1) blur(4px);
+  transition:background .15s ease, color .15s ease, transform .12s ease, box-shadow .15s ease;
+}
+.btn--sticky .chev{ width:16px; height:16px; opacity:.55; transform:rotate(180deg); }
+.btn--sticky:hover, .btn--sticky:focus-visible{ background:#fff; color:#374151; box-shadow:0 6px 14px rgba(16,24,40,.08); transform:translateY(-1px); outline:none; }
+
+/* Mobile tweaks */
+@media (max-width:1024px){
+  .hero{ grid-template-columns:1fr; row-gap:24px; padding:32px 28px 0; }
+}
+@media (max-width:640px){
+  .hero__ctas{ display:flex; flex-direction:column; gap:12px; }
+}
+@media (max-width:600px){
+  .hero{ padding:64px 14px 120px !important; min-height:auto; }
+  .hero__title{ font-size: clamp(40px, 10vw, 54px); }
+  .hero__subhead{ margin-top:14px; font-size:20px; color:#4f5b6a; max-width:34ch; }
+  .btn{ height:48px; font-size:17px; padding:0 16px; border-radius:12px; }
+  .rating__stars{ --size:16px; --spacing:2px; }
+  .hero__rating .rating__text{ font-size:13px; }
+}
+</style>
+
+<script>
+/* ===== Hero JS (carousel + mute + smooth scroll) ===== */
+(() => {
+  const ready = (fn) =>
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+      : fn();
+
+  ready(() => {
+    // A) TikTok-style rotation inside the hero phone
+    const cards = [...document.querySelectorAll('.hero__phone .sp__card')];
+    const DURATION = 5000; // ms per clip
+    if (cards.length) {
+      let index = 0;
+      const showCard = (i) => {
+        cards.forEach((c, j) => {
+          const v = c.querySelector('video');
+          if (j === i) {
+            c.classList.add('is-active');
+            if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+          } else {
+            c.classList.remove('is-active');
+            if (v) v.pause();
+          }
+        });
+      };
+      showCard(index);
+      setInterval(() => { index = (index + 1) % cards.length; showCard(index); }, DURATION);
+    }
+
+    // B) Tap to toggle mute (per card)
+    document.querySelectorAll('.hero__phone .sp__mute').forEach((btn) => {
+      const card = btn.closest('.sp__card');
+      const video = card?.querySelector('video');
+      if (!video) return;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        video.muted = !video.muted;
+        btn.classList.toggle('is-on', !video.muted);
+        btn.setAttribute('aria-pressed', String(!video.muted));
+        btn.setAttribute('aria-label', video.muted ? '{{ _("Unmute video") }}' : '{{ _("Mute video") }}');
+        if (!video.paused) video.play().catch(() => {});
+      });
+      // Click anywhere on card to toggle
+      card.addEventListener('click', () => btn.click());
+    });
+
+    // C) Smooth scroll for sticky CTA (respects fixed headers if you later add an offset)
+    document.addEventListener('click', function(e){
+      const a = e.target.closest('.btn--sticky[href^="#"]');
+      if(!a) return;
+      const id = a.getAttribute('href');
+      const target = document.querySelector(id);
+      if(!target) return;
+
+      e.preventDefault();
+      const y = target.getBoundingClientRect().top + window.pageYOffset - 72; // adjust offset to your header
+      window.scrollTo({ top: y, behavior: 'smooth' });
+
+      setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
+    });
+  });
+})();
+</script>
