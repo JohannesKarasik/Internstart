@@ -338,7 +338,7 @@
 
 .lang-select {
     appearance: none;
-    padding: 8px 24px 8px 12px;
+    padding: 8px 18px 8px 10px; /* reduced right and left slightly */
     border: none;
     background: transparent;
     font-weight: 600;
@@ -348,17 +348,17 @@
     color:#111;
 }
 
+
 .lang-select-wrapper::after {
     content: "";
     position:absolute;
-    right:3px;
+    right:2px; /* closer */
     top:50%;
-    transform: translateY(-50%);
-    width: 9px;
-    height: 9px;
+    transform: translateY(-50%) rotate(45deg);
+    width: 7px;   /* smaller */
+    height: 7px;  /* smaller */
     border-right: 2px solid #444;
     border-bottom: 2px solid #444;
-    transform: translateY(-50%) rotate(45deg);
     pointer-events:none;
 }
 
