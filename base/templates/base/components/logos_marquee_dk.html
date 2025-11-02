@@ -1,0 +1,156 @@
+{# base/templates/base/components/logos_marquee.html #}
+{% load static i18n %}
+{% load static %}
+
+<section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
+  <div class="logos__inner">
+    <h3 class="logos__title">
+        {% blocktrans %}Land interviews at top companies with AI-tailored applications{% endblocktrans %}
+    </h3>
+
+    <!-- Masked viewport -->
+    <div class="logos__viewport" aria-hidden="true">
+
+      <!-- Row A -->
+      <div class="logos__track logos__track--a" data-speed="32">
+        <div class="logo"><img class="logo__img" src="{% static 'images/novo-nordisk.png' %}" alt="Novo Nordisk"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/maersk.jpeg' %}" alt="Maersk"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/lego.jpg' %}" alt="LEGO"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/dsv.png' %}" alt="DSV"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/vestas.png' %}" alt="Vestas"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/genmab.png' %}" alt="Genmab"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/arhus-universitet.png' %}" alt="Aarhus Universitet"></div>
+      </div>
+
+      <!-- Row B -->
+      <div class="logos__track logos__track--b" data-speed="42">
+        <div class="logo"><img class="logo__img" src="{% static 'images/coop.png' %}" alt="COOP Danmark"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/copenhagen-airports.png' %}" alt="Copenhagen Airports"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/bec.png' %}" alt="BEC Financial Technologies"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/Tryg.png' %}" alt="Tryg"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/danskebank.png' %}" alt="Danske Bank"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/salling_group.png' %}" alt="Salling Group"></div>
+      </div>
+      
+
+      <!-- Row C -->
+      <div class="logos__track logos__track--c" data-speed="52">
+        <div class="logo"><img class="logo__img" src="{% static 'images/pandora.png' %}" alt="Pandora"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/carlsberg.png' %}" alt="Carlsberg"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/coloplast.png' %}" alt="Coloplast"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/novozymes.jpeg' %}" alt="Novozymes"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/b&o.png' %}" alt="Bang & Olufsen"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/grundfos.png' %}" alt="Grundfos"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/nets.jpg' %}" alt="Nets"></div>
+        <div class="logo"><img class="logo__img" src="{% static 'images/lunar.jpg' %}" alt="Lunar"></div>
+      </div>
+      
+
+    </div>
+  </div>
+</section>
+
+<style>
+  :root {
+    --logos-bg: #f5f7fb;
+    --logos-card: #ffffff;
+    --logos-border: #e7edf5;
+    --logos-shadow: 0 6px 20px rgba(2,8,23,.06);
+    --logos-gap: clamp(16px, 2.3vw, 28px);
+    --logos-pad-y: clamp(22px, 3vw, 32px);
+  }
+
+  .logos {
+    background: var(--logos-bg);
+    padding: clamp(28px, 5vw, 48px) 0;
+    border-top: 1px solid #eef2f7;
+  }
+  .logos__inner {
+    max-width: min(1480px, 94vw);
+    margin: 0 auto;
+    padding: 0 12px;
+  }
+  .logos__title {
+    text-align: center;
+    font-weight: 800;
+    font-size: clamp(16px, 2.3vw, 22px);
+    color: #0f172a;
+    margin-bottom: 16px;
+  }
+  .logos__viewport {
+    overflow: hidden;
+    border-radius: 16px;
+    padding: var(--logos-pad-y) 0;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .logos__track {
+    display: flex;
+    align-items: center;
+    gap: var(--logos-gap);
+    animation: marquee linear infinite;
+    will-change: transform;
+  }
+
+  .logos__track--a { animation-duration: 32s; }
+  .logos__track--b { animation-duration: 42s; opacity: .95; }
+  .logos__track--c { animation-duration: 52s; opacity: .9; }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .logo {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 18px;
+    min-width: clamp(140px, 16vw, 220px);
+    height: clamp(52px, 6vw, 68px);
+    background: var(--logos-card);
+    border: 1px solid var(--logos-border);
+    border-radius: 14px;
+    box-shadow: var(--logos-shadow);
+  }
+
+  .logo__img {
+    display: block;
+    max-height: 28px;
+    max-width: 140px;
+    object-fit: contain;
+    filter: saturate(0.9) contrast(1);
+  }
+
+  .logos__viewport:hover .logos__track,
+  .logos__viewport:focus-within .logos__track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logos__track { animation: none !important; }
+  }
+</style>
+
+<script>
+(() => {
+  const onReady = (fn) => document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+    : fn();
+
+  onReady(() => {
+    const tracks = document.querySelectorAll('.logos__track');
+    tracks.forEach(track => {
+      const speed = Number(track.dataset.speed || 32);
+      const children = Array.from(track.children);
+      children.forEach(node => track.appendChild(node.cloneNode(true)));
+      track.style.animationDuration = `${Math.max(16, speed)}s`;
+    });
+  });
+})();
+</script>
