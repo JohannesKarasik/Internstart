@@ -364,9 +364,10 @@
 
 
 /* hide text when not open */
-.lang-select:not(:focus):not(:active) option {
+.lang-select:not(:focus):not(:active) option:not(:checked) {
     display: none;
 }
+
 
 /* show only current selection normally */
 .lang-select option:checked {
