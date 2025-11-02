@@ -77,12 +77,13 @@
       {% else %}
       <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
 
-        <select onchange="location=this.value"
-                style="padding: 10px 12px; border-radius: 12px; border: 1px solid #ddd; background: #fff; font-weight:600; font-family:'Manrope',sans-serif; cursor:pointer; min-width:90px;">
-            <option value="/">🇺🇸 US</option>
-            <option value="/uk/">🇬🇧 UK</option>
-            <option value="/dk/">🇩🇰 DK</option>
-        </select>
+        <div class="lang-select-wrapper" style="position:relative;">
+          <select onchange="location=this.value" class="lang-select">
+              <option value="/">🇺🇸 US</option>
+              <option value="/uk/">🇬🇧 UK</option>
+              <option value="/dk/">🇩🇰 DK</option>
+          </select>
+        </div>
     
         <a href="{% url 'app_login' %}" 
            style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
@@ -332,6 +333,47 @@
   display:block;
   width:26px; height:26px;          /* fits nicely inside the 22x22 icon box */
   object-fit:contain;
+}
+
+
+.lang-select {
+    appearance: none;
+    padding: 8px 24px 8px 12px;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    font-family:'Manrope',sans-serif;
+    cursor:pointer;
+    font-size:14px;
+    color:#111;
+}
+
+/* the little dropdown chevron */
+.lang-select-wrapper::after {
+    content: "▼";
+    position:absolute;
+    right:4px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:10px;
+    pointer-events:none;
+    color:#555;
+}
+
+/* hide text when not open */
+.lang-select:not(:focus):not(:active) option {
+    display: none;
+}
+
+/* show only current selection normally */
+.lang-select option:checked {
+    display:block;
+}
+
+/* show all on click */
+.lang-select:focus option,
+.lang-select:active option {
+    display:block;
 }
 
 
