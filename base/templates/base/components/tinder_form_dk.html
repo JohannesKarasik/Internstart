@@ -20,10 +20,11 @@
               data-default="{% trans 'Do like everyone else — apply with AI' %}"
               data-left="{% trans 'Swipe left to dismiss' %}"
               data-right="{% trans 'Swipe right to apply' %}">
-         Do like 1159 others — apply with AI
+              Gør som 1.159 andre — ansøg med AI
+            </span>
       </h2>
       <p class="sp__sub">
-        Do like <span id="countUpNum">0</span> others — apply with AI
+        {% trans "Apply to hundreds of jobs in minutes" %}
       </p>
     </header>
 
@@ -1546,30 +1547,4 @@
       });
     })();
     </script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const el = document.getElementById("countUpNum")
-    const endValue = 1159
-    let current = 0
-    const step = Math.ceil(endValue / 40) // 40 frames = nice speed
-  
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        observer.disconnect()
-        const t = setInterval(()=>{
-          current += step
-          if (current >= endValue) {
-            current = endValue
-            clearInterval(t)
-          }
-          el.textContent = current.toLocaleString()
-        }, 30)
-      }
-    }, {threshold:0.2})
-  
-    observer.observe(el)
-  })
-  </script>
-  
     
