@@ -24,6 +24,7 @@
             </span>
       </h2>
       <p class="sp__sub">
+        {% trans "Apply to hundreds of jobs in minutes" %}
       </p>
     </header>
 
@@ -468,70 +469,69 @@
 </div>
 </div>
 
-<!-- ===== STEP 3B: AI Autofill Form ===== -->
-<div class="ai-demo" hidden role="region" aria-label="{% trans 'AI udfylder en jobansøgning automatisk' %}">
-  <div class="ai-demo__window">
-    <div class="ai-demo__chrome">
-      <div class="ai-demo__dots"><span></span><span></span><span></span></div>
-      <div class="ai-demo__title">
-        {% trans "Jobansøgning — Forhåndsvisning" %}
-        <span id="ai-chip" class="ai-chip">{% trans "AI" %}</span>
-      </div>
-      <div class="ai-demo__progress">
-        <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
-      </div>
-    </div>
-
-    <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
-      <div class="ai-field">
-        <label for="ai-name">{% trans "Fulde navn" %}</label>
-        <input id="ai-name" type="text" placeholder="{% trans 'fx Ava Jensen' %}" inputmode="text" />
-        <div class="ai-field__check" aria-hidden="true">✓</div>
-      </div>
-
-      <div class="ai-field">
-        <label for="ai-email">{% trans "Email" %}</label>
-        <input id="ai-email" type="email" placeholder="name@university.dk" />
-        <div class="ai-field__check" aria-hidden="true">✓</div>
-      </div>
-
-      <div class="ai-field">
-        <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
-        <input id="ai-portfolio" type="url" placeholder="https://…" />
-        <div class="ai-field__check" aria-hidden="true">✓</div>
-      </div>
-
-      <div class="ai-field ai-field--file">
-        <label for="ai-resume">{% trans "CV" %}</label>
-        <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
-        <div class="ai-file">
-          <button type="button" class="ai-file__btn">{% trans "Vedhæft CV" %}</button>
-          <span class="ai-file__name" data-empty="{% trans 'Ingen fil valgt' %}">{% trans "Ingen fil valgt" %}</span>
+  <!-- ===== STEP 3B: AI Autofill Form ===== -->
+  <div class="ai-demo" hidden role="region" aria-label="{% trans 'AI auto-filling a job application' %}">
+    <div class="ai-demo__window">
+      <div class="ai-demo__chrome">
+        <div class="ai-demo__dots"><span></span><span></span><span></span></div>
+        <div class="ai-demo__title">
+          {% trans "Job Application — Preview" %}
+          <span id="ai-chip" class="ai-chip">{% trans "AI" %}</span>
         </div>
-        <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
-        <div class="ai-field__check" aria-hidden="true">✓</div>
+        <div class="ai-demo__progress">
+          <div class="ai-demo__bar"></div><span class="ai-demo__pct">0%</span>
+        </div>
       </div>
 
-      <div class="ai-field ai-field--textarea">
-        <label for="ai-cover">{% trans "Kort ansøgningstekst" %}</label>
-        <textarea id="ai-cover" rows="4" placeholder="{% trans 'Et par sætninger…' %}"></textarea>
-        <div class="ai-field__check" aria-hidden="true">✓</div>
-      </div>
+      <form class="ai-form" autocomplete="off" aria-describedby="ai-status">
+        <div class="ai-field">
+          <label for="ai-name">{% trans "Full name" %}</label>
+          <input id="ai-name" type="text" placeholder="{% trans 'e.g., Ava Jensen' %}" inputmode="text" />
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
 
-      <div class="ai-consent">
-        <input id="ai-consent" type="checkbox" />
-        <label for="ai-consent">{% trans "Jeg giver samtykke til at sende denne ansøgning." %}</label>
-      </div>
+        <div class="ai-field">
+          <label for="ai-email">{% trans "Email" %}</label>
+          <input id="ai-email" type="email" placeholder="name@university.dk" />
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
 
-      <div class="ai-actions">
-        <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Ansøg nu" %}</button>
-      </div>
+        <div class="ai-field">
+          <label for="ai-portfolio">{% trans "Portfolio / LinkedIn" %}</label>
+          <input id="ai-portfolio" type="url" placeholder="https://…" />
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
 
-      <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI forbereder din ansøgning…" %}</p>
-    </form>
+        <div class="ai-field ai-field--file">
+          <label for="ai-resume">{% trans "Resume" %}</label>
+          <input id="ai-resume" type="file" accept=".pdf,.doc,.docx,.rtf" hidden>
+          <div class="ai-file">
+            <button type="button" class="ai-file__btn">{% trans "Attach resume" %}</button>
+            <span class="ai-file__name" data-empty="{% trans 'No file selected' %}">{% trans "No file selected" %}</span>
+          </div>
+          <div class="ai-upload" aria-hidden="true"><div class="ai-upload__bar"></div></div>
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-field ai-field--textarea">
+          <label for="ai-cover">{% trans "Short cover note" %}</label>
+          <textarea id="ai-cover" rows="4" placeholder="{% trans 'A few sentences…' %}"></textarea>
+          <div class="ai-field__check" aria-hidden="true">✓</div>
+        </div>
+
+        <div class="ai-consent">
+          <input id="ai-consent" type="checkbox" />
+          <label for="ai-consent">{% trans "I consent to submit this application." %}</label>
+        </div>
+
+        <div class="ai-actions">
+          <button type="button" class="btn btn--primary ai-submit" disabled>{% trans "Apply now" %}</button>
+        </div>
+
+        <p id="ai-status" class="ai-status" aria-live="polite">{% trans "AI is preparing your application…" %}</p>
+      </form>
+    </div>
   </div>
-</div>
-
 </div><!-- /.demo-stage -->
 
 
@@ -935,7 +935,7 @@
       if (!overlayTextEl) return;
       overlay?.classList.remove('is-form');
       overlay?.classList.add('is-deck-right');
-      spTitle && (spTitle.textContent = '{{ _("Ansøg til jobs med ét klik") }}');
+      spTitle && (spTitle.textContent = '{{ _("Apply to jobs with one click") }}');
       overlayTextEl.textContent = `${role} — ${company}`;
       overlayTextEl.classList.add('is-visible');
     };
@@ -1010,7 +1010,7 @@
 
       overlay?.classList.remove('is-deck-right');
       overlay?.classList.add('is-form');
-      overlayTextEl && (overlayTextEl.textContent = '{{ _("") }}');
+      overlayTextEl && (overlayTextEl.textContent = '{{ _("AI applies for you") }}');
 
       window.AIDemo?.runOnce?.();
     };
@@ -1224,7 +1224,7 @@
         if (s.check){ if (!prefersReduced) await new Promise(r=>setTimeout(r,300)); s.el.checked = true; if (!prefersReduced) await new Promise(r=>setTimeout(r,200)); checkField(s.el); continue; }
 
         const label = (s.el.labels?.[0]?.innerText || '').trim();
-        statusText.textContent = `{{ _('AI udfylder') }} “${label}”…`;
+        statusText.textContent = `{{ _('AI is filling') }} “${label}”…`;
         await typeInto(s.el, s.text, 22, () => { typed += 1; setProgress(typed/totalChars*100); });
         checkField(s.el);
         await new Promise(r=>setTimeout(r,pauseStep));
@@ -1519,7 +1519,7 @@
         await waitVisible();
     
         /* ========== STEP 1: Upload Resume ========== */
-        spTitle && (spTitle.textContent = '{{ _("Upload dit CV") }}');
+        spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
         exclusive('resume');
         await window.ResumeDemo?.runOnce?.();
     
