@@ -1559,7 +1559,8 @@
         exclusive(null);
     
         /* ========== STEP 3: Tinder Deck + AI Form ========== */
-        spTitle && (spTitle.textContent = '{{ _("Do like everyone else — apply with AI") }}');
+        spTitle && (spTitle.textContent = '{{ _("AI udfylder ansøgningen for dig") }}');
+        spTitle.style.marginBottom = "30px";
         showOverlayDeck('{{ _("Swipe right to apply") }}');
         exclusive('tinder');
         await window.TinderDemo?.runOnce?.(); // triggers AI form next automatically
