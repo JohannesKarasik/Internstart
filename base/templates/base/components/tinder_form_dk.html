@@ -16,7 +16,7 @@
   <div class="sp__inner">
     <header class="sp__head">
       <h2 class="sp__title">
-        <span id="spTitle"
+        <span id="spTitle" style="margin-bottom: 30px;"
               data-default="{% trans 'Do like everyone else — apply with AI' %}"
               data-left="{% trans 'Swipe left to dismiss' %}"
               data-right="{% trans 'Swipe right to apply' %}">
@@ -1528,7 +1528,7 @@
         exclusive(null);
     
         /* ========== STEP 2: AI Analyzes ========== */
-        spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
+        spTitle && (spTitle.textContent = '{{ _("AI analyserer dit CV") }}');
         exclusive('analysis');
         await window.RADemo?.runOnce?.();
     
