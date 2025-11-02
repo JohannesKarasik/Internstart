@@ -1503,6 +1503,10 @@
         const analysisEl = document.getElementById('analysisStep');
         const tinderEl  = document.querySelector('.tinder-section');
         const formEl    = document.querySelector('.ai-demo');
+
+        // when AI form (step 3B) becomes visible, change the title
+        spTitle && (spTitle.textContent = '{{ _("AI udfylder ansøgningen for dig") }}');
+
     
         const exclusive = (name) => {
           setVisible(resumeEl,  name === 'resume');
