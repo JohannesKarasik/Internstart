@@ -77,11 +77,12 @@
       {% else %}
       <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
 
-        <div class="lang-flags" style="display:flex; gap:8px; align-items:center;">
-            <a href="/" style="display:flex; align-items:center; border:1px solid #ddd; border-radius:10px; padding:6px 10px; background:#fff;">🇺🇸</a>
-            <a href="/uk/" style="display:flex; align-items:center; border:1px solid #ddd; border-radius:10px; padding:6px 10px; background:#fff;">🇬🇧</a>
-            <a href="/dk/" style="display:flex; align-items:center; border:1px solid #ddd; border-radius:10px; padding:6px 10px; background:#fff;">🇩🇰</a>
-        </div>
+        <select onchange="location=this.value"
+                style="padding: 10px 12px; border-radius: 12px; border: 1px solid #ddd; background: #fff; font-weight:600; font-family:'Manrope',sans-serif; cursor:pointer; min-width:90px;">
+            <option value="/">🇺🇸 US</option>
+            <option value="/uk/">🇬🇧 UK</option>
+            <option value="/dk/">🇩🇰 DK</option>
+        </select>
     
         <a href="{% url 'app_login' %}" 
            style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
@@ -93,6 +94,7 @@
            {% trans "Start applying to jobs with AI" %}    
         </a>
     </div>
+    
     
     
           {% endif %}
