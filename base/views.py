@@ -2735,7 +2735,7 @@ def landing_page_uk(request):
     return render(request, 'landing_page_uk.html')
 
 def landing_page_dk(request):
-    return render(request, "landing_page_dk.html", {"lang": "dk"})
+    return render(request, "base/landing_page_dk.html", {"lang": "dk"})
 
 
 
