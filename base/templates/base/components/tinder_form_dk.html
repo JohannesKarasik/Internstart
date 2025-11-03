@@ -1036,22 +1036,21 @@
   
         await pause(prefersReduced ? 400 : 800);
   
-        // hide deck, show form
-        section?.setAttribute('hidden','');
-        section?.setAttribute('aria-hidden','true');
-        section && (section.style.display='none');
-  
-        form?.removeAttribute('hidden');
-        form?.removeAttribute('aria-hidden');
-        form && (form.style.display='');
-  
-        if (spTitle) {
-          spTitle.textContent = '';
-          spTitle.style.display = 'none';
-        }
-        overlay?.classList.remove('is-deck-right');
-        overlay?.classList.add('is-form');
-        overlayTextEl && (overlayTextEl.textContent = '');
+      // hide deck, show form
+      form?.removeAttribute('hidden');
+      form?.removeAttribute('aria-hidden');
+      form && (form.style.display='');
+
+      // ✅ Show title over the form
+      if (spTitle) {
+        spTitle.style.removeProperty('display');
+        spTitle.textContent = '{{ _("AI udfylder applikationer for dig") }}';
+      }
+
+      overlay?.classList.remove('is-deck-right');
+      overlay?.classList.add('is-form');
+      overlayTextEl && (overlayTextEl.textContent = '');
+
   
         window.AIDemo?.runOnce?.();
       };
@@ -1532,7 +1531,7 @@
         const formEl    = document.querySelector('.ai-demo');
 
         // when AI form (step 3B) becomes visible, change the title
-        spTitle && (spTitle.textContent = '{{ _("AI udfylder ansøgningen for dig") }}');
+        spTitle && (spTitle.textContent = '{{ _("Send personlige ansøgninger med ét klik") }}');
 
     
         const exclusive = (name) => {
@@ -1586,7 +1585,7 @@
         exclusive(null);
     
         /* ========== STEP 3: Tinder Deck + AI Form ========== */
-        spTitle && (spTitle.textContent = '{{ _("AI udfylder ansøgningen for dig") }}');
+        spTitle && (spTitle.textContent = '{{ _("Send personlige ansøgninger med ét klik") }}');
         spTitle.style.marginBottom = "30px";
         showOverlayDeck('{{ _("Swipe right to apply") }}');
         exclusive('tinder');
