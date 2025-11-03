@@ -907,142 +907,171 @@
 </style>
 
 <script>
-/* =========================
-   STEP 3A — Tinder line deck (exposes window.TinderDemo)
-   ➜ Modified to ONLY show 3 cards at any time:
-     active center + 1 neighbor left + 1 neighbor right
-========================= */
-(() => {
-  const ready = (fn) => (document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-    : fn());
-
-  ready(() => {
-    const deck = document.querySelector('.tinder-deck.line');
-    if (!deck) return;
-
-    const section = document.querySelector('.tinder-section');
-    const cards = Array.from(deck.querySelectorAll('.card'));
-    const overlay = document.querySelector('.demo-overlay');
-    const overlayTextEl = document.querySelector('.demo-overlay__text');
-    const spTitle = document.getElementById('spTitle');
-
-    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const pause = (ms) => new Promise(r => setTimeout(r, ms));
-
-    let idx = 0;
-    const N = cards.length;
-    const MAX_NEI = 1; // <<< only one neighbor on each side (3 cards visible)
-
-    const setOverlay = (role, company) => {
-      if (!overlayTextEl) return;
-      overlay?.classList.remove('is-form');
-      overlay?.classList.add('is-deck-right');
-      spTitle && (spTitle.textContent = '{{ _("Apply to jobs with one click") }}');
-      overlayTextEl.textContent = `${role} — ${company}`;
-      overlayTextEl.classList.add('is-visible');
-    };
-
-    const allPosClasses = [
-      'is-center',
-      'is-left1','is-left2','is-left3','is-left4','is-left5',
-      'is-right1','is-right2','is-right3','is-right4','is-right5'
-    ];
-
-    const circDelta = (k, i, n) => {
-      const fwd = (k - i + n) % n;
-      const back = (i - k + n) % n;
-      return (fwd <= back) ? fwd : -back;
-    };
-
-    const layout = () => {
-      cards.forEach((c,k)=>{
-        c.classList.remove(...allPosClasses, 'is-applied');
-        c.style.opacity = 0;
-        c.style.removeProperty('--ty');
-
-        const d = circDelta(k, idx, N);
-        if (d === 0) c.classList.add('is-center');
-        else {
-          const ad = Math.abs(d);
-          if (ad <= MAX_NEI) c.classList.add(d < 0 ? `is-left${ad}` : `is-right${ad}`);
+  /* =========================
+     STEP 3A — Tinder line deck (exposes window.TinderDemo)
+     ➜ Shows ONLY 3 cards total, then switches to AI form
+  ========================= */
+  (() => {
+    const ready = (fn) => (document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', fn, { once:true })
+      : fn());
+  
+    ready(() => {
+      const deck = document.querySelector('.tinder-deck.line');
+      if (!deck) return;
+  
+      const section = document.querySelector('.tinder-section');
+      const overlay = document.querySelector('.demo-overlay');
+      const overlayTextEl = document.querySelector('.demo-overlay__text');
+      const spTitle = document.getElementById('spTitle');
+  
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const pause = (ms) => new Promise(r => setTimeout(r, ms));
+  
+      // ✅ Limit to exactly 3 cards (use the first three in DOM)
+      const CARD_LIMIT = 3;
+      const allCards = Array.from(deck.querySelectorAll('.card'));
+      const cards = allCards.slice(0, CARD_LIMIT);
+      // Hard-hide the rest to avoid any chance of flashing or screen reader exposure
+      allCards.forEach((c, i) => {
+        if (i >= CARD_LIMIT) {
+          c.setAttribute('hidden', '');
+          c.setAttribute('aria-hidden', 'true');
+          c.style.display = 'none';
         }
       });
-      allPosClasses.forEach(cls => {
-        deck.querySelectorAll('.'+cls).forEach(el => el.style.opacity = '');
+  
+      // Show only center + one neighbor per side (3 visible at a time)
+      const MAX_NEI = 1;
+  
+      let idx = 0;
+      const N = cards.length;
+  
+      const setOverlay = (role, company) => {
+        if (!overlayTextEl) return;
+        overlay?.classList.remove('is-form');
+        overlay?.classList.add('is-deck-right');
+        spTitle?.classList.add('cta-title-spacing');
+        overlayTextEl.textContent = `${role} — ${company}`;
+        overlayTextEl.classList.add('is-visible');
+      };
+  
+      const allPosClasses = [
+        'is-center',
+        'is-left1','is-left2','is-left3','is-left4','is-left5',
+        'is-right1','is-right2','is-right3','is-right4','is-right5'
+      ];
+  
+      const circDelta = (k, i, n) => {
+        const fwd = (k - i + n) % n;
+        const back = (i - k + n) % n;
+        return (fwd <= back) ? fwd : -back;
+      };
+  
+      const layout = () => {
+        cards.forEach((c,k)=>{
+          c.classList.remove(...allPosClasses, 'is-applied');
+          c.style.opacity = 0;
+          c.style.removeProperty('--ty');
+  
+          const d = circDelta(k, idx, N);
+          if (d === 0) c.classList.add('is-center');
+          else {
+            const ad = Math.abs(d);
+            if (ad <= MAX_NEI) c.classList.add(d < 0 ? `is-left${ad}` : `is-right${ad}`);
+          }
+        });
+  
+        // restore opacity on the positioned ones
+        allPosClasses.forEach(cls => {
+          deck.querySelectorAll('.'+cls).forEach(el => el.style.opacity = '');
+        });
+  
+        const role = cards[idx]?.querySelector('.card__role')?.textContent?.trim() || '';
+        const company = cards[idx]?.querySelector('.card__company')?.textContent?.trim() || '';
+        setOverlay(role, company);
+      };
+  
+      const setActive = (i) => { idx = (i + N) % N; layout(); };
+  
+      const press = async (btn)=>{
+        if (!btn) return;
+        btn.classList.add('is-pressed');
+        await pause(prefersReduced ? 120 : 240);
+        btn.classList.remove('is-pressed');
+      };
+  
+      const simulateApply = async (card) => {
+        const btn = card.querySelector('.action--apply');
+        await press(btn);
+        card.classList.add('is-applied');
+        await pause(prefersReduced ? 60 : 120);
+        if (card.classList.contains('is-center')) card.style.setProperty('--ty','-8px');
+        await pause(prefersReduced ? 400 : 900);
+      };
+  
+      // ▶ Run only through 3 cards, then jump to the AI form
+      const runSequence = async ()=>{
+        // show deck, hide form
+        section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden');
+        section && (section.style.display='');
+        const form = document.querySelector('.ai-demo');
+        form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true');
+        form && (form.style.display='none');
+  
+        for (let i=0; i<N; i++){
+          setActive(i);
+          await pause(prefersReduced ? 500 : 900);
+          await simulateApply(cards[idx]);
+        }
+  
+        await pause(prefersReduced ? 400 : 800);
+  
+        // hide deck, show form
+        section?.setAttribute('hidden','');
+        section?.setAttribute('aria-hidden','true');
+        section && (section.style.display='none');
+  
+        form?.removeAttribute('hidden');
+        form?.removeAttribute('aria-hidden');
+        form && (form.style.display='');
+  
+        if (spTitle) {
+          spTitle.textContent = '';
+          spTitle.style.display = 'none';
+        }
+        overlay?.classList.remove('is-deck-right');
+        overlay?.classList.add('is-form');
+        overlayTextEl && (overlayTextEl.textContent = '');
+  
+        window.AIDemo?.runOnce?.();
+      };
+  
+      // Click-to-advance still works (bounded to 3 cards)
+      deck.addEventListener('click', async (e)=>{
+        const active = cards[idx];
+        if (!active) return;
+        const applyBtn = e.target.closest('.action--apply');
+        const dismissBtn = e.target.closest('.action--dismiss');
+        if (applyBtn && active.contains(applyBtn)) {
+          await simulateApply(active);
+          setActive(idx + 1);
+        } else if (dismissBtn && active.contains(dismissBtn)) {
+          await pause(prefersReduced ? 300 : 600);
+          setActive(idx + 1);
+        }
       });
-
-      const role = cards[idx]?.querySelector('.card__role')?.textContent?.trim() || '';
-      const company = cards[idx]?.querySelector('.card__company')?.textContent?.trim() || '';
-      setOverlay(role, company);
-    };
-
-    const setActive = (i) => { idx = (i + N) % N; layout(); };
-
-    const press = async (btn)=>{
-      if (!btn) return;
-      btn.classList.add('is-pressed');
-      await pause(prefersReduced ? 120 : 240);
-      btn.classList.remove('is-pressed');
-    };
-
-    const simulateApply = async (card) => {
-      const btn = card.querySelector('.action--apply');
-      await press(btn);
-      card.classList.add('is-applied');
-      await pause(prefersReduced ? 60 : 120);
-      if (card.classList.contains('is-center')) card.style.setProperty('--ty','-8px');
-      await pause(prefersReduced ? 400 : 900);
-    };
-
-    const runSequence = async ()=>{
-      // ensure tinder visible exclusively
-      section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden');
-      const form = document.querySelector('.ai-demo');
-      form?.setAttribute('hidden',''); form?.setAttribute('aria-hidden','true'); form && (form.style.display='none');
-
-      for (let i=0; i<N; i++){
-        setActive(i);
-        await pause(prefersReduced ? 500 : 900);
-        await simulateApply(cards[idx]);
-      }
-
-      await pause(prefersReduced ? 400 : 800);
-      section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); section && (section.style.display='none');
-      form?.removeAttribute('hidden'); form?.removeAttribute('aria-hidden'); form && (form.style.display='');
-
-      overlay?.classList.remove('is-deck-right');
-      overlay?.classList.add('is-form');
-      overlayTextEl && (overlayTextEl.textContent = '{{ _("AI applies for you") }}');
-
-      window.AIDemo?.runOnce?.();
-    };
-
-    // Optional manual controls
-    deck.addEventListener('click', async (e)=>{
-      const active = cards[idx];
-      if (!active) return;
-      const applyBtn = e.target.closest('.action--apply');
-      const dismissBtn = e.target.closest('.action--dismiss');
-      if (applyBtn && active.contains(applyBtn)) {
-        await simulateApply(active);
-        setActive(idx + 1);
-      } else if (dismissBtn && active.contains(dismissBtn)) {
-        await pause(prefersReduced ? 300 : 600);
-        setActive(idx + 1);
-      }
+  
+      // expose API
+      window.TinderDemo = {
+        show(){ section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden'); section && (section.style.display=''); setActive(0); },
+        hide(){ section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); section && (section.style.display='none'); },
+        runOnce: runSequence
+      };
     });
-
-    // expose API
-    window.TinderDemo = {
-      show(){ section?.removeAttribute('hidden'); section?.removeAttribute('aria-hidden'); section && (section.style.display=''); setActive(0); },
-      hide(){ section?.setAttribute('hidden',''); section?.setAttribute('aria-hidden','true'); section && (section.style.display='none'); },
-      runOnce: runSequence
-    };
-  });
-})();
-</script>
-
+  })();
+  </script>
+  
 <script>
 /* =========================
    STEP 3B — AI Form controller (exposes window.AIDemo)
