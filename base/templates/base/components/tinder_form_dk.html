@@ -727,7 +727,7 @@
 .action--apply{ color:#10B981; border-color:#A7F3D0; }
 
 /* ===== AI form ===== */
-.ai-demo{ --ai-w:760px; --ai-pad:18px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1; }
+.ai-demo{ --ai-w:760px; --ai-pad:18px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:20; }
 @media (max-width:900px){ .ai-demo{ --ai-w:520px; } }
 @media (max-width:600px){ .ai-demo{ --ai-w:100%; left:0; transform:none; } }
 .ai-demo__window{ width:100%; max-width:var(--ai-w); border:1px solid #e5e7eb; border-radius:16px; background:#fff; box-shadow:0 18px 40px rgba(0,0,0,.12); overflow:hidden; transition: opacity .35s ease, transform .35s ease; }
@@ -1037,6 +1037,11 @@
         await pause(prefersReduced ? 400 : 800);
   
       // hide deck, show form
+      // hide deck, show form
+      section?.setAttribute('hidden','');
+      section?.setAttribute('aria-hidden','true');
+      section && (section.style.display='none');
+
       form?.removeAttribute('hidden');
       form?.removeAttribute('aria-hidden');
       form && (form.style.display='');
@@ -1051,8 +1056,8 @@
       overlay?.classList.add('is-form');
       overlayTextEl && (overlayTextEl.textContent = '');
 
-  
-        window.AIDemo?.runOnce?.();
+      window.AIDemo?.runOnce?.();
+
       };
   
       // Click-to-advance still works (bounded to 3 cards)
