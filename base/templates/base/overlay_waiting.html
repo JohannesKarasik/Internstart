@@ -126,9 +126,12 @@
     <section class="ai-card">
 
       <div style="display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:24px;">
-        <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart logo" style="height:32px; border-radius:6px;">
+        <img src="{% static 'images/Internstartlogo (1).jpg' %}"
+             alt="Internstart logo"
+             style="height:32px; max-width:140px; width:auto; border-radius:6px;">
         <div class="badge"><span class="dot"></span> AI matching in progress</div>
       </div>
+      
     
       <h1 style="max-width:580px; margin:auto; text-align:center;">
         Gathering <span class="accent">{{ user.desired_job_title|default:"new"|lower }}</span> roles tailored to your resume
