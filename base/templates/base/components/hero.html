@@ -133,20 +133,15 @@
 .hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
 
 .hero__title .accent{
-  /* keep the red text fill visible */
   color: var(--brand);
-  background: none;
-  -webkit-background-clip: initial;
-  background-clip: initial;
-
   display:inline-block;
   position:relative;
 
-  -webkit-text-stroke: 2px rgba(240,200,60,0.92);
-
-  /* small glow */
-  text-shadow: 0 0 4px rgba(240,200,60,0.45);
+  /* sharp, non-blurry gold */
+  -webkit-text-stroke: 2px #D6A427; /* darker gold → crisper */
+  text-shadow: none;
 }
+
 
 
 
