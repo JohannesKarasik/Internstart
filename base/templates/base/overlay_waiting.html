@@ -44,15 +44,21 @@ body::after{
 
 
   @keyframes blobLeft{
-    0%   { transform: translate(-8%, 0) rotate(0deg) scale(1); }
-    50%  { transform: translate(6%, 80px) rotate(10deg) scale(1.08); }
-    100% { transform: translate(16%, 160px) rotate(20deg) scale(1.14); }
-  }
-  @keyframes blobRight{
-    0%   { transform: translate(8%, 0) rotate(0deg) scale(1.02); }
-    50%  { transform: translate(-6%, 90px) rotate(-10deg) scale(1.1); }
-    100% { transform: translate(-16%, 170px) rotate(-20deg) scale(1.16); }
-  }
+  0%   { transform: translate(-8%, 0) rotate(0deg) scale(1);}
+  25%  { transform: translate(0%, 12%) rotate(7deg) scale(1.06);}
+  50%  { transform: translate(10%, 0%) rotate(14deg) scale(1.1);}
+  75%  { transform: translate(0%, -12%) rotate(7deg) scale(1.06);}
+  100% { transform: translate(-8%, 0) rotate(0deg) scale(1);}
+}
+
+@keyframes blobRight{
+  0%   { transform: translate(8%, 0) rotate(0deg) scale(1.03);}
+  25%  { transform: translate(0%, -12%) rotate(-6deg) scale(1.08);}
+  50%  { transform: translate(-10%, 0%) rotate(-14deg) scale(1.12);}
+  75%  { transform: translate(0%, 12%) rotate(-6deg) scale(1.08);}
+  100% { transform: translate(8%, 0) rotate(0deg) scale(1.03);}
+}
+
 
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce){
