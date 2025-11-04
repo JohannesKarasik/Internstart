@@ -81,38 +81,7 @@
   .ai-grid{display:grid; gap:clamp(18px,3vw,28px); align-items:center}
   @media(min-width:900px){.ai-grid{grid-template-columns:320px 1fr}}
 
-  /* ===== Left illustration ripples ===== */
-  .ai-ripples{
-    position:relative; width:min(240px,52vw); aspect-ratio:1;
-    margin-inline:auto; border-radius:50%;
-    background: radial-gradient(closest-side, rgba(255,47,90,.10), transparent 60%);
-  }
-  .ai-ripples .ring{
-    position:absolute; left:50%; top:50%; translate:-50% -50%;
-    width:38%; aspect-ratio:1; border-radius:50%;
-    border:2px solid rgba(255,47,90,.30);
-    opacity:0; transform:scale(.45);
-    animation:ripple 2.0s ease-out infinite;
-  }
-  .ai-ripples .r2{animation-delay:.5s}
-  .ai-ripples .r3{animation-delay:1.0s}
 
-  .ai-ripples .core{
-    position:absolute; left:50%; top:50%; translate:-50% -50%;
-    width:14px; height:14px; border-radius:50%; background:var(--accent);
-    box-shadow:0 0 0 10px rgba(255,47,90,.14);
-    animation:pulse 2.2s ease-in-out infinite;
-  }
-
-  @keyframes ripple{
-    0%   {opacity:.65; transform:scale(.35)}
-    70%  {opacity:.12}
-    100% {opacity:0; transform:scale(1)}
-  }
-  @keyframes pulse{
-    0%,100%{box-shadow:0 0 0 8px rgba(255,47,90,.12)}
-    50%    {box-shadow:0 0 0 16px rgba(255,47,90,.2)}
-  }
 
   /* ===== Copy ===== */
   h1{font-weight:800; font-size:clamp(26px,4.4vw,42px); line-height:1.1; letter-spacing:-.02em; margin:6px 0 10px}
@@ -164,9 +133,6 @@
 
       <div class="ai-grid">
         <div class="ai-ripples" aria-hidden="true">
-          <span class="ring r1"></span>
-          <span class="ring r2"></span>
-          <span class="ring r3"></span>
           <span class="core"></span>
         </div>
         <div>
