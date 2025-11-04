@@ -132,7 +132,12 @@
 .hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; align-self:stretch; max-width:900px; padding-top:8vh; }
 .hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
 
-
+.hero__title .accent{
+  background-color:var(--brand);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
 
 
 
