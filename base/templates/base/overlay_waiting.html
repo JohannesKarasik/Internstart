@@ -25,7 +25,7 @@
     top:-240px;
     width:720px; height:720px;         /* a bit larger for a brighter wash */
     border-radius:50%;
-    filter:blur(200px);                 /* softer + brighter glow */
+    filter:blur(120px);               /* less blur so more crisp */
     z-index:-1;
     pointer-events:none;
     will-change: transform;
@@ -33,13 +33,13 @@
   /* Left blob (brand red) */
   body::before{
     left:-240px;
-    background:#FF2F5A99;              /* brighter (≈60% alpha) */
+    background:#FF2F5Aaa;             /* slightly less alpha but pure color pops more */
     animation:blobLeft 10s ease-in-out infinite alternate;  /* slightly faster */
   }
   /* Right blob (rose) */
   body::after{
     right:-240px;
-    background:#ff5f7a99;              /* brighter (≈60% alpha) */
+    background:#ff5f7aaa;
     animation:blobRight 11s ease-in-out infinite alternate;
   }
 
