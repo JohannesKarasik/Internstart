@@ -13,53 +13,69 @@
     --muted:#e5e7eb;
   }
 
-  /* ===== subtle animated background blobs ===== */
+  /* ===== subtle animated background blobs (faster) ===== */
   body{
     background:#ffffff;
     overflow-x:hidden;
   }
-  body::before, body::after{
+  body::before,
+  body::after{
     content:"";
     position:fixed;
-    top:-200px;
-    width:600px; height:600px;
+    top:-220px;
+    width:620px; height:620px;
     border-radius:50%;
-    filter:blur(160px);
+    filter:blur(180px);
     opacity:.25;
     z-index:-1;
-    animation:blobMove 24s ease-in-out infinite alternate;
+    will-change: transform, opacity;
   }
+  /* Left blob */
   body::before{
-    left:-200px;
+    left:-220px;
     background:#FF2F5A55;
+    animation:blobLeft 12s ease-in-out infinite alternate;
   }
+  /* Right blob */
   body::after{
-    right:-200px;
+    right:-220px;
     background:#ff5f7a55;
-    animation-delay:6s;
+    animation:blobRight 13s ease-in-out infinite alternate;
   }
-  @keyframes blobMove{
-    0%{ transform:translateY(0) rotate(0deg);}
-    100%{ transform:translateY(80px) rotate(14deg);}
+
+  @keyframes blobLeft{
+    0%   { transform: translate(-8%, 0) rotate(0deg) scale(1);     opacity:.22; }
+    50%  { transform: translate(6%, 70px) rotate(10deg) scale(1.05); opacity:.28; }
+    100% { transform: translate(14%, 140px) rotate(22deg) scale(1.1); opacity:.24; }
+  }
+  @keyframes blobRight{
+    0%   { transform: translate(8%, 0) rotate(0deg) scale(1.02);    opacity:.22; }
+    50%  { transform: translate(-6%, 80px) rotate(-10deg) scale(1.08); opacity:.29; }
+    100% { transform: translate(-14%, 150px) rotate(-22deg) scale(1.12); opacity:.25; }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    body::before, body::after{ animation: none !important; }
   }
 
   .ai-wait{font-family:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text-0)}
   .ai-wait *{box-sizing:border-box}
 
+  /* ===== Foreground overlay area (transparent to reveal blobs) ===== */
   .ai-overlay{
     position:fixed;
-    top:140px;
+    top:140px;  /* leaves room for ticker + header */
     left:0;
     right:0;
     bottom:0;
-    display:grid;
-    place-items:center;
+    display:grid; place-items:center;
     padding:clamp(16px,3vw,40px);
-    background: transparent; /* <— important */
-    pointer-events:none; /* still lets card be interactive */
-}
+    background:transparent;
+    pointer-events:none; /* let clicks pass through wrapper */
+  }
 
-
+  /* ===== Card ===== */
   .ai-card{
     width:min(980px,94vw);
     background:#fff;
@@ -67,6 +83,7 @@
     border-radius:18px;
     box-shadow:0 14px 44px rgba(2,6,23,.06);
     padding: clamp(20px, 4vw, 36px);
+    pointer-events:auto; /* re-enable interactions on the card */
   }
 
   .ai-header{
@@ -90,6 +107,7 @@
   .ai-grid{display:grid; gap:clamp(18px,3vw,28px); align-items:center}
   @media(min-width:900px){.ai-grid{grid-template-columns:320px 1fr}}
 
+  /* ===== Left illustration ripples ===== */
   .ai-ripples{
     position:relative; width:min(240px,52vw); aspect-ratio:1;
     margin-inline:auto; border-radius:50%;
@@ -100,16 +118,16 @@
     width:38%; aspect-ratio:1; border-radius:50%;
     border:2px solid rgba(255,47,90,.30);
     opacity:0; transform:scale(.45);
-    animation:ripple 2.4s ease-out infinite;
+    animation:ripple 2.0s ease-out infinite;
   }
-  .ai-ripples .r2{animation-delay:.6s}
-  .ai-ripples .r3{animation-delay:1.2s}
+  .ai-ripples .r2{animation-delay:.5s}
+  .ai-ripples .r3{animation-delay:1.0s}
 
   .ai-ripples .core{
     position:absolute; left:50%; top:50%; translate:-50% -50%;
     width:14px; height:14px; border-radius:50%; background:var(--accent);
     box-shadow:0 0 0 10px rgba(255,47,90,.10);
-    animation:pulse 2.6s ease-in-out infinite;
+    animation:pulse 2.2s ease-in-out infinite;
   }
 
   @keyframes ripple{
@@ -122,6 +140,7 @@
     50%    {box-shadow:0 0 0 14px rgba(255,47,90,.16)}
   }
 
+  /* ===== Copy ===== */
   h1{font-weight:800; font-size:clamp(26px,4.4vw,42px); line-height:1.1; letter-spacing:-.02em; margin:6px 0 10px}
   h1 .accent{color:var(--accent)}
   p{color:var(--text-1); font-size:clamp(15px,1.6vw,18px); line-height:1.6; margin:0 0 16px}
