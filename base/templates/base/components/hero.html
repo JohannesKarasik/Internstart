@@ -132,7 +132,6 @@
 .hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; align-self:stretch; max-width:900px; padding-top:8vh; }
 .hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
 
-/* Keep the original red text fill */
 .hero__title .accent{
   background-color:var(--brand);
   -webkit-background-clip:text;
@@ -140,43 +139,15 @@
   color:transparent;
   position:relative;
   display:inline-block;
-  -webkit-text-stroke: 2px rgba(218,165,32,0.65);
-  filter: drop-shadow(0 0 4px rgba(218,165,32,0.55));
-  text-shadow: 0 0 5px rgba(255,215,0,0.45);
+
+  /* GOLD DIRECTLY ON LETTER SHAPES */
+  -webkit-text-stroke: 2px rgba(240,200,60,0.95);
+  text-shadow:
+    0 0 8px rgba(240,200,60,0.65),
+    0 0 3px rgba(255,255,255,0.6);
 }
 
 
-/* Subtle golden/shiny layer AROUND the span (not changing text color) */
-.hero__title .accent::before{
-  content:"";
-  position:absolute;
-  inset:-0.08em -0.22em;              /* thin ring around the span */
-  border-radius:.55em;
-  background: linear-gradient(135deg,#fff7d1 0%,#f9e79f 22%,#f4d03f 55%,#d4ac0d 78%,#b8870b 100%);
-  padding:1.5px;                       /* ring thickness */
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;     /* cut a hole so only the ring shows */
-  box-shadow:
-    0 0 0 1px rgba(184,135,11,.22),    /* crisp edge */
-    0 10px 24px rgba(212,172,13,.20);  /* soft golden glow */
-  z-index:-1;                          /* sit behind the red text */
-  pointer-events:none;
-}
-
-/* (Optional) very light top gloss to make it 'shiny' without changing text */
-.hero__title .accent::after{
-  content:"";
-  position:absolute;
-  inset:-0.08em -0.22em;
-  border-radius:.55em;
-  background: linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 60%);
-  opacity:.35;
-  z-index:-1;
-  pointer-events:none;
-}
 
 .hero__subhead{ font-family:var(--font); font-size: clamp(20px, 2vw, 26px); line-height:1.6; color: var(--muted); max-width: 65ch; margin: 0 0 36px; }
 
