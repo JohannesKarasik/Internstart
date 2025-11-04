@@ -124,42 +124,42 @@
 <div class="ai-wait">
   <div class="ai-overlay" role="status" aria-live="polite">
     <section class="ai-card">
-      <header class="ai-header">
-        <div class="ai-logo">
-          <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart logo">
-        </div>
+
+      <div style="display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:24px;">
+        <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart logo" style="height:32px; border-radius:6px;">
         <div class="badge"><span class="dot"></span> AI matching in progress</div>
-      </header>
-
-      <div class="ai-grid">
-        <div class="ai-ripples" aria-hidden="true">
-          <span class="core"></span>
-        </div>
-        <div>
-          <h1>Gathering <span class="accent">{{ user.desired_job_title|default:"new"|lower }}</span> roles tailored to your resume</h1>
-          <p>We’re scanning fresh openings, ranking them by fit, and preparing one-click applications. This can take a while depending on volume.</p>
-
-          <div class="status">
-            <span id="statusText" class="status__text">🔎 Crawling sources & company boards</span>
-          </div>
-
-          <div class="progress" aria-label="Loading progress">
-            <div class="progress__bar" id="aiProgressBar"></div>
-          </div>
-
-          <div class="steps" id="aiSteps">
-            <span class="step is-active">Crawl</span>
-            <span class="step">Match</span>
-            <span class="step">Rank</span>
-            <span class="step">Prepare</span>
-          </div>
-
-          <div class="chip" aria-disabled="true">
-            <span class="c" aria-hidden="true"></span> You’ll be notified when it’s ready
-          </div>
-        </div>
       </div>
+    
+      <h1 style="max-width:580px; margin:auto; text-align:center;">
+        Gathering <span class="accent">{{ user.desired_job_title|default:"new"|lower }}</span> roles tailored to your resume
+      </h1>
+    
+      <p style="max-width:620px; margin:12px auto 30px; text-align:center;">
+        We’re scanning fresh openings, ranking them by fit, and preparing one-click applications.
+        This can take a while depending on volume.
+      </p>
+    
+      <div class="status" style="text-align:center;">
+        <span id="statusText" class="status__text">🔎 Crawling sources & company boards</span>
+      </div>
+    
+      <div class="progress" aria-label="Loading progress" style="margin:auto; max-width:620px;">
+        <div class="progress__bar" id="aiProgressBar"></div>
+      </div>
+    
+      <div class="steps" id="aiSteps" style="justify-content:center;">
+        <span class="step is-active">Crawl</span>
+        <span class="step">Match</span>
+        <span class="step">Rank</span>
+        <span class="step">Prepare</span>
+      </div>
+    
+      <div class="chip" aria-disabled="true" style="margin:auto; margin-top:18px;">
+        <span class="c" aria-hidden="true"></span> You’ll be notified when it’s ready
+      </div>
+    
     </section>
+    
 
   </div>
 </div>
