@@ -135,11 +135,16 @@
 /* Keep the original red text fill */
 .hero__title .accent{
   background-color:var(--brand);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  position: relative; /* for the halo layer */
-  display: inline-block; /* so the layer can size around the span */
-  z-index: 0;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  position:relative;
+  display:inline-block;
+  -webkit-text-stroke: 2px rgba(218,165,32,0.65);
+  filter: drop-shadow(0 0 4px rgba(218,165,32,0.55));
+  text-shadow: 0 0 5px rgba(255,215,0,0.45);
 }
+
 
 /* Subtle golden/shiny layer AROUND the span (not changing text color) */
 .hero__title .accent::before{
