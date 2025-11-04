@@ -22,26 +22,26 @@
   body::after{
     content:"";
     position:fixed;
-    top:-240px;
-    width:720px; height:720px;         /* a bit larger for a brighter wash */
+    top:-300px;
+    width:1100px; height:1100px;     /* MUCH larger */
     border-radius:50%;
-    filter:blur(90px); 
+    filter:blur(180px);              /* more blur = smoother */
+    opacity:.45;                     /* less intense, more blend */
     z-index:-1;
     pointer-events:none;
     will-change: transform;
-  }
-  /* Left blob (brand red) */
-  body::before{
-    left:-240px;
-    background:#FF2F5Aaa;             /* slightly less alpha but pure color pops more */
-    animation:blobLeft 10s ease-in-out infinite alternate;  /* slightly faster */
-  }
-  /* Right blob (rose) */
-  body::after{
-    right:-240px;
-    background:#ff5f7aaa;
-    animation:blobRight 11s ease-in-out infinite alternate;
-  }
+}
+body::before{
+    left:-300px;
+    background:#FF2F5A;
+    animation:blobLeft 7s ease-in-out infinite alternate;
+}
+body::after{
+    right:-300px;
+    background:#ff5f7a;
+    animation:blobRight 7.5s ease-in-out infinite alternate;
+}
+
 
   @keyframes blobLeft{
     0%   { transform: translate(-8%, 0) rotate(0deg) scale(1); }
