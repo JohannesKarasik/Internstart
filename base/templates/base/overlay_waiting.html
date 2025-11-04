@@ -15,48 +15,16 @@
 
   /* ===== brighter animated background blobs ===== */
   body{
-    background:#ffffff;
-    overflow-x:hidden;
-  }
-  body::before,
-  body::after{
-    content:"";
-    position:fixed;
-    top:-300px;
-    width:1100px; height:1100px;     /* MUCH larger */
-    border-radius:50%;
-    filter:blur(180px);              /* more blur = smoother */
-    opacity:.22; /* lower = MUCH more white showing */
-    z-index:-1;
-    pointer-events:none;
-    will-change: transform;
-}
-body::before{
-    left:-300px;
-    background:#FF2F5A;
-    animation:blobLeft 3.5s ease-in-out infinite alternate;
-  }
-body::after{
-    right:-300px;
-    background:#ff5f7a;
-    animation:blobRight 2.5s ease-in-out infinite alternate;
-  }
-
-
-  @keyframes blobLeft{
-  0%   { transform: translate(-8%, 0) rotate(0deg) scale(1);}
-  25%  { transform: translate(0%, 12%) rotate(7deg) scale(1.06);}
-  50%  { transform: translate(10%, 0%) rotate(14deg) scale(1.1);}
-  75%  { transform: translate(0%, -12%) rotate(7deg) scale(1.06);}
-  100% { transform: translate(-8%, 0) rotate(0deg) scale(1);}
+  overflow-x:hidden;
+  animation:bgPulse 3.5s ease-in-out infinite alternate;
+  background:#fff;
 }
 
-@keyframes blobRight{
-  0%   { transform: translate(8%, 0) rotate(0deg) scale(1.03);}
-  25%  { transform: translate(0%, -12%) rotate(-6deg) scale(1.08);}
-  50%  { transform: translate(-10%, 0%) rotate(-14deg) scale(1.12);}
-  75%  { transform: translate(0%, 12%) rotate(-6deg) scale(1.08);}
-  100% { transform: translate(8%, 0) rotate(0deg) scale(1.03);}
+@keyframes bgPulse{
+  0%   { background:rgba(255,255,255,1); }          /* almost white */
+  40%  { background:rgba(255,47,90,0.08); }         /* very light pink */
+  60%  { background:rgba(255,47,90,0.14); }         /* more pink */
+  100% { background:rgba(255,47,90,0.2); }          /* max pink */
 }
 
 
