@@ -70,13 +70,21 @@
   .ai-logo img{height:28px; width:auto; border-radius:6px}
 
   .badge{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:8px 12px; border-radius:999px; background:#fff;
-    border:1px solid rgba(2,6,23,.06); color:var(--text-1); font-weight:700;
-    box-shadow:0 3px 10px rgba(2,6,23,.06);
-    white-space:nowrap;
-  }
-  .badge .dot{width:8px; height:8px; border-radius:50%; background:var(--accent)}
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px;             /* smaller */
+  border-radius:999px; background:#fff;
+  border:1px solid rgba(2,6,23,.06);
+  color:var(--text-1);
+  font-weight:600;
+  font-size:14px;               /* << smaller */
+  box-shadow:0 3px 10px rgba(2,6,23,.06);
+  white-space:nowrap;
+}
+.badge .dot{
+  width:7px; height:7px;         /* slightly smaller */
+  border-radius:50%;
+  background:var(--accent);
+}
 
   .ai-grid{display:grid; gap:clamp(18px,3vw,28px); align-items:center}
   @media(min-width:900px){.ai-grid{grid-template-columns:320px 1fr}}
@@ -125,8 +133,8 @@
   <div class="ai-overlay" role="status" aria-live="polite">
     <section class="ai-card">
 
-      <div style="display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:24px; font-size:28px; font-weight:800; font-family:Manrope;">
-        <span style="letter-spacing:-.5px; color:#000;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:24px; font-family:Manrope;">
+        <span style="font-size:28px; font-weight:800; letter-spacing:-.5px; color:#000;">
           intern<span style="color:var(--accent);">start</span>
         </span>
         <div class="badge"><span class="dot"></span> AI matching in progress</div>
