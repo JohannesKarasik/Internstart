@@ -48,17 +48,17 @@
 
   .ai-overlay{
     position:fixed;
-    top: 140px;
+    top:140px;
     left:0;
     right:0;
     bottom:0;
-    display:grid; place-items:center;
+    display:grid;
+    place-items:center;
     padding:clamp(16px,3vw,40px);
-    background:
-      radial-gradient(900px 600px at 85% -10%, rgba(255,47,90,.05), transparent 60%),
-      radial-gradient(900px 600px at -10% 100%, rgba(255,47,90,.04), transparent 60%),
-      linear-gradient(180deg, var(--bg-0), var(--bg-1));
+    background: transparent; /* <— important */
+    pointer-events:none; /* still lets card be interactive */
 }
+
 
   .ai-card{
     width:min(980px,94vw);
