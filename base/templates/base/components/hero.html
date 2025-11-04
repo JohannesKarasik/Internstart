@@ -9,8 +9,8 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      Apply to <span class="accent accent--gold">200+ jobs</span> in<br>
-      minutes powered by <span class="accent accent--gold">AI</span>
+      Apply to <span class="accent">200+ jobs</span> in<br>
+      minutes powered by <span class="accent">AI</span>
     </h1>
 
     <p class="hero__subhead">
@@ -132,61 +132,47 @@
 .hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; align-self:stretch; max-width:900px; padding-top:8vh; }
 .hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
 
-/* Keep original pink accent for other places, but NOT for the gold ones */
-.hero__title .accent:not(.accent--gold){
-  background: var(--brand);
+/* Keep the original red text fill */
+.hero__title .accent{
+  background-color:var(--brand);
   -webkit-background-clip:text; background-clip:text; color:transparent;
+  position: relative; /* for the halo layer */
+  display: inline-block; /* so the layer can size around the span */
+  z-index: 0;
 }
 
-/* Gold pill that pops */
-.hero__title .accent--gold{
-  --gold-1:#fff7d1;
-  --gold-2:#f9e79f;
-  --gold-3:#f4d03f;
-  --gold-4:#d4ac0d;
-  --gold-5:#b8870b;
-
-  display:inline-block;
-  padding: .08em .40em .14em;
-  border-radius: .55em;
-  background:
-    linear-gradient(135deg, var(--gold-1) 0%, var(--gold-2) 22%, var(--gold-3) 50%, var(--gold-4) 78%, var(--gold-5) 100%);
-  color:#111; /* strong contrast */
-  border: 1px solid rgba(180, 130, 10, .55);             /* subtle outline */
-  box-shadow:
-    0 1px 0 rgba(0,0,0,.08),                              /* top edge */
-    0 10px 24px rgba(212,172,13,.18),                     /* gold glow */
-    inset 0 0 0 1px rgba(255,255,255,.35),                /* inner crispness */
-    inset 0 8px 18px rgba(255,255,255,.35),               /* glossy top */
-    inset 0 -10px 22px rgba(143, 98, 0, .18);             /* rich bottom */
-  position:relative;
-  line-height:1;                                         /* compact pill */
-  white-space:nowrap;                                    /* keep it tight */
-}
-
-/* Gloss highlight */
-.hero__title .accent--gold::before{
+/* Subtle golden/shiny layer AROUND the span (not changing text color) */
+.hero__title .accent::before{
   content:"";
-  position:absolute; inset:1px;
-  border-radius: inherit;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.18) 46%, rgba(255,255,255,0) 60%);
+  position:absolute;
+  inset:-0.08em -0.22em;              /* thin ring around the span */
+  border-radius:.55em;
+  background: linear-gradient(135deg,#fff7d1 0%,#f9e79f 22%,#f4d03f 55%,#d4ac0d 78%,#b8870b 100%);
+  padding:1.5px;                       /* ring thickness */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;     /* cut a hole so only the ring shows */
+  box-shadow:
+    0 0 0 1px rgba(184,135,11,.22),    /* crisp edge */
+    0 10px 24px rgba(212,172,13,.20);  /* soft golden glow */
+  z-index:-1;                          /* sit behind the red text */
   pointer-events:none;
 }
 
-/* Optional micro-shine on hover (respect reduced motion) */
-@media (hover:hover){
-  .hero__title .accent--gold:hover{
-    filter: brightness(1.03) contrast(1.02);
-    transform: translateY(-0.5px);
-    transition: transform .15s ease, filter .2s ease;
-  }
-}
-@media (prefers-reduced-motion: reduce){
-  .hero__title .accent--gold{ transition:none; }
+/* (Optional) very light top gloss to make it 'shiny' without changing text */
+.hero__title .accent::after{
+  content:"";
+  position:absolute;
+  inset:-0.08em -0.22em;
+  border-radius:.55em;
+  background: linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 60%);
+  opacity:.35;
+  z-index:-1;
+  pointer-events:none;
 }
 
-/* Subhead & CTAs */
 .hero__subhead{ font-family:var(--font); font-size: clamp(20px, 2vw, 26px); line-height:1.6; color: var(--muted); max-width: 65ch; margin: 0 0 36px; }
 
 .btn{ display:inline-flex; align-items:center; justify-content:center; height:56px; padding:0 22px; border-radius:12px; font-weight:700; font-size:18px; text-decoration:none; transition:.2s ease; border:1px solid transparent; }
