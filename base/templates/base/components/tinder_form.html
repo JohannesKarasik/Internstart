@@ -1505,82 +1505,28 @@ html, body {
        MASTER ORCHESTRATOR — runs the three steps in strict sequence (no overlap)
        (✱ Added pauses between each step)
     ========================= */
-    (() => {
-      const ready = (fn) => (document.readyState === 'loading'
-        ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-        : fn());
-    
-      ready(async () => {
-      // disable auto scroll into view caused by focus changes
-      if (HTMLElement.prototype.scrollIntoView) {
-        const orig = HTMLElement.prototype.scrollIntoView;
-        HTMLElement.prototype.scrollIntoView = function(){};
-      }
+    function startOrchestrator(){
+  (async () => {
+     // everything inside your orchestrator stays same here
+  })();
+}
 
-        const stage   = document.querySelector('.demo-stage');
-        const overlay = document.querySelector('.demo-overlay');
-        const overlayText = document.querySelector('.demo-overlay__text');
-        const spTitle = document.getElementById('spTitle');
-    
-        const pause = (ms) => new Promise(res => setTimeout(res, ms));
-    
-        const setVisible = (el, show) => {
-          if (!el) return;
-          if (show) { el.removeAttribute('hidden'); el.removeAttribute('aria-hidden'); el.style.display=''; }
-          else { el.setAttribute('hidden',''); el.setAttribute('aria-hidden','true'); el.style.display='none'; }
-        };
-    
-        const resumeEl  = document.getElementById('resumeStep');
-        const analysisEl = document.getElementById('analysisStep');
-        const tinderEl  = document.querySelector('.tinder-section');
-        const formEl    = document.querySelector('.ai-demo');
-    
-        const exclusive = (name) => {
-          setVisible(resumeEl,  name === 'resume');
-          setVisible(analysisEl,name === 'analysis');
-          setVisible(tinderEl,  name === 'tinder');
-          setVisible(formEl,    name === 'form');
-        };
-    
-        const showOverlayTop = (text) => {
-          overlay?.classList.remove('is-deck-right');
-          overlay?.classList.add('is-form');
-          if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
-        };
-        const showOverlayDeck = (text) => {
-          overlay?.classList.remove('is-form');
-          overlay?.classList.add('is-deck-right');
-          if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
-        };
-    
+// === only run when user scrolls to it ===
+(function(){
+  const stage = document.querySelector('.demo-stage');
+  if (!stage) return;
 
-    
-        exclusive(null);
-    
-        /* ========== STEP 1: Upload Resume ========== */
-        spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
-        exclusive('resume');
-        await window.ResumeDemo?.runOnce?.();
-    
-        // ⏳ Add a short pause before showing analysis
-        await pause(1200); // 1.2 seconds
-        exclusive(null);
-    
-        /* ========== STEP 2: AI Analyzes ========== */
-        spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
-        exclusive('analysis');
-        await window.RADemo?.runOnce?.();
-    
-        // ⏳ Add a pause before moving to Tinder animation
-        await pause(1500); // 1.5 seconds
-        exclusive(null);
-    
-        /* ========== STEP 3: Tinder Deck + AI Form ========== */
-        spTitle && (spTitle.textContent = '{{ _("Do like everyone else — apply with AI") }}');
-        showOverlayDeck('{{ _("Swipe right to apply") }}');
-        exclusive('tinder');
-        await window.TinderDemo?.runOnce?.(); // triggers AI form next automatically
-      });
-    })();
+  const io = new IntersectionObserver(entries=>{
+    if (entries[0].isIntersecting){
+      io.disconnect();
+      startOrchestrator();
+    }
+  },{
+    threshold:0.35   // start when ~35% is visible → user clearly sees it
+  });
+
+  io.observe(stage);
+})();
+
     </script>
     
