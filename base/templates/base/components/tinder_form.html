@@ -1578,19 +1578,19 @@ function startOrchestrator(){
 }
 
 // run orchestrator ONLY when demo-stage enters view the FIRST time
+// run orchestrator ONLY when demo-stage enters view the FIRST time
 (function(){
   const stage = document.querySelector('.demo-stage');
   if (!stage) return;
 
-  // run once immediately
-  startOrchestrator();
+  const io = new IntersectionObserver(entries=>{
+    if (entries[0].isIntersecting){
+      io.disconnect();
+      startOrchestrator();
+    }
+  },{ threshold:0.35 });
 
-  // run again every 8 seconds after finish (you can change interval)
-  // approx total demo length is around 8 seconds
-  setInterval(()=>{
-    startOrchestrator();
-  }, 8000);
-
+  io.observe(stage);
 })();
 
 
