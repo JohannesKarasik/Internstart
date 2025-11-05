@@ -1280,8 +1280,8 @@ html, body {
       statusText.textContent = "{{ _('Ready to submit — optimized by AI.') }}";
       await autoPressAndCelebrate();
       isRunning = false;
-      return true;
-    };
+      return new Promise((res) => setTimeout(res, 1200));
+    }; // <-- close run()
 
     window.AIDemo = {
       runOnce: run,
