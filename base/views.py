@@ -781,9 +781,12 @@ def is_image(file_path):
 from django.shortcuts import render, redirect
 
 def landing_page(request):
-    if request.user.is_authenticated and request.user.is_active:
+    # if user is logged in BUT did not explicitly request home, push them to swipe
+    if request.user.is_authenticated and request.user.is_active and not request.GET.get("force_home"):
         return redirect('swipe_view')
+
     return render(request, 'base/landing_page.html')
+
 
 
 
