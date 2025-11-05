@@ -27,16 +27,24 @@
     </div>
 
     <div class="hero__rating"
-         aria-label="{% blocktrans %}Rated 4.8 out of 5 from 327 reviews{% endblocktrans %}">
-      <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
-      <span class="rating__text">
-        <strong>4.8</strong>
-        <span class="muted">out of 5</span>
-        <span class="dot" aria-hidden="true">•</span>
-        <span class="muted">327 reviews</span>
-      </span>
-    </div>
-  </div>
+    aria-label="{% blocktrans %}Rated 4.8 out of 5 from 327 reviews{% endblocktrans %}">
+
+ <div class="hero__faces">
+   <img src="" alt="" class="hero__face">
+   <img src="" alt="" class="hero__face">
+   <img src="" alt="" class="hero__face">
+ </div>
+
+ <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
+ <span class="rating__text">
+   <strong>4.8</strong>
+   <span class="muted">out of 5</span>
+   <span class="dot" aria-hidden="true">•</span>
+   <span class="muted">327 reviews</span>
+ </span>
+
+</div>
+
 
   <!-- Phone-shaped TikTok-style carousel -->
   <div class="hero__phone">
@@ -216,6 +224,23 @@
   .rating__stars{ --size:16px; --spacing:2px; }
   .hero__rating .rating__text{ font-size:13px; }
 }
+
+.hero__faces{
+  display:flex;
+  align-items:center;
+  margin-right:10px;
+}
+
+.hero__face{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #fff;
+  margin-right:-6px; /* overlapping effect */
+  background:#eee;   /* placeholder bg before you add images */
+}
+
 </style>
 
 <script>
