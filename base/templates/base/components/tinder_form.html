@@ -1507,11 +1507,76 @@ html, body {
     ========================= */
     function startOrchestrator(){
   (async () => {
-     // everything inside your orchestrator stays same here
+
+    // disable auto scroll into view caused by focus changes
+    if (HTMLElement.prototype.scrollIntoView) {
+      HTMLElement.prototype.scrollIntoView = function(){};
+    }
+
+    const stage   = document.querySelector('.demo-stage');
+    const overlay = document.querySelector('.demo-overlay');
+    const overlayText = document.querySelector('.demo-overlay__text');
+    const spTitle = document.getElementById('spTitle');
+
+    const pause = (ms) => new Promise(res => setTimeout(res, ms));
+
+    const setVisible = (el, show) => {
+      if (!el) return;
+      if (show) { el.removeAttribute('hidden'); el.removeAttribute('aria-hidden'); el.style.display=''; }
+      else { el.setAttribute('hidden',''); el.setAttribute('aria-hidden','true'); el.style.display='none'; }
+    };
+
+    const resumeEl  = document.getElementById('resumeStep');
+    const analysisEl = document.getElementById('analysisStep');
+    const tinderEl  = document.querySelector('.tinder-section');
+    const formEl    = document.querySelector('.ai-demo');
+
+    const exclusive = (name) => {
+      setVisible(resumeEl,  name === 'resume');
+      setVisible(analysisEl,name === 'analysis');
+      setVisible(tinderEl,  name === 'tinder');
+      setVisible(formEl,    name === 'form');
+    };
+
+    const showOverlayTop = (text) => {
+      overlay?.classList.remove('is-deck-right');
+      overlay?.classList.add('is-form');
+      if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
+    };
+    const showOverlayDeck = (text) => {
+      overlay?.classList.remove('is-form');
+      overlay?.classList.add('is-deck-right');
+      if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
+    };
+
+    exclusive(null);
+
+    /* ========== 1) Upload Resume ========== */
+    spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
+    exclusive('resume');
+    await window.ResumeDemo?.runOnce?.();
+
+    await pause(1200);
+    exclusive(null);
+
+    /* ========== 2) AI Analyzes ========== */
+    spTitle && (spTitle.textContent = '{{ _("AI analyzes your resume") }}');
+    exclusive('analysis');
+    await window.RADemo?.runOnce?.();
+
+    await pause(1500);
+    exclusive(null);
+
+    /* ========== 3) Tinder Deck ========== */
+    spTitle && (spTitle.textContent = '{{ _("Do like everyone else — apply with AI") }}');
+    showOverlayDeck('{{ _("Swipe right to apply") }}');
+    exclusive('tinder');
+    await window.TinderDemo?.runOnce?.();
+
   })();
 }
 
-// === only run when user scrolls to it ===
+// run orchestrator ONLY when demo-stage enters view the FIRST time
 (function(){
   const stage = document.querySelector('.demo-stage');
   if (!stage) return;
@@ -1521,9 +1586,7 @@ html, body {
       io.disconnect();
       startOrchestrator();
     }
-  },{
-    threshold:0.35   // start when ~35% is visible → user clearly sees it
-  });
+  },{ threshold:0.35 });
 
   io.observe(stage);
 })();
