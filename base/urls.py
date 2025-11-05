@@ -67,8 +67,8 @@ urlpatterns = [
     path('', views.landing_page, name='landing_page'),       # US default
     path('uk/', views.landing_page_uk, name='landing_page_uk'),
     path('dk/', views.landing_page_dk, name='landing_page_dk'),
-    path('da/login/', views.login_view, name='app_login_dk'),
-    path('da/register/', views.register_view, name='register_dk'),
+    path('da/login/', views.loginPage, name='app_login_dk'),
+    path('da/register/', views.registerPage, name='register_dk'),
 
 
 
