@@ -1637,18 +1637,7 @@ function startOrchestrator(){
       
           // ---------- prettier twinkling stars ----------
           // Fewer but bigger + glow -> less "confetti", more "stars"
-          const STAR_COUNT = 28;
-          const stars = new Array(STAR_COUNT).fill(0).map(() => ({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            // bigger radius
-            r: 2.8 + Math.random() * 2.4,  // 2.8–5.2px  (big)
-            // slight drift + unique twinkle phase
-            t: Math.random() * 1000,
-            drift: (Math.random() * 0.25 + 0.05) * (Math.random() < 0.5 ? -1 : 1),
-            // each star has its own halo strength
-            halo: 0.25 + Math.random() * 0.35
-          }));
+
       
           // ---------- shooting stars (thicker trail, gentle glow) ----------
           let shooting = [];
@@ -1677,38 +1666,7 @@ function startOrchestrator(){
             ctx.save();
             ctx.clearRect(0, 0, width, height);
       
-            // --- background twinkles with soft halo
-            for (let i = 0; i < stars.length; i++) {
-              const s = stars[i];
-              const tw = prefersReduced ? 0.9 : (0.7 + 0.3 * Math.sin((now + s.t) * 0.003));
-              const yDrift = prefersReduced ? 0 : s.drift * 0.06;
-              s.y += yDrift;
-              if (s.y < -4) s.y = height + 4;
-              if (s.y > height + 4) s.y = -4;
-      
-              // glow (halo)
-              ctx.globalAlpha = s.halo * tw * 0.9;
-              ctx.fillStyle = `rgba(${BRAND_RGB}, 0.45)`;
-              ctx.beginPath();
-              ctx.arc(s.x, s.y, s.r * 2.2, 0, Math.PI * 2);
-              ctx.fill();
-      
-              // core
-              ctx.globalAlpha = 0.85 * tw;
-              ctx.fillStyle = BRAND_SOLID;
-              ctx.beginPath();
-              ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-              ctx.fill();
-      
-              // tiny white highlight for "star" look
-              ctx.globalAlpha = 0.8 * tw;
-              ctx.fillStyle = 'rgba(255,255,255,0.9)';
-              ctx.beginPath();
-              ctx.arc(s.x, s.y, Math.max(0.4, s.r * 0.45), 0, Math.PI * 2);
-              ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-      
+
             // --- shooting stars
             for (let i = 0; i < shooting.length; i++) {
               const sh = shooting[i];
