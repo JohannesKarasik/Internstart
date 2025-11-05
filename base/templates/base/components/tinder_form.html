@@ -1553,16 +1553,9 @@ html, body {
           if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
         };
     
-        const waitVisible = () => new Promise(res=>{
-          if (!('IntersectionObserver' in window)) return res();
-          const io = new IntersectionObserver((entries)=>{
-            if (entries.some(e => e.isIntersecting)) { io.disconnect(); res(); }
-          }, { threshold: 0.3 });
-          stage ? io.observe(stage) : res();
-        });
+
     
         exclusive(null);
-        await waitVisible();
     
         /* ========== STEP 1: Upload Resume ========== */
         spTitle && (spTitle.textContent = '{{ _("Upload your resume") }}');
