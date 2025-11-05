@@ -1559,7 +1559,7 @@ html, body {
       exclusive(null);
 
       /* ========== 2) AI Analyzes ========== */
-      if (spTitle) spTitle.textContent = '{{ _("AI analyzes your resume") }}';
+      if (spTitle) spTitle.innerHTML = `<span style="color:#FF2F5A;">{{ _("AI") }}</span> {{ _("analyzes your") }} <span style="color:#FF2F5A;">{{ _("resume") }}</span>`;
       exclusive('analysis');
       await window.RADemo?.runOnce?.();
 
@@ -1567,7 +1567,7 @@ html, body {
       exclusive(null);
 
       /* ========== 3) Tinder Deck ========== */
-      if (spTitle) spTitle.textContent = '{{ _("Do like everyone else — apply with AI") }}';
+      if (spTitle) spTitle.innerHTML = `{{ _("Do like everyone else —") }} <span style="color:#FF2F5A;">{{ _("apply") }}</span> {{ _("with") }} <span style="color:#FF2F5A;">{{ _("AI") }}</span>`;
       showOverlayDeck('{{ _("Swipe right to apply") }}');
       exclusive('tinder');
       await window.TinderDemo?.runOnce?.();
