@@ -1597,22 +1597,30 @@ function startOrchestrator(){
     
 
     <script>
+      /* =========================
+         Background stars + shooting stars (refined)
+      ========================= */
       (() => {
-        const ready = (fn) => (document.readyState === 'loading'
-          ? document.addEventListener('DOMContentLoaded', fn, { once:true })
-          : fn());
+        const ready = (fn) =>
+          (document.readyState === 'loading'
+            ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+            : fn());
       
         ready(() => {
           const section = document.querySelector('.social-proof');
-          const canvas  = document.getElementById('shootingStars');
+          const canvas = document.getElementById('shootingStars');
           if (!section || !canvas) return;
       
           const ctx = canvas.getContext('2d');
           const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      
+          const BRAND_RGB = '255,47,90';       // #FF2F5A
+          const BRAND_SOLID = '#FF2F5A';
+      
           let dpr = Math.max(1, window.devicePixelRatio || 1);
           let width = 0, height = 0, running = false, rafId = 0, spawnTimer = 0;
       
-          function resize(){
+          function resize() {
             const rect = section.getBoundingClientRect();
             width = Math.max(1, Math.round(rect.width));
             height = Math.max(1, Math.round(rect.height));
@@ -1624,141 +1632,189 @@ function startOrchestrator(){
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           }
           resize();
-          window.addEventListener('resize', resize, { passive:true });
-          // Resize when the section's height changes (content loads / steps switch)
+          window.addEventListener('resize', resize, { passive: true });
           new ResizeObserver(() => resize()).observe(section);
-
       
-          // --- background stars ---
-          const STAR_COUNT = 120;
+          // ---------- prettier twinkling stars ----------
+          // Fewer but bigger + glow -> less "confetti", more "stars"
+          const STAR_COUNT = 80;
           const stars = new Array(STAR_COUNT).fill(0).map(() => ({
             x: Math.random() * width,
             y: Math.random() * height,
-            r: 0.6 + Math.random() * 1.2,
+            // bigger radius
+            r: 1.2 + Math.random() * 1.6,  // 1.2–2.8px
+            // slight drift + unique twinkle phase
             t: Math.random() * 1000,
-            drift: (Math.random() * 0.3 + 0.05) * (Math.random() < 0.5 ? -1 : 1)
+            drift: (Math.random() * 0.25 + 0.05) * (Math.random() < 0.5 ? -1 : 1),
+            // each star has its own halo strength
+            halo: 0.25 + Math.random() * 0.35
           }));
       
-          // --- shooting stars ---
+          // ---------- shooting stars (thicker trail, gentle glow) ----------
           let shooting = [];
-          function spawnShooting(){
-            // start a bit off left/top, go diagonally down-right
-            const startSide = Math.random() < 0.5 ? 'left' : 'top';
-            let x = startSide === 'left' ? -80 : Math.random() * width * 0.7;
-            let y = startSide === 'left' ? Math.random() * height * 0.5 : -80;
+          function spawnShooting() {
+            const fromLeft = Math.random() < 0.6;
+            let x = fromLeft ? -100 : Math.random() * width * 0.6;
+            let y = fromLeft ? Math.random() * height * 0.45 : -100;
       
-            const speed = 12 + Math.random() * 10; // px per frame (@60fps)
-            const angle = (Math.PI / 4) + (Math.random() * 0.25 - 0.125); // ~45° +/- a bit
+            const speed = 10 + Math.random() * 8; // a bit slower = smoother
+            const angle = (Math.PI / 4) + (Math.random() * 0.28 - 0.14);
             const vx = Math.cos(angle) * speed;
             const vy = Math.sin(angle) * speed;
       
             shooting.push({
               x, y, vx, vy,
               life: 0,
-              maxLife: 70 + Math.random()*50,
-              len: 120 + Math.random()*140
+              maxLife: 80 + Math.random() * 60,
+              len: 160 + Math.random() * 140
             });
       
-            // cap to 3 active
-            if (shooting.length > 3) shooting.shift();
+            // cap to 2 active for cleanliness
+            if (shooting.length > 2) shooting.shift();
           }
       
-          function drawStars(now){
+          function drawStars(now) {
             ctx.save();
             ctx.clearRect(0, 0, width, height);
       
-            // twinkling dots
-            for (let i=0;i<stars.length;i++){
+            // --- background twinkles with soft halo
+            for (let i = 0; i < stars.length; i++) {
               const s = stars[i];
-              const tw = prefersReduced ? 0.8 : (0.55 + 0.45 * Math.sin((now + s.t) * 0.003));
-              const yDrift = prefersReduced ? 0 : s.drift * 0.08;
+              const tw = prefersReduced ? 0.9 : (0.7 + 0.3 * Math.sin((now + s.t) * 0.003));
+              const yDrift = prefersReduced ? 0 : s.drift * 0.06;
               s.y += yDrift;
-              if (s.y < 0) s.y = height;
-              if (s.y > height) s.y = 0;
+              if (s.y < -4) s.y = height + 4;
+              if (s.y > height + 4) s.y = -4;
       
-              ctx.globalAlpha = 0.35 + 0.55 * tw;
-              ctx.fillStyle = '#FF2F5A';
+              // glow (halo)
+              ctx.globalAlpha = s.halo * tw * 0.9;
+              ctx.fillStyle = `rgba(${BRAND_RGB}, 0.45)`;
               ctx.beginPath();
-              ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+              ctx.arc(s.x, s.y, s.r * 2.2, 0, Math.PI * 2);
+              ctx.fill();
+      
+              // core
+              ctx.globalAlpha = 0.85 * tw;
+              ctx.fillStyle = BRAND_SOLID;
+              ctx.beginPath();
+              ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+              ctx.fill();
+      
+              // tiny white highlight for "star" look
+              ctx.globalAlpha = 0.8 * tw;
+              ctx.fillStyle = 'rgba(255,255,255,0.9)';
+              ctx.beginPath();
+              ctx.arc(s.x, s.y, Math.max(0.4, s.r * 0.45), 0, Math.PI * 2);
               ctx.fill();
             }
             ctx.globalAlpha = 1;
       
-            // shooting streaks
-            for (let i=0;i<shooting.length;i++){
+            // --- shooting stars
+            for (let i = 0; i < shooting.length; i++) {
               const sh = shooting[i];
               sh.x += sh.vx;
               sh.y += sh.vy;
               sh.life++;
       
-              // tail line (gradient from transparent to bright)
+              const lifeT = Math.min(1, sh.life / sh.maxLife);           // 0→1
+              const alpha = 1 - Math.pow(lifeT, 2);                       // ease-out fade
               const ang = Math.atan2(sh.vy, sh.vx);
               const tx = sh.x - Math.cos(ang) * sh.len;
               const ty = sh.y - Math.sin(ang) * sh.len;
-              const grad = ctx.createLinearGradient(tx, ty, sh.x, sh.y);
-              grad.addColorStop(0, 'rgba(255,255,255,0)');
-              grad.addColorStop(1, 'rgba(255,47,90,1)'); // #FF2F5A
       
-              ctx.strokeStyle = grad;
-              ctx.lineWidth = 2;
+              // soft trail (blurred "screen" pass)
+              ctx.save();
+              ctx.globalCompositeOperation = 'screen';
+              ctx.globalAlpha = 0.35 * alpha;
+              ctx.shadowBlur = 12;
+              ctx.shadowColor = `rgba(${BRAND_RGB},0.6)`;
+              const g1 = ctx.createLinearGradient(tx, ty, sh.x, sh.y);
+              g1.addColorStop(0, `rgba(${BRAND_RGB},0)`);
+              g1.addColorStop(1, `rgba(${BRAND_RGB},0.9)`);
+              ctx.strokeStyle = g1;
+              ctx.lineWidth = 2.8;
+              ctx.beginPath();
+              ctx.moveTo(tx, ty);
+              ctx.lineTo(sh.x, sh.y);
+              ctx.stroke();
+              ctx.restore();
+      
+              // crisp core trail
+              const g2 = ctx.createLinearGradient(tx, ty, sh.x, sh.y);
+              g2.addColorStop(0, `rgba(${BRAND_RGB},0)`);
+              g2.addColorStop(1, `rgba(${BRAND_RGB},1)`);
+              ctx.globalAlpha = 0.85 * alpha;
+              ctx.strokeStyle = g2;
+              ctx.lineWidth = 1.8;
               ctx.beginPath();
               ctx.moveTo(tx, ty);
               ctx.lineTo(sh.x, sh.y);
               ctx.stroke();
       
-              // bright head
-              ctx.fillStyle = 'rgba(255,47,90,0.98)';
+              // bright head (glow + white spark)
+              ctx.save();
+              ctx.globalAlpha = Math.max(0.55, 0.9 * alpha);
+              ctx.shadowBlur = 10;
+              ctx.shadowColor = `rgba(${BRAND_RGB},0.8)`;
+              ctx.fillStyle = BRAND_SOLID;
               ctx.beginPath();
-              ctx.arc(sh.x, sh.y, 2.2, 0, Math.PI*2);
+              ctx.arc(sh.x, sh.y, 3.0, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+      
+              ctx.globalAlpha = 0.9 * alpha;
+              ctx.fillStyle = 'rgba(255,255,255,0.95)';
+              ctx.beginPath();
+              ctx.arc(sh.x, sh.y, 1.2, 0, Math.PI * 2);
               ctx.fill();
             }
       
-            // prune off-screen / expired
-            shooting = shooting.filter(sh =>
-              sh.life < sh.maxLife && sh.x < width+120 && sh.y < height+120
+            // prune
+            shooting = shooting.filter(
+              (sh) => sh.life < sh.maxLife && sh.x < width + 160 && sh.y < height + 160
             );
       
             ctx.restore();
           }
       
-          function tick(now){
+          function tick(now) {
             drawStars(now || performance.now());
             rafId = requestAnimationFrame(tick);
           }
       
-          function scheduleSpawn(){
+          function scheduleSpawn() {
             clearTimeout(spawnTimer);
             spawnTimer = setTimeout(() => {
               spawnShooting();
               if (running) scheduleSpawn();
-            }, 900 + Math.random()*1800); // every ~0.9–2.7s
+            }, 1200 + Math.random() * 1000); // ~1.2–2.2s
           }
       
-          function start(){
+          function start() {
             if (running) return;
             running = true;
             tick();
             scheduleSpawn();
           }
-          function stop(){
+          function stop() {
             running = false;
             cancelAnimationFrame(rafId);
             clearTimeout(spawnTimer);
           }
       
-          // pause when section not visible
-          const io = new IntersectionObserver(entries => {
-            if (prefersReduced) return; // static if reduced motion
+          // Pause when section not visible
+          const io = new IntersectionObserver((entries) => {
+            if (prefersReduced) return;
             const onScreen = entries[0]?.isIntersecting;
-            if (onScreen) start(); else stop();
-          }, { root:null, threshold:0.1 });
+            if (onScreen) start();
+            else stop();
+          }, { threshold: 0.1 });
           io.observe(section);
       
-          // if reduced motion, render once (no animation/spawns)
-          if (prefersReduced){
+          // Reduced motion: render once (no animation)
+          if (prefersReduced) {
             drawStars(performance.now());
           } else {
-            // start immediately if already in view
             const rect = section.getBoundingClientRect();
             const inView = rect.top < window.innerHeight && rect.bottom > 0;
             if (inView) start();
@@ -1766,4 +1822,5 @@ function startOrchestrator(){
         });
       })();
       </script>
+      
       
