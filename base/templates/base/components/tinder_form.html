@@ -592,9 +592,10 @@ html, body {
 }
 
 .shooting-stars {
-  background: radial-gradient(circle at top, #0b0b12 0%, #040409 80%);
-  opacity:0.45;
+  background: #ffffff;
+  opacity:0.9;
 }
+
 
 /* ===== Demo stage ===== */
 .demo-stage{ position:relative; width:100%; min-height: var(--card-h); }
@@ -1676,7 +1677,7 @@ function startOrchestrator(){
               if (s.y > height) s.y = 0;
       
               ctx.globalAlpha = 0.35 + 0.55 * tw;
-              ctx.fillStyle = '#ffffff';
+              ctx.fillStyle = '#FF2F5A';
               ctx.beginPath();
               ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
               ctx.fill();
@@ -1696,7 +1697,7 @@ function startOrchestrator(){
               const ty = sh.y - Math.sin(ang) * sh.len;
               const grad = ctx.createLinearGradient(tx, ty, sh.x, sh.y);
               grad.addColorStop(0, 'rgba(255,255,255,0)');
-              grad.addColorStop(1, 'rgba(255,255,255,1)');
+              grad.addColorStop(1, 'rgba(255,47,90,1)'); // #FF2F5A
       
               ctx.strokeStyle = grad;
               ctx.lineWidth = 2;
@@ -1706,7 +1707,7 @@ function startOrchestrator(){
               ctx.stroke();
       
               // bright head
-              ctx.fillStyle = 'rgba(255,255,255,0.98)';
+              ctx.fillStyle = 'rgba(255,47,90,0.98)';
               ctx.beginPath();
               ctx.arc(sh.x, sh.y, 2.2, 0, Math.PI*2);
               ctx.fill();
