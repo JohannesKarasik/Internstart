@@ -1501,11 +1501,7 @@ html, body {
 </script>
 
 <script>
-    /* =========================
-       MASTER ORCHESTRATOR — runs the three steps in strict sequence (no overlap)
-       (✱ Added pauses between each step)
-    ========================= */
-    function startOrchestrator(){
+function startOrchestrator(){
   (async () => {
 
     // disable auto scroll into view caused by focus changes
@@ -1590,6 +1586,7 @@ html, body {
 
   io.observe(stage);
 })();
+
 
     </script>
     
