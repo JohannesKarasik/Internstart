@@ -845,7 +845,7 @@ def revoke_google_access(request):
 
     return redirect('update-user')
 
-def loginPage(request):
+def loginPage(request, template='base/login_register.html'):
     print("🧭 loginPage", request.user.is_authenticated)
     page = 'login'
 
@@ -897,7 +897,7 @@ def loginPage(request):
     from django.conf import settings
     return render(
         request,
-        'base/login_register.html',
+        template,
         {
             'page': page,
             'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # ✅ pulled from Gunicorn env
@@ -905,37 +905,12 @@ def loginPage(request):
     )
 
 
+
 def login_view(request):
-    # EXACT same logic as loginPage but render dk template
-    print("🧭 loginPage (dk)", request.user.is_authenticated)
-    page = 'login'
-
-    if request.user.is_authenticated and request.user.is_active:
-        return redirect('swipe_view')
-
-    if request.method == 'POST':
-        return loginPage(request)  # reuse the same logic
-
-    from django.conf import settings
-    return render(
-        request,
-        'base/login_register_dk.html',  # ✅ show danish template
-        {
-            'page': page,
-            'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,
-        }
-    )
+    return loginPage(request, template='base/login_register_dk.html')
 
 def register_view(request):
-    from django.conf import settings
-    return render(
-        request,
-        'base/login_register_dk.html',
-        {
-            'page': 'register',
-            'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,
-        }
-    )
+    return registerPage(request, template='base/login_register_dk.html')
 
 
 def logoutUser(request):
