@@ -14,7 +14,7 @@
 
 <section class="social-proof" id="social-proof">
   <canvas class="shooting-stars" id="shootingStars" aria-hidden="true"></canvas>
-  <div class="sp__inner">  <div class="sp__inner">
+  <div class="sp__inner">
     <header class="sp__head">
       <h2 class="sp__title">
         <span id="spTitle"
@@ -1346,7 +1346,6 @@ html, body {
       progBar.style.setProperty('--pct', '0%');
       progPct.textContent = '0%';
       fileCard.style.transition = 'none';
-      fileCard.style.left = 'calc(50% - 720px)';
       fileCard.style.opacity = '1';
       fileCard.style.transform = 'translate(0, -50%)';
 
@@ -1635,6 +1634,9 @@ function startOrchestrator(){
           }
           resize();
           window.addEventListener('resize', resize, { passive:true });
+          // Resize when the section's height changes (content loads / steps switch)
+          new ResizeObserver(() => resize()).observe(section);
+
       
           // --- background stars ---
           const STAR_COUNT = 120;
