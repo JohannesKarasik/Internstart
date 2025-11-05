@@ -1645,7 +1645,15 @@ html, body {
   
       function spawnPlane() {
         // start somewhere between left edge and 75% width
-        const startX = (Math.random() * width * 0.75);
+        // 50% chance left side, 50% chance right side start
+        let startX;
+        if (Math.random() < 0.5) {
+          // normal left → mid
+          startX = (Math.random() * width * 0.75);
+        } else {
+          // start further to the right (like 60% → 100%)
+          startX = (width * 0.60) + Math.random() * (width * 0.40);
+        }
         const startY = -80;
   
         const speed = (6 + Math.random() * 5) * 0.5;  // half speed
