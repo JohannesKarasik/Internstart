@@ -87,12 +87,12 @@
         </div>
     
         {% if lang == "dk" %}
-        <a href="{% url 'app_login' %}" 
+        <a href="{% url 'app_login' %}?dk=1" 
            style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
            Log ind
         </a>
     
-        <a href="{% url 'register' %}" 
+        <a href="{% url 'register' %}?dk=1" 
            style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
            Begynd at ansøge jobs med AI
         </a>
