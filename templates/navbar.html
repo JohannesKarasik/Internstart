@@ -466,16 +466,21 @@
     </script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const path = window.location.pathname;
+document.addEventListener("DOMContentLoaded", () => {
+  const path = window.location.pathname;
 
-    const select = document.querySelector('.lang-select');
-    if (!select) return;
+  const select = document.querySelector('.lang-select');
+  if (!select) return;
 
-    if (path.startsWith("/dk")) select.value = "{% url 'landing_page_dk' %}";
-    else if (path.startsWith("/uk")) select.value = "{% url 'landing_page_uk' %}";
-    else select.value = "{% url 'landing_page' %}";
-  });
+  if (path.startsWith("/dk") || path.startsWith("/da")) {
+    select.value = "{% url 'landing_page_dk' %}";
+  } else if (path.startsWith("/uk")) {
+    select.value = "{% url 'landing_page_uk' %}";
+  } else {
+    select.value = "{% url 'landing_page' %}";
+  }
+});
+
 </script>
 
     
