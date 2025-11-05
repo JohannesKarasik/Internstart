@@ -1705,7 +1705,7 @@ html, body {
 
         });
   
-        planes = planes.filter((p)=>p.life < p.maxLife && p.x < width+200 && p.y < height+200);
+        planes = planes.filter((p)=> p.x < width+200 && p.y < height+200);
   
         rafId = requestAnimationFrame(draw);
       }
