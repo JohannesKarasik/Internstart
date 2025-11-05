@@ -1696,10 +1696,13 @@ html, body {
           ctx.restore();
   
           // plane head img
+// rotate plane 180 deg around center
           ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.drawImage(planeImg, p.x - 18, p.y -18, 36, 36);
+          ctx.translate(p.x, p.y);
+          ctx.rotate(Math.PI); // 180 degrees
+          ctx.drawImage(planeImg, -18, -18, 36, 36);
           ctx.restore();
+
         });
   
         planes = planes.filter((p)=>p.life < p.maxLife && p.x < width+200 && p.y < height+200);
