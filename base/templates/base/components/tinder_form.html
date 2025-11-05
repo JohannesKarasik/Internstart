@@ -566,10 +566,12 @@ html, body {
 .social-proof{
   position:relative; isolation:isolate;
   padding: clamp(56px,8vw,110px) 0 clamp(40px,6vw,80px);
-  background: linear-gradient(180deg,#fff 0%,#fbfcff 55%,#f6f8fc 100%);
-  border-top:1px solid #eef2f7;
-  
+  background:#fff;              /* was a light gradient */
+  border-top:none;              /* optional */
+  min-height:100vh;             /* important so stars cover all steps */
+  z-index:0 !important;
 }
+
 .sp__inner{ max-width: var(--container-max); margin:0 auto; padding:0 16px; display:flex; flex-direction:column; align-items:center; position:relative; }
 .sp__head{ text-align:center; margin-bottom:22px; }
 .sp__title{ margin:0; font: 900 clamp(22px,3vw,34px)/1 var(--font); color:#101828; letter-spacing:-.3px; }
@@ -589,23 +591,7 @@ html, body {
   -webkit-mask-image: radial-gradient(130% 120% at 50% 0%, #000 50%, transparent 100%);
   mask-image: radial-gradient(130% 120% at 50% 0%, #000 50%, transparent 100%);
 }
-/* subtle grid + glows */
-.social-proof::before,
-.social-proof::after{ content:""; position:absolute; inset:0; pointer-events:none; z-index:-1; }
-.social-proof::before{
-  background-image:
-    linear-gradient(to right, #e9edf5 1px, transparent 1px),
-    linear-gradient(to bottom, #e9edf5 1px, transparent 1px);
-  background-size:64px 64px,64px 64px; opacity:.35;
-  mask-image: radial-gradient(130% 120% at 50% 10%, #000 55%, transparent 100%);
-}
-.social-proof::after{
-  background-image:
-    linear-gradient(to right, #eef2f7 1px, transparent 1px),
-    linear-gradient(to bottom, #eef2f7 1px, transparent 1px);
-  background-size:16px 16px,16px 16px; opacity:.12;
-  mask-image: radial-gradient(140% 120% at 50% 0%, #000 40%, transparent 100%);
-}
+
 
 /* ===== Demo stage ===== */
 .demo-stage{ position:relative; width:100%; min-height: var(--card-h); }
