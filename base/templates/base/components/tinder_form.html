@@ -542,6 +542,10 @@
 </section>
 
 <style>
+
+html, body {
+  scroll-behavior: auto !important;
+}
 /* Always hide [hidden] robustly (prevents framework CSS overrides) */
 [hidden]{display:none !important;}
 
@@ -1507,6 +1511,12 @@
         : fn());
     
       ready(async () => {
+      // disable auto scroll into view caused by focus changes
+      if (HTMLElement.prototype.scrollIntoView) {
+        const orig = HTMLElement.prototype.scrollIntoView;
+        HTMLElement.prototype.scrollIntoView = function(){};
+      }
+
         const stage   = document.querySelector('.demo-stage');
         const overlay = document.querySelector('.demo-overlay');
         const overlayText = document.querySelector('.demo-overlay__text');
