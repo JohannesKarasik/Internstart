@@ -921,7 +921,7 @@ def logoutUser(request):
 
 
 
-def registerPage(request):
+def registerPage(request, template='base/login_register.html'):
     page = 'register'
 
     if request.method == 'POST':
@@ -947,7 +947,7 @@ def registerPage(request):
                 'page': page,
                 'show_step': next_step,
             }
-            return render(request, 'base/login_register.html', context)
+            return render(request, template, context)
 
         # === STEP 3 POST (final submit) ===
         if step == '3':
@@ -967,7 +967,7 @@ def registerPage(request):
             print("❌ FORM ERRORS:", form.errors)
             messages.error(request, 'Please correct the errors below.')
             context = {'student_form': form, 'page': page, 'show_step': '3'}
-            return render(request, 'base/login_register.html', context)
+            return render(request, template, context)
 
     # GET
     form = StudentCreationForm()
