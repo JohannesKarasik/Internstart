@@ -971,7 +971,9 @@ def registerPage(request, template='base/login_register.html'):
 
     # GET
     form = StudentCreationForm()
-    return render(request, 'base/login_register.html', {'student_form': form, 'page': 'register'})
+    # ✅ FIX: use template arg, not hardcoded english one
+    return render(request, template, {'student_form': form, 'page': 'register'})
+
 
 @login_required(login_url='login')
 def home(request):
