@@ -1509,7 +1509,6 @@ html, body {
   function startOrchestrator(){
     (async () => {
   
-      // disable auto scroll into view caused by focus changes
       if (HTMLElement.prototype.scrollIntoView) {
         HTMLElement.prototype.scrollIntoView = function(){};
       }
@@ -1574,10 +1573,12 @@ html, body {
       exclusive('tinder');
       await window.TinderDemo?.runOnce?.();
   
-      /* ===========================
-         LOOP back to beginning
-      =========================== */
-      await pause(1500);
+      /* ========== 4) Form ========== */
+      exclusive('form');
+      await window.FormDemo?.runOnce?.();   // <-- THIS is the missing wait
+  
+      /* loop AFTER everything COMPLETE */
+      await pause(1800);
       startOrchestrator();
   
     })();
@@ -1599,8 +1600,6 @@ html, body {
   })();
   </script>
   
-
-    
 
     <script>
       /* =========================
