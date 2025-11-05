@@ -1551,7 +1551,7 @@ html, body {
       exclusive(null);
 
       /* ========== 1) Upload Resume ========== */
-      if (spTitle) spTitle.textContent = '{{ _("Upload your resume") }}';
+      if (spTitle) spTitle.innerHTML = `{{ _("Upload your") }} <span style="color:#FF2F5A;">{{ _("resume") }}</span>`;
       exclusive('resume');
       await window.ResumeDemo?.runOnce?.();
 
