@@ -4,8 +4,6 @@
 
 <section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
   <div class="logos__inner">
-    <div class="streak3"></div>
-
     <h3 class="logos__title">
         {% blocktrans %}Land interviews at top companies with AI-tailored applications{% endblocktrans %}
     </h3>
@@ -66,39 +64,37 @@
     --logos-pad-y: clamp(22px, 3vw, 32px);
   }
 
-  .logos__inner {
-  position: relative;            /* important */
-  z-index: 0;                    /* base */
-}
-
-.logos__inner::before,
-.logos__inner::after,
-.logos__inner .streak3 {
-  position: absolute;
-  width: 2px;
-  height: 60px;
-  background: rgba(255,255,255,0.55);
-  bottom: -40px;
-  filter: blur(1px);
-  z-index: -1;                   /* so cards stay above */
-}
-
-.logos__inner::before {
+.logos .streak3 {
   content:"";
-  left: 20%;
-  animation: shoot-up 3.4s linear infinite;
+  position:absolute;
+  width:2px;
+  height:60px;
+  background:rgba(255,255,255,0.55);
+  bottom:-80px;
+  left:45%;
+  filter:blur(1px);
+  animation:shoot-up 5.2s linear infinite;
+  animation-delay:.7s;
 }
 
-.logos__inner::after {
+
+.logos::before,
+.logos::after {
   content:"";
-  left: 70%;
-  animation: shoot-up 4.7s linear infinite 1s;
+  position:absolute;
+  width:2px;
+  height:60px;
+  background:rgba(255,255,255,0.65);
+  bottom:-80px;
+  left:20%;
+  filter:blur(1px);
+  animation:shoot-up 3.4s linear infinite;
 }
 
-.logos__inner .streak3 {
-  content:"";
-  left: 45%;
-  animation: shoot-up 5.2s linear infinite .7s;
+.logos::after {
+  left:70%;
+  animation-duration:4.7s;
+  animation-delay:1.2s;
 }
 
 @keyframes shoot-up {
@@ -107,6 +103,11 @@
   100%{ transform:translateY(-260px) scaleY(1.2); opacity:0; }
 }
 
+  .logos__inner {
+    max-width: min(1480px, 94vw);
+    margin: 0 auto;
+    padding: 0 12px;
+  }
   .logos__title {
     text-align: center;
     font-weight: 800;
