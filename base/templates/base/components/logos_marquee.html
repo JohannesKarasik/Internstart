@@ -61,63 +61,75 @@
      - No inner “modal” panel behind logos
      Tune intensity via the variables below.
   ======================================================== */
-  :root{
-    --hex: 96px;                      /* bigger hex = calmer texture */
-    --hex-alpha: .018;                /* overall hex visibility */
-    --hex-tint: 15, 23, 42;           /* deep slate tone for neutrality */
 
-    --logos-gap: clamp(16px, 2.2vw, 28px);
-    --logos-pad-y: clamp(28px, 5vw, 60px);
-    --section-pad-y: clamp(36px, 6vw, 84px);
+    :root{
+  /* ...existing vars... */
+  --accent: 255, 47, 90;          /* #FF2F5A as RGB */
+  --accent-alpha: .045;           /* global tint strength (0.0–0.10) */
+  --accent-blush-alpha: .06;      /* radial center wash (0.0–0.12) */
+}
 
-    --logos-card: #ffffff;
-    --logos-border: #eef2f7;
-    --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
-  }
+/* Light, blended background with a whisper of #FF2F5A */
+.logos{
+  position: relative;
+  padding: var(--section-pad-y) 0;
 
-  .logos{
-    position: relative;
-    padding: var(--section-pad-y) 0;
-    background: #fff;                 /* keep page light */
-    border-top: 1px solid #eef2f7;
-    overflow: hidden;
-    isolation: isolate;
-  }
+  /* Layered gradients:
+     1) Diagonal white→tint→white pass
+     2) Base white to keep it clean
+  */
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,1) 0%,
+      rgba(var(--accent), var(--accent-alpha)) 18%,
+      rgba(255,255,255,1) 52%,
+      rgba(var(--accent), calc(var(--accent-alpha) * .9)) 78%,
+      rgba(255,255,255,1) 100%
+    ),
+    #fff;
 
-  /* ultra-subtle hex pattern, faded strongly */
-  .logos::before{
-    content:"";
-    position:absolute; inset:-6% 0 -8%;
-    z-index:0; pointer-events:none;
+  border-top: 1px solid #eef2f7;
+  overflow: hidden;
+  isolation: isolate;
+}
 
-    --w: var(--hex);
-    --h: calc(var(--hex) * 0.866);
+/* Keep your hex pattern, but add a *very faint* accent blush */
+.logos::before{
+  content:"";
+  position:absolute; inset:-6% 0 -8%;
+  z-index:0; pointer-events:none;
 
-    background:
-      /* mild center wash to keep attention on logos */
-      radial-gradient(60% 50% at 50% 45%, rgba(255,255,255,.9), rgba(255,255,255,.96)),
-      /* the actual hex pattern (very faint) */
-      conic-gradient(from 30deg at 50% calc(50%/0.866),
-        rgba(var(--hex-tint),0) 0 60deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
-        rgba(var(--hex-tint),0) 0 180deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
-        rgba(var(--hex-tint),0) 0 300deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0)  calc(var(--w)/2) 0 / var(--w) var(--h),
-      conic-gradient(from -30deg at 50% calc(50%/0.866),
-        rgba(var(--hex-tint),0) 0 60deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
-        rgba(var(--hex-tint),0) 0 180deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
-        rgba(var(--hex-tint),0) 0 300deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0)  0 0 / var(--w) var(--h);
+  --w: var(--hex);
+  --h: calc(var(--hex) * 0.866);
 
-    /* soften more toward edges (nearly invisible) */
-    -webkit-mask-image:
-      radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
-            mask-image:
-      radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
-  }
+  background:
+    /* warm radial blush using the accent */
+    radial-gradient(60% 50% at 50% 45%,
+      rgba(var(--accent), var(--accent-blush-alpha)),
+      rgba(255,255,255,.96) 60%
+    ),
+    /* existing hex pattern (unchanged from yours) */
+    conic-gradient(from 30deg at 50% calc(50%/0.866),
+      rgba(var(--hex-tint),0) 0 60deg,
+      rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
+      rgba(var(--hex-tint),0) 0 180deg,
+      rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
+      rgba(var(--hex-tint),0) 0 300deg,
+      rgba(var(--hex-tint),var(--hex-alpha)) 0)  calc(var(--w)/2) 0 / var(--w) var(--h),
+    conic-gradient(from -30deg at 50% calc(50%/0.866),
+      rgba(var(--hex-tint),0) 0 60deg,
+      rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
+      rgba(var(--hex-tint),0) 0 180deg,
+      rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
+      rgba(var(--hex-tint),0) 0 300deg,
+      rgba(var(--hex-tint),var(--hex-alpha)) 0)  0 0 / var(--w) var(--h);
+
+  -webkit-mask-image:
+    radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
+          mask-image:
+    radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
+}
+
 
   .logos__inner{
     max-width: min(1480px, 94vw);
