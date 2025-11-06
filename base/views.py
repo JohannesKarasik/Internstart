@@ -852,7 +852,7 @@ def loginPage(request, template='base/login_register.html'):
     # ✅ Fix: Only redirect authenticated *and active* users
     if request.user.is_authenticated and request.user.is_active:
         print("🧭 LOGIN: already authenticated -> redirecting to swipe_view")
-        return redirect('swipe_view')
+        return redirect('swipe_static_view')
 
     if request.method == 'POST':
         # Accept either <input name="username"> or <input name="email">
@@ -1109,6 +1109,67 @@ def swipe_view(request):
     return render(request, "base/swipe_component.html", context)
 
 
+
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+
+@login_required
+def swipe_static_view(request):
+    """
+    Post-signup teaser: identical UI to real swipe, but any swipe action opens payment.
+    No overlay_waiting. No subscription requirement. Just a preview that looks real.
+    """
+    user = request.user
+
+    q = request.GET.get('q') or ''
+    page = int(request.GET.get('page', 1))
+    swiped_ids = SwipedJob.objects.filter(user=user).values_list('room_id', flat=True)
+
+    rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
+        Q(topic__name__icontains=q) |
+        Q(description__icontains=q)
+    ).order_by('id')
+
+    # If student, still show relevant jobs (nice touch)
+    if getattr(user, 'role', None) == 'student':
+        rooms_qs = rooms_qs.filter(
+            industry=user.student_industry,
+            country=user.country,
+            job_type=user.job_type
+        )
+
+    paginator = Paginator(rooms_qs, 5)
+    rooms = paginator.get_page(page)
+
+    partial = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    topics = Topic.objects.all()[:5]
+    room_count = rooms_qs.count()
+
+    context = {
+        # Always zeros to emphasize preview if you show counters
+        "swipes_left": 0,
+        "swipe_limit": 0,
+        "rooms": rooms,
+        "topics": topics,
+        "room_count": room_count,
+        "user_profile": user,
+        "first_login": False,  # don’t flip onboarding here
+        "email_configured": getattr(user, "email_configured", False),
+        "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+        "partial": partial,
+        "TEASER_MODE": True,  # template/JS flag if you want special text
+    }
+
+    # AJAX page loads (if you use infinite scroll)
+    if partial:
+        context["rooms"] = rooms.object_list
+        html = render_to_string("base/swipe_cards.html", context, request=request)
+        return HttpResponse(html)
+
+    # 👇 This is the new template (a copy of your real one but with teaser JS)
+    return render(request, "base/swipe_component_static.html", context)
 
 
 @login_required

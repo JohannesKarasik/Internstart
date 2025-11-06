@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Static Swipe Component — Demo</title>
+
+  <!-- Fonts (optional) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===== Keep your existing CSS tokens/structure ===== */
+    :root{
+      --brand:#ed003c;--brand-50:rgba(237,0,60,.08);--brand-100:rgba(237,0,60,.18);
+      --brand-200:rgba(237,0,60,.28);--brand-400:#ff4f7a;--brand-600:#c0002f;
+      --bg:#0b0f1a;--panel:#0f1525;--ink:#e6eef8;--ink-600:#b8c2d3;--ink-500:#94a3b8;
+      --border:rgba(148,163,184,.22);--border-subtle:rgba(148,163,184,.12);
+      --elev-1:0 10px 26px rgba(2,6,23,.35);--elev-2:0 18px 48px rgba(2,6,23,.55);
+      --chrome-w:1200px;--chrome-pad:clamp(8px,3vw,24px);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    body{background:#0b0f1a}
+    main.layout{
+      position:relative;height:100dvh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:0;
+      background:radial-gradient(1100px 520px at 100% -10%, rgba(237,0,60,.10), transparent 60%),
+                 linear-gradient(135deg, #0b0f1a 0%, #0e162a 40%, #0b0f1a 100%);
+      transition:background 1s ease;overflow:hidden;color:var(--ink);
+    }
+
+    /* Minimal header + HUD from your original setup */
+    .custom-header{
+      position:fixed;top:12px;left:50%;transform:translateX(-50%);
+      width:min(var(--chrome-w),96vw);padding:0 var(--chrome-pad);
+      display:flex;align-items:center;justify-content:space-between;z-index:6;background:transparent
+    }
+    .theme-toggle{position:relative;width:56px;height:30px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.08);color:#fff;cursor:pointer}
+    .theme-toggle .tt-knob{position:absolute;top:50%;left:3px;transform:translateY(-50%);width:24px;height:24px;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:left .22s ease}
+    .tt-sun,.tt-moon{position:absolute;top:50%;transform:translateY(-50%);width:16px;height:16px}
+    .tt-sun{left:8px;color:#ffd34d}.tt-moon{right:8px;color:#93a4bd}
+    .header__account{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;padding:8px 10px;border-radius:10px}
+
+    .hud{position:fixed;top:56px;left:50%;transform:translateX(-50%);width:min(var(--chrome-w),96vw);
+      padding:0 var(--chrome-pad);display:flex;align-items:center;justify-content:space-between;z-index:3;font-weight:700}
+    .swipes-widget,.applied-widget{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid var(--border);padding:8px 12px;border-radius:12px;backdrop-filter:blur(6px)}
+    .swipes-widget__text span{font-size:16px;font-weight:800}
+    .swipes-widget__text small,.applied-widget__text small{display:block;font-size:11px;font-weight:600;opacity:.8}
+
+    /* Swipe deck */
+    .swipe-container{position:relative;width:min(440px,92vw);height:min(640px,calc(100dvh - 220px));perspective:1400px;z-index:1}
+    .swipe-card{--accent:#ed003c;--accent-soft:rgba(237,0,60,.16);--accent-glow:rgba(237,0,60,.14);
+      position:absolute;width:100%;height:100%;cursor:pointer;transform-style:preserve-3d;transition:transform .25s ease,opacity .25s ease}
+    .swipe-card.card-color-blue{--accent:#2ea7ff;--accent-soft:rgba(46,167,255,.16);--accent-glow:rgba(46,167,255,.14)}
+    .swipe-card.card-color-yellow{--accent:#ffb21e;--accent-soft:rgba(255,178,30,.16);--accent-glow:rgba(255,178,30,.14)}
+
+    .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .35s ease;border-radius:22px}
+    .card-front,.card-back{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;padding:26px 22px 28px;box-sizing:border-box}
+    .card-front{
+      color:#e8eef9;background:
+        radial-gradient(120% 90% at 16% 0%, var(--accent-soft), transparent 58%),
+        linear-gradient(180deg, #0f1527 0%, #0c1426 100%);
+      border:1px solid rgba(148,163,184,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.06), var(--elev-2), 0 0 26px var(--accent-glow)
+    }
+    .card-back{color:#d7dfef;background:linear-gradient(180deg,#10192b,#0c1324);border:1px solid rgba(148,163,184,.16);transform:rotateY(180deg);align-items:flex-start;text-align:left;overflow-y:auto}
+    .logo-frame{display:inline-flex;align-items:center;justify-content:center;padding:10px;border-radius:18px;margin-bottom:10px;border:1px solid rgba(255,255,255,.08)}
+    .company-logo{display:block;max-width:88%;max-height:200px;object-fit:contain;margin:2px auto;border-radius:14px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.18))}
+    .title-block{text-align:center;margin-top:8px}
+    .title-block h4{margin:0 0 10px;font-size:13px;color:#a8b3c7;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+    .title-block h3{margin:6px 0;font-size:28px;color:#f2f6ff;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+    .title-block h2{margin:8px 0 10px;font-size:16px;color:#c9d6ea;font-weight:700;letter-spacing:.02em}
+    .meta{margin:12px 0 0;font-size:12px;color:#c0cbe0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);padding:6px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+    .meta .dot{display:inline-block;width:6px;height:6px;border-radius:999px;background:var(--accent);transform:translateY(-1px)}
+    .info-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+    .badge{background:rgba(255,255,255,.06);color:#e9f0ff;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid rgba(255,255,255,.10)}
+    .badge--brand{background:var(--accent-soft);color:#fff;border-color:rgba(237,0,60,.22)}
+    .badge--hot{background:rgba(255,87,87,.14);color:#fecaca;border-color:#fecaca22}
+    .card-cta{margin-top:auto;width:100%;display:flex;justify-content:space-between;align-items:center;padding:20px}
+    .swipe-btn{height:60px;aspect-ratio:1/1;border-radius:999px;border:1px solid rgba(255,255,255,.12);
+      background:radial-gradient(120% 140% at 50% 0%, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px rgba(2,6,23,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;color:#e7eefc;transition:.14s ease}
+    .swipe-btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.24), 0 14px 34px rgba(2,6,23,.44), 0 0 0 8px var(--accent-soft)}
+    .btn-ripple{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,.25), transparent 40%);opacity:0;transition:opacity .3s}
+    .btn-ripple.run{opacity:1}
+    .stamp{position:absolute;top:12px;right:12px;padding:6px 10px;font-weight:900;letter-spacing:.12em;border-radius:8px;transform:scale(.9) translateY(-6px);opacity:0;transition:.25s ease;font-size:10px}
+    .stamp--apply{color:#ffd6df;background:rgba(237,0,60,.14);border:1px solid rgba(237,0,60,.28)}
+    .stamp--dismiss{left:12px;right:auto;color:#fecaca;background:#7f1d1d40;border:1px solid #fecaca33}
+    .stamp.show{transform:scale(1) translateY(0);opacity:1}
+
+    .toast{position:fixed;top:8px;right:30px;z-index:10000;background:linear-gradient(180deg,#0b1220,#0e1729);color:#fff;border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 14px 36px rgba(2,6,23,.36);opacity:0;transform:translateY(-8px);transition:.2s;font-weight:700}
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    /* “No swipes” modal (cosmetic) */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999}
+    .modal.show{display:flex}
+    .modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px)}
+    .modal__dialog{position:relative;background:#0e162a;border-radius:16px;padding:28px 24px;max-width:980px;width:min(95vw,980px);box-shadow:0 18px 36px rgba(0,0,0,.5);z-index:2;color:#f5f5f5}
+    .modal__close{position:absolute;top:12px;right:12px;border:none;background:none;font-size:22px;color:#aaa;cursor:pointer}
+    .modal__content h2{margin:0 0 12px;font-size:22px;font-weight:700}
+    .modal__plans{display:flex;gap:1rem;align-items:stretch;justify-content:space-between;flex-wrap:nowrap;margin:1rem 0}
+    .plan-card{border:1px solid #2a2f3a;border-radius:12px;padding:1rem;flex:1 1 0;min-width:0}
+    .btn-primary{padding:10px 16px;border-radius:12px;background:var(--brand);color:#fff;border:0;font-weight:800;cursor:pointer}
+    @media (max-width:768px){.modal__plans{flex-direction:column}}
+  </style>
+</head>
+<body>
+
+<main
+  class="layout"
+  data-user-id="anon"
+  data-first-login="false"
+  data-email-configured="false"
+  data-plan="free"
+  data-plan-label="Free"
+>
+
+  <!-- Header -->
+  <header class="custom-header">
+    <div class="header-left">
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle light mode" aria-pressed="false" title="Toggle light / dark">
+        <span class="tt-knob"></span>
+        <svg class="tt-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
+      </button>
+    </div>
+
+    <a class="header__account" href="#" aria-label="Account">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+      </svg>
+    </a>
+  </header>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud__left">
+      <div class="swipes-widget" id="swipesWidget" aria-live="polite" role="status">
+        <div class="swipes-widget__icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>
+        </div>
+        <div class="swipes-widget__text">
+          <span id="swipesLeft">10</span>
+          <small>Swipes left</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud__right">
+      <div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
+        <div class="applied-widget__icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="applied-widget__text">
+          <span id="appliedCount">0</span>
+          <small>Applied</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Swipe Deck -->
+  <div class="swipe-container" id="swipeDeck">
+    <!-- Card 1 -->
+    <div class="swipe-card card-color-pink" data-room-id="demo-1" role="button" aria-label="Flip card to see more info" tabindex="0">
+      <div class="card-inner" aria-live="polite">
+        <div class="card-front">
+          <div class="logo-frame">
+            <img src="/static/images/netflix.png" alt="Netflix" class="company-logo" />
+          </div>
+          <div class="title-block">
+            <h4>Netflix</h4>
+            <h3>Marketing Intern</h3>
+            <h2>Content & Growth</h2>
+            <p class="meta"><span class="dot"></span> Copenhagen, DK</p>
+          </div>
+          <div class="info-badges">
+            <span class="badge badge--hot">🔥 Hot</span>
+            <span class="badge">Full-time</span>
+            <span class="badge badge--brand">Hybrid</span>
+          </div>
+          <div class="card-cta">
+            <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
+              <span class="btn-ripple"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+              <span class="btn-ripple"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
+          <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
+        </div>
+
+        <div class="card-back">
+          <h3>Netflix</h3>
+          <h4>Content & Growth</h4>
+          <p class="location">📍 Copenhagen, DK</p>
+          <div class="divider" style="height:1px;width:100%;background:#22304a;margin:10px 0 12px;"></div>
+          <p class="desc">Help shape editorial calendars, run A/B tests, and support partnerships. SQL basics and strong writing are a plus.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="swipe-card card-color-blue" data-room-id="demo-2" role="button" aria-label="Flip card to see more info" tabindex="0">
+      <div class="card-inner" aria-live="polite">
+        <div class="card-front">
+          <div class="logo-frame">
+            <img src="/static/images/airbnb.png" alt="Airbnb" class="company-logo" />
+          </div>
+          <div class="title-block">
+            <h4>Airbnb</h4>
+            <h3>Data Analyst Intern</h3>
+            <h2>Marketplace Analytics</h2>
+            <p class="meta"><span class="dot"></span> Stockholm, SE</p>
+          </div>
+          <div class="info-badges">
+            <span class="badge">Internship</span>
+            <span class="badge badge--brand">Remote</span>
+          </div>
+          <div class="card-cta">
+            <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
+              <span class="btn-ripple"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+              <span class="btn-ripple"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
+          <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
+        </div>
+
+        <div class="card-back">
+          <h3>Airbnb</h3>
+          <h4>Marketplace Analytics</h4>
+          <p class="location">📍 Stockholm, SE</p>
+          <div class="divider" style="height:1px;width:100%;background:#22304a;margin:10px 0 12px;"></div>
+          <p class="desc">Analyze listing performance and trust signals. Build dashboards and run exploratory analyses. Python preferred.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="swipe-card card-color-yellow" data-room-id="demo-3" role="button" aria-label="Flip card to see more info" tabindex="0">
+      <div class="card-inner" aria-live="polite">
+        <div class="card-front">
+          <div class="logo-frame">
+            <img src="/static/images/spotify.png" alt="Spotify" class="company-logo" />
+          </div>
+          <div class="title-block">
+            <h4>Spotify</h4>
+            <h3>Growth Intern</h3>
+            <h2>Product Marketing</h2>
+            <p class="meta"><span class="dot"></span> Madrid, ES</p>
+          </div>
+          <div class="info-badges">
+            <span class="badge">Full-time</span>
+            <span class="badge badge--brand">In-office</span>
+          </div>
+          <div class="card-cta">
+            <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
+              <span class="btn-ripple"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+              <span class="btn-ripple"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
+          <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
+        </div>
+
+        <div class="card-back">
+          <h3>Spotify</h3>
+          <h4>Product Marketing</h4>
+          <p class="location">📍 Madrid, ES</p>
+          <div class="divider" style="height:1px;width:100%;background:#22304a;margin:10px 0 12px;"></div>
+          <p class="desc">Support launches, track funnel metrics, and coordinate creator campaigns. SQL/Looker a plus.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="loadMoreSentinel" style="height:1px;"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- No swipes modal (cosmetic only) -->
+  <div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop"></div>
+    <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle">
+      <button class="modal__close" aria-label="Close">&times;</button>
+      <div class="modal__content">
+        <h2 id="noSwipesTitle">No more swipes</h2>
+        <p>You’ve used all demo swipes. Upgrade (in the real app) to keep swiping 🚀</p>
+
+        <div class="modal__plans">
+          <div class="plan-card">
+            <h3>Starter</h3>
+            <div style="font-size:1.25rem;font-weight:700;">99 DKK<span style="font-weight:400;font-size:.95rem;">/mo</span></div>
+            <ul style="margin:.75rem 0 1rem 1rem;padding:0;line-height:1.5;">
+              <li>10 daily swipes</li><li>Unlimited Skips</li>
+            </ul>
+            <button class="btn-primary" data-close>Okay</button>
+          </div>
+          <div class="plan-card">
+            <h3>Pro</h3>
+            <div style="font-size:1.25rem;font-weight:700;">199 DKK<span style="font-weight:400;font-size:.95rem;">/mo</span></div>
+            <ul style="margin:.75rem 0 1rem 1rem;padding:0;line-height:1.5;">
+              <li>25 daily swipes</li><li>Unlimited Skips</li>
+            </ul>
+            <button class="btn-primary" data-close>Okay</button>
+          </div>
+          <div class="plan-card">
+            <h3>Elite</h3>
+            <div style="font-size:1.25rem;font-weight:700;">299 DKK<span style="font-weight:400;font-size:.95rem;">/mo</span></div>
+            <ul style="margin:.75rem 0 1rem 1rem;padding:0;line-height:1.5;">
+              <li>40 daily swipes</li><li>Unlimited Skips</li>
+            </ul>
+            <button class="btn-primary" data-close>Okay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Theme toggle (local only)
+  (function(){
+    const root = document.documentElement;
+    const btn = document.getElementById('themeToggle');
+    const KEY = 'theme_v1';
+    function apply(mode){ root.classList.toggle('theme-light', mode === 'light'); btn?.setAttribute('aria-pressed', mode==='light'?'true':'false'); }
+    apply(localStorage.getItem(KEY) || 'dark');
+    btn?.addEventListener('click', ()=> {
+      const next = root.classList.contains('theme-light') ? 'dark' : 'light';
+      localStorage.setItem(KEY, next); apply(next);
+    });
+  })();
+
+  // Minimal swipe logic (no server calls)
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('swipeDeck');
+    const toastEl = document.getElementById('toast');
+    const appliedCountEl = document.getElementById('appliedCount');
+    const swipesLeftEl = document.getElementById('swipesLeft');
+    const noSwipesModal = document.getElementById('noSwipesModal');
+
+    function cards(){ return Array.from(container.querySelectorAll('.swipe-card')); }
+    function showToast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), 1200); }
+
+    function styleStack(){
+      const list = cards();
+      list.forEach(c => {
+        c.style.display = 'none';
+        c.style.zIndex = '';
+        c.style.pointerEvents = 'none';
+        c.classList.remove('is-top','is-next');
+      });
+      const top = list[list.length-1], next = list[list.length-2];
+      if (next){ next.style.display='block'; next.style.zIndex=5; next.classList.add('is-next'); next.style.transform='scale(.97) translateY(5px)'; next.style.opacity='.9' }
+      if (top){ top.style.display='block'; top.style.zIndex=10; top.classList.add('is-top'); top.style.transform='scale(1) translateY(0)'; top.style.opacity='1'; top.style.pointerEvents='auto'; }
+    }
+    styleStack();
+
+    function stamp(card, type){
+      const el = card.querySelector(type==='right' ? '.stamp--apply' : '.stamp--dismiss');
+      if (!el) return; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+      setTimeout(()=> el.classList.remove('show'), 450);
+    }
+
+    function throwCard(direction='right'){
+      const list = cards(); if (!list.length) return;
+      const current = list[list.length-1];
+
+      // quota: local only
+      if (direction==='right'){
+        const left = parseInt(swipesLeftEl.textContent||'0',10);
+        if (left <= 0){
+          noSwipesModal.classList.add('show');
+          document.documentElement.style.overflow='hidden';
+          return;
+        }
+      }
+
+      stamp(current, direction);
+
+      if (direction==='right'){
+        const start = parseInt(swipesLeftEl.textContent||'0',10);
+        swipesLeftEl.textContent = String(Math.max(0, start-1));
+        appliedCountEl.textContent = String(parseInt(appliedCountEl.textContent||'0',10)+1);
+        showToast('Applied!');
+      } else {
+        showToast('Skipped');
+      }
+
+      const x = direction==='right' ? innerWidth*1.2 : -innerWidth*1.2;
+      const y = Math.random()*80 - 40;
+      const rot = direction==='right' ? 22 : -22;
+      current.style.transition = 'transform .7s cubic-bezier(0.22,1,0.36,1), opacity .7s ease';
+      current.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) scale(1.02)`;
+      current.style.opacity = 0;
+
+      setTimeout(()=>{ current.remove(); styleStack(); }, 680);
+    }
+
+    // Clicking a card flips it (except button areas)
+    container.addEventListener('click', (e)=>{
+      if (e.target.closest('.swipe-btn')) return;
+      const card = e.target.closest('.swipe-card'); if (!card) return;
+      card.querySelector('.card-inner')?.classList.toggle('is-flipped');
+    });
+
+    // Buttons
+    container.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.swipe-btn'); if (!btn) return;
+      e.stopPropagation();
+      const r = btn.querySelector('.btn-ripple');
+      if (r){
+        const rect = btn.getBoundingClientRect();
+        r.style.setProperty('--x', (e.clientX - rect.left)+'px');
+        r.style.setProperty('--y', (e.clientY - rect.top)+'px');
+        r.classList.remove('run'); void r.offsetWidth; r.classList.add('run');
+      }
+      if (btn.classList.contains('swipe-left'))  return void throwCard('left');
+      if (btn.classList.contains('swipe-right')) return void throwCard('right');
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'ArrowLeft')  throwCard('left');
+      if (e.key === 'ArrowRight') throwCard('right');
+    });
+
+    // Close modal
+    noSwipesModal?.addEventListener('click', (e)=>{
+      if (e.target.matches('.modal__close,[data-close],.modal__backdrop')){
+        noSwipesModal.classList.remove('show'); document.documentElement.style.overflow='';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

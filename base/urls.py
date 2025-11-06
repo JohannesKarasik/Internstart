@@ -5,6 +5,9 @@ from django.urls import path
 from .forms import EmployerCompanyForm, EmployerPersonalForm
 from django.urls import path, include
 from django.shortcuts import redirect
+from .views import swipe_static_view
+
+
 
 
 
@@ -69,6 +72,8 @@ urlpatterns = [
     path('dk/', views.landing_page_dk, name='landing_page_dk'),
     path('da/login/', views.login_view, name='app_login_dk'),
     path('da/register/', views.register_view, name='register_dk'),
+    path('swipe/preview/', swipe_static_view, name='swipe_static_view'),
+
 
 
 
