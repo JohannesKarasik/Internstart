@@ -56,68 +56,33 @@
 
 <style>
   /* =======================================================
-     Softer, low-key embossed hex backdrop (very subtle)
-     - White base, whisper-grey hexes
-     - No inner “modal” panel behind logos
-     Tune intensity via the variables below.
+     Marquee: solid brand background with tighter side fades
   ======================================================== */
   :root{
-    --hex: 96px;                      /* bigger hex = calmer texture */
-    --hex-alpha: .018;                /* overall hex visibility */
-    --hex-tint: 15, 23, 42;           /* deep slate tone for neutrality */
+    --hex: 96px;
+    --hex-alpha: .018;
+    --hex-tint: 15, 23, 42;
 
     --logos-gap: clamp(16px, 2.2vw, 28px);
     --logos-pad-y: clamp(28px, 5vw, 60px);
     --section-pad-y: clamp(36px, 6vw, 84px);
 
     --logos-card: #ffffff;
-    --logos-border: #eef2f7;
-    --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
+    --logos-border: rgba(255,255,255,.35);
+    --logos-shadow: 0 8px 24px rgba(2,8,23,.10);
   }
 
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    background: #fff;                 /* keep page light */
-    border-top: 1px solid #eef2f7;
+    background: #FF2F5A;             /* solid brand background */
+    border-top: 0;
     overflow: hidden;
     isolation: isolate;
   }
 
-  /* ultra-subtle hex pattern, faded strongly */
-  .logos::before{
-    content:"";
-    position:absolute; inset:-6% 0 -8%;
-    z-index:0; pointer-events:none;
-
-    --w: var(--hex);
-    --h: calc(var(--hex) * 0.866);
-
-    background:
-      /* mild center wash to keep attention on logos */
-      radial-gradient(60% 50% at 50% 45%, rgba(255,255,255,.9), rgba(255,255,255,.96)),
-      /* the actual hex pattern (very faint) */
-      conic-gradient(from 30deg at 50% calc(50%/0.866),
-        rgba(var(--hex-tint),0) 0 60deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
-        rgba(var(--hex-tint),0) 0 180deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
-        rgba(var(--hex-tint),0) 0 300deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0)  calc(var(--w)/2) 0 / var(--w) var(--h),
-      conic-gradient(from -30deg at 50% calc(50%/0.866),
-        rgba(var(--hex-tint),0) 0 60deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
-        rgba(var(--hex-tint),0) 0 180deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
-        rgba(var(--hex-tint),0) 0 300deg,
-        rgba(var(--hex-tint),var(--hex-alpha)) 0)  0 0 / var(--w) var(--h);
-
-    /* soften more toward edges (nearly invisible) */
-    -webkit-mask-image:
-      radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
-            mask-image:
-      radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
-  }
+  /* remove the previous hex/wash overlay so red is clean */
+  .logos::before{ content: none; }
 
   .logos__inner{
     max-width: min(1480px, 94vw);
@@ -132,7 +97,7 @@
     font-weight: 800;
     letter-spacing: -0.01em;
     font-size: clamp(16px, 2.3vw, 22px);
-    color: #0f172a;
+    color: #fff;                     /* readable on red */
     margin-bottom: 14px;
   }
 
@@ -144,13 +109,25 @@
     flex-direction: column;
     gap: 18px;
 
-    /* no modal-like panel; just side fades */
     background: transparent;
     border: 0;
     box-shadow: none;
 
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+    /* tighter side fades (closer to page edges) */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 2.5%,
+      #000 97.5%,
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 2.5%,
+      #000 97.5%,
+      transparent 100%
+    );
   }
 
   .logos__track{
@@ -196,38 +173,6 @@
   @media (prefers-reduced-motion: reduce){
     .logos__track{ animation: none !important; }
   }
-
-
-  /* === Marquee background: solid #FF2F5A, full-bleed === */
-.logos{
-  background: #ff7c97 !important;
-  border-top: 0;            /* optional: remove the light divider */
-}
-
-/* Remove the faint hex + wash overlay */
-.logos::before{
-  content: none !important;
-  background: none !important;
-}
-
-/* Show everything edge-to-edge (remove side fade mask) */
-.logos__viewport{
-  -webkit-mask-image: none !important;
-          mask-image: none !important;
-}
-
-/* Ensure good contrast on red background */
-.logos__title{
-  color: #fff !important;
-}
-
-/* Optional: lighten card chrome to sit better on red */
-:root{
-  --logos-card: #ffffff;                 /* stays white */
-  --logos-border: rgba(255,255,255,.35); /* softer edge on red */
-  --logos-shadow: 0 6px 18px rgba(0,0,0,.10);
-}
-
 </style>
 
 <script>
