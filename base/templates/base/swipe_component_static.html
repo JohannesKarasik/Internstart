@@ -460,94 +460,85 @@
     document.documentElement.style.overflow = 'hidden';
   });
 </script>
-        </div>
+</div>
 
+<!-- ===== Deck / Cards ===== -->
+<div class="swipe-container" id="swipeDeck">
 
+{% for room in rooms %}
+<div class="swipe-card {% cycle 'card-color-pink' 'card-color-blue' 'card-color-yellow' %}"
+     data-room-id="{{ room.id }}"
+     role="button"
+     aria-label="Flip card to see more info"
+     tabindex="0"
+     style="position:absolute; width:100%; height:100%; cursor:pointer; transform-style:preserve-3d;">
+  <div class="card-inner" aria-live="polite">
+    <!-- FRONT -->
+    <div class="card-front">
 
+      <!-- NEW: Clearbit logo -->
+      <div class="logo-frame">
+        <img src="https://logo.clearbit.com/{{ static_domain }}" alt="{{ static_company }}" class="company-logo" loading="lazy">
+      </div>
 
+      <div class="title-block">
+        <h4>{{ static_company }}</h4>
+        <h3>{{ static_title }}</h3>
+        <h2>{{ static_role }}</h2>
+        <p class="meta"><span class="dot"></span> Copenhagen, DK</p>
+      </div>
 
-        <!-- ===== Deck / Cards ===== -->
-        <div class="swipe-container" id="swipeDeck">
+      <div class="info-badges">
+        <span class="badge badge--hot">🔥 Hot</span>
+        <span class="badge">Full-time</span>
+        <span class="badge badge--brand">In-office</span>
+      </div>
 
-    
-        {% for room in rooms %}
-        <div class="swipe-card {% cycle 'card-color-pink' 'card-color-blue' 'card-color-yellow' %}"
-             data-room-id="{{ room.id }}"
-             role="button"
-             aria-label="Flip card to see more info"
-             tabindex="0"
-             style="position:absolute; width:100%; height:100%; cursor:pointer; transform-style:preserve-3d;">
-          <div class="card-inner" aria-live="polite">
-            <!-- FRONT -->
-            <div class="card-front">
-              {% if room.logo %}
-                <div class="logo-frame">
-                  <img src="{{ room.logo.url }}" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
-                </div>
-              {% else %}
-                <div class="logo-frame">
-                  <img src="/static/images/fallback-logo.png" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
-                </div>
-              {% endif %}
-              
-              <div class="title-block">
-                <h4>{{ static_company }}</h4>
-                <h3>{{ static_title }}</h3>
-                <h2>{{ static_role }}</h2>
-                <p class="meta"><span class="dot"></span> Copenhagen, DK</p>
-            </div>
-    
-              <div class="info-badges">
-                <span class="badge badge--hot">🔥 Hot</span>
-                <span class="badge">Full-time</span>
-                <span class="badge badge--brand">In-office</span>
-              </div>
-    
-              <!-- Actions -->
-              <div class="card-cta">
-                <!-- Skip (X) -->
-                <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
-                  <span class="btn-ripple"></span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
-                       viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"
-                       stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-    
-                <!-- Send / Apply (✓) -->
-                <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
-                  <span class="btn-ripple"></span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
-                       viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2"
-                       stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
-                </button>
-              </div>
-    
-              <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
-              <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
-              
-            </div>
-    
-            <!-- BACK -->
-            <div class="card-back">
-              <h3>{{ room.company_name }}</h3>
-              <h4>{{ room.role }}</h4>
-              <p class="location">📍 {{ room.location }}</p>
-              <div class="divider"></div>
-              <p class="desc">{{ room.description }}</p>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-    
-          <div id="loadMoreSentinel" style="height:1px;"></div>
-        </div>
+      <!-- Actions -->
+      <div class="card-cta">
+        <!-- Skip (X) -->
+        <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
+          <span class="btn-ripple"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
+               viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <!-- Send / Apply (✓) -->
+        <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+          <span class="btn-ripple"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
+               viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+
+      <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
+      <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
       
+    </div>
+
+    <!-- BACK -->
+    <div class="card-back">
+      <h3>{{ static_company }}</h3>
+      <h4>{{ static_role }}</h4>
+      <p class="location">📍 Copenhagen, DK</p>
+      <div class="divider"></div>
+      <p class="desc">AI generated example job. Upgrade to unlock real job listings in your category.</p>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+  <div id="loadMoreSentinel" style="height:1px;"></div>
+</div>
+
 
     
 

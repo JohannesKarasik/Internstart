@@ -1128,6 +1128,7 @@ def swipe_static_view(request):
     fake_company = "Tesla"
     fake_title = "Growth Intern"
     fake_role = "Marketing Analytics Intern"
+    fake_domain = "tesla.com"
 
     # detect language based on user.country (model Country field)
     lang = "english"
@@ -1137,16 +1138,19 @@ def swipe_static_view(request):
     if dt:
         try:
             prompt = f"""
-            Generate a realistic company and job title that matches this desired job title: '{dt}'.
-            Write it in {lang}.
+            Pick 1 real company in {user.country} that fits the desired job title '{dt}'.
+            Return a realistic job posting.
+
+            Write text fields in {lang}.
+
             Return ONLY valid JSON like:
-            {{"company":"...", "title":"...", "role":"..."}}
+            {{"company":"...", "domain":"...", "title":"...", "role":"..."}}
             """
 
             completion = client.chat.completions.create(
                 model="gpt-5",
                 messages=[
-                    {"role":"system","content":"You generate realistic job postings."},
+                    {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
                     {"role":"user","content": prompt}
                 ],
             )
@@ -1154,8 +1158,9 @@ def swipe_static_view(request):
             import json
             obj = json.loads(completion.choices[0].message.content)
             fake_company = obj.get("company", fake_company)
-            fake_title = obj.get("title", fake_title)
-            fake_role = obj.get("role", fake_role)
+            fake_title   = obj.get("title", fake_title)
+            fake_role    = obj.get("role", fake_role)
+            fake_domain  = obj.get("domain", fake_domain)
         except:
             pass
     # ---------------------------------------------------
@@ -1166,7 +1171,7 @@ def swipe_static_view(request):
 
     rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
         Q(topic__name__icontains=q) |
-        Q(description__icontains=q)
+        Q(description__icontains?q)
     ).order_by('id')
 
     # 🔒 Safe student preference filter
@@ -1201,10 +1206,11 @@ def swipe_static_view(request):
         "partial": partial,
         "TEASER_MODE": True,
 
-        # --- NEW: send generated fake job to template ---
+        # --- NEW: send generated fake job + domain to template ---
         "static_company": fake_company,
         "static_title": fake_title,
         "static_role": fake_role,
+        "static_domain": fake_domain,  # use this in clearbit
     }
 
     if partial:
