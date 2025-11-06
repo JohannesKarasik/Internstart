@@ -56,13 +56,9 @@
 
 <style>
   /* =======================================================
-     Marquee: solid brand background with tighter side fades
+     Marquee: solid brand background, true edge-to-edge rows
   ======================================================== */
   :root{
-    --hex: 96px;
-    --hex-alpha: .018;
-    --hex-tint: 15, 23, 42;
-
     --logos-gap: clamp(16px, 2.2vw, 28px);
     --logos-pad-y: clamp(28px, 5vw, 60px);
     --section-pad-y: clamp(36px, 6vw, 84px);
@@ -75,19 +71,16 @@
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    background: #FF2F5A;             /* solid brand background */
+    background: #FF2F5A;
     border-top: 0;
     overflow: hidden;
     isolation: isolate;
   }
 
-  /* remove the previous hex/wash overlay so red is clean */
-  .logos::before{ content: none; }
-
   .logos__inner{
     max-width: min(1480px, 94vw);
     margin: 0 auto;
-    padding: 0 12px;
+    padding: 0 12px; /* keep normal page gutters for title only */
     position: relative;
     z-index: 1;
   }
@@ -97,13 +90,17 @@
     font-weight: 800;
     letter-spacing: -0.01em;
     font-size: clamp(16px, 2.3vw, 22px);
-    color: #fff;                     /* readable on red */
+    color: #fff;
     margin-bottom: 14px;
   }
 
   .logos__viewport{
+    /* FULL-BLEED: pull viewport out of the container gutters */
+    margin-inline: calc(50% - 50vw);
+    width: 100vw;
+
     overflow: hidden;
-    border-radius: 16px;
+    border-radius: 0;                 /* let content reach page edges */
     padding: var(--logos-pad-y) 0;
     display: flex;
     flex-direction: column;
@@ -113,22 +110,27 @@
     border: 0;
     box-shadow: none;
 
-    /* tighter side fades (closer to page edges) */
+    /* Fades start almost at the edge */
     -webkit-mask-image: linear-gradient(
       to right,
-      transparent 0,
-      #000 2.5%,
-      #000 97.5%,
+      transparent 0%,
+      #000 0.6%,
+      #000 99.4%,
       transparent 100%
     );
             mask-image: linear-gradient(
       to right,
-      transparent 0,
-      #000 2.5%,
-      #000 97.5%,
+      transparent 0%,
+      #000 0.6%,
+      #000 99.4%,
       transparent 100%
     );
   }
+
+  /* Optional: if you want a tiny corner rounding only on big screens
+  @media (min-width: 900px){
+    .logos__viewport{ border-radius: 12px; margin-inline: 0; width: auto; }
+  } */
 
   .logos__track{
     display: flex;
