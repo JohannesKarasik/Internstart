@@ -961,7 +961,7 @@ def registerPage(request, template='base/login_register.html'):
                 login(request, user)          # ✅ log them in right away
                 messages.success(request, "Welcome to Internstart! Your account is ready.")
                 print("🎉 User created successfully:", user.email)
-                return redirect('swipe_view') # or 'start_gmail_auth' if you want OAuth first
+                return redirect('swipe_static_view')
 
             # If form invalid
             print("❌ FORM ERRORS:", form.errors)

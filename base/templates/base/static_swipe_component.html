@@ -1,464 +1,3066 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Static Swipe Component — Demo</title>
 
-  <!-- Fonts (optional) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
-  <style>
-    /* ===== Keep your existing CSS tokens/structure ===== */
-    :root{
-      --brand:#ed003c;--brand-50:rgba(237,0,60,.08);--brand-100:rgba(237,0,60,.18);
-      --brand-200:rgba(237,0,60,.28);--brand-400:#ff4f7a;--brand-600:#c0002f;
-      --bg:#0b0f1a;--panel:#0f1525;--ink:#e6eef8;--ink-600:#b8c2d3;--ink-500:#94a3b8;
-      --border:rgba(148,163,184,.22);--border-subtle:rgba(148,163,184,.12);
-      --elev-1:0 10px 26px rgba(2,6,23,.35);--elev-2:0 18px 48px rgba(2,6,23,.55);
-      --chrome-w:1200px;--chrome-pad:clamp(8px,3vw,24px);
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    body{background:#0b0f1a}
-    main.layout{
-      position:relative;height:100dvh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:0;
-      background:radial-gradient(1100px 520px at 100% -10%, rgba(237,0,60,.10), transparent 60%),
-                 linear-gradient(135deg, #0b0f1a 0%, #0e162a 40%, #0b0f1a 100%);
-      transition:background 1s ease;overflow:hidden;color:var(--ink);
-    }
+{% load static %}
 
-    /* Minimal header + HUD from your original setup */
-    .custom-header{
-      position:fixed;top:12px;left:50%;transform:translateX(-50%);
-      width:min(var(--chrome-w),96vw);padding:0 var(--chrome-pad);
-      display:flex;align-items:center;justify-content:space-between;z-index:6;background:transparent
-    }
-    .theme-toggle{position:relative;width:56px;height:30px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.08);color:#fff;cursor:pointer}
-    .theme-toggle .tt-knob{position:absolute;top:50%;left:3px;transform:translateY(-50%);width:24px;height:24px;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:left .22s ease}
-    .tt-sun,.tt-moon{position:absolute;top:50%;transform:translateY(-50%);width:16px;height:16px}
-    .tt-sun{left:8px;color:#ffd34d}.tt-moon{right:8px;color:#93a4bd}
-    .header__account{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;padding:8px 10px;border-radius:10px}
+{% block content %}
+{% if not partial %}
 
-    .hud{position:fixed;top:56px;left:50%;transform:translateX(-50%);width:min(var(--chrome-w),96vw);
-      padding:0 var(--chrome-pad);display:flex;align-items:center;justify-content:space-between;z-index:3;font-weight:700}
-    .swipes-widget,.applied-widget{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid var(--border);padding:8px 12px;border-radius:12px;backdrop-filter:blur(6px)}
-    .swipes-widget__text span{font-size:16px;font-weight:800}
-    .swipes-widget__text small,.applied-widget__text small{display:block;font-size:11px;font-weight:600;opacity:.8}
-
-    /* Swipe deck */
-    .swipe-container{position:relative;width:min(440px,92vw);height:min(640px,calc(100dvh - 220px));perspective:1400px;z-index:1}
-    .swipe-card{--accent:#ed003c;--accent-soft:rgba(237,0,60,.16);--accent-glow:rgba(237,0,60,.14);
-      position:absolute;width:100%;height:100%;cursor:pointer;transform-style:preserve-3d;transition:transform .25s ease,opacity .25s ease}
-    .swipe-card.card-color-blue{--accent:#2ea7ff;--accent-soft:rgba(46,167,255,.16);--accent-glow:rgba(46,167,255,.14)}
-    .swipe-card.card-color-yellow{--accent:#ffb21e;--accent-soft:rgba(255,178,30,.16);--accent-glow:rgba(255,178,30,.14)}
-
-    .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .35s ease;border-radius:22px}
-    .card-front,.card-back{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;padding:26px 22px 28px;box-sizing:border-box}
-    .card-front{
-      color:#e8eef9;background:
-        radial-gradient(120% 90% at 16% 0%, var(--accent-soft), transparent 58%),
-        linear-gradient(180deg, #0f1527 0%, #0c1426 100%);
-      border:1px solid rgba(148,163,184,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.06), var(--elev-2), 0 0 26px var(--accent-glow)
-    }
-    .card-back{color:#d7dfef;background:linear-gradient(180deg,#10192b,#0c1324);border:1px solid rgba(148,163,184,.16);transform:rotateY(180deg);align-items:flex-start;text-align:left;overflow-y:auto}
-    .logo-frame{display:inline-flex;align-items:center;justify-content:center;padding:10px;border-radius:18px;margin-bottom:10px;border:1px solid rgba(255,255,255,.08)}
-    .company-logo{display:block;max-width:88%;max-height:200px;object-fit:contain;margin:2px auto;border-radius:14px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.18))}
-    .title-block{text-align:center;margin-top:8px}
-    .title-block h4{margin:0 0 10px;font-size:13px;color:#a8b3c7;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
-    .title-block h3{margin:6px 0;font-size:28px;color:#f2f6ff;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
-    .title-block h2{margin:8px 0 10px;font-size:16px;color:#c9d6ea;font-weight:700;letter-spacing:.02em}
-    .meta{margin:12px 0 0;font-size:12px;color:#c0cbe0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);padding:6px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
-    .meta .dot{display:inline-block;width:6px;height:6px;border-radius:999px;background:var(--accent);transform:translateY(-1px)}
-    .info-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
-    .badge{background:rgba(255,255,255,.06);color:#e9f0ff;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid rgba(255,255,255,.10)}
-    .badge--brand{background:var(--accent-soft);color:#fff;border-color:rgba(237,0,60,.22)}
-    .badge--hot{background:rgba(255,87,87,.14);color:#fecaca;border-color:#fecaca22}
-    .card-cta{margin-top:auto;width:100%;display:flex;justify-content:space-between;align-items:center;padding:20px}
-    .swipe-btn{height:60px;aspect-ratio:1/1;border-radius:999px;border:1px solid rgba(255,255,255,.12);
-      background:radial-gradient(120% 140% at 50% 0%, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px rgba(2,6,23,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;color:#e7eefc;transition:.14s ease}
-    .swipe-btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.24), 0 14px 34px rgba(2,6,23,.44), 0 0 0 8px var(--accent-soft)}
-    .btn-ripple{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,.25), transparent 40%);opacity:0;transition:opacity .3s}
-    .btn-ripple.run{opacity:1}
-    .stamp{position:absolute;top:12px;right:12px;padding:6px 10px;font-weight:900;letter-spacing:.12em;border-radius:8px;transform:scale(.9) translateY(-6px);opacity:0;transition:.25s ease;font-size:10px}
-    .stamp--apply{color:#ffd6df;background:rgba(237,0,60,.14);border:1px solid rgba(237,0,60,.28)}
-    .stamp--dismiss{left:12px;right:auto;color:#fecaca;background:#7f1d1d40;border:1px solid #fecaca33}
-    .stamp.show{transform:scale(1) translateY(0);opacity:1}
-
-    .toast{position:fixed;top:8px;right:30px;z-index:10000;background:linear-gradient(180deg,#0b1220,#0e1729);color:#fff;border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 14px 36px rgba(2,6,23,.36);opacity:0;transform:translateY(-8px);transition:.2s;font-weight:700}
-    .toast.show{opacity:1;transform:translateY(0)}
-
-    /* “No swipes” modal (cosmetic) */
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999}
-    .modal.show{display:flex}
-    .modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px)}
-    .modal__dialog{position:relative;background:#0e162a;border-radius:16px;padding:28px 24px;max-width:980px;width:min(95vw,980px);box-shadow:0 18px 36px rgba(0,0,0,.5);z-index:2;color:#f5f5f5}
-    .modal__close{position:absolute;top:12px;right:12px;border:none;background:none;font-size:22px;color:#aaa;cursor:pointer}
-    .modal__content h2{margin:0 0 12px;font-size:22px;font-weight:700}
-    .modal__plans{display:flex;gap:1rem;align-items:stretch;justify-content:space-between;flex-wrap:nowrap;margin:1rem 0}
-    .plan-card{border:1px solid #2a2f3a;border-radius:12px;padding:1rem;flex:1 1 0;min-width:0}
-    .btn-primary{padding:10px 16px;border-radius:12px;background:var(--brand);color:#fff;border:0;font-weight:800;cursor:pointer}
-    @media (max-width:768px){.modal__plans{flex-direction:column}}
-  </style>
-</head>
-<body>
 
 <main
   class="layout"
-  data-user-id="anon"
-  data-first-login="false"
-  data-email-configured="false"
-  data-plan="free"
-  data-plan-label="Free"
+  data-user-id="{{ request.user.id|default_if_none:'anon' }}"
+  data-first-login="{{ first_login|yesno:'true,false' }}"
+  data-email-configured="{{ email_configured|yesno:'true,false' }}"
+  data-plan="{{ request.user.subscription_tier|default:'free' }}"
+  data-plan-label="{{ request.user.get_subscription_tier_display|default:'Free' }}"
+  style="
+    position: relative;
+    height: 100dvh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    /* default: DARK, overridden in .theme-light below */
+    background:
+      radial-gradient(1100px 520px at 100% -10%, rgba(237,0,60,.10), transparent 60%),
+      linear-gradient(135deg, #0b0f1a 0%, #0e162a 40%, #0b0f1a 100%);
+    transition: background 1s ease;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+  "
 >
 
-  <!-- Header -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <!-- ===== Collapsible Sidebar ===== -->
+  <aside id="sidebar" class="sidebar" aria-label="Primary">
+    <div class="sidebar__header">
+      <div class="sidebar__brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="sbG" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ed003c"/>
+              <stop offset="100%" stop-color="#ed003c"/>
+            </linearGradient>
+          </defs>
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="url(#sbG)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+
+
+        <button id="showEFSNow" class="btn-secondary" style="position:fixed;bottom:14px;left:14px;z-index:9999; display: none;">Show demo</button>
+
+        <span class="logo-chip">
+          <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
+        </span>
+      </div>
+
+      <button id="sidebarToggle" class="sidebar__toggle" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <nav class="sidebar__nav" role="navigation">
+      <a class="sbi is-active" href="#" title="Discover">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-3v-7H8v7H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Discover</span>
+      </a>
+
+      <a class="sbi" href="#" id="openSaved" title="Saved" style="display: none;">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Saved</span>
+  <span class="sbi__badge" id="savedBadge">{{ request.user.savedjob_set.count|default:0 }}</span>
+      </a>
+
+      <a class="sbi" href="#" title="Applied" style="display: none;">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Applied</span>
+      </a>
+
+      <a class="sbi" href="#" title="Messages" style="display: none;">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Messages</span>
+        <span class="sbi__dot" aria-hidden="true"></span>
+      </a>
+
+      <div class="sidebar__sep" role="separator" aria-hidden="true"></div>
+
+<a class="sbi" href="{% url 'update-user' %}" title="Settings">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.94-3a6.94 6.94 0 0 0-.12-1l2.12-1.65-2-3.46-2.56 1a7.1 7.1 0 0 0-1.7-1L13 2h-2l-.68 2.24a7.1 7.1 0 0 0-1.7 1l-2.56-1-2 3.46L5.5 11a6.94 6.94 0 0 0 0 2l-2.12 1.65 2 3.46 2.56-1a7.1 7.1 0 0 0 1.7 1L11 22h2l.68-2.24a7.1 7.1 0 0 0 1.7-1l2.56 1 2-3.46L19.82 13a6.94 6.94 0 0 0 .12-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Settings</span>
+      </a>
+
+      <a class="sbi" href="{% url 'app_logout' %}" title="Logout">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-7" 
+                  fill="none" stroke="currentColor" stroke-width="2" 
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="sbi__label">Logout</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__plan">
+        <span class="plan-dot" aria-hidden="true"></span>
+        <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
+      </div>
+      <button class="sidebar__upgrade" type="button" id="openPremium">Get more swipes</button>
+    </div>
+  </aside>
+  <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+  <!-- ===== /Sidebar ===== -->
+
+  <!-- ===== Header ===== -->
   <header class="custom-header">
     <div class="header-left">
-      <button id="themeToggle" class="theme-toggle" aria-label="Toggle light mode" aria-pressed="false" title="Toggle light / dark">
+      <!-- Theme switch -->
+      <button id="themeToggle" class="theme-toggle desktop-only" aria-label="Toggle light mode" aria-pressed="false" title="Toggle light / dark">
         <span class="tt-knob"></span>
         <svg class="tt-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/></svg>
         <svg class="tt-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
       </button>
+    
+      <!-- Mobile: Get more swipes -->
+      <button class="mobile-premium-btn mobile-only" id="openPremiumMobile">
+        Get more swipes
+      </button>
     </div>
 
-    <a class="header__account" href="#" aria-label="Account">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
-      </svg>
-    </a>
+    
+
+
+
+<a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+  </svg>
+</a>
+
   </header>
 
-  <!-- HUD -->
-  <div class="hud">
-    <div class="hud__left">
-      <div class="swipes-widget" id="swipesWidget" aria-live="polite" role="status">
-        <div class="swipes-widget__icon" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>
-        </div>
-        <div class="swipes-widget__text">
-          <span id="swipesLeft">10</span>
-          <small>Swipes left</small>
-        </div>
+  <!-- ===== Background FX ===== -->
+  <div class="bgFX" aria-hidden="true">
+    <div class="bgFX__grid"></div>
+    <div class="bgFX__beam b1"></div>
+    <div class="bgFX__beam b2"></div>
+    <div class="bgFX__orb o1"></div>
+    <div class="bgFX__orb o2"></div>
+    <div class="bgFX__orb o3"></div>
+  </div>
+
+<!-- ===== HUD ===== -->
+<div class="hud hud--balanced">
+  <div class="hud__left">
+    <!-- Streak -->
+    <div class="hud__streak">🔥 Streak <span id="streakVal">0</span></div>
+    <div class="hud__combo" id="comboBadge" aria-live="polite"></div>
+  </div>
+
+
+  <!-- new compact mobile HUD -->
+<div class="hud-mobile">
+  <div class="hud-mobile__swipes">
+    <span id="swipesLeftMobile">{{ swipes_left }}</span> left
+  </div>
+  <div class="hud-mobile__applied">
+    <span id="appliedCountMobile">0</span> applied
+  </div>
+</div>
+
+
+  <div class="hud__right" title="Cards remaining / applied">
+    <!-- Swipes left -->
+    <div class="swipes-widget" id="swipesWidget" aria-live="polite" role="status">
+      <div class="swipes-widget__icon" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="swipes-widget__text">
+        <span id="swipesLeft">{{ swipes_left }}</span>
+        <small>Swipes left</small>
       </div>
     </div>
 
-    <div class="hud__right">
-      <div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
-        <div class="applied-widget__icon" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <!-- Applied -->
+    <div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
+      <div class="applied-widget__icon" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="applied-widget__text">
+        <span id="appliedCount">0</span>
+        <small>Applied</small>
+      </div>
+    </div>
+
+    <!-- Deck progress -->
+    <div class="ring" role="img" style="display: none;" aria-label="Deck progress">
+      <svg viewBox="0 0 36 36">
+        <path class="ring-track" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
+        <path class="ring-bar" id="ringBar" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
+      </svg>
+      <div class="ring__label" style="display: none;"><span id="cardsLeft">0</span></div>
+    </div>
+  </div>
+</div>
+<!-- ===== /HUD ===== -->
+
+
+
+
+
+  <!-- Hidden topics -->
+  <div class="topics" style="display:none;"></div>
+
+  <!-- Premium upsell modal -->
+<!-- Premium upsell modal -->
+<!-- Premium upsell modal -->
+<!-- Load the font -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* Keep borders visible on hover & avoid clipping */
+  #noSwipesModal .modal__plans { overflow: visible !important; }
+  #noSwipesModal .plan-card { position: relative; z-index: 1; }
+  #noSwipesModal .plan-card:hover { z-index: 3; }
+</style>
+
+<div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal__backdrop"></div>
+  <!-- Ensure room for 3 cards side-by-side -->
+  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle"
+       style="max-width: 980px; width: min(95vw, 980px);">
+    <button class="modal__close" aria-label="Close">&times;</button>
+    <div class="modal__content">
+      <h2 id="noSwipesTitle">No more swipes</h2>
+      <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
+
+      <!-- Plans -->
+      <div class="modal__plans"
+           style="
+             display:flex;
+             gap:1rem;
+             align-items:stretch;
+             justify-content:space-between; /* spread evenly */
+             flex-wrap:nowrap;               /* single row */
+             margin:1rem 0;
+           ">
+        <!-- Starter -->
+        <div class="plan-card"
+             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
+                    box-sizing:border-box; flex:1 1 0; min-width:0;">
+          <h3 style="margin:0 0 .25rem 0;">Starter</h3>
+          <div style="font-size:1.25rem; font-weight:700;">99 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
+          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
+            <li>10 daily swipes</li>
+            <li>Unlimited Skips</li>
+          </ul>
+          <button class="btn-primary" id="subscribe-starter" aria-label="Subscribe to Starter (99 DKK per month)">Starter — 99 DKK/mo</button>
         </div>
-        <div class="applied-widget__text">
-          <span id="appliedCount">0</span>
-          <small>Applied</small>
+
+        <!-- Pro -->
+        <div class="plan-card"
+             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
+                    box-sizing:border-box; flex:1 1 0; min-width:0;">
+          <h3 style="margin:0 0 .25rem 0;">Pro</h3>
+          <div style="font-size:1.25rem; font-weight:700;">199 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
+          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
+            <li>25 daily swipes</li>
+            <li>Unlimited Skips</li>
+          </ul>
+          <button class="btn-primary" id="subscribe-pro" aria-label="Subscribe to Pro (199 DKK per month)">Pro — 199 DKK/mo</button>
+        </div>
+
+        <!-- Elite -->
+        <div class="plan-card"
+             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
+                    box-sizing:border-box; flex:1 1 0; min-width:0;">
+          <h3 style="margin:0 0 .25rem 0;">Elite</h3>
+          <div style="font-size:1.25rem; font-weight:700;">299 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
+          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
+            <li>40 daily swipes</li>
+            <li>Unlimited Skips</li>
+          </ul>
+          <button class="btn-primary" id="subscribe-elite" aria-label="Subscribe to Elite (299 DKK per month)">Elite — 299 DKK/mo</button>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Swipe Deck -->
-  <div class="swipe-container" id="swipeDeck">
-    <!-- Card 1 -->
-    <div class="swipe-card card-color-pink" data-room-id="demo-1" role="button" aria-label="Flip card to see more info" tabindex="0">
-      <div class="card-inner" aria-live="polite">
-        <div class="card-front">
-          <div class="logo-frame">
-            <img src="/static/images/netflix.png" alt="Netflix" class="company-logo" />
-          </div>
-          <div class="title-block">
-            <h4>Netflix</h4>
-            <h3>Marketing Intern</h3>
-            <h2>Content & Growth</h2>
-            <p class="meta"><span class="dot"></span> Copenhagen, DK</p>
-          </div>
-          <div class="info-badges">
-            <span class="badge badge--hot">🔥 Hot</span>
-            <span class="badge">Full-time</span>
-            <span class="badge badge--brand">Hybrid</span>
-          </div>
-          <div class="card-cta">
-            <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
-              <span class="btn-ripple"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
-              <span class="btn-ripple"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
-          </div>
-          <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
-          <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
-        </div>
 
-        <div class="card-back">
-          <h3>Netflix</h3>
-          <h4>Content & Growth</h4>
-          <p class="location">📍 Copenhagen, DK</p>
-          <div class="divider" style="height:1px;width:100%;background:#22304a;margin:10px 0 12px;"></div>
-          <p class="desc">Help shape editorial calendars, run A/B tests, and support partnerships. SQL basics and strong writing are a plus.</p>
-        </div>
-      </div>
-    </div>
+<style>
+  /* Keep borders visible on hover & avoid clipping */
+  #noSwipesModal .modal__plans { overflow: visible !important; }
+  #noSwipesModal .plan-card { position: relative; z-index: 1; }
+  #noSwipesModal .plan-card:hover { z-index: 3; }
 
-    <!-- Card 2 -->
-    <div class="swipe-card card-color-blue" data-room-id="demo-2" role="button" aria-label="Flip card to see more info" tabindex="0">
-      <div class="card-inner" aria-live="polite">
-        <div class="card-front">
-          <div class="logo-frame">
-            <img src="/static/images/airbnb.png" alt="Airbnb" class="company-logo" />
-          </div>
-          <div class="title-block">
-            <h4>Airbnb</h4>
-            <h3>Data Analyst Intern</h3>
-            <h2>Marketplace Analytics</h2>
-            <p class="meta"><span class="dot"></span> Stockholm, SE</p>
-          </div>
-          <div class="info-badges">
-            <span class="badge">Internship</span>
-            <span class="badge badge--brand">Remote</span>
-          </div>
-          <div class="card-cta">
-            <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
-              <span class="btn-ripple"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
-              <span class="btn-ripple"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
-          </div>
-          <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
-          <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
-        </div>
+  #noSwipesModal,
+  #noSwipesModal h2,
+  #noSwipesModal p,
+  #noSwipesModal button {
+    font-family: 'Manrope', sans-serif !important;
+  }
 
-        <div class="card-back">
-          <h3>Airbnb</h3>
-          <h4>Marketplace Analytics</h4>
-          <p class="location">📍 Stockholm, SE</p>
-          <div class="divider" style="height:1px;width:100%;background:#22304a;margin:10px 0 12px;"></div>
-          <p class="desc">Analyze listing performance and trust signals. Build dashboards and run exploratory analyses. Python preferred.</p>
-        </div>
-      </div>
-    </div>
+  /* 📱 Mobile only: stack plans vertically */
+  @media (max-width: 768px) {
+    #noSwipesModal .modal__plans {
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      align-items: stretch !important;
+    }
+    #noSwipesModal .plan-card {
+      width: 100% !important;
+      flex: none !important;
+    }
+  }
+</style>
 
-    <!-- Card 3 -->
-    <div class="swipe-card card-color-yellow" data-room-id="demo-3" role="button" aria-label="Flip card to see more info" tabindex="0">
-      <div class="card-inner" aria-live="polite">
-        <div class="card-front">
-          <div class="logo-frame">
-            <img src="/static/images/spotify.png" alt="Spotify" class="company-logo" />
-          </div>
-          <div class="title-block">
-            <h4>Spotify</h4>
-            <h3>Growth Intern</h3>
-            <h2>Product Marketing</h2>
-            <p class="meta"><span class="dot"></span> Madrid, ES</p>
-          </div>
-          <div class="info-badges">
-            <span class="badge">Full-time</span>
-            <span class="badge badge--brand">In-office</span>
-          </div>
-          <div class="card-cta">
-            <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
-              <span class="btn-ripple"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
-              <span class="btn-ripple"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
-          </div>
-          <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
-          <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
-        </div>
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django will inject your publishable key
 
-        <div class="card-back">
-          <h3>Spotify</h3>
-          <h4>Product Marketing</h4>
-          <p class="location">📍 Madrid, ES</p>
-          <div class="divider" style="height:1px;width:100%;background:#22304a;margin:10px 0 12px;"></div>
-          <p class="desc">Support launches, track funnel metrics, and coordinate creator campaigns. SQL/Looker a plus.</p>
-        </div>
-      </div>
-    </div>
+  function startCheckout(tier) {
+    fetch(`/billing/checkout/${tier}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: "{}"
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.id) {
+        stripe.redirectToCheckout({ sessionId: data.id });
+      } else {
+        alert("Error creating checkout session: " + (data.error || "Unknown"));
+      }
+    })
+    .catch(err => console.error("Checkout error:", err));
+  }
 
-    <div id="loadMoreSentinel" style="height:1px;"></div>
-  </div>
+  // Attach event listeners (IDs kept the same)
+  document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
+  document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
+  document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
+</script>
 
-  <!-- Toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- No swipes modal (cosmetic only) -->
-  <div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal__backdrop"></div>
-    <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle">
-      <button class="modal__close" aria-label="Close">&times;</button>
-      <div class="modal__content">
-        <h2 id="noSwipesTitle">No more swipes</h2>
-        <p>You’ve used all demo swipes. Upgrade (in the real app) to keep swiping 🚀</p>
+<style>
+  #noSwipesModal,
+  #noSwipesModal h2,
+  #noSwipesModal p,
+  #noSwipesModal button {
+    font-family: 'Manrope', sans-serif !important;
+  }
+</style>
 
-        <div class="modal__plans">
-          <div class="plan-card">
-            <h3>Starter</h3>
-            <div style="font-size:1.25rem;font-weight:700;">99 DKK<span style="font-weight:400;font-size:.95rem;">/mo</span></div>
-            <ul style="margin:.75rem 0 1rem 1rem;padding:0;line-height:1.5;">
-              <li>10 daily swipes</li><li>Unlimited Skips</li>
-            </ul>
-            <button class="btn-primary" data-close>Okay</button>
-          </div>
-          <div class="plan-card">
-            <h3>Pro</h3>
-            <div style="font-size:1.25rem;font-weight:700;">199 DKK<span style="font-weight:400;font-size:.95rem;">/mo</span></div>
-            <ul style="margin:.75rem 0 1rem 1rem;padding:0;line-height:1.5;">
-              <li>25 daily swipes</li><li>Unlimited Skips</li>
-            </ul>
-            <button class="btn-primary" data-close>Okay</button>
-          </div>
-          <div class="plan-card">
-            <h3>Elite</h3>
-            <div style="font-size:1.25rem;font-weight:700;">299 DKK<span style="font-weight:400;font-size:.95rem;">/mo</span></div>
-            <ul style="margin:.75rem 0 1rem 1rem;padding:0;line-height:1.5;">
-              <li>40 daily swipes</li><li>Unlimited Skips</li>
-            </ul>
-            <button class="btn-primary" data-close>Okay</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-</main>
 
 <script>
-  // Theme toggle (local only)
-  (function(){
-    const root = document.documentElement;
-    const btn = document.getElementById('themeToggle');
-    const KEY = 'theme_v1';
-    function apply(mode){ root.classList.toggle('theme-light', mode === 'light'); btn?.setAttribute('aria-pressed', mode==='light'?'true':'false'); }
-    apply(localStorage.getItem(KEY) || 'dark');
-    btn?.addEventListener('click', ()=> {
-      const next = root.classList.contains('theme-light') ? 'dark' : 'light';
-      localStorage.setItem(KEY, next); apply(next);
-    });
-  })();
 
-  // Minimal swipe logic (no server calls)
-  document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('swipeDeck');
-    const toastEl = document.getElementById('toast');
-    const appliedCountEl = document.getElementById('appliedCount');
-    const swipesLeftEl = document.getElementById('swipesLeft');
-    const noSwipesModal = document.getElementById('noSwipesModal');
+  
+  // Add this AFTER your premium modal code has been defined
+  (function () {
+    const link = document.getElementById('getPremiumLink');
+    if (!link) return;
 
-    function cards(){ return Array.from(container.querySelectorAll('.swipe-card')); }
-    function showToast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), 1200); }
-
-    function styleStack(){
-      const list = cards();
-      list.forEach(c => {
-        c.style.display = 'none';
-        c.style.zIndex = '';
-        c.style.pointerEvents = 'none';
-        c.classList.remove('is-top','is-next');
-      });
-      const top = list[list.length-1], next = list[list.length-2];
-      if (next){ next.style.display='block'; next.style.zIndex=5; next.classList.add('is-next'); next.style.transform='scale(.97) translateY(5px)'; next.style.opacity='.9' }
-      if (top){ top.style.display='block'; top.style.zIndex=10; top.classList.add('is-top'); top.style.transform='scale(1) translateY(0)'; top.style.opacity='1'; top.style.pointerEvents='auto'; }
-    }
-    styleStack();
-
-    function stamp(card, type){
-      const el = card.querySelector(type==='right' ? '.stamp--apply' : '.stamp--dismiss');
-      if (!el) return; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-      setTimeout(()=> el.classList.remove('show'), 450);
+    function csrf() {
+      return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
     }
 
-    function throwCard(direction='right'){
-      const list = cards(); if (!list.length) return;
-      const current = list[list.length-1];
+    link.addEventListener('click', async (e) => {
+      // Prevent navigation to /upgrade/ and use the checkout session POST instead
+      e.preventDefault();
 
-      // quota: local only
-      if (direction==='right'){
-        const left = parseInt(swipesLeftEl.textContent||'0',10);
-        if (left <= 0){
-          noSwipesModal.classList.add('show');
-          document.documentElement.style.overflow='hidden';
+      try {
+        const res = await fetch('/billing/create-checkout-session/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf()
+          },
+          // 🔴 IMPORTANT: pass what your server expects
+          body: JSON.stringify({
+            // replace with your actual Stripe Price ID:
+            price_id: 'price_XXXXXXXXXXXX',
+            // optional but common:
+            mode: 'subscription' // or 'payment'
+          }),
+          credentials: 'same-origin'
+        });
+
+        // If the view returns a plain 400 with no JSON, this will throw.
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+
+        if (!res.ok) {
+          const msg = data?.error || `Checkout failed (${res.status}).`;
+          alert(msg);
           return;
         }
+
+        // Expecting {url: "..."} OR {id: "..."} depending on your view
+        if (data.url) {
+          window.location.href = data.url; // redirect to Stripe Checkout
+        } else if (data.id && window.Stripe) {
+          // Alternate flow if you return a sessionId and use Stripe.js
+          const stripe = Stripe('pk_live_or_test_xxx'); // your publishable key
+          await stripe.redirectToCheckout({ sessionId: data.id });
+        } else {
+          alert('No redirect URL received from server.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network error starting checkout.');
       }
+    });
+  })();
+</script>
 
-      stamp(current, direction);
+<script>
+  
+  async function checkQuotaFresh() {
+  try {
+    const r = await fetch('/quota/?t=' + Date.now());
+    const d = await r.json();
+    const el = document.getElementById('swipesLeft');
+    if (el) el.textContent = d.left;
+    return (d.left > 0);
+  } catch {
+    return false;
+  }
+}
 
-      if (direction==='right'){
-        const start = parseInt(swipesLeftEl.textContent||'0',10);
-        swipesLeftEl.textContent = String(Math.max(0, start-1));
-        appliedCountEl.textContent = String(parseInt(appliedCountEl.textContent||'0',10)+1);
-        showToast('Applied!');
-      } else {
-        showToast('Skipped');
+
+  document.getElementById('openPremium')?.addEventListener('click', () => {
+    document.getElementById('premiumModal')?.classList.add('show');
+    document.documentElement.style.overflow = 'hidden';
+  });
+</script>
+        </div>
+
+
+
+
+
+        <!-- ===== Deck / Cards ===== -->
+        <div class="swipe-container" id="swipeDeck">
+
+    
+        {% for room in rooms %}
+        <div class="swipe-card {% cycle 'card-color-pink' 'card-color-blue' 'card-color-yellow' %}"
+             data-room-id="{{ room.id }}"
+             role="button"
+             aria-label="Flip card to see more info"
+             tabindex="0"
+             style="position:absolute; width:100%; height:100%; cursor:pointer; transform-style:preserve-3d;">
+          <div class="card-inner" aria-live="polite">
+            <!-- FRONT -->
+            <div class="card-front">
+              {% if room.logo %}
+                <div class="logo-frame">
+                  <img src="{{ room.logo.url }}" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
+                </div>
+              {% else %}
+                <div class="logo-frame">
+                  <img src="/static/images/fallback-logo.png" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
+                </div>
+              {% endif %}
+    
+              <div class="title-block">
+                <h4>{{ room.company_name }}</h4>
+                <h3>{{ room.job_title|default:"this position" }}</h3>
+                <h2>{{ room.role }}</h2>
+                <p class="meta"><span class="dot"></span> {{ room.location }}</p>
+              </div>
+    
+              <div class="info-badges">
+                <span class="badge badge--hot">🔥 Hot</span>
+                <span class="badge">Full-time</span>
+                <span class="badge badge--brand">In-office</span>
+              </div>
+    
+              <!-- Actions -->
+              <div class="card-cta">
+                <!-- Skip (X) -->
+                <button class="swipe-btn swipe-left" aria-label="Dismiss job (left)" title="Skip">
+                  <span class="btn-ripple"></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
+                       viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+    
+                <!-- Send / Apply (✓) -->
+                <button class="swipe-btn swipe-right" aria-label="Apply to job (right)" title="Apply">
+                  <span class="btn-ripple"></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
+                       viewBox="0 0 24 24" fill="none" stroke="#ed003c" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </button>
+              </div>
+    
+              <div class="stamp stamp--apply" aria-hidden="true">APPLY</div>
+              <div class="stamp stamp--dismiss" aria-hidden="true">SKIP</div>
+              
+            </div>
+    
+            <!-- BACK -->
+            <div class="card-back">
+              <h3>{{ room.company_name }}</h3>
+              <h4>{{ room.role }}</h4>
+              <p class="location">📍 {{ room.location }}</p>
+              <div class="divider"></div>
+              <p class="desc">{{ room.description }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+    
+          <div id="loadMoreSentinel" style="height:1px;"></div>
+        </div>
+      
+
+    
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div id="onboarding-overlay" 
+    style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:10000; font-family:'Manrope', sans-serif !important;">
+
+ <div id="onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="onb-title" aria-describedby="onb-desc" 
+      style="position:relative; margin:auto; max-width:380px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:20px; border:1px solid rgba(148,163,184,.15); color:#e6eef8; font-family:'Manrope', sans-serif !important; left:0; right:0;">
+      
+   <!-- Step info -->
+   <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display: none;">Step <span id="onb-step" style="display: none;">1</span> of <span id="onb-total">3</span></div>
+   
+   <!-- Title + desc -->
+   <h3 id="onb-title" style="margin:0 0 8px; font-size:19px; color:#fff; font-weight:700;">Welcome!</h3>
+   <p id="onb-desc" style="margin:0 0 16px; font-size:14px; color:#cbd5e1;">
+     Let’s get started by connecting your email so applications can be sent directly.
+   </p>
+   
+   <!-- Guide box -->
+   <div style="padding:14px 16px; margin-bottom:14px; border-radius:10px; background:linear-gradient(145deg, rgba(45,55,72,.6), rgba(26,32,44,.9)); border:1px solid rgba(99,102,241,.25); font-size:13px; line-height:1.55; color:#e6eaf2; text-align:left;">
+    <div style="font-weight:600; color:#f8fafc; margin-bottom:6px; font-size:14px;">Connect your Gmail to send applications</div>
+    <p style="margin:0 0 8px 0;">
+      To send your applications directly to employers, you need to connect your Gmail account. This allows Internstart to send your cover letter and resume on your behalf when you apply for a position.
+    </p>
+    <p style="margin:0 0 8px 0;">
+      You can revoke this access at any time by going to <strong>Settings → Access → Revoke Gmail Access</strong> in your Google Account. Once revoked, Internstart will no longer be able to send emails from your account.
+    </p>
+    <p style="margin:0;">
+      We only use this connection to send your job application emails. Internstart does <strong>not</strong> have access to read, view, or manage your Gmail inbox or messages.
+    </p>
+  </div>
+
+   <!-- Action buttons -->
+   <div style="display:flex; gap:8px; justify-content:flex-end;">
+     <button id="onb-prev" type="button" style="display:none; padding:6px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:6px;">Back</button>
+     <button id="onb-next" type="button" style="padding:6px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:6px; display: none;">Okay</button>
+     <a id="onb-primary-link" href="{% url 'start_gmail_auth' %}" 
+        style="padding:6px 12px; font-size:13px; background:#ed003c; color:#fff; border-radius:6px; text-decoration:none; font-weight:600;">
+        Configure email
+     </a>
+   </div>
+ </div>
+</div>
+
+
+
+  <div id="savedList" style="display:none; width:min(440px, 92vw);"></div>
+
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+
+
+<!-- Mobile trigger (optional) -->
+<button id="showOnboardingMobile" class="mobile-premium-btn mobile-only" style="margin-left:10px;">Onboarding</button>
+
+<!-- ===== Onboarding overlay ===== -->
+<div id="ifOnb" hidden>
+  <div class="ifOnb__backdrop" data-onb-close></div>
+
+
+  <!-- Floating “spotlight” & tooltip that point to real UI -->
+  <div class="ifOnb__spot" id="ifOnbSpot"></div>
+  <div class="ifOnb__tooltip" id="ifOnbTip">
+    <div class="ifOnb__tipTitle" id="ifOnbTipTitle">Dismiss</div>
+    <div class="ifOnb__tipText"  id="ifOnbTipText">Swipe left or tap the X to skip and keep browsing.</div>
+  </div>
+
+
+<!-- add -->
+<div class="ifOnb__leader" id="ifOnbLeader" aria-hidden="true"></div>
+
+
+  <!-- Mini demo card (we animate this so we don’t touch real data) -->
+  <div class="ifOnb__demoCard" id="ifOnbDemo" aria-hidden="true">
+    <div class="ifOnb__demoStamp" id="ifOnbDemoStamp">SKIP</div>
+  </div>
+</div>
+
+<!-- after -->
+
+<div id="emailConnectedToast" 
+     style="
+       position: fixed;
+       top: 20px;
+       left: 50%;
+       transform: translateX(-50%);
+       background-color: #4CAF50;
+       color: white;
+       padding: 12px 24px;
+       border-radius: 8px;
+       font-size: 16px;
+       font-weight: 500;
+       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+       opacity: 0;
+       transition: opacity 0.4s ease, transform 0.4s ease;
+       z-index: 99999;
+     ">
+  Your email was connected
+</div>
+
+
+
+  <style>
+
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; overscroll-behavior:none; background:#0b0f1a; }
+  
+    /* Brand + theme tokens (default: DARK) */
+    :root{
+      --brand: #ed003c;
+      --brand-50: rgba(237,0,60,.08);
+      --brand-100: rgba(237,0,60,.18);
+      --brand-200: rgba(237,0,60,.28);
+      --brand-400: #ff4f7a;
+      --brand-600: #c0002f;
+  
+      --bg: #0b0f1a;
+      --panel: #0f1525;
+      --ink: #e6eef8;
+      --ink-600:#b8c2d3;
+      --ink-500:#94a3b8;
+      --border: rgba(148,163,184,.22);
+      --border-subtle: rgba(148,163,184,.12);
+  
+      --card: #ffffff;
+  
+      --elev-1: 0 10px 26px rgba(2,6,23,.35);
+      --elev-2: 0 18px 48px rgba(2,6,23,.55);
+  
+      --sb-w: 264px;
+      --sb-cw: 64px;
+      --sb-pad: 14px;
+  
+      /* shared container width so header + HUD align perfectly */
+      --chrome-w: 1200px;
+      --chrome-pad: clamp(8px, 3vw, 24px);
+    }
+  
+    /* Animateable custom property for conic gradient angle */
+    @property --aiAngle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+  
+    /* === Modal base === */
+    .modal {
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:10000;
+    }
+    .modal.show{display:flex;}
+    .modal__backdrop{
+      position:absolute;inset:0;
+      background:rgba(2,6,23,.65);
+      backdrop-filter:blur(10px);
+    }
+    .modal__dialog{
+      position:relative;
+      max-width:1100px;                /* wider */
+      width:calc(100% - 40px);
+      background:var(--panel);
+      border-radius:24px;              /* more rounded */
+      border:1px solid var(--border);
+      box-shadow:0 40px 80px rgba(0,0,0,.6);
+      padding:40px;                    /* bigger padding */
+      z-index:1;
+      color:var(--ink);
+    }
+    .theme-light .modal__dialog{
+      background:#f6f8fb;color:#0e1320;border-color:rgba(15,23,42,.12);
+    }
+    .modal__close{
+      position:absolute;top:20px;right:20px;
+      background:none;border:0;font-size:28px;
+      color:var(--ink);cursor:pointer;
+    }
+    .theme-light .modal__close{color:#0e1320;}
+    .modal__content h2{
+      margin:0 0 12px;
+      font:800 28px/1.3 Inter;          /* larger */
+      text-align:center;
+    }
+    .modal__content p{
+      margin:0 0 30px;
+      font:500 16px/1.6 Inter;
+      color:var(--ink-500);
+      text-align:center;
+    }
+    .theme-light .modal__content p{ color:#4a5a75; }
+    .modal__actions{
+      display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;
+    }
+    .btn-primary,.btn-secondary{
+      padding:12px 18px;
+      border-radius:14px;
+      font:700 15px/1 Inter;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-block;
+    }
+    .btn-primary{background:var(--brand);color:#fff;border:0;}
+    .btn-secondary{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      color:var(--ink);
+    }
+    .theme-light .btn-secondary{background:rgba(2,6,23,.04);color:#0e1320;border-color:rgba(15,23,42,.12);}
+  
+    /* === Premium Plans === */
+    .premium-dialog{max-width:1100px;width:calc(100% - 40px);}
+    .premium-title{margin:0 0 10px;font:800 28px/1.3 Inter;text-align:center;}
+    .premium-sub{margin:0 0 30px;font:500 16px/1.6 Inter;color:var(--ink-500);text-align:center;}
+    .theme-light .premium-sub{color:#51607a;}
+    .plans{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:24px;                         /* more gap */
+    }
+    .plan-card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:28px;                     /* more padding */
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      box-shadow:0 14px 34px rgba(0,0,0,.25);
+      transition:transform .2s ease,box-shadow .2s ease;
+      min-height:340px;                 /* taller card */
+    }
+    .plan-card:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(0,0,0,.4);}
+    .plan-head{
+      display:flex;flex-direction:column;align-items:flex-start;
+      gap:6px;margin-bottom:18px;
+    }
+    .plan-head h3{margin:0;font:700 20px Inter;color:var(--ink);}
+    .price{font:800 26px/1 Inter;color:var(--brand);}
+    .price span{font-size:14px;font-weight:500;color:var(--ink-500);}
+    .plan-card ul{
+      list-style:none;
+      padding:0;
+      margin:0 0 20px 0;
+      font:500 14px/1.7 Inter;
+      color:var(--ink-600);
+    }
+    .plan-card ul li{margin:6px 0;}
+    .plan-popular{
+      border-color:var(--brand);
+      box-shadow:0 20px 48px rgba(237,0,60,.25);
+    }
+    .badge-popular{
+      align-self:flex-start;
+      background:var(--brand);color:#fff;
+      font:700 12px/1 Inter;text-transform:uppercase;
+      padding:4px 8px;border-radius:8px;margin-top:-4px;
+    }
+    .btn-primary.w-full{display:block;width:100%;text-align:center;}
+    .theme-light .plan-card{
+      background:#f6f8fb;
+      border-color:rgba(15,23,42,.12);
+      box-shadow:0 14px 28px rgba(15,23,42,.07);
+    }
+  
+    /* ===== LIGHT THEME — toned down whites, higher legibility ===== */
+    .theme-light{
+      --bg: #e9edf3;
+      --panel: #f4f6fa;
+      --ink: #0e1320;
+      --ink-600:#33425a;
+      --ink-500:#51607a;
+  
+      --border: rgba(15,23,42,.12);
+      --border-subtle: rgba(15,23,42,.06);
+  
+      --elev-1: 0 8px 20px rgba(15,23,42,.07);
+      --elev-2: 0 18px 34px rgba(15,23,42,.10);
+    }
+    .theme-light html, .theme-light body{ background:#e9edf3; }
+    .theme-light .layout{
+      background:
+        radial-gradient(900px 420px at 100% -10%, rgba(237,0,60,.04), transparent 60%),
+        linear-gradient(135deg, #f2f4f8 0%, #e9edf3 50%, #f2f4f8 100%) !important;
+    }
+  
+    /* Hide base headers */
+    body > header:not(.custom-header),
+    .site-header, .global-header, nav.site-nav { display:none !important; }
+  
+    /* ===== Sidebar ===== */
+    .sidebar{
+      position:fixed; inset:0 auto 0 0;
+      height:100dvh; width:var(--sb-w);
+      padding:12px var(--sb-pad);
+      display:flex; flex-direction:column;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-right:1px solid var(--border);
+      box-shadow: var(--elev-1);
+      backdrop-filter: blur(12px);
+      z-index:5;
+      transform: translateX(calc(-100% + var(--sb-cw)));
+      transition: transform .35s cubic-bezier(.22,1,.36,1), background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .theme-light .sidebar{
+      background: linear-gradient(180deg, rgba(0,0,0,.018), rgba(0,0,0,.012));
+      border-right:1px solid rgba(15,23,42,.10);
+      box-shadow: var(--elev-1);
+    }
+  
+    .sidebar.is-open{ transform: translateX(0); }
+  
+    .sidebar__header{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .sidebar__brand{ display:flex; align-items:center; gap:10px; color:var(--ink); font-weight:800; }
+  
+    /* === Low-key animated brand chip === */
+
+  
+    .swipes-widget{
+      display:flex; align-items:center; gap:10px;
+      background:rgba(255,255,255,.06); border:1px solid var(--border);
+      padding:8px 12px; border-radius:12px; color:var(--ink);
+      backdrop-filter: blur(6px); user-select:none;
+    }
+    .theme-light .swipes-widget{ background:rgba(2,6,23,.04); border-color:rgba(15,23,42,.10); }
+  
+    .swipes-widget__icon{ display:grid; place-items:center; width:20px; height:20px; color:var(--brand); }
+    .swipes-widget__text span{ font-size:16px; font-weight:800; }
+    .swipes-widget__text small{ display:block; font-size:11px; font-weight:600; opacity:.75; }
+  
+    .theme-light .logo-chip{
+      background:
+        linear-gradient(#f6f8fb, #f6f8fb) padding-box,
+        conic-gradient(from var(--aiAngle),
+          rgba(237,0,60,.14) 0deg,
+          rgba(237,0,60,.04) 60deg,
+          rgba(237,0,60,.14) 360deg) border-box;
+      box-shadow: 0 1px 4px rgba(2,6,23,.07);
+    }
+    .logo-chip:hover{ box-shadow: 0 2px 10px rgba(2,6,23,.12); }
+    .sidebar__brand-img{ height:26px; display:block; border-radius:8px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.2)); }
+  
+    .sidebar__toggle{
+      display:grid; place-items:center;
+      width:32px; height:32px; border-radius:999px; border:1px solid var(--border);
+      background:rgba(255,255,255,.06); color:var(--ink); cursor:pointer;
+      transition: transform .25s ease, background .2s ease;
+    }
+    .sidebar__toggle:hover{ background:rgba(255,255,255,.12); transform: translateX(0) scale(1.02); }
+    .theme-light .sidebar__toggle{ background:#f4f6fa; border-color:rgba(15,23,42,.10); }
+    .sidebar__toggle .chev{ transition: transform .25s ease; }
+    .sidebar__toggle.rot .chev{ transform: rotate(180deg); }
+  
+    .sidebar__nav{
+      flex:1; overflow:auto; padding:6px 0;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.96), rgba(0,0,0,.96) 90%, transparent);
+    }
+    .sidebar__sep{ height:1px; background:var(--border-subtle); margin:10px 0; }
+  
+    .sbi{
+      position:relative; display:flex; align-items:center; gap:12px;
+      color:#cbd5e1; text-decoration:none; padding:10px 10px; border-radius:10px; margin:2px 0;
+      transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+      border: 1px solid transparent;
+    }
+    .sbi:hover{ background:rgba(255,255,255,.07); color:#fff; }
+    .sbi.is-active{
+      background:linear-gradient(180deg, rgba(237,0,60,.20), rgba(237,0,60,.10));
+      color:#fff; border:1px solid var(--border);
+    }
+    .theme-light .sbi{ color:#3b485e; }
+    .theme-light .sbi:hover{ background:rgba(2,6,23,.035); color:#0e1320; box-shadow: none; }
+    .theme-light .sbi.is-active{
+      background:linear-gradient(180deg, rgba(237,0,60,.09), rgba(237,0,60,.05));
+      color:#0e1320; border-color:rgba(15,23,42,.12);
+    }
+    .sbi__icon{ width:22px; height:22px; display:grid; place-items:center; color:#ffd6de; opacity:.95; flex:0 0 auto; }
+    .theme-light .sbi__icon{ color:#ed003c; opacity:.85; }
+    .sbi__label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; font-size:13px; }
+    .sbi__badge{
+      margin-left:auto; font-size:11px; font-weight:800; color:#0b0f1a; background:#ffd6de;
+      border-radius:999px; padding:2px 8px;
+    }
+  
+    /* Collapsed rail — only show the arrow handle */
+    .sidebar:not(.is-open){
+      padding:12px 10px 12px 0;
+    }
+    .sidebar:not(.is-open) .sidebar__brand,
+    .sidebar:not(.is-open) .sidebar__nav,
+    .sidebar:not(.is-open) .sidebar__footer{ display:none; }
+    .sidebar:not(.is-open) .sidebar__toggle{ margin-left:auto; }
+  
+    /* Sidebar footer */
+    .sidebar__footer{ padding-top:8px; display:flex; align-items:center; gap:10px; justify-content:space-between; }
+    .sidebar__plan{ display:flex; align-items:center; gap:8px; color:var(--ink); font-weight:800; }
+    .plan-dot{ width:8px; height:8px; border-radius:999px; background:linear-gradient(135deg,var(--brand),var(--brand-400)); }
+    .sidebar__upgrade{
+      padding:8px 10px; border-radius:10px; border:1px solid var(--border);
+      background:linear-gradient(135deg, rgba(237,0,60,.14), rgba(237,0,60,.10));
+      color:#fff; font-weight:800; cursor:pointer;
+    }
+    .theme-light .sidebar__upgrade{
+      background:linear-gradient(135deg, rgba(237,0,60,.07), rgba(237,0,60,.045));
+      color:#0e1320; border-color:rgba(15,23,42,.12);
+    }
+  
+    /* Backdrop (mobile) */
+    .sidebar-backdrop{
+      position:fixed; inset:0; background:rgba(2,6,23,.48);
+      opacity:0; pointer-events:none; transition:.25s ease; z-index:4;
+    }
+    .sidebar-backdrop.show{ opacity:1; pointer-events:auto; }
+  
+    /* ===== Header ===== */
+    .custom-header{
+      position:fixed;
+      top: 12px;;                           /* sit at the very top */
+      background:transparent;                                /* slightly down from the very top */
+      left:50%; transform:translateX(-50%);
+      width:min(var(--chrome-w), 96vw);            /* == HUD width */
+      padding:0 var(--chrome-pad);
+      display:flex; align-items:center; justify-content:space-between;
+      z-index:6;                                   /* stays above HUD; no overlap */
+      background: transparent;
+    }
+    .header-left{ display:flex; align-items:center; gap:10px; }
+  
+    /* Theme toggle UI */
+    .theme-toggle{
+      position:relative; width:56px; height:30px; border-radius:999px; border:1px solid var(--border);
+      background:rgba(255,255,255,.08); color:#fff; cursor:pointer;
+      display:inline-block;
+    }
+    .theme-toggle .tt-knob{
+      position:absolute; top:50%; left:3px; transform:translateY(-50%);
+      width:24px; height:24px; border-radius:999px; background:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,.25);
+      transition:left .22s ease, background .2s ease;
+    }
+    .theme-toggle .tt-sun, .theme-toggle .tt-moon{
+      position:absolute; top:50%; transform:translateY(-50%); width:16px; height:16px;
+    }
+    .tt-sun{ left:8px; color:#ffd34d; }
+    .tt-moon{ right:8px; color:#93a4bd; }
+    .theme-light .theme-toggle{ background:#e6ebf2; border-color:rgba(15,23,42,.12); }
+    .theme-light .theme-toggle .tt-knob{ left:29px; background:#0b0f1a; }
+    .theme-light .tt-sun{ color:#f2b650; }
+    .theme-light .tt-moon{ color:#6a7a94; }
+  
+    .header__account{
+      display:inline-flex; align-items:center; gap:8px; color: var(--ink);
+      text-decoration:none; padding:8px 10px; border-radius:10px;
+    }
+    .header__account:hover{ background: rgba(255,255,255,.08); }
+    .theme-light .header__account:hover{ background: rgba(2,6,23,.05); }
+  
+    /* Accessibility helper */
+    .sr-only{
+      position:absolute !important;
+      width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
+  
+    /* ===== Background FX ===== */
+    .bgFX{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+    .bgFX__grid{
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(420px 200px at 20% 10%, rgba(237,0,60,.09), transparent 60%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 80px),
+        repeating-linear-gradient(0deg,  rgba(255,255,255,.035) 0 1px, transparent 1px 80px);
+      opacity:.8;
+      mask-image: radial-gradient(80% 60% at 50% 40%, black 60%, transparent 100%);
+    }
+    .theme-light .bgFX__grid{
+      background:
+        radial-gradient(420px 200px at 20% 10%, rgba(237,0,60,.03), transparent 60%),
+        repeating-linear-gradient(90deg, rgba(2,6,23,.055) 0 1px, transparent 1px 80px),
+        repeating-linear-gradient(0deg,  rgba(2,6,23,.035) 0 1px, transparent 1px 80px);
+    }
+    .bgFX__beam{ position:absolute; width:40%; height:160%; background: linear-gradient(180deg, rgba(237,0,60,.26), rgba(237,0,60,.10)); filter: blur(22px); transform: rotate(20deg); animation: floatY 14s ease-in-out infinite; opacity:.24; }
+    .theme-light .bgFX__beam{ opacity:.12; }
+    .bgFX__beam.b1{ left:-10%; top:-20%; }
+    .bgFX__beam.b2{ right:-15%; top:-30%; transform: rotate(-18deg); animation-delay: 4s; }
+    .bgFX__orb{ position:absolute; width:320px; height:320px; border-radius:999px; background: radial-gradient(circle at 30% 30%, rgba(237,0,60,.22), rgba(237,0,60,.12) 60%, transparent 70%); filter: blur(20px); animation: drift 18s ease-in-out infinite alternate; }
+    .theme-light .bgFX__orb{ background: radial-gradient(circle at 30% 30%, rgba(237,0,60,.10), rgba(237,0,60,.05) 60%, transparent 70%); }
+    .bgFX__orb.o1{ left:5%; top:8%; }
+    .bgFX__orb.o2{ right:6%; bottom:10%; animation-delay: 5s; }
+    .bgFX__orb.o3{ left:30%; bottom:-4%; width:260px; height:260px; animation-delay: 9s; }
+    @keyframes floatY { 0%,100%{ transform: translateY(-4%) rotate(20deg) } 50%{ transform: translateY(4%) rotate(20deg) } }
+    @keyframes drift { 0%{ transform: translate(0,0) } 100%{ transform: translate(6%, -4%) } }
+  
+    /* ===== HUD ===== */
+    /* sits on its own row under the header; aligned width + comfy spacing */
+    .hud{
+      position:fixed;
+      top:56px;                                 /* below header; no overlap; consistent gap from card */
+      left:50%; transform:translateX(-50%);
+      width:min(var(--chrome-w), 96vw);
+      padding:0 var(--chrome-pad);
+      display:flex; align-items:center; justify-content:space-between;
+      z-index:3;
+      color:var(--ink); font-weight:700;
+      pointer-events:none;                      /* HUD floats; children re-enable pointer */
+    }
+    .hud > * { pointer-events:auto; }
+  
+    .hud__left,
+    .hud__right{
+      display:flex; align-items:center;
+      gap:16px;                                 /* unified inner spacing */
+    }
+    .hud__right{ gap:20px; }                    /* a touch more gap on the right cluster */
+  
+    .hud__streak{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      padding:8px 12px;
+      border-radius:999px;
+      backdrop-filter: blur(6px);
+    }
+    .theme-light .hud__streak{ background:rgba(2,6,23,.045); border-color: rgba(15,23,42,.12); }
+  
+    .hud__combo{ opacity:0; transform:translateY(-6px); transition:.25s ease; color:#fff; font-weight:800; }
+    .theme-light .hud__combo{ color:#0e1320; }
+    .hud__combo.is-active{ opacity:1; transform:translateY(0); }
+  
+    /* progress ring */
+    .ring{ position:relative; width:46px; height:46px; flex:0 0 auto; }
+    .ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+    .ring-track{ fill:none; stroke:rgba(255,255,255,.16); stroke-width:4; }
+    .theme-light .ring-track{ stroke:rgba(2,6,23,.12); }
+    .ring-bar{ fill:none; stroke:var(--brand); stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset .25s ease; }
+    .ring__label{ position:absolute; inset:0; display:grid; place-items:center; font-size:12px; font-weight:800; color:var(--ink); }
+  
+    /* chips */
+    .swipes-widget,
+    .applied-widget{
+      position:relative; display:flex; align-items:center; gap:10px;
+      background:rgba(255,255,255,.06); border:1px solid var(--border);
+      padding:8px 12px; border-radius:12px; color:var(--ink); backdrop-filter: blur(6px); user-select:none;
+      box-shadow:none;
+      min-height:40px;                           /* consistent touch size */
+    }
+    .theme-light .swipes-widget,
+    .theme-light .applied-widget{ background:rgba(2,6,23,.045); border-color:rgba(15,23,42,.12); }
+  
+    /* Responsive HUD layout */
+    @media (max-width: 820px){
+      .custom-header{ width:min(var(--chrome-w), 96vw); padding:0 12px; }
+      .hud{
+        top:54px;
+        width:min(var(--chrome-w), 96vw);
+        padding:0 12px;
+        flex-wrap:wrap;
+        row-gap:10px;
       }
+      .hud__left{ order:1; width:100%; justify-content:flex-start; }
+      .hud__right{ order:2; width:100%; justify-content:flex-end; gap:12px; }
+    }
+  
+    /* ===== Cards ===== */
+    .swipe-container{
+      position: relative;
+      width: min(440px, 92vw);
+      height: min(640px, calc(100dvh - 220px));
+      perspective: 1400px;
+      z-index:1;
+    }
+  
+    /* Accent vars per card color */
+    .swipe-card { --accent:#ed003c; --accent-soft:rgba(237,0,60,.16); --accent-glow:rgba(237,0,60,.14); }
+    .swipe-card.card-color-blue   { --accent:#2ea7ff; --accent-soft:rgba(46,167,255,.16); --accent-glow:rgba(46,167,255,.14); }
+    .swipe-card.card-color-yellow { --accent:#ffb21e; --accent-soft:rgba(255,178,30,.16); --accent-glow:rgba(255,178,30,.14); }
+    .theme-light .swipe-card{ --accent-soft:rgba(237,0,60,.07); --accent-glow:rgba(237,0,60,.09); }
+    .theme-light .swipe-card.card-color-blue{ --accent-soft:rgba(46,167,255,.07); --accent-glow:rgba(46,167,255,.09); }
+    .theme-light .swipe-card.card-color-yellow{ --accent-soft:rgba(255,178,30,.07); --accent-glow:rgba(255,178,30,.09); }
+    .swipe-card {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+  
+    .card-inner{ width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .35s ease; border-radius:22px; }
+    .card-front,.card-back{
+      position:absolute; inset:0; border-radius:22px; backface-visibility:hidden;
+      display:flex; flex-direction:column; align-items:center;
+      padding:26px 22px 28px;
+      box-sizing:border-box;
+    }
+  
+    .card-front{ gap:14px; }
+  
+    .card-front{
+      color:#e8eef9;
+      background:
+        radial-gradient(120% 90% at 16% 0%, var(--accent-soft), transparent 58%),
+        linear-gradient(180deg, #0f1527 0%, #0c1426 100%);
+      border: 1px solid rgba(148,163,184,.16);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        var(--elev-2),
+        0 0 26px var(--accent-glow);
+    }
+    .card-front::before{
+      content:""; position:absolute; inset:-1px; border-radius:inherit;
+      box-shadow: inset 0 0 28px var(--accent-soft);
+      pointer-events:none; opacity:.5;
+    }
+    .theme-light .card-front{
+      color:#0e1320;
+      background:
+        radial-gradient(120% 90% at 16% 0%, var(--accent-soft), transparent 58%),
+        linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+      border:1px solid rgba(15,23,42,.12);
+      box-shadow:
+        inset 0 1px 0 rgba(0,0,0,.025),
+        var(--elev-1),
+        0 0 14px var(--accent-soft);
+    }
+    .card-back{
+      padding-bottom: 12px !important;
+      color:#d7dfef;
+      background: linear-gradient(180deg, #10192b, #0c1324);
+      border: 1px solid rgba(148,163,184,.16);
+      transform: rotateY(180deg);
+      align-items:flex-start; text-align:left; overflow-y:auto;
+    }
+    .theme-light .card-back{
+      color:#0e1320;
+      background: linear-gradient(180deg, #f6f8fc, #eef2f7);
+      border:1px solid rgba(15,23,42,.12);
+    }
+  
+    /* === Logo frame === */
+    .logo-frame{
+      --aiAngle: 0deg;
+      display:inline-flex;
+      align-items:center; justify-content:center;
+      padding:10px;
+      border-radius:18px;
+      margin-bottom: 10px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)) padding-box,
+        conic-gradient(from var(--aiAngle),
+          rgba(237,0,60,.26) 0deg,
+          rgba(237,0,60,.06) 160deg,
+          rgba(237,0,60,.26) 360deg) border-box;
+      border:1px solid transparent;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.05),
+        0 8px 22px rgba(2,6,23,.32),
+        0 0 20px var(--accent-glow);
+      transition: box-shadow .25s ease, transform .25s ease, background .25s ease;
+      animation: aiBorderSpin 36s linear infinite;
+    }
+    .swipe-card.is-top .logo-frame{ animation-duration: 22s; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 26px rgba(2,6,23,.4), 0 0 24px var(--accent-glow); }
+    .logo-frame:hover{ transform: translateY(-1px); }
+    .theme-light .logo-frame{
+      background:
+        linear-gradient(180deg, #f6f8fb, #f6f8fb) padding-box,
+        conic-gradient(from var(--aiAngle),
+          rgba(237,0,60,.14) 0deg,
+          rgba(237,0,60,.04) 160deg,
+          rgba(237,0,60,.14) 360deg) border-box;
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.02),
+        0 8px 18px rgba(2,6,23,.07),
+        0 0 12px var(--accent-soft);
+    }
+  
+    .company-logo{
+      display:block;
+      max-width: 88%;
+      max-height: clamp(120px, 28vh, 220px);
+      width:auto; height:auto; object-fit:contain;
+      margin: 2px auto 2px;
+      border-radius:14px;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow:none !important;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.18));
+    }
+  
+    @keyframes aiBorderSpin { to { --aiAngle: 360deg; } }
+    @media (prefers-reduced-motion: reduce){
+      .logo-frame, .logo-chip{ animation: none !important; }
+    }
+  
+    /* Titles */
+    .title-block{ text-align:center; margin-top: 8px; }
+    .title-block h4{
+      margin:0 0 10px; font-size:13px; color:#a8b3c7; font-weight:600; letter-spacing:.16em; text-transform:uppercase; line-height:1.6;
+    }
+    .title-block h3{
+      margin:6px 0; font-size:28px; color:#f2f6ff; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1.25;
+    }
+    .title-block h2{
+      margin:8px 0 10px; font-size:16px; color:#c9d6ea; font-weight:700; letter-spacing:.02em; line-height:1.4;
+    }
+    .theme-light .title-block h3{ color:#0e1320; }
+    .theme-light .title-block h2{ color:#26344d; }
+    .theme-light .title-block h4{ color:#5d6a81; }
+  
+    /* Meta pill */
+    .meta{
+      margin:12px 0 0;
+      font-size:12px; color:#c0cbe0;
+      background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+      padding:6px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;
+    }
+    .theme-light .meta{ color:#3b485e; background: rgba(2,6,23,.04); border-color: rgba(15,23,42,.10); }
+    .meta .dot{ display:inline-block; width:6px; height:6px; border-radius:999px; background:var(--accent); transform: translateY(-1px); }
+  
+    /* Badges */
+    .info-badges{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+    .badge{ background:rgba(255,255,255,.06); color:#e9f0ff; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:800; border:1px solid rgba(255,255,255,.10); }
+    .badge--brand{ background:var(--accent-soft); color:#fff; border-color:rgba(237,0,60,.22); }
+    .badge--hot{ background:rgba(255,87,87,.14); color:#fecaca; border-color:#fecaca22; }
+    .theme-light .badge{ background:rgba(2,6,23,.04); color:#0e1320; border-color:rgba(15,23,42,.10); }
+    .theme-light .badge--hot{ background:#fde9ea; color:#842a2a; border-color:#f3c8cb; }
+  
+    .card-cta {
+      margin-top: auto;
+      margin-bottom: 0 !important;
+      display: flex;
+      justify-content: space-between; /* push buttons to far edges */
+      align-items: center;
+      width: 100%;
+      padding: 20px;
+    }
+  
+    .swipe-btn{
+      height:60px; aspect-ratio:1/1; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(120% 140% at 50% 0%, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px rgba(2,6,23,.35);
+      cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
+      color:#e7eefc;
+    }
+    .swipe-btn:hover{
+      transform: translateY(-2px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 14px 34px rgba(2,6,23,.44), 0 0 0 8px var(--accent-soft);
+      border-color: rgba(255,255,255,.22);
+    }
+    .theme-light .swipe-btn{
+      background: radial-gradient(120% 140% at 50% 0%, rgba(0,0,0,.018), rgba(0,0,0,.012));
+      border-color: rgba(15,23,42,.12);
+      color:#0e1320;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,.03), 0 10px 20px rgba(2,6,23,.07);
+    }
+  
+    /* Back of card text */
+    .card-back h3{ font-size:16px; font-weight:800; color:#f2f6ff; margin:0 0 6px; }
+    .card-back h4{ font-size:14px; font-weight:700; color:#c9d6ea; margin:0 0 10px; }
+    .card-back .location{ color:#c0cbe0; margin:0 0 10px; }
+    .card-back .divider{ height:1px; width:100%; background:#22304a; margin:10px 0 12px; }
+    .card-back .desc{ font-size:13px; line-height:1.6; color:#e2e8f5; }
+    .theme-light .card-back h3{ color:#0e1320; }
+    .theme-light .card-back h4{ color:#26344d; }
+    .theme-light .card-back .location{ color:#4b5563; }
+    .theme-light .card-back .divider{ background:#dde4ee; }
+    .theme-light .card-back .desc{ color:#1f2b3b; }
+  
+    /* Stamps */
+    .stamp{ position:absolute; top:12px; right:12px; padding:6px 10px; font-weight:900; letter-spacing:.12em; border-radius:8px; transform:scale(.9) translateY(-6px); opacity:0; transition:.25s ease; box-shadow:0 10px 24px rgba(2,6,23,.18); font-size:10px; }
+    .stamp--apply{ color:#ffd6df; background:rgba(237,0,60,.14); border:1px solid rgba(237,0,60,.28); }
+    .stamp--dismiss{ color:#fecaca; background:#7f1d1d40; border:1px solid #fecaca33; right:auto; left:12px; }
+    .theme-light .stamp--dismiss{ background:#fde9ea; color:#842a2a; border-color:#f3c8cb; }
+    .stamp.show{ transform: scale(1) translateY(0); opacity:1; }
+  
+    /* Stack layers */
+    .swipe-card{ transition: transform .35s ease, opacity .35s ease; }
+    .swipe-card.is-top   { transform: translateY(0) scale(1);   filter:none; }
+    .swipe-card.is-next  { transform: translateY(14px) scale(.97); opacity:.97; }
+    .swipe-card.is-third { transform: translateY(28px) scale(.94); opacity:.94; }
+    .swipe-card.leaving  { pointer-events:none; }
+  
+    /* Flip state */
+    .card-inner.is-flipped{ transform: rotateY(180deg) }
+  
+    /* Toast */
+    .toast {
+  position: fixed;
+  /* move it up and further right */
+  top: 8px;         /* was 20px */
+  right: 30px;      /* was 20px */
+  z-index: 10000;   /* keep it above cards */
+  background: linear-gradient(180deg, #0b1220, #0e1729);
+  color: #fff;
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(2,6,23,.36);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: .2s ease;
+  font-weight: 700;
+}
 
-      const x = direction==='right' ? innerWidth*1.2 : -innerWidth*1.2;
-      const y = Math.random()*80 - 40;
-      const rot = direction==='right' ? 22 : -22;
-      current.style.transition = 'transform .7s cubic-bezier(0.22,1,0.36,1), opacity .7s ease';
-      current.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) scale(1.02)`;
-      current.style.opacity = 0;
-
-      setTimeout(()=>{ current.remove(); styleStack(); }, 680);
+    .theme-light .toast{
+      background: linear-gradient(180deg, #f4f6fa, #e9edf3);
+      color:#0e1320; box-shadow:0 14px 28px rgba(15,23,42,.07); border-color: rgba(15,23,42,.12);
+    }
+    .toast.show{ opacity:1; transform:translateY(0); }
+  
+    /* Fly-to-counter ghost */
+    .fly-ghost{
+      position:fixed; z-index:9998; pointer-events:none;
+      border-radius:22px; background: linear-gradient(180deg, #0f1527, #0c1426);
+      border:1px solid rgba(148,163,184,.16); box-shadow: 0 18px 48px rgba(2,6,23,.28);
+      transform: translate(0,0) scale(1); opacity: 1;
+    }
+    .theme-light .fly-ghost{
+      background: linear-gradient(180deg, #f6f8fc, #eef2f7); border-color: rgba(15,23,42,.12); box-shadow: 0 18px 34px rgba(2,6,23,.09);
+    }
+    .fly-ghost.run{ transition: transform .7s cubic-bezier(0.22,1,0.36,1), opacity .7s ease; }
+  
+    /* Small screens */
+    @media (max-width: 900px){
+      .sidebar{ width:min(var(--sb-w), 86vw); }
     }
 
-    // Clicking a card flips it (except button areas)
-    container.addEventListener('click', (e)=>{
-      if (e.target.closest('.swipe-btn')) return;
-      const card = e.target.closest('.swipe-card'); if (!card) return;
-      card.querySelector('.card-inner')?.classList.toggle('is-flipped');
-    });
 
-    // Buttons
-    container.addEventListener('click', (e)=>{
-      const btn = e.target.closest('.swipe-btn'); if (!btn) return;
-      e.stopPropagation();
-      const r = btn.querySelector('.btn-ripple');
-      if (r){
-        const rect = btn.getBoundingClientRect();
-        r.style.setProperty('--x', (e.clientX - rect.left)+'px');
-        r.style.setProperty('--y', (e.clientY - rect.top)+'px');
-        r.classList.remove('run'); void r.offsetWidth; r.classList.add('run');
-      }
-      if (btn.classList.contains('swipe-left'))  return void throwCard('left');
-      if (btn.classList.contains('swipe-right')) return void throwCard('right');
-    });
+/* Dark theme */
+.card-front{
+  /* solid base + radial highlight that fades into the same base color */
+  background-color:#0f1527;
+  background-image:
+    radial-gradient(120% 90% at 16% 0%, rgba(237,0,60,.16), #0f1527 58%),
+    linear-gradient(180deg, #0f1527 0%, #0c1426 100%);
+  border-color:#243049; /* no alpha */
+}
+.card-front::before{
+  /* keep the inner glow but remove any holes */
+  box-shadow: inset 0 0 28px rgba(237,0,60,.16);
+}
+.card-back{
+  /* already opaque, just ensure border is solid */
+  background: linear-gradient(180deg, #10192b 0%, #0c1324 100%);
+  border-color:#243049;
+}
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e)=>{
-      if (e.key === 'ArrowLeft')  throwCard('left');
-      if (e.key === 'ArrowRight') throwCard('right');
-    });
+/* Light theme */
+.theme-light .card-front{
+  background-color:#f6f8fc;
+  background-image:
+    radial-gradient(120% 90% at 16% 0%, rgba(237,0,60,.07), #f6f8fc 58%),
+    linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+  border-color:#d5dbe6;
+}
+.theme-light .card-back{
+  background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+  border-color:#d5dbe6;
+}
 
-    // Close modal
-    noSwipesModal?.addEventListener('click', (e)=>{
-      if (e.target.matches('.modal__close,[data-close],.modal__backdrop')){
-        noSwipesModal.classList.remove('show'); document.documentElement.style.overflow='';
+/* (Optional) Don’t dim stacked cards */
+.swipe-card.is-next,
+.swipe-card.is-third{
+  opacity:1;
+}
+
+
+/* Hide night/day toggle and streak chip when sidebar is open */
+.sb-open .theme-toggle,
+.sb-open .hud__streak{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
+}
+
+/* Nice entrance when closing sidebar */
+.theme-toggle,
+.hud__streak{
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.saved-card{
+  display:flex; align-items:center; gap:10px;
+  padding:12px; border-bottom:1px solid rgba(148,163,184,.22);
+  color:var(--ink); background:rgba(255,255,255,.04);
+}
+.saved-logo{ width:40px; height:40px; object-fit:contain; border-radius:6px; }
+
+
+/* Saved jobs panel styled to match AI SaaS look */
+#savedList {
+  display:none;
+  margin-top:20px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:16px;
+  box-shadow: var(--elev-1);
+  max-height:calc(100dvh - 180px);
+  overflow-y:auto;
+  color:var(--ink);
+}
+
+.theme-light #savedList{
+  background:#f6f8fb;
+  border-color:rgba(15,23,42,.12);
+  box-shadow: var(--elev-1);
+}
+
+.saved-card{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-subtle);
+  margin-bottom:10px;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.saved-card:hover{
+  background:rgba(255,255,255,.07);
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(2,6,23,.2);
+}
+.theme-light .saved-card{
+  background:rgba(2,6,23,.04);
+  border-color:rgba(15,23,42,.08);
+}
+.saved-logo{
+  width:48px;height:48px;
+  object-fit:contain;border-radius:8px;
+  background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+
+/* Pill tooltip for Saved link */
+#openSaved::after {
+  content: "Coming soon";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  background: var(--brand);
+  color: #fff;
+  font: 700 11px/1 Inter;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 10;
+}
+#openSaved:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(12px);
+}
+
+/* Light theme version */
+.theme-light #openSaved::after {
+  background: #0e1320;
+  color: #fff;
+}
+
+
+/* make anchor the containing block */
+#openSaved {
+  position: relative;
+}
+
+/* pill text */
+#openSaved::after {
+  content: "Coming soon";
+  position: absolute;
+  top: 50%;
+  left: 100%;                /* start just to the right */
+  transform: translateY(-50%) translateX(6px);
+  background: var(--brand);
+  color: #fff;
+  font: 700 11px/1 Inter;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 100;
+}
+
+/* on hover show it */
+#openSaved:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(10px);
+}
+
+/* light theme variant */
+.theme-light #openSaved::after {
+  background: #0e1320;
+  color: #fff;
+}
+
+
+/* --- Phones & small tablets ------------------------------------------------ */
+/* --- Phones & small tablets ------------------------------------------------ */
+/* --- Phones & small tablets ------------------------------------------------ */
+@media (max-width: 600px) {
+
+.swipe-container {
+  width: 98vw;
+  height: calc(100dvh - 130px);
+  max-height: 88vh;
+}
+
+.card-front,
+.card-back {
+  padding: 22px 18px 18px;
+}
+
+.company-logo {
+  max-height: clamp(180px, 42vh, 280px);
+}
+
+.title-block h3 { font-size: 30px; line-height: 1.2; }
+.title-block h2 { font-size: 18px; line-height: 1.35; }
+.title-block h4 { font-size: 13px; letter-spacing: .15em; }
+.card-back .desc { font-size: 16px; line-height: 1.7; }
+
+.card-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.card-cta .swipe-btn {
+  flex: 0 1 auto;
+  width: clamp(46px, 20vw, 60px);
+  aspect-ratio: 1/1;
+  height: auto;
+  border-radius: 14px;
+}
+
+.card-cta .swipe-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.badge { font-size: 14px; padding: 7px 11px; }
+.meta  { font-size: 14px; padding: 7px 11px; }
+
+.toast { top: calc(8px + env(safe-area-inset-top)); right: 12px; }
+#savedList { width: 98vw !important; max-height: calc(100dvh - 140px); }
+
+/* ---- HUD chips top-left at same level as account icon ---- */
+.hud {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top)); /* same height as account icon */
+  left: 8px;
+  display: flex;
+  flex-direction: row;           /* chips side-by-side */
+  align-items: center;           /* vertically center */
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  z-index: 30;
+}
+
+.hud__streak,
+.hud__swipes,
+.hud__applied,
+.swipes-widget,
+.applied-widget {
+  display: flex;
+  align-items: center;
+  margin: 0;                    /* reset any default margin */
+  min-height: 34px;
+  width: auto;
+  flex-shrink: 1;
+}
+
+/* account icon top-right */
+.account-button,
+.account-icon,
+.header__account {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 40;
+  transform: scale(1.1);
+  background: transparent;
+}
+}
+
+/* Very small phones */
+@media (max-width: 420px) {
+.hud .ring { display:none; }
+
+.swipe-container {
+  height: calc(100dvh - 140px);
+  max-height: 90vh;
+  width: 98vw;
+}
+
+.company-logo { max-height: clamp(160px, 46vh, 260px); }
+.title-block h3 { font-size: 28px; }
+.title-block h2 { font-size: 17px; }
+.title-block h4 { font-size: 12.5px; }
+
+.card-cta .swipe-btn {
+  width: clamp(44px, 19vw, 56px);
+  border-radius: 12px;
+}
+.card-cta .swipe-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+}
+
+/* Ultra small */
+@media (max-width: 380px) {
+.title-block h3 { font-size: 26px; }
+.title-block h2 { font-size: 16px; }
+.title-block h4 { font-size: 12px; letter-spacing: .13em; }
+
+.company-logo { max-height: clamp(140px, 48vh, 240px); }
+
+.badge { font-size: 13px; padding: 6px 10px; }
+.meta  { font-size: 13px; padding: 6px 10px; }
+
+.card-cta { gap: 8px; }
+.card-cta .swipe-btn {
+  width: clamp(40px, 18vw, 52px);
+}
+.card-cta .swipe-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+}
+
+/* Hide sidebar on mobile */
+@media (max-width: 900px){
+#sidebar,
+#sidebarBackdrop,
+.sidebar__toggle{ display:none !important; }
+.layout{ padding-left:0 !important; }
+}
+
+
+/* Default: desktop — show original HUD, hide mobile */
+.hud-mobile { display:none; }
+
+@media (max-width: 600px){
+  /* hide full HUD on mobile */
+  .hud { display:none !important; }
+
+  /* show our new simpler mobile HUD */
+  .hud-mobile {
+    position:fixed;
+    top:calc(8px + env(safe-area-inset-top));
+    left:50%;
+    transform:translateX(-50%);
+    width:98vw;
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    padding:8px 12px;
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--ink);
+    backdrop-filter:blur(6px);
+    z-index:30;
+    font-weight:700;
+    font-size:14px;
+  }
+  .theme-light .hud-mobile{
+    background:rgba(2,6,23,.045);
+    border-color:rgba(15,23,42,.12);
+  }
+}
+
+main.layout {
+  padding-top: 12px;               /* pushes your cards etc. down */
+}
+
+
+/* ===== Modal Base ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.modal.show { display: flex; }
+
+/* Backdrop */
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(3px);
+}
+
+/* Dialog box */
+.modal__dialog {
+  position: relative;
+  background: #0e162a;   /* dark background matching theme */
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 18px 36px rgba(0,0,0,0.5);
+  animation: fadeUp .25s ease;
+  z-index: 2;
+  text-align: center;
+  color: #f5f5f5;
+}
+
+/* Close button */
+.modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: none;
+  font-size: 22px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+.modal__close:hover { color: #fff; }
+
+/* Content */
+.modal__content h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+.modal__content p {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #d1d5db;
+  margin: 0 0 20px;
+}
+
+/* Actions */
+.modal__actions {
+  display: flex;
+  justify-content: center;
+}
+.btn-secondary {
+  padding: 10px 22px;
+  border-radius: 10px;
+  background: #FF2F5A; /* brand red */
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s ease, transform .15s ease;
+}
+.btn-secondary:hover {
+  background: #e92650;
+  transform: translateY(-1px);
+}
+
+/* Animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
+/* --- Mobile-only "Get more swipes" button --- */
+.mobile-premium-btn {
+  display: none; /* hidden by default (desktop) */
+  background: linear-gradient(135deg, #ed003c, #ff4f7a);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.mobile-premium-btn:hover {
+  background: linear-gradient(135deg, #d80038, #ff3b6b);
+  transform: translateY(-1px);
+}
+
+/* Show only on mobile */
+@media (max-width: 768px) {
+  .bgFX,
+  .bgFX__beam,
+  .bgFX__orb,
+  .bgFX__grid {
+    display: none !important;
+  }
+  main.layout {
+    background: linear-gradient(135deg, #0b0f1a 0%, #16203b 100%) !important;
+  }
+}
+
+
+@media (max-width: 768px) {
+  /* Disable only heavy visual effects (NOT layout/visibility) */
+  .bgFX,
+  .bgFX__beam,
+  .bgFX__orb,
+  .bgFX__grid {
+    display: none !important;
+  }
+
+  .swipe-container {
+    perspective: none !important;
+  }
+
+  .card-inner {
+    transform: none !important;
+  }
+
+  /* Ensure logo container still behaves as intended */
+  .logo-frame {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .company-logo {
+    display: block !important;
+    max-width: 80%;
+    max-height: 160px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .mobile-premium-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;         /* centers horizontally */
+    position: relative;     /* ensures it stays within header flow */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* Hide or show elements based on screen size */
+.desktop-only {
+  display: inli
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .logo-frame {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .company-logo {
+    display: block !important;
+    max-width: 80%;
+    max-height: 160px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+
+
+
+/* 📱 Allow scrolling inside the modal on mobile */
+@media (max-width: 768px) {
+  #noSwipesModal .modal__dialog {
+    max-height: 90dvh;      /* don’t overflow screen */
+    overflow-y: auto;       /* enable scrolling inside modal */
+    -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+    padding-bottom: 20px;   /* breathing room for bottom content */
+  }
+
+  /* keep plans spaced properly */
+  #noSwipesModal .modal__plans {
+    flex-direction: column !important;
+    gap: 1.2rem;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== Onboarding base ===== */
+#ifOnb[hidden]{ display:none !important; }
+#ifOnb{
+  position:fixed; inset:0; z-index:10050; font-family:'Manrope',sans-serif !important;
+}
+.ifOnb__backdrop{
+  position:absolute; inset:0; background: transparent;
+  animation: if-fade .25s ease both;
+}
+.ifOnb__card{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(520px, calc(100vw - 32px));
+  background:var(--panel); color:var(--ink);
+  border:1px solid var(--border); border-radius:18px; padding:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+  animation: if-pop .25s ease both;
+}
+.theme-light .ifOnb__card{ background:#f6f8fb; }
+
+.ifOnb__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.ifOnb__chip{
+  font:800 11px/1 Inter; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand-400));
+  padding:6px 10px; border-radius:999px; box-shadow:0 10px 22px rgba(237,0,60,.25);
+}
+.theme-light .ifOnb__chip{ color:#fff; }
+.ifOnb__close{ background:none; border:0; color:var(--ink); opacity:.6; font-size:22px; cursor:pointer; }
+.ifOnb__title{ margin:6px 0 6px; font:800 20px/1.3 Inter; color:var(--ink); }
+.ifOnb__desc{ margin:0 0 10px; color:var(--ink-500); }
+.ifOnb__progress{ margin:8px 0 14px; color:var(--ink-500); font-weight:700; }
+
+.ifOnb__actions{ display:flex; gap:10px; justify-content:flex-end; }
+.ifOnb__stage{ border:1px dashed var(--border-subtle); border-radius:12px; padding:12px; background:rgba(255,255,255,.04); }
+.theme-light .ifOnb__stage{ background:rgba(2,6,23,.035); }
+
+/* Spotlight ring that positions over real targets */
+.ifOnb__spot{
+  position:fixed; width:96px; height:96px; border-radius:999px; pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.35), 0 0 0 2px var(--brand);
+  transform:scale(.9); opacity:0; transition: .25s ease;
+}
+.ifOnb__spot.show{ transform:scale(1); opacity:1; }
+
+/* Tooltip arrow (auto flips) */
+.ifOnb__tooltip{
+  position:fixed;
+  max-width:280px;
+  background:linear-gradient(180deg,#0b1220,#0e1729);
+  color:#fff; border:1px solid var(--border);
+  border-radius:12px; padding:12px 14px;
+  box-shadow:0 14px 36px rgba(2,6,23,.36);
+  opacity:0; transform:translateY(6px);
+  transition:.18s ease;
+}
+
+.theme-light .ifOnb__tooltip{ background:#0e162a; color:#fff; }
+.ifOnb__tooltip.show{ opacity:1; transform:translateY(0); }
+.ifOnb__tipTitle{ font-weight:800; margin-bottom:4px; }
+.ifOnb__tipText{ color:#cbd5e1; font-weight:600; }
+
+
+.ifOnb__tooltip::after{
+  content:"";
+  position:absolute;
+  width:10px; height:10px; transform:rotate(45deg);
+  background:inherit; border:inherit; border-left:none; border-top:none;
+  box-shadow:inherit;
+}
+
+/* when tooltip is above the target */
+.ifOnb__tooltip.is-above::after{
+  bottom:-5px; left:calc(50% - 5px);
+}
+/* when tooltip is below the target */
+.ifOnb__tooltip.is-below::after{
+  top:-5px; left:calc(50% - 5px);
+}
+
+/* leader line from target → tooltip arrow */
+.ifOnb__leader{
+  position:fixed; height:2px; width:0;
+  background: linear-gradient(90deg, var(--brand), rgba(237,0,60,.0));
+  box-shadow: 0 0 8px rgba(237,0,60,.45);
+  border-radius:2px;
+  transform-origin: 0 50%;
+  pointer-events:none; opacity:.95;
+}
+
+/* little polish on the title spacing */
+.ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; }
+.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; }
+
+
+
+/* Demo card used for fake animations (does not alter data) */
+.ifOnb__demoCard{
+  position:fixed; left:50%; top:56%; width:min(360px, 88vw); height:220px;
+  border-radius:18px; border:1px solid rgba(148,163,184,.16);
+  background:linear-gradient(180deg,#0f1527,#0c1426);
+  box-shadow:var(--elev-2);
+  display:none; align-items:center; justify-content:center;
+}
+.theme-light .ifOnb__demoCard{ background:linear-gradient(180deg,#f6f8fc,#eef2f7); }
+.ifOnb__demoStamp{
+  position:absolute; top:12px; left:12px;
+  padding:6px 10px; border-radius:8px; font-weight:900; letter-spacing:.12em; font-size:10px;
+  color:#fecaca; background:#7f1d1d40; border:1px solid #fecaca33; opacity:0; transform:translateY(-6px) scale(.9);
+  transition:.25s ease;
+}
+.ifOnb__demoStamp.show{ opacity:1; transform:translateY(0) scale(1); }
+
+/* Brand buttons (reuse your tokens) */
+.btn-primary{ background:var(--brand); color:#fff; border:0; padding:10px 16px; border-radius:12px; font-weight:800; }
+.btn-secondary{ background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--ink); padding:10px 16px; border-radius:12px; font-weight:800; }
+
+@keyframes if-pop{ from{opacity:0; transform:translate(-50%,-44%) scale(.98)} to{opacity:1; transform:translate(-50%,-50%) scale(1)}}
+@keyframes if-fade{ from{opacity:0} to{opacity:1}}
+
+/* Small screens */
+@media (max-width:600px){
+  .ifOnb__card{ width:calc(100vw - 20px); padding:18px; }
+  .ifOnb__demoCard{ top:60%; height:200px; }
+}
+
+
+/* --- Fix: prevent onboarding tooltip flash --- */
+#ifOnbTip,
+#ifOnbSpot,
+#ifOnbDemo,
+#ifOnbDemoStamp {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+
+#ifOnbTip.show,
+#ifOnbSpot.show,
+#ifOnbDemo.show,
+#ifOnbDemoStamp.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+
+/* --- Fix: enforce Manrope font on onboarding buttons --- */
+#ifOnb,
+#ifOnb * {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+#ifOnb .ifOnb__actions button {
+  font-family: 'Manrope', sans-serif !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+
+
+
+</style>
+
+{% include "base/email_flow_showcase.html" %}
+<script src="{% static 'js/email_flow_showcase.js' %}"></script>
+
+  
+
+  <!-- ===== Core JS ===== -->
+
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <script>
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+    // convenience
+    const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    // attach to the upgrade button or any test button you have
+    const upgradeBtn = document.getElementById('openPremium'); // or some dedicated test button
+
+    // for demo: clicking "Upgrade" sets tier locally to starter without Stripe
+    upgradeBtn?.addEventListener('dblclick', async (e) => {
+      // 👆 use dblclick so you don’t override your normal modal on click
+      e.preventDefault();
+      try {
+        const res = await fetch('/debug/set-tier/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf()
+          },
+          body: JSON.stringify({ tier: 'starter' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
+        // optionally update the UI:
+        document.querySelector('.plan-text').textContent = data.tier;
+        document.getElementById('swipeLimit').textContent = data.limit;
+      } catch (err) {
+        console.error(err);
+        alert('Could not change tier');
       }
     });
   });
+    
+document.addEventListener('DOMContentLoaded', () => {
+  const $  = (s, r=document) => r.querySelector(s);
+  // === Persistently hide already-applied jobs (per user) ===
+  const USER_ID = "{{ request.user.id|default_if_none:'anon' }}";
+  const SWIPED_KEY = `swiped_jobs_${USER_ID}`;
+
+  function getSwipedSet() {
+    try { return new Set(JSON.parse(localStorage.getItem(SWIPED_KEY) || "[]")); }
+    catch { return new Set(); }
+  }
+  function saveSwipedSet(set) {
+    localStorage.setItem(SWIPED_KEY, JSON.stringify([...set]));
+  }
+  function markSwiped(roomId) {
+    const s = getSwipedSet(); s.add(String(roomId)); saveSwipedSet(s);
+  }
+  function unmarkSwiped(roomId) {
+    const s = getSwipedSet(); s.delete(String(roomId)); saveSwipedSet(s);
+  }
+
+  // On load, remove any cards the user already applied to (prevents flicker)
+  (function hidePreviouslySwiped() {
+    const swiped = getSwipedSet();
+    if (!swiped.size) return;
+    document.querySelectorAll('.swipe-card[data-room-id]').forEach(card => {
+      if (swiped.has(String(card.dataset.roomId))) card.remove();
+    });
+  })();
+
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+  const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  /* === Theme toggle === */
+  const THEME_KEY = 'theme_v1';
+  const root = document.documentElement;
+  function applyTheme(mode){
+    const light = (mode === 'light');
+    root.classList.toggle('theme-light', light);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.setAttribute('aria-pressed', light ? 'true' : 'false');
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  const themeBtn = document.getElementById('themeToggle');
+  themeBtn?.addEventListener('click', () => {
+    const light = !root.classList.contains('theme-light');
+    applyTheme(light ? 'light' : 'dark');
+    localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
+  });
+
+  /* === Sidebar toggle === */
+  const container = $('.swipe-container');
+  const cards = () => $$('.swipe-card', container);
+  const ringBar = $('#ringBar');
+  const cardsLeftEl = $('#cardsLeft');
+  const streakEl = $('#streakVal');
+  const comboEl = $('#comboBadge');
+
+
+  const sidebar = $('#sidebar');
+  const sidebarToggle = $('#sidebarToggle');
+  const sidebarBackdrop = $('#sidebarBackdrop');
+  const SB_KEY = 'ai_sidebar_open';
+
+  function setSidebar(open){
+    sidebar.classList.toggle('is-open', open);
+    sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    sidebarToggle.classList.toggle('rot', open);
+    document.documentElement.classList.toggle('sb-open', open);
+
+    const isMobile = matchMedia('(max-width: 900px)').matches;
+    if (isMobile) {
+      sidebarBackdrop.hidden = !open;
+      sidebarBackdrop.classList.toggle('show', open);
+    } else {
+      sidebarBackdrop.hidden = true;
+      sidebarBackdrop.classList.remove('show');
+    }
+    try { localStorage.setItem(SB_KEY, open ? '1' : '0'); } catch(e){}
+  }
+  const saved = localStorage.getItem(SB_KEY);
+  const savedOpen = saved ? (saved === '1') : false;
+  setSidebar(savedOpen);
+
+  sidebarToggle.addEventListener('click', () => setSidebar(!sidebar.classList.contains('is-open')));
+  sidebarBackdrop.addEventListener('click', () => setSidebar(false));
+  addEventListener('resize', () => setSidebar(sidebar.classList.contains('is-open')));
+
+  /* === Swipes left setup === */
+  const swipesLeftEl = document.getElementById('swipesLeft');
+  fetch('/quota/')
+    .then(r => r.json())
+    .then(data => swipesLeftEl.textContent = data.left);
+
+  /* === Premium Modal setup === */
+
+  // === Stripe Checkout wiring ===
+const STRIPE_PK = "{{ STRIPE_PUBLISHABLE_KEY|default_if_none:'' }}"; // if using Django template context; otherwise inline
+let stripe;
+try { stripe = Stripe(STRIPE_PK); } catch(e) { console.error("Stripe init failed", e); }
+
+async function startCheckout(tier){
+  try{
+    const r = await fetch("/billing/create-checkout-session/", {
+      method:"POST",
+      headers: {"Content-Type":"application/json", "X-CSRFToken": csrf()},
+      body: JSON.stringify({ tier })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    if (data.url) window.location.href = data.url;
+  }catch(err){
+    console.error(err);
+    showToast("Could not start checkout");
+  }
+}
+
+// Button in the modal
+document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
+  const tier = e.currentTarget.dataset.tier || "pro";
+  startCheckout(tier);
+});
+
+
+
+
+  const premiumModal = document.getElementById('premiumModal');
+  function showPremiumModal(){
+    premiumModal?.classList.add('show');
+    document.documentElement.style.overflow = 'hidden';
+  }
+  function hidePremiumModal(){
+    premiumModal?.classList.remove('show');
+    document.documentElement.style.overflow = '';
+  }
+  premiumModal?.addEventListener('click', e=>{
+    if (e.target.matches('.modal__close,[data-close],.modal__backdrop')) hidePremiumModal();
+  });
+
+  const appliedWidget = $('#appliedWidget');
+  const appliedCountEl = $('#appliedCount');
+
+  let totalCards = cards().length;
+  function updateDeckHUD() {
+    const left = cards().length;
+    cardsLeftEl.textContent = left;
+    const pct = (1 - (left / Math.max(1,totalCards))) * 100;
+    const CIRC = 2 * Math.PI * 16;
+    ringBar.style.strokeDasharray = CIRC;
+    ringBar.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+  }
+
+
+
+
+
+  function styleStack() {
+  const list = cards();
+
+  // Hide all cards and reset their layers
+  list.forEach(c => {
+    c.style.display = 'none';
+    c.style.zIndex = '';
+    c.style.pointerEvents = 'none'; // prevent click/swipe on hidden or lower cards
+    c.classList.remove('is-top', 'is-next');
+  });
+
+  const top = list[list.length - 1];
+  const next = list[list.length - 2];
+
+  // Make next card visible but not interactive
+  if (next) {
+    next.style.display = 'block';
+    next.style.zIndex = 5;
+    next.classList.add('is-next');
+    next.style.transform = 'scale(0.97) translateY(5px)';
+    next.style.opacity = '0.9';
+    next.style.pointerEvents = 'none'; // key line — disable clicking it
+  }
+
+  // Top card visible + clickable
+  if (top) {
+    top.style.display = 'block';
+    top.style.zIndex = 10;
+    top.classList.add('is-top');
+    top.style.transform = 'scale(1) translateY(0)';
+    top.style.opacity = '1';
+    top.style.pointerEvents = 'auto'; // enable only the front card
+  }
+}
+
+
+  styleStack(); updateDeckHUD();
+
+  const toastEl = $('#toast');
+
+  // Click anywhere on card (except buttons) to flip
+  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+    if (e.target.closest('.swipe-btn')) return;
+    const card = e.target.closest('.swipe-card');
+    if (!card) return;
+    card.querySelector('.card-inner')?.classList.toggle('is-flipped');
+  });
+
+  // Keyboard accessibility: Enter/Space flips focused card
+  document.addEventListener('keydown', (e) => {
+    const focusedCard = document.activeElement?.classList?.contains('swipe-card') ? document.activeElement : null;
+    if (focusedCard && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      focusedCard.querySelector('.card-inner')?.classList.toggle('is-flipped');
+    }
+  });
+
+  const userKey = (suffix) => `if_swipe_${('{{ request.user.id|default_if_none:"anon" }}')}_${suffix}`;
+  const todayKey = () => new Date().toISOString().slice(0,10);
+  const getNum = (k,d=0)=> Number(localStorage.getItem(k) ?? d);
+  const setNum = (k,v)=> localStorage.setItem(k, String(v));
+  function getStreak(){
+    const lastDay = localStorage.getItem(userKey('last_day'));
+    const today = todayKey();
+    let streak = getNum(userKey('streak'), 0);
+    if (lastDay && lastDay !== today) {
+      const diff = (new Date(today) - new Date(lastDay)) / 86400000;
+      if (diff !== 1) { streak = 0; setNum(userKey('streak'), streak); }
+    }
+    return streak;
+  }
+  function bumpStreak(){
+    const today = todayKey();
+    let s = getStreak();
+    const lastDay = localStorage.getItem(userKey('last_day'));
+    if (lastDay !== today) s++;
+    localStorage.setItem(userKey('last_day'), today);
+    setNum(userKey('streak'), s);
+    document.getElementById('streakVal').textContent = s;
+    return s;
+  }
+
+  document.getElementById('streakVal').textContent = getStreak();
+  { const el = document.getElementById('xpVal'); if (el) el.textContent = getNum(userKey('xp'),0); }
+  appliedCountEl.textContent = getNum(userKey('applied'), 0);
+
+  let combo=0, lastActionAt=0;
+  function registerCombo(){
+    const now = Date.now();
+    combo = (now - lastActionAt < 4000) ? combo+1 : 1;
+    lastActionAt = now;
+    const comboEl = document.getElementById('comboBadge');
+    comboEl.textContent = combo>1 ? `Combo x${combo}!` : '';
+    comboEl.classList.toggle('is-active', combo>1);
+    setTimeout(()=> comboEl.classList.remove('is-active'), 1200);
+  }
+
+  function stamp(card, type){
+    const el = card.querySelector(type==='right' ? '.stamp--apply' : '.stamp--dismiss');
+    if (!el) return; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    setTimeout(()=> el.classList.remove('show'), 450);
+  }
+
+  function confettiBurst(x, y, n=18){
+    const canvas=document.createElement('canvas'), ctx=canvas.getContext('2d');
+    canvas.width=innerWidth; canvas.height=innerHeight; canvas.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:9999';
+    document.body.appendChild(canvas);
+    const p=Array.from({length:n},()=>({x,y,vx:(Math.random()*2-1)*6,vy:(Math.random()*-4-2),g:.18+Math.random()*.2,s:4+Math.random()*3,c:`hsl(${Math.random()*360},85%,60%)`,life:60+Math.random()*20}));
+    (function tick(){ ctx.clearRect(0,0,canvas.width,canvas.height); p.forEach(o=>{o.vy+=o.g;o.x+=o.vx;o.y+=o.vy;o.life--;ctx.fillStyle=o.c;ctx.fillRect(o.x,o.y,o.s,o.s);}); if(p.some(o=>o.life>0)) requestAnimationFrame(tick); else canvas.remove(); })();
+  }
+
+  function flyCardToAppliedCounter(fromCard){
+    const target = appliedWidget;
+    if (!fromCard || !target) return;
+    const r = fromCard.getBoundingClientRect();
+    const t = target.getBoundingClientRect();
+
+    const ghost = document.createElement('div');
+    ghost.className = 'fly-ghost';
+    ghost.style.left = r.left + 'px';
+    ghost.style.top = r.top + 'px';
+    ghost.style.width = r.width + 'px';
+    ghost.style.height = r.height + 'px';
+    document.body.appendChild(ghost);
+
+    const dx = (t.left + t.width/2) - (r.left + r.width/2);
+    const dy = (t.top + t.height/2) - (r.top + r.height/2);
+    requestAnimationFrame(()=> {
+      ghost.classList.add('run');
+      ghost.style.transform = `translate(${dx}px, ${dy}px) scale(.15) rotate(12deg)`;
+      ghost.style.opacity = .05;
+    });
+
+    ghost.addEventListener('transitionend', () => {
+      ghost.remove();
+      appliedWidget.classList.remove('ping'); void appliedWidget.offsetWidth; appliedWidget.classList.add('ping','bump');
+    }, { once:true });
+  }
+
+  function incrementApplied(){
+    const prev = getNum(userKey('applied'), 0);
+    const next = prev + 1;
+    setNum(userKey('applied'), next);
+
+    const start = Number(appliedCountEl.textContent || 0);
+    const duration = 350; let t0=null;
+    function step(ts){ if(!t0) t0 = ts; const p = Math.min(1, (ts - t0)/duration); appliedCountEl.textContent = String(Math.round(start + (next-start)*p)); if (p<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+
+  /* === Undo history === */
+  const undoStack = [];
+
+
+
+  
+  function throwCard(direction = 'right', { doFetch = false, save = false } = {}) {
+  if (direction === 'right' && doFetch) {
+    const left = parseInt(swipesLeftEl?.textContent || '0', 10);
+    if (left <= 0) {
+      const noSwipesModal = document.getElementById('noSwipesModal');
+      noSwipesModal?.classList.add('show');
+      document.documentElement.style.overflow = 'hidden';
+      return;
+    }
+  }
+
+
+
+
+
+
+    const list = cards();
+    if (!list.length) return;
+    const current = list[list.length - 1];
+
+    // Snapshot for undo
+    const clone = current.cloneNode(true);
+    clone.classList.remove('leaving', 'is-top', 'is-next', 'is-third');
+    clone.style.transform = '';
+    clone.style.opacity = '';
+    clone.style.transition = '';
+    undoStack.push({ el: clone, direction, doFetch, save, time: Date.now() });
+
+    // Visuals
+    current.classList.add('leaving');
+    stamp(current, direction);
+
+    if (direction === 'right' && doFetch) {
+      current.style.opacity = 0;
+      flyCardToAppliedCounter(current);
+    } else {
+      const x = direction === 'right' ? innerWidth * 1.2 : -innerWidth * 1.2;
+      const y = Math.random() * 80 - 40;
+      const rot = direction === 'right' ? 22 : -22;
+      current.style.transition = 'transform .7s cubic-bezier(0.22,1,0.36,1), opacity .7s ease';
+      current.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) scale(1.02)`;
+      current.style.opacity = 0;
+    }
+
+    setTimeout(() => {
+      current.remove();
+      styleStack();
+      updateDeckHUD();
+    }, 680);
+
+    if (doFetch) {
+  const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
+  swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
+
+  const roomId = current.dataset.roomId;
+  markSwiped(roomId);
+
+  fetch("{% url 'apply_swipe_job' %}", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-CSRFToken": csrftoken,
+  },
+  body: JSON.stringify({ room_id: roomId }),
+})
+.then(async r => {
+  const text = await r.text();   // read body once
+  try {
+    return JSON.parse(text);     // try JSON
+  } catch {
+    console.error("Non-JSON response from server:", text);
+    throw new Error("Server error, see logs.");
+  }
+})
+.then(data => {
+  if (data.error === "OAuth required" && data.redirect) {
+    unmarkSwiped(roomId);
+    window.location.href = data.redirect;
+  } else if (data.error) {
+    unmarkSwiped(roomId);
+    alert("Error: " + data.error);
+  } else {
+    swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
+  }
+})
+.catch(err => {
+  console.error("Fetch error:", err);
+  unmarkSwiped(roomId);
+});
+
+
+}
+
+
+
+
+    // Gamification + counters
+    if (direction === 'right' || save) {
+      const xp = direction === 'right' ? 15 : 8;
+      registerCombo();
+
+      if (direction === 'right' && doFetch) {
+        const s = bumpStreak();
+        incrementApplied();
+        showToast(`Applied! +${xp} XP · 🔥 Streak ${s}`);
+        const t = appliedWidget.getBoundingClientRect();
+        confettiBurst(t.left + t.width / 2, t.top + t.height / 2, 22);
+      } else if (save) {
+        showToast(`Saved! +${xp} XP`);
+      }
+    } else if (direction === 'left') {
+      combo = 0;
+      showToast('Skipped');
+    }
+  }
+
+  function undoLast(){
+    const last = undoStack.pop();
+    if (!last) { showToast('Nothing to undo'); return; }
+
+    const el = last.el;
+    container.appendChild(el);
+
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(14px) scale(.98)';
+    el.style.transition = 'transform .26s ease, opacity .26s ease';
+
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0) scale(1)';
+    });
+
+    el.addEventListener('transitionend', () => {
+      el.style.transition = '';
+      styleStack(); updateDeckHUD();
+    }, { once:true });
+
+    showToast('Brought back');
+  }
+
+  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+    const btn = e.target.closest('.swipe-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const ripple = btn.querySelector('.btn-ripple'); 
+    if (ripple){ ripple.classList.remove('run'); void ripple.offsetWidth; ripple.classList.add('run'); }
+
+    if (btn.classList.contains('swipe-left'))     return void throwCard('left');
+    if (btn.classList.contains('swipe-right'))    return void throwCard('right', {doFetch:true});
+    if (btn.classList.contains('swipe-lightning'))return void throwCard('right', {doFetch:true});
+    if (btn.classList.contains('swipe-return'))   return void undoLast();
+  });
+
+
+  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+    const favBtn = e.target.closest('.swipe-favorite');
+    if (!favBtn) return;
+    e.stopPropagation();
+
+    const top = document.querySelectorAll('.swipe-card');
+    const card = top[top.length-1];
+    if (!card) return;
+    const roomId = card.dataset.roomId;
+
+    fetch('/save-job/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+      body: JSON.stringify({ room_id: roomId })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      const badge = document.getElementById('savedBadge');
+      if (badge) badge.textContent = String(parseInt(badge.textContent||'0',10)+1);
+      // after saving animate the card away as saved
+      throwCard('right', {save:true});
+    })
+    .catch(console.error);
+  });
+
+  
+
+  document.addEventListener('keydown', (e) => {
+    const topCard = cards().slice(-1)[0];
+    if (!topCard) return;
+    if (e.key === 'ArrowLeft')  throwCard('left');
+    if (e.key === 'ArrowRight') throwCard('right', {doFetch:true});
+    if (e.key.toLowerCase() === 's') throwCard('right', {save:true});
+    if (e.key === 'Backspace')  undoLast();
+    if (e.key === '\\') setSidebar(!sidebar.classList.contains('is-open'));
+  });
+
+  document.querySelector('.swipe-container').addEventListener('mousemove', (e) => {
+    const c = cards().slice(-1)[0]; if (!c) return;
+    const inner = c.querySelector('.card-inner'); const r=c.getBoundingClientRect();
+    const rx=((e.clientY-r.top)/r.height - .5)*-6; const ry=((e.clientX-r.left)/r.width - .5)*6;
+    inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  });
+  document.querySelector('.swipe-container').addEventListener('mouseleave', () => {
+    const c=cards().slice(-1)[0]; if (!c) return; c.querySelector('.card-inner').style.transform='';
+  });
+
+  let toastTimer; 
+  function showToast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 1400); }
+});
+
+
+
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // grab CSRF token once
+  const csrftoken =
+    document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+  document.getElementById('selectStarter')?.addEventListener('click', async e => {
+    e.preventDefault();
+    try {
+      const r = await fetch('/debug/set-tier/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        credentials: 'same-origin',  // sends your session cookie
+        body: JSON.stringify({ tier: 'starter' })
+      });
+
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+
+      alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
+
+      // update plan label + limit
+      document.querySelector('.plan-text').textContent = data.tier;
+      document.getElementById('swipeLimit').textContent = data.limit;
+
+      // update swipes left either from server response or fresh fetch
+      if (typeof data.left === 'number') {
+        document.getElementById('swipesLeft').textContent = data.left;
+      } else {
+        const quotaRes = await fetch('/quota/?t=' + Date.now(), { credentials:'same-origin' });
+        const quota = await quotaRes.json();
+        document.getElementById('swipesLeft').textContent = quota.left;
+      }
+
+      document.getElementById('premiumModal')?.classList.remove('show');
+      document.documentElement.style.overflow = '';
+    } catch (err) {
+      console.error(err);
+      alert('Could not change tier');
+    }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const noSwipesModal = document.getElementById('noSwipesModal');
+  if (!noSwipesModal) return;
+
+  const closeModal = () => {
+    noSwipesModal.classList.remove('show');
+    document.documentElement.style.overflow = '';
+  };
+
+  noSwipesModal.querySelector('.modal__close')?.addEventListener('click', closeModal);
+  noSwipesModal.querySelector('[data-close]')?.addEventListener('click', closeModal);
+  noSwipesModal.querySelector('.modal__backdrop')?.addEventListener('click', closeModal);
+
+  // Bonus: support Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && noSwipesModal.classList.contains('show')) {
+      closeModal();
+    }
+  });
+});
+
+
 </script>
 
-</body>
-</html>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('onboarding-overlay');
+  const primaryLink = document.getElementById('onb-primary-link');
+  const nextBtn = document.getElementById('onb-next');
+
+  const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+  const PENDING_ONB_AFTER_OAUTH = 'pending_onb_after_oauth';
+
+  function openEmailOnboarding() {
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEmailOnboarding() {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+    localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
+    document.dispatchEvent(new Event('onboarding:finished'));
+  }
+
+  // listen for “start email onboarding”
+  document.addEventListener('onboarding:email', openEmailOnboarding);
+  nextBtn?.addEventListener('click', closeEmailOnboarding);
+
+  // ---- When user clicks “Configure email” (starts OAuth) ----
+  primaryLink?.addEventListener('click', () => {
+    localStorage.setItem(PENDING_ONB_AFTER_OAUTH, '1');
+  });
+
+  // ---- Auto-trigger email onboarding for new users ----
+  const main = document.querySelector('main.layout');
+  const firstLogin = main?.dataset.firstLogin === 'true';
+  if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
+    setTimeout(() => {
+      document.dispatchEvent(new Event('onboarding:email'));
+    }, 600);
+  }
+
+  // ---- If returning from OAuth ----
+  if (localStorage.getItem(PENDING_ONB_AFTER_OAUTH) === '1') {
+    // Wait until the onboarding overlay is loaded before triggering
+    const maxWait = 6000; // 6 seconds timeout
+    const start = Date.now();
+    const checkReady = setInterval(() => {
+      const onb = document.getElementById('ifOnb');
+      if (onb || Date.now() - start > maxWait) {
+        clearInterval(checkReady);
+        localStorage.removeItem(PENDING_ONB_AFTER_OAUTH);
+        localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
+        document.dispatchEvent(new Event('onboarding:finished'));
+      }
+    }, 400);
+  }
+});
+</script>
+
+
+
+
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 🧠 Prevent re-showing if user already completed both onboardings
+  if (localStorage.getItem('if_full_onboarding_done') === '1') {
+    return; // Stop everything else
+  }
+
+  const $ = s => document.querySelector(s);
+
+  // ---- Helper: wait until overlay DOM exists ----
+  const whenReady = (ids, cb) => {
+    const ok = () => ids.every(id => document.getElementById(id));
+    if (ok()) return cb();
+    const mo = new MutationObserver(() => { if (ok()) { mo.disconnect(); cb(); } });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  };
+
+  // ---- Helper: make onboarding buttons visible ----
+  function wireButtons(openFn) {
+    const btnDesktop = document.getElementById('showOnboarding');
+    const btnMobile  = document.getElementById('showOnboardingMobile');
+    [btnDesktop, btnMobile].forEach(btn => {
+      if (!btn) return;
+      btn.hidden = false;
+      btn.style.display = 'inline-flex';
+      btn.addEventListener('click', e => { e.preventDefault(); openFn(); });
+    });
+  }
+
+  // ---- Build coachmarks once the overlay DOM exists ----
+  whenReady(
+    ['ifOnb','ifOnbSpot','ifOnbTip','ifOnbTipTitle','ifOnbTipText','ifOnbDemo','ifOnbDemoStamp'],
+    () => {
+      const onb   = $('#ifOnb');
+      const spot  = $('#ifOnbSpot');
+      const tip   = $('#ifOnbTip');
+      const title = $('#ifOnbTipTitle');
+      const text  = $('#ifOnbTipText');
+      const demo  = $('#ifOnbDemo');
+      const demoStamp = $('#ifOnbDemoStamp');
+      const leader = $('#ifOnbLeader');
+
+      // ---- Controls (Back / Next) ----
+      const ctl = document.createElement('div');
+      ctl.style.marginTop = '8px';
+      ctl.innerHTML = `
+        <div style="display:flex; gap:8px;">
+          <button id="ifOnbPrev2" class="btn-secondary" style="padding:6px 10px;">Back</button>
+          <button id="ifOnbNext2" class="btn-primary"  style="padding:6px 10px;">Next</button>
+        </div>`;
+      tip.appendChild(ctl);
+      const btnPrev = () => $('#ifOnbPrev2');
+      const btnNext = () => $('#ifOnbNext2');
+
+      // ---- Steps ----
+      const steps = [
+        {
+          target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
+          title: 'Dismiss',
+          text: 'Quickly skip roles that aren’t a match.',
+          demo: 'skip'
+        },
+        {
+          target: () => document.querySelector('.swipe-card.is-top .swipe-right') || document.querySelector('.swipe-right'),
+          title: 'Apply',
+          text: 'One tap and our AI model creates a full job application. It writes a personalized cover letter based on your resume, attaches both your cover letter and resume, and sends the email directly to the employer.',
+          demo: 'apply'
+        }
+      ];
+      let i = 0;
+
+      // ---- UI helpers ----
+      function clearUI() {
+        spot.classList.remove('show');
+        tip.classList.remove('show','is-above','is-below');
+        if (leader) leader.style.width = '0';
+        stopDemo();
+      }
+
+      function place(targetEl) {
+        if (!targetEl) { clearUI(); return; }
+        const r = targetEl.getBoundingClientRect();
+        const size = Math.max(r.width, r.height) + 28;
+        spot.style.width = spot.style.height = size + 'px';
+        spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
+        spot.style.top   = (r.top + r.height/2 - size/2) + 'px';
+        spot.classList.add('show');
+
+        const PAD = 12, GAP = 10;
+        const prevVis = tip.style.visibility;
+        tip.style.visibility = 'hidden';
+        tip.style.left = '-9999px'; tip.style.top = '-9999px';
+        tip.classList.remove('is-above','is-below');
+        const tb = tip.getBoundingClientRect();
+        tip.style.visibility = prevVis || '';
+
+        const centerX = r.left + r.width/2;
+        const preferAboveY = r.top - GAP - tb.height;
+        const needBelow = (preferAboveY < PAD);
+        const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
+        const clampedLeft = Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
+        tip.style.left = `${clampedLeft}px`;
+        tip.style.top  = `${Math.max(PAD, Math.min(topY, innerHeight - tb.height - PAD))}px`;
+        tip.classList.add(needBelow ? 'is-below' : 'is-above','show');
+      }
+
+      function stopDemo() { demo.style.display='none'; demoStamp.classList.remove('show'); }
+      function playDemo(kind) {
+        demo.style.display='flex';
+        demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
+        demoStamp.classList.add('show');
+        setTimeout(stopDemo, 600);
+      }
+
+      function render() {
+        const step = steps[i];
+        title.textContent = step.title;
+        text.textContent  = step.text;
+        place(step.target());
+        playDemo(step.demo);
+        btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
+        btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
+      }
+
+      function open()  { onb.hidden = false; render(); }
+      function close() { onb.hidden = true; clearUI(); }
+      window.ifOnbOpen = open; // debug access
+
+      // ---- Control button behavior ----
+      tip.addEventListener('click', e => {
+        if (e.target.id === 'ifOnbPrev2') {
+          i = Math.max(0, i - 1);
+          render();
+        }
+        if (e.target.id === 'ifOnbNext2') {
+          if (i < steps.length - 1) {
+            i++;
+            render();
+          } else {
+            // ✅ End of both onboardings
+            close();
+            localStorage.setItem('if_full_onboarding_done', '1');
+          }
+        }
+      });
+
+      // ---- Trigger order: Email onboarding → Coachmarks ----
+      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+      const main = document.querySelector('main.layout');
+      const emailConfigured = main?.dataset.emailConfigured === 'true';
+
+      function afterEmail() {
+      // Show the "Email connected" message
+      showEmailConnectedToast();
+
+      // Then open the button onboarding
+      open();
+      wireButtons(open);
+    }
+
+
+      document.addEventListener('onboarding:finished', afterEmail, { once:true });
+
+      const firstLogin = main?.dataset.firstLogin === 'true';
+      if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
+        setTimeout(() => {
+          document.dispatchEvent(new Event('onboarding:email'));
+        }, 800);
+      }
+    }
+  );
+});
+
+
+function showEmailConnectedToast() {
+  const toast = document.getElementById('emailConnectedToast');
+  if (!toast) return;
+
+  toast.style.opacity = '1';
+  toast.style.transform = 'translate(-50%, 0)';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, -10px)';
+  }, 2500);
+}
+
+
+
+</script>
+
+
+
+
+
+</main>
+
+
+{% endif %}
+{% endblock %}
+
