@@ -5,7 +5,7 @@
 <section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
   <div class="logos__inner">
     <h3 class="logos__title">
-        {% blocktrans %}Land interviews at top companies with AI-tailored applications{% endblocktrans %}
+      {% blocktrans %}Land interviews at top companies with AI-tailored applications{% endblocktrans %}
     </h3>
 
     <!-- Masked viewport -->
@@ -56,71 +56,51 @@
 
 <style>
   /* ============================
-     Theme — Calm dark “Pro Mesh”
-     Adds contrast to a white homepage
-     without overpowering the content.
+     Clean white section with brand grid
+     Grid color: #FF2F5A (subtle)
   ============================= */
-  :root {
-    /* brand accents */
-    --brand-1: #ff5c72;       /* coral */
-    --brand-2: #ff9daa;       /* lighter coral */
 
-    /* section spacing */
+  :root {
+    /* brand grid color as RGB so we can adjust opacity easily */
+    --grid-rgb: 255, 47, 90;        /* #FF2F5A */
+    --grid-alpha: .06;              /* line strength (reduce if too visible) */
+    --grid-spacing: 40px;           /* distance between grid lines */
+
+    /* layout & cards */
     --logos-gap: clamp(16px, 2.2vw, 28px);
     --logos-pad-y: clamp(28px, 5vw, 60px);
     --section-pad-y: clamp(36px, 6vw, 84px);
 
-    /* cards */
     --logos-card: #ffffff;
-    --logos-border: rgba(15,23,42,.06);
-    --logos-shadow: 0 10px 30px rgba(2,8,23,.14);
+    --logos-border: #eef2f7;
+    --logos-shadow: 0 8px 26px rgba(2,8,23,.08);
   }
 
-  /* --- Section container with layered background --- */
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
+    background: #fff; /* requested white background */
+    border-top: 1px solid #eef2f7;
     overflow: hidden;
-    /* Base deep gradient */
-    background:
-      radial-gradient(1200px 520px at 50% -10%,
-        rgba(255,255,255,.06), transparent 70%),
-      linear-gradient(180deg, #0b1220 0%, #12192b 60%, #0b1220 100%);
-    border-top: 1px solid rgba(148,163,184,.16);
-    isolation: isolate; /* let pseudo-elements blend nicely */
+    isolation: isolate;
   }
 
-  /* Soft coral mesh glows (very subtle) */
-  .logos::before{
-    content:"";
-    position:absolute; inset:-20% -10% -10%;
-    pointer-events:none; z-index:0;
-    background:
-      radial-gradient(900px 260px at 12% 8%, rgba(255,92,114,.16), transparent 60%),
-      radial-gradient(820px 240px at 90% 18%, rgba(255,157,170,.14), transparent 62%);
-    filter: saturate(.95);
-    transform: translateZ(0);
-    animation: mesh-sway 90s linear infinite;
-    opacity:.9;
-  }
-
-  /* Ultra-faint grid for depth */
+  /* Pink grid, super subtle; fades at edges to avoid noise */
   .logos::after{
     content:"";
-    position:absolute; inset:0;
-    pointer-events:none; z-index:0;
+    position:absolute; inset:0; z-index:0; pointer-events:none;
     background:
-      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 38px),
-      repeating-linear-gradient( 0deg, rgba(255,255,255,.03)  0 1px, transparent 1px 38px);
-    /* Fade grid toward edges so it never feels busy */
-    -webkit-mask-image: radial-gradient(90% 75% at 50% 45%, #000 60%, rgba(0,0,0,0) 100%);
-            mask-image: radial-gradient(90% 75% at 50% 45%, #000 60%, rgba(0,0,0,0) 100%);
-  }
-
-  @keyframes mesh-sway{
-    0%   { transform: translate3d(0,0,0) rotate(0deg); }
-    50%  { transform: translate3d(-1%, .2%, 0) rotate(180deg); }
-    100% { transform: translate3d(0,0,0) rotate(360deg); }
+      repeating-linear-gradient(90deg,
+        rgba(var(--grid-rgb), var(--grid-alpha)) 0 1px,
+        transparent 1px var(--grid-spacing)),
+      repeating-linear-gradient(0deg,
+        rgba(var(--grid-rgb), calc(var(--grid-alpha) * .9)) 0 1px,
+        transparent 1px var(--grid-spacing));
+    -webkit-mask-image: radial-gradient(90% 75% at 50% 45%,
+      #000 60%, rgba(0,0,0,0) 100%);
+            mask-image: radial-gradient(90% 75% at 50% 45%,
+      #000 60%, rgba(0,0,0,0) 100%);
+    opacity: 1; /* control via --grid-alpha instead */
   }
 
   .logos__inner {
@@ -128,7 +108,7 @@
     margin: 0 auto;
     padding: 0 12px;
     position: relative;
-    z-index: 1; /* above background layers */
+    z-index: 1;
   }
 
   .logos__title {
@@ -136,20 +116,20 @@
     font-weight: 800;
     letter-spacing: -0.01em;
     font-size: clamp(16px, 2.3vw, 22px);
-    color: #eef2ff; /* soft near-white for dark bg */
-    opacity: .96;
+    color: #0f172a; /* dark for contrast on white */
     margin-bottom: 14px;
     position: relative;
   }
-
-  /* subtle spotlight behind title */
+  /* small accent underline in brand color (very light) */
   .logos__title::after{
     content:"";
-    position:absolute; left:50%; transform:translateX(-50%);
-    top:50%; width: clamp(180px, 40vw, 560px); height: clamp(40px, 8vw, 96px);
-    background: radial-gradient(60% 80% at 50% 50%, rgba(255,255,255,.14), rgba(255,255,255,0) 70%);
-    filter: blur(12px);
-    z-index:-1;
+    display:block;
+    width: clamp(120px, 18vw, 280px);
+    height: 2px;
+    margin: 10px auto 0;
+    background: linear-gradient(90deg,
+      rgba(var(--grid-rgb), .22), rgba(var(--grid-rgb), .12));
+    border-radius: 2px;
   }
 
   .logos__viewport {
@@ -164,11 +144,11 @@
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
 
-    /* translucent inner panel to separate from dark bg just a touch */
-    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-    border: 1px solid rgba(255,255,255,.08);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 20px 40px rgba(2,8,23,.18);
-    backdrop-filter: blur(2px);
+    /* delicate inner panel so cards stand out while background stays white */
+    background: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,.4));
+    border: 1px solid #f2f4f8;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 16px 36px rgba(2,8,23,.06);
+    backdrop-filter: blur(1.5px);
   }
 
   .logos__track {
@@ -181,8 +161,8 @@
   .logos__viewport:hover .logos__track { animation-play-state: paused; }
 
   .logos__track--a { animation-duration: 32s; }
-  .logos__track--b { animation-duration: 42s; opacity: .96; }
-  .logos__track--c { animation-duration: 52s; opacity: .92; }
+  .logos__track--b { animation-duration: 42s; opacity: .98; }
+  .logos__track--c { animation-duration: 52s; opacity: .96; }
 
   @keyframes marquee {
     from { transform: translateX(0); }
@@ -213,7 +193,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .logos__track { animation: none !important; }
-    .logos::before { animation: none !important; }
   }
 </style>
 
@@ -228,9 +207,9 @@
     tracks.forEach(track => {
       const speed = Number(track.dataset.speed || 32);
       const children = Array.from(track.children);
-      // clone once to form a seamless loop
+      // Duplicate once to form a seamless loop
       children.forEach(node => track.appendChild(node.cloneNode(true)));
-      // clamp duration for accessibility and comfort
+      // Gentle motion that feels premium
       track.style.animationDuration = `${Math.max(18, speed)}s`;
     });
   });
