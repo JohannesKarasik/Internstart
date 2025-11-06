@@ -56,69 +56,67 @@
 
 <style>
   /* =======================================================
-     White section + subtle embossed hex pattern (no modal panel)
-     The hex pattern is CSS-only and gently 3D via drop-shadows.
-     Tune size & intensity with --hex, --hex-alpha, --hex-shadow.
+     Softer, low-key embossed hex backdrop (very subtle)
+     - White base, whisper-grey hexes
+     - No inner “modal” panel behind logos
+     Tune intensity via the variables below.
   ======================================================== */
-
   :root{
-    --hex: 54px;                         /* hex size */
-    --hex-alpha: .14;                    /* tile face opacity */
-    --hex-shadow: rgba(2,8,23,.08);      /* shadow color */
+    --hex: 96px;                      /* bigger hex = calmer texture */
+    --hex-alpha: .018;                /* overall hex visibility */
+    --hex-tint: 15, 23, 42;           /* deep slate tone for neutrality */
+
     --logos-gap: clamp(16px, 2.2vw, 28px);
     --logos-pad-y: clamp(28px, 5vw, 60px);
     --section-pad-y: clamp(36px, 6vw, 84px);
+
     --logos-card: #ffffff;
     --logos-border: #eef2f7;
-    --logos-shadow: 0 8px 26px rgba(2,8,23,.08);
+    --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
   }
 
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    background: #fff;                    /* base white as requested */
+    background: #fff;                 /* keep page light */
     border-top: 1px solid #eef2f7;
     overflow: hidden;
     isolation: isolate;
   }
 
-  /* Embossed hex mesh (flat-top). This sits behind everything. */
+  /* ultra-subtle hex pattern, faded strongly */
   .logos::before{
     content:"";
-    position:absolute; inset:-4% 0 -6%;  /* bleed so edges never show seams */
+    position:absolute; inset:-6% 0 -8%;
     z-index:0; pointer-events:none;
 
-    /* math helpers */
     --w: var(--hex);
-    --h: calc(var(--hex) * 0.866);       /* sqrt(3)/2 */
+    --h: calc(var(--hex) * 0.866);
 
-    /* The pattern uses two conic-gradient layers that interlock to form filled hexes.
-       Then we add faint drop-shadows to mimic the reference's depth. */
     background:
+      /* mild center wash to keep attention on logos */
+      radial-gradient(60% 50% at 50% 45%, rgba(255,255,255,.9), rgba(255,255,255,.96)),
+      /* the actual hex pattern (very faint) */
       conic-gradient(from 30deg at 50% calc(50%/0.866),
-        rgba(0,0,0,0) 0 60deg,
-        rgba(0,0,0,var(--hex-alpha)) 0 120deg,
-        rgba(0,0,0,0) 0 180deg,
-        rgba(0,0,0,var(--hex-alpha)) 0 240deg,
-        rgba(0,0,0,0) 0 300deg,
-        rgba(0,0,0,var(--hex-alpha)) 0)  calc(var(--w)/2) 0 / var(--w) var(--h),
+        rgba(var(--hex-tint),0) 0 60deg,
+        rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
+        rgba(var(--hex-tint),0) 0 180deg,
+        rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
+        rgba(var(--hex-tint),0) 0 300deg,
+        rgba(var(--hex-tint),var(--hex-alpha)) 0)  calc(var(--w)/2) 0 / var(--w) var(--h),
       conic-gradient(from -30deg at 50% calc(50%/0.866),
-        rgba(0,0,0,0) 0 60deg,
-        rgba(0,0,0,var(--hex-alpha)) 0 120deg,
-        rgba(0,0,0,0) 0 180deg,
-        rgba(0,0,0,var(--hex-alpha)) 0 240deg,
-        rgba(0,0,0,0) 0 300deg,
-        rgba(0,0,0,var(--hex-alpha)) 0)  0 0 / var(--w) var(--h);
+        rgba(var(--hex-tint),0) 0 60deg,
+        rgba(var(--hex-tint),var(--hex-alpha)) 0 120deg,
+        rgba(var(--hex-tint),0) 0 180deg,
+        rgba(var(--hex-tint),var(--hex-alpha)) 0 240deg,
+        rgba(var(--hex-tint),0) 0 300deg,
+        rgba(var(--hex-tint),var(--hex-alpha)) 0)  0 0 / var(--w) var(--h);
 
-    /* turn the grey hex fills into subtle light/dark relief with shadows */
-    filter:
-      drop-shadow(0 1px 1px var(--hex-shadow))
-      drop-shadow(0 10px 18px rgba(2,8,23,.05));
-    opacity:.75;
-
-    /* fade toward edges so it never feels busy */
-    -webkit-mask-image: radial-gradient(85% 70% at 50% 45%, #000 65%, #0000 100%);
-            mask-image: radial-gradient(85% 70% at 50% 45%, #000 65%, #0000 100%);
+    /* soften more toward edges (nearly invisible) */
+    -webkit-mask-image:
+      radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
+            mask-image:
+      radial-gradient(110% 85% at 50% 45%, #000 60%, rgba(0,0,0,.2) 85%, rgba(0,0,0,0) 100%);
   }
 
   .logos__inner{
@@ -146,7 +144,7 @@
     flex-direction: column;
     gap: 18px;
 
-    /* Keep only the side fade; remove the previous white "modal" panel */
+    /* no modal-like panel; just side fades */
     background: transparent;
     border: 0;
     box-shadow: none;
@@ -173,7 +171,6 @@
     to  { transform: translateX(-50%); }
   }
 
-  /* logo cards remain clean for brand clarity */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -213,9 +210,7 @@
     tracks.forEach(track => {
       const speed = Number(track.dataset.speed || 32);
       const children = Array.from(track.children);
-      // Duplicate once to form a seamless loop
       children.forEach(node => track.appendChild(node.cloneNode(true)));
-      // Gentle motion that feels premium
       track.style.animationDuration = `${Math.max(18, speed)}s`;
     });
   });
