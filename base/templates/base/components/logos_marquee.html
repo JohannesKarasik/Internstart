@@ -196,6 +196,38 @@
   @media (prefers-reduced-motion: reduce){
     .logos__track{ animation: none !important; }
   }
+
+
+  /* === Marquee background: solid #FF2F5A, full-bleed === */
+.logos{
+  background: #FF2F5A !important;
+  border-top: 0;            /* optional: remove the light divider */
+}
+
+/* Remove the faint hex + wash overlay */
+.logos::before{
+  content: none !important;
+  background: none !important;
+}
+
+/* Show everything edge-to-edge (remove side fade mask) */
+.logos__viewport{
+  -webkit-mask-image: none !important;
+          mask-image: none !important;
+}
+
+/* Ensure good contrast on red background */
+.logos__title{
+  color: #fff !important;
+}
+
+/* Optional: lighten card chrome to sit better on red */
+:root{
+  --logos-card: #ffffff;                 /* stays white */
+  --logos-border: rgba(255,255,255,.35); /* softer edge on red */
+  --logos-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+
 </style>
 
 <script>
