@@ -1116,10 +1116,6 @@ from django.http import HttpResponse
 
 @login_required
 def swipe_static_view(request):
-    """
-    Post-signup teaser: identical UI to real swipe, but any swipe action opens payment.
-    No overlay_waiting. No subscription requirement. Just a preview that looks real.
-    """
     user = request.user
 
     q = request.GET.get('q') or ''
@@ -1131,44 +1127,44 @@ def swipe_static_view(request):
         Q(description__icontains=q)
     ).order_by('id')
 
-    # If student, still show relevant jobs (nice touch)
+    # 🔒 Safe student preference filter
     if getattr(user, 'role', None) == 'student':
-        rooms_qs = rooms_qs.filter(
-            industry=user.student_industry,
-            country=user.country,
-            job_type=user.job_type
-        )
+        filters = {}
+        si = getattr(user, 'student_industry', None)
+        co = getattr(user, 'country', None)
+        jt = getattr(user, 'job_type', None)
+        if si: filters['industry'] = si
+        if co: filters['country'] = co
+        if jt: filters['job_type'] = jt
+        if filters:
+            rooms_qs = rooms_qs.filter(**filters)
 
     paginator = Paginator(rooms_qs, 5)
     rooms = paginator.get_page(page)
 
     partial = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-
     topics = Topic.objects.all()[:5]
     room_count = rooms_qs.count()
 
     context = {
-        # Always zeros to emphasize preview if you show counters
         "swipes_left": 0,
         "swipe_limit": 0,
         "rooms": rooms,
         "topics": topics,
         "room_count": room_count,
         "user_profile": user,
-        "first_login": False,  # don’t flip onboarding here
+        "first_login": False,
         "email_configured": getattr(user, "email_configured", False),
         "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
         "partial": partial,
-        "TEASER_MODE": True,  # template/JS flag if you want special text
+        "TEASER_MODE": True,
     }
 
-    # AJAX page loads (if you use infinite scroll)
     if partial:
         context["rooms"] = rooms.object_list
         html = render_to_string("base/swipe_cards.html", context, request=request)
         return HttpResponse(html)
 
-    # 👇 This is the new template (a copy of your real one but with teaser JS)
     return render(request, "base/swipe_component_static.html", context)
 
 
