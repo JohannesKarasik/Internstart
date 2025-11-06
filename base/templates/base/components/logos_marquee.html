@@ -136,6 +136,63 @@
   @media (prefers-reduced-motion: reduce) {
     .logos__track { animation: none !important; }
   }
+
+
+
+
+/* --- variables you can tune --- */
+:root{
+  --brand-1: #ff5c72;     /* your coral */
+  --brand-2: #ffb1bd;     /* lighter coral */
+  --bg-intensity: .16;    /* lower = quieter */
+}
+
+/* base section tweaks */
+.logos{
+  position: relative;
+  overflow: hidden;
+  background: #fff;               /* base stays neutral */
+  border-top: 1px solid #eef2f7;
+}
+
+/* floating aurora blobs */
+.logos::before{
+  content:"";
+  position:absolute; inset:-20% -10% 0;
+  pointer-events:none;
+  background:
+    radial-gradient(700px 220px at 10% 10%,
+      color-mix(in oklab, var(--brand-1) 20%, transparent) var(--bg-intensity),
+      transparent 60%),
+    radial-gradient(650px 220px at 90% 18%,
+      color-mix(in oklab, var(--brand-2) 20%, transparent) var(--bg-intensity),
+      transparent 62%),
+    linear-gradient(180deg,#fff 0%,#fff 65%,#fefefe 100%);
+  filter: saturate(.9);
+  z-index:0;
+  animation: aurora 60s linear infinite;
+  opacity:.9;
+}
+@keyframes aurora{
+  0%   { transform: translate3d(0,0,0) rotate(0deg); }
+  50%  { transform: translate3d(-1%, 0, 0) rotate(180deg); }
+  100% { transform: translate3d(0,0,0) rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce){
+  .logos::before{ animation:none; }
+}
+
+/* keep your viewport & cards above the background */
+.logos__inner, .logos__viewport{ position: relative; z-index:1; }
+
+/* improve title contrast */
+.logos__title{
+  color:#0f172a;    /* dark slate */
+  opacity:.9;
+}
+
+
+
 </style>
 
 <script>
