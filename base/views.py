@@ -1114,9 +1114,43 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 
+from openai import OpenAI
+client = OpenAI()
+
 @login_required
 def swipe_static_view(request):
     user = request.user
+
+    # --- NEW: generate matching fake company + job ---
+    dt = (user.desired_job_title or "").strip()
+    fake_company = "Tesla"
+    fake_title = "Growth Intern"
+    fake_role = "Marketing Analytics Intern"
+
+    if dt:
+        try:
+            prompt = f"""
+            Generate a realistic company and job title that matches this desired job title: '{dt}'.
+            Return ONLY valid JSON like:
+            {{"company":"...", "title":"...", "role":"..."}}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {"role":"system","content":"You generate realistic job postings."},
+                    {"role":"user","content": prompt}
+                ],
+            )
+
+            import json
+            obj = json.loads(completion.choices[0].message.content)
+            fake_company = obj.get("company", fake_company)
+            fake_title = obj.get("title", fake_title)
+            fake_role = obj.get("role", fake_role)
+        except:
+            pass
+    # ---------------------------------------------------
 
     q = request.GET.get('q') or ''
     page = int(request.GET.get('page', 1))
@@ -1158,6 +1192,11 @@ def swipe_static_view(request):
         "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
         "partial": partial,
         "TEASER_MODE": True,
+
+        # --- NEW: send generated fake job to template ---
+        "static_company": fake_company,
+        "static_title": fake_title,
+        "static_role": fake_role,
     }
 
     if partial:
@@ -1166,7 +1205,6 @@ def swipe_static_view(request):
         return HttpResponse(html)
 
     return render(request, "base/swipe_component_static.html", context)
-
 
 @login_required
 def swipe_jobs_api(request):

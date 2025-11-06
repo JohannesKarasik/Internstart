@@ -489,13 +489,13 @@
                   <img src="/static/images/fallback-logo.png" alt="{{ room.company_name }}" class="company-logo" loading="lazy">
                 </div>
               {% endif %}
-    
+              
               <div class="title-block">
-                <h4>{{ room.company_name }}</h4>
-                <h3>{{ room.job_title|default:"this position" }}</h3>
-                <h2>{{ room.role }}</h2>
-                <p class="meta"><span class="dot"></span> {{ room.location }}</p>
-              </div>
+                <h4>{{ static_company }}</h4>
+                <h3>{{ static_title }}</h3>
+                <h2>{{ static_role }}</h2>
+                <p class="meta"><span class="dot"></span> Copenhagen, DK</p>
+            </div>
     
               <div class="info-badges">
                 <span class="badge badge--hot">🔥 Hot</span>
