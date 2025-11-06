@@ -1114,6 +1114,8 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 
+
+
 from openai import OpenAI
 client = OpenAI()
 
@@ -1127,10 +1129,16 @@ def swipe_static_view(request):
     fake_title = "Growth Intern"
     fake_role = "Marketing Analytics Intern"
 
+    # detect language based on user.country (model Country field)
+    lang = "english"
+    if user.country == "DK":
+        lang = "danish"
+
     if dt:
         try:
             prompt = f"""
             Generate a realistic company and job title that matches this desired job title: '{dt}'.
+            Write it in {lang}.
             Return ONLY valid JSON like:
             {{"company":"...", "title":"...", "role":"..."}}
             """
@@ -1205,6 +1213,7 @@ def swipe_static_view(request):
         return HttpResponse(html)
 
     return render(request, "base/swipe_component_static.html", context)
+
 
 @login_required
 def swipe_jobs_api(request):
