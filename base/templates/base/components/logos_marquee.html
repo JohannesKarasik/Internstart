@@ -53,10 +53,10 @@
 
 <style>
   /* =======================================================
-     REAL LAVA-LAMP MOVEMENT
-     - Blobs morph and drift continuously
-     - Color fields flow like liquid
-     - Layered gradients animate independently
+     OBLIQUE "BAND" + LAVA-LAMP BACKGROUND
+     - White in top-left and bottom-right corners
+     - Colored band runs diagonally across the section
+     - Inside the band: smooth, morphing gradient blobs
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -67,11 +67,18 @@
     --logos-border: rgba(255,255,255,.48);
     --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
 
+    /* palette */
     --g-violet: #7a4dff;
     --g-purple: #a463ff;
     --g-magenta:#ff4fd8;
     --g-orange: #ff8e6e;
     --g-cyan:   #68c0ff;
+
+    /* diagonal band shape (edit to tweak slant/thickness) */
+    --band-top-left: 32%;
+    --band-top-right: 12%;
+    --band-bot-right: 84%;
+    --band-bot-left: 62%;
   }
 
   .logos{
@@ -79,84 +86,68 @@
     padding: var(--section-pad-y) 0;
     overflow: hidden;
     isolation: isolate;
-    background: linear-gradient(135deg, var(--g-orange), var(--g-magenta), var(--g-purple), var(--g-cyan));
+    background: #fff; /* keep corners pure white */
   }
 
-  /* === LAVA layers === */
+  /* === Animated gradient blobs, clipped to a diagonal band === */
   .logos::before,
-  .logos::after {
+  .logos::after{
     content:"";
     position:absolute;
     inset:-30% -20%;
     z-index:0;
-    background-repeat: no-repeat;
-    mix-blend-mode: screen;
-    will-change: transform, background;
-    filter: blur(35px) saturate(1.2);
+    background-repeat:no-repeat;
+    will-change: transform, background-position, filter;
+
+    /* The diagonal band mask: white (visible) inside, white outside handled by section bg */
+    clip-path: polygon(
+      0% var(--band-top-left),
+      100% var(--band-top-right),
+      100% var(--band-bot-right),
+      0% var(--band-bot-left)
+    );
   }
 
-  .logos::before {
-    background-image:
-      radial-gradient(circle at 20% 30%, rgba(255,142,110,.8) 0%, transparent 65%),
-      radial-gradient(circle at 70% 40%, rgba(255,79,216,.75) 0%, transparent 70%),
-      radial-gradient(circle at 40% 80%, rgba(104,192,255,.7) 0%, transparent 65%),
-      radial-gradient(circle at 80% 75%, rgba(122,77,255,.8) 0%, transparent 70%);
-    animation: blobMorph 40s ease-in-out infinite alternate;
+  /* Base morphing layer */
+  .logos::before{
+    background:
+      radial-gradient(60vmax 60vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, transparent 100%),
+      radial-gradient(70vmax 70vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 50%, transparent 100%),
+      radial-gradient(65vmax 65vmax at 70% 80%, rgba(255,79,216,.70) 0%, rgba(104,192,255,.45) 60%, transparent 100%),
+      radial-gradient(60vmax 60vmax at 30% 85%, rgba(122,77,255,.70) 0%, rgba(255,142,110,.35) 65%, transparent 100%);
+    filter: saturate(1.15) contrast(1.05) blur(8px);
+    animation: lavaFlow 52s ease-in-out infinite alternate,
+               hueCycle 70s linear infinite;
   }
 
-  .logos::after {
-    background-image:
-      radial-gradient(circle at 60% 25%, rgba(104,192,255,.6) 0%, transparent 70%),
-      radial-gradient(circle at 25% 75%, rgba(255,142,110,.5) 0%, transparent 70%),
-      radial-gradient(circle at 85% 65%, rgba(255,79,216,.5) 0%, transparent 75%);
-    animation: blobMorph2 60s ease-in-out infinite alternate-reverse;
+  /* Secondary counter-moving layer for depth */
+  .logos::after{
+    background:
+      radial-gradient(80vmax 80vmax at 15% 25%, rgba(255,79,216,.28) 0%, transparent 70%),
+      radial-gradient(90vmax 80vmax at 85% 25%, rgba(104,192,255,.30) 0%, transparent 70%),
+      radial-gradient(90vmax 80vmax at 75% 80%, rgba(122,77,255,.28) 0%, transparent 70%),
+      radial-gradient(95vmax 85vmax at 25% 85%, rgba(255,142,110,.26) 0%, transparent 70%);
+    filter: blur(10px) saturate(1.1);
+    animation: lavaFlowReverse 68s ease-in-out infinite alternate;
   }
 
-  @keyframes blobMorph {
-    0% {
-      transform: scale(1) translate(0,0) rotate(0deg);
-      background-size: 120% 120%;
-      background-position: 20% 30%, 70% 40%, 40% 80%, 80% 75%;
-    }
-    25% {
-      transform: scale(1.1) translate(-2%,1%) rotate(10deg);
-      background-position: 30% 25%, 65% 50%, 45% 78%, 78% 70%;
-    }
-    50% {
-      transform: scale(1.05) translate(2%,-2%) rotate(-8deg);
-      background-position: 18% 35%, 75% 45%, 35% 82%, 70% 80%;
-    }
-    75% {
-      transform: scale(1.15) translate(-1%,2%) rotate(5deg);
-      background-position: 25% 40%, 70% 35%, 42% 75%, 76% 68%;
-    }
-    100% {
-      transform: scale(1) translate(1%,-1%) rotate(0deg);
-      background-position: 20% 30%, 70% 40%, 40% 80%, 80% 75%;
-    }
+  /* Morphing motion (lava-like) */
+  @keyframes lavaFlow{
+    0%  { transform: translate3d(0,0,0) scale(1);   background-position: 20% 20%, 80% 25%, 70% 80%, 30% 85%; }
+    25% { transform: translate3d(-1%,1%,0) scale(1.03); background-position: 26% 26%, 74% 22%, 65% 75%, 36% 90%; }
+    50% { transform: translate3d(1%,-1%,0) scale(1.06); background-position: 18% 22%, 82% 18%, 72% 84%, 28% 78%; }
+    75% { transform: translate3d(-1%,-1%,0) scale(1.02); background-position: 14% 18%, 76% 20%, 68% 88%, 26% 80%; }
+    100%{ transform: translate3d(0.6%,1%,0) scale(1.04); background-position: 22% 28%, 78% 22%, 70% 82%, 30% 84%; }
   }
-
-  @keyframes blobMorph2 {
-    0% {
-      transform: scale(1.05) translate(0%,0%) rotate(0deg);
-      background-position: 60% 25%, 25% 75%, 85% 65%;
-    }
-    25% {
-      transform: scale(1.1) translate(-1%,2%) rotate(12deg);
-      background-position: 55% 30%, 20% 70%, 88% 60%;
-    }
-    50% {
-      transform: scale(1.15) translate(2%,-1%) rotate(-10deg);
-      background-position: 65% 20%, 30% 78%, 82% 70%;
-    }
-    75% {
-      transform: scale(1.08) translate(-2%,1%) rotate(8deg);
-      background-position: 62% 28%, 22% 72%, 88% 68%;
-    }
-    100% {
-      transform: scale(1) translate(0%,0%) rotate(0deg);
-      background-position: 60% 25%, 25% 75%, 85% 65%;
-    }
+  @keyframes lavaFlowReverse{
+    0%  { transform: translate3d(0,0,0) scale(1.02); }
+    50% { transform: translate3d(1.6%,-0.8%,0) scale(1.06); }
+    100%{ transform: translate3d(-1%,1%,0) scale(1.03); }
+  }
+  @keyframes hueCycle{
+    0%{ filter: hue-rotate(0deg) saturate(1.15) blur(8px); }
+    50%{ filter: hue-rotate(20deg) saturate(1.22) blur(8px); }
+    100%{ filter: hue-rotate(0deg) saturate(1.15) blur(8px); }
   }
 
   .logos__inner{
@@ -196,7 +187,6 @@
     gap: var(--logos-gap);
     animation: marquee linear infinite;
   }
-
   .logos__viewport:hover .logos__track{ animation-play-state: paused; }
 
   .logos__track--a{ animation-duration: 32s; }
@@ -205,10 +195,10 @@
 
   @keyframes marquee{
     from{ transform: translateX(0); }
-    to{ transform: translateX(-50%); }
+    to  { transform: translateX(-50%); }
   }
 
-  /* Glassy cards */
+  /* Glassy logo cards */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
