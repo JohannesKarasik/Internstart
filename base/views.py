@@ -1171,7 +1171,7 @@ def swipe_static_view(request):
 
     rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
         Q(topic__name__icontains=q) |
-        Q(description__icontains?q)
+        Q(description__icontains=q)
     ).order_by('id')
 
     # 🔒 Safe student preference filter
