@@ -75,7 +75,7 @@ urlpatterns = [
 # urls.py
     path("swipe/preview/", swipe_static_view, name="swipe_static_view"),
     # urls.py
-    path("swipe/next/", views.next_card_json, name="swipe_next_json")
+    path("swipe/next/", views.next_card_json, name="swipe_next_json"),
 
 
 
