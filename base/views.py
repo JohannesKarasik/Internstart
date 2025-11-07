@@ -1363,6 +1363,12 @@ def debug_set_tier(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+def landing_page(request):
+    return render(request, "landing_page.html", {
+        "google_maps_key": settings.GOOGLE_MAPS_KEY
+    })
+
+
 
 import stripe
 from django.views.decorators.csrf import csrf_exempt
