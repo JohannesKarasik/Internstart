@@ -2661,8 +2661,8 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 
     if (btn.classList.contains('swipe-left'))     return void throwCard('left');
     if (btn.classList.contains('swipe-right')) {
-  window.location.href = "/no-subscription/";
-  return;
+    window.location.href = "{% url 'swipe' %}"; 
+    return;
 }
     if (btn.classList.contains('swipe-lightning'))return void throwCard('right', {doFetch:true});
     if (btn.classList.contains('swipe-return'))   return void undoLast();
