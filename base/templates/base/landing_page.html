@@ -103,40 +103,39 @@
 </style>
 
 <script>
-(() => {
-  const maps = [
-    "https://maps.googleapis.com/maps/api/staticmap?center=Manchester&zoom=12&size=300x200&key=YOUR_API_KEY",
-    "https://maps.googleapis.com/maps/api/staticmap?center=London&zoom=12&size=300x200&key=YOUR_API_KEY",
-    "https://maps.googleapis.com/maps/api/staticmap?center=Boston&zoom=12&size=300x200&key=YOUR_API_KEY",
-    "https://maps.googleapis.com/maps/api/staticmap?center=Miami&zoom=12&size=300x200&key=YOUR_API_KEY"
-  ];
-
-  // fallback static images if no Google Maps key
-  const fallbackMaps = [
-    "https://upload.wikimedia.org/wikipedia/commons/3/39/Manchester_UK_map.png",
-    "https://upload.wikimedia.org/wikipedia/commons/4/4a/London_City_map.png",
-    "https://upload.wikimedia.org/wikipedia/commons/2/29/Boston_city_map.png",
-    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Miami_map.png"
-  ];
-
-  const popup = document.getElementById('upgradePopup');
-  const img = document.getElementById('popupMap');
-
-  // Show popup after 2 seconds
-  setTimeout(() => {
-    popup.hidden = false;
-    popup.classList.add('visible');
-    let i = 0;
-    img.src = fallbackMaps[i];
-
-    // Rotate map every 4 seconds
-    setInterval(() => {
-      i = (i + 1) % fallbackMaps.length;
-      img.src = fallbackMaps[i];
-    }, 4000);
-  }, 2000);
-})();
-</script>
+  (() => {
+    const popup = document.getElementById('upgradePopup');
+    const img = document.getElementById('popupMap');
+  
+    // reliable static map tiles from OpenStreetMap via Mapbox (no key required)
+    const cityCoords = [
+      { name: "Manchester", lat: 53.4808, lon: -2.2426 },
+      { name: "London",     lat: 51.5072, lon: -0.1276 },
+      { name: "Boston",     lat: 42.3601, lon: -71.0589 },
+      { name: "Miami",      lat: 25.7617, lon: -80.1918 }
+    ];
+  
+    function mapUrl(lat, lon) {
+      // Static Map from OSM tiles using StaticMapLite proxy (free, no key)
+      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=11&size=300x200&maptype=mapnik`;
+    }
+  
+    // Show popup after 2 seconds
+    setTimeout(() => {
+      popup.hidden = false;
+      popup.classList.add('visible');
+      let i = 0;
+      img.src = mapUrl(cityCoords[i].lat, cityCoords[i].lon);
+  
+      // Rotate map every 4 seconds
+      setInterval(() => {
+        i = (i + 1) % cityCoords.length;
+        img.src = mapUrl(cityCoords[i].lat, cityCoords[i].lon);
+      }, 4000);
+    }, 2000);
+  })();
+  </script>
+  
 
 
 {% endblock content %}
