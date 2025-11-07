@@ -1039,49 +1039,71 @@ from django.utils.html import strip_tags
 from django.db.models import Q
 from .models import Room, SwipedJob
 
+from openai import OpenAI
+client = OpenAI()
+
 @login_required
 def next_card_json(request):
     user = request.user
 
-    # get ids already swiped
-    swiped_ids = SwipedJob.objects.filter(user=user).values_list('room_id', flat=True)
+    dt = (user.desired_job_title or "").strip()
+    lang = "english"
+    if user.country == "DK":
+        lang = "danish"
 
-    # base qs
-    rooms_qs = Room.objects.exclude(id__in=swiped_ids)
+    try:
+        prompt = f"""
+        Pick exactly 1 REAL company in {user.country} that is MID-SIZE 
+        (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon).
 
-    # same filtering rules as swipe_view
-    if getattr(user, 'role', None) == 'student':
-        rooms_qs = rooms_qs.filter(
-            industry=user.student_industry,
-            country=user.country,
-            job_type=user.job_type
+        Match desired job title '{dt}' but make the job title short + very specific.
+        (Example: instead of "Marketing Intern", write "Performance Marketing Intern (Paid Social)")
+
+        Write in {lang}.
+
+        Return ONLY JSON like:
+        {{
+          "company":"...",
+          "domain":"...",
+          "title":"...",
+          "role":"...",
+          "description":"compact 1 sentence on daily work"
+        }}
+        """
+
+        completion = client.chat.completions.create(
+            model="gpt-5",
+            messages=[
+                {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
+                {"role":"user","content": prompt}
+            ],
         )
 
-    # pick 1 card
-    room = rooms_qs.order_by('?').first()
+        import json
+        obj = json.loads(completion.choices[0].message.content)
 
-    if not room:
         return JsonResponse({
-            "id": "demo",
-            "company": "No more matches",
-            "title": "Try another job field?",
-            "role": "",
-            "location": "",
-            "logo_domain": "internstart.com",
-            "desc": "",
+            "id": "ai",
+            "company": obj.get("company",""),
+            "title": obj.get("title",""),
+            "role": obj.get("role",""),
+            "location": user.country,
+            "logo_domain": obj.get("domain",""),
+            "desc": obj.get("description",""),
             "badges": []
         })
 
-    return JsonResponse({
-        "id": room.id,
-        "company": room.company_name or "Company",
-        "title": room.job_title or "Role",
-        "role": getattr(room, "job_type", "Internship"),
-        "location": room.location or "",
-        "logo_domain": getattr(room, "logo_domain", ""),
-        "desc": strip_tags(room.description)[:600],
-        "badges": []
-    })
+    except Exception as e:
+        return JsonResponse({
+            "id": "fallback",
+            "company": "Internstart",
+            "title": "Internship",
+            "role": "",
+            "location": user.country,
+            "logo_domain": "",
+            "desc": "",
+            "badges": []
+        })
 
 @login_required
 def swipe_view(request):
