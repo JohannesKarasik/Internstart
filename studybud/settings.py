@@ -297,4 +297,7 @@ USER_MEDIA_ROOT = BASE_DIR / 'media'           # Directory on disk
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+GOOGLE_MAPS_KEY = os.environ.get("GOOGLE_MAPS_KEY", "")
+
+
 CORS_ALLOW_ALL_ORIGINS = True
