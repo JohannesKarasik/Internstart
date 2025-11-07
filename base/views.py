@@ -1117,7 +1117,6 @@ from django.http import HttpResponse
 
 from openai import OpenAI
 client = OpenAI()
-
 @login_required
 def next_card_json(request):
     user = request.user
@@ -1140,11 +1139,13 @@ def next_card_json(request):
         Return ONLY JSON like:
         {{
           "company":"...",
-          "domain":"...",
+          "domain":"company website domain ONLY (example: revolut.com, airbnb.com)",
           "title":"...",
           "role":"...",
           "description":"compact 1 sentence on daily work"
         }}
+
+        IMPORTANT: domain must include .com or correct TLD (.dk / .se / .co.uk etc)
         """
 
         completion = client.chat.completions.create(
@@ -1152,12 +1153,16 @@ def next_card_json(request):
             messages=[
                 {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
                 {"role":"user","content": prompt}
-
             ],
         )
 
         import json
         obj = json.loads(completion.choices[0].message.content)
+
+        # --- normalize domain ---
+        domain = (obj.get("domain","") or "").lower().strip()
+        if domain and "." not in domain:
+            domain = domain + ".com"
 
         return JsonResponse({
             "id": "ai",
@@ -1165,7 +1170,7 @@ def next_card_json(request):
             "title": obj.get("title",""),
             "role": obj.get("role",""),
             "location": user.country,
-            "logo_domain": obj.get("domain",""),
+            "logo_domain": domain,
             "desc": obj.get("description",""),
             "badges": []
         })
@@ -1181,7 +1186,6 @@ def next_card_json(request):
             "desc": "",
             "badges": []
         })
-
 
 
 from openai import OpenAI
