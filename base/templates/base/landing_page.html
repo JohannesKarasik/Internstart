@@ -45,6 +45,7 @@
   </style>
 
 <!-- ✅ Bottom-left popup notification -->
+<!-- ✅ Bottom-left popup notification -->
 <div id="upgradePopup" class="upgrade-popup" hidden>
   <div class="upgrade-popup__content">
     <strong id="upgradeName">Mark upgraded to Pro</strong>
@@ -69,6 +70,7 @@
     transform: translateX(-120%);
     transition: transform 0.6s ease, opacity 0.6s ease;
     z-index: 1000;
+    will-change: transform, opacity; /* 👈 hint for smooth first paint */
   }
 
   .upgrade-popup.visible {
@@ -172,9 +174,11 @@
     popup.style.opacity = "0";
     popup.style.transform = "translateX(-120%)";
 
-    // Ensure layout is ready, then start animation cleanly
+    // 🔧 Force a reflow so the browser commits the off-screen state
+    //    then remove the inline transition and add .visible in the next frame
+    void popup.offsetWidth; // reflow
     requestAnimationFrame(() => {
-      popup.style.transition = "";
+      popup.style.removeProperty('transition'); // restore CSS transition
       popup.classList.add("visible");
     });
 
@@ -185,11 +189,11 @@
     }, 4000);
   }
 
-  // Slightly longer delay before the first popup (3.5s) for smoother animation
+  // Initial delay — a touch longer helps first paint be buttery smooth
   setTimeout(() => {
     showPopup();
     setInterval(showPopup, 6000);
-  }, 3500);
+  }, 3200);
 })();
 </script>
 
