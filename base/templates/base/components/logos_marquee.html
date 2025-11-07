@@ -54,8 +54,8 @@
 <style>
   /* =======================================================
      OBLIQUE, PARALLEL "BAND" + LAVA-LAMP BACKGROUND
+     - Centered diagonally through the section
      - White in top-left & bottom-right corners
-     - Colored band has the SAME angle top/bottom (parallel)
      - Smooth, morphing blobs inside the band
   ======================================================== */
   :root{
@@ -74,11 +74,10 @@
     --g-orange: #ff8e6e;
     --g-cyan:   #68c0ff;
 
-    /* ---------- Parallel band controls ---------- */
-    /* Top edge positions (y from top). Smaller value = higher (more white). */
-    --band-top-left: 34%;
-    --band-top-right: 14%;
-    /* Thickness of the band; bottom edge is top edge + thickness */
+    /* ---------- Parallel band controls (centered) ---------- */
+    /* Keep the same angle (difference 20%), but center midline (~50%). */
+    --band-top-left: 45%;
+    --band-top-right: 25%;
     --band-thickness: 30%;
     --band-bottom-left: calc(var(--band-top-left) + var(--band-thickness));
     --band-bottom-right: calc(var(--band-top-right) + var(--band-thickness));
