@@ -8,7 +8,16 @@
 {% block content %}
   {# Hero / phone carousel #}
   {% include "base/components/hero.html" %}
-  <!-- =========================
+
+
+  {% include "base/components/logos_marquee.html" %}
+
+
+
+  {# Tinder cards + AI form section #}
+  {% include "base/components/tinder_form.html" %}
+
+    <!-- =========================
      Reviews (Auto Carousel)
 ========================= -->
 <section class="reviews" aria-label="User reviews">
@@ -263,12 +272,6 @@
 })();
 </script>
 
-
-  {% include "base/components/logos_marquee.html" %}
-
-
-  {# Tinder cards + AI form section #}
-  {% include "base/components/tinder_form.html" %}
 
   <footer class="site-footer">
     <div class="footer__inner">
