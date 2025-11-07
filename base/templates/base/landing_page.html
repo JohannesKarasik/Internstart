@@ -45,11 +45,10 @@
   </style>
 
 <!-- ✅ Bottom-left popup notification -->
-<!-- ✅ Bottom-left popup notification -->
 <div id="upgradePopup" class="upgrade-popup" hidden>
   <div class="upgrade-popup__content">
-    <strong id="upgradeName">Mark upgraded to Pro</strong>
-    <p id="upgradeTime">10 minutes ago</p>
+    <strong>Mark upgraded to Pro</strong>
+    <p>10 minutes ago</p>
     <img id="popupMap" src="" alt="City map" />
   </div>
 </div>
@@ -66,21 +65,15 @@
     width: 240px;
     max-width: 90vw;
     font-family: system-ui, sans-serif;
+    transform: translateY(20px);
     opacity: 0;
-    transform: translateX(-120%);
-    transition: transform 0.6s ease, opacity 0.6s ease;
+    transition: all 0.5s ease;
     z-index: 1000;
-    will-change: transform, opacity; /* 👈 hint for smooth first paint */
   }
 
   .upgrade-popup.visible {
+    transform: translateY(0);
     opacity: 1;
-    transform: translateX(0);
-  }
-
-  .upgrade-popup.hide {
-    opacity: 0;
-    transform: translateX(-120%);
   }
 
   .upgrade-popup__content {
@@ -110,93 +103,55 @@
 </style>
 
 <script>
-(() => {
-  const popup = document.getElementById('upgradePopup');
-  const nameEl = document.getElementById('upgradeName');
-  const timeEl = document.getElementById('upgradeTime');
-  const img = document.getElementById('popupMap');
-
-  const apiKey = "{{ google_maps_key }}";
-
-  const cities = [
-    { name: "New York", lat: 40.7128, lon: -74.0060 },
-    { name: "Los Angeles", lat: 34.0522, lon: -118.2437 },
-    { name: "Chicago", lat: 41.8781, lon: -87.6298 },
-    { name: "Houston", lat: 29.7604, lon: -95.3698 },
-    { name: "Phoenix", lat: 33.4484, lon: -112.0740 },
-    { name: "Philadelphia", lat: 39.9526, lon: -75.1652 },
-    { name: "San Francisco", lat: 37.7749, lon: -122.4194 },
-    { name: "Seattle", lat: 47.6062, lon: -122.3321 },
-    { name: "Miami", lat: 25.7617, lon: -80.1918 },
-    { name: "Boston", lat: 42.3601, lon: -71.0589 }
-  ];
-
-  const names = [
-    "Olivia","Liam","Emma","Noah","Sophia","James","Ava","Lucas","Isabella","Mason",
-    "Mia","Ethan","Charlotte","Henry","Amelia","Alexander","Harper","Benjamin","Evelyn","Elijah",
-    "Ella","Michael","Scarlett","Daniel","Aria","Matthew","Luna","Jack","Layla","Owen",
-    "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
-  ];
-
-  const timeframes = [
-    "Just now","1 minute ago","2 minutes ago","3 minutes ago","4 minutes ago",
-    "5 minutes ago","6 minutes ago","7 minutes ago","8 minutes ago","9 minutes ago",
-    "10 minutes ago","11 minutes ago","12 minutes ago","a few moments ago","moments ago",
-    "about 2 minutes ago","recently","this minute","a few seconds ago","less than 1 minute ago"
-  ];
-
-  function mapUrl(lat, lon) {
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&key=${apiKey}`;
-  }
-
-  const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
-
-  function setSafeSrc(el, src) {
-    const testImg = new Image();
-    testImg.onload = () => el.src = src;
-    testImg.onerror = () =>
-      el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
-    testImg.src = src;
-  }
-
-  function showPopup() {
-    const city = randomItem(cities);
-    const name = randomItem(names);
-    const time = randomItem(timeframes);
-
-    nameEl.textContent = `${name} upgraded to Pro`;
-    timeEl.textContent = time;
-    setSafeSrc(img, mapUrl(city.lat, city.lon));
-
-    popup.hidden = false;
-    popup.classList.remove("hide", "visible");
-    popup.style.transition = "none";
-    popup.style.opacity = "0";
-    popup.style.transform = "translateX(-120%)";
-
-    // 🔧 Force a reflow so the browser commits the off-screen state
-    //    then remove the inline transition and add .visible in the next frame
-    void popup.offsetWidth; // reflow
-    requestAnimationFrame(() => {
-      popup.style.removeProperty('transition'); // restore CSS transition
-      popup.classList.add("visible");
-    });
-
-    // Hide after 4 seconds
+  (() => {
+    const popup = document.getElementById('upgradePopup');
+    const img = document.getElementById('popupMap');
+  
+    // Your Google Maps Static API key
+    const apiKey = '';
+  
+    const cities = [
+      { name: "Manchester", lat: 53.4808, lon: -2.2426 },
+      { name: "London",     lat: 51.5072, lon: -0.1276 },
+      { name: "Boston",     lat: 42.3601, lon: -71.0589 },
+      { name: "Miami",      lat: 25.7617, lon: -80.1918 }
+    ];
+  
+    function mapUrl(lat, lon) {
+      return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
+    }
+  
+    // Fallback skyline photos in case Maps API fails
+    const fallbackImages = [
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Manchester_Skyline_2018.jpg/320px-Manchester_Skyline_2018.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/London_Skyline_%28cropped%29.jpg/320px-London_Skyline_%28cropped%29.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Boston_skyline_from_the_Longfellow_Bridge_May_2010.jpg/320px-Boston_skyline_from_the_Longfellow_Bridge_May_2010.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Miami_skyline_2020.jpg/320px-Miami_skyline_2020.jpg"
+    ];
+  
+    function setSafeSrc(el, src, fallback) {
+      el.onerror = () => { el.onerror = null; el.src = fallback; };
+      el.src = src;
+    }
+  
+    // Show popup after 2 seconds
     setTimeout(() => {
-      popup.classList.remove("visible");
-      popup.classList.add("hide");
-    }, 4000);
-  }
-
-  // Initial delay — a touch longer helps first paint be buttery smooth
-  setTimeout(() => {
-    showPopup();
-    setInterval(showPopup, 6000);
-  }, 3200);
-})();
-</script>
-
+      popup.hidden = false;
+      popup.classList.add('visible');
+  
+      let i = 0;
+      setSafeSrc(img, mapUrl(cities[i].lat, cities[i].lon), fallbackImages[i]);
+  
+      // Rotate map every 4 seconds
+      setInterval(() => {
+        i = (i + 1) % cities.length;
+        setSafeSrc(img, mapUrl(cities[i].lat, cities[i].lon), fallbackImages[i]);
+      }, 4000);
+    }, 2000);
+  })();
+  </script>
+  
+  
 
 
 {% endblock content %}
