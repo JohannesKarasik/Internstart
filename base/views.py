@@ -1034,76 +1034,6 @@ from django.utils import timezone
 
 from django.core.paginator import Paginator
 
-from django.http import JsonResponse
-from django.utils.html import strip_tags
-from django.db.models import Q
-from .models import Room, SwipedJob
-
-from openai import OpenAI
-client = OpenAI()
-
-@login_required
-def next_card_json(request):
-    user = request.user
-
-    dt = (user.desired_job_title or "").strip()
-    lang = "english"
-    if user.country == "DK":
-        lang = "danish"
-
-    try:
-        prompt = f"""
-        Pick exactly 1 REAL company in {user.country} that is MID-SIZE 
-        (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon).
-
-        Match desired job title '{dt}' but make the job title short + very specific.
-        (Example: instead of "Marketing Intern", write "Performance Marketing Intern (Paid Social)")
-
-        Write in {lang}.
-
-        Return ONLY JSON like:
-        {{
-          "company":"...",
-          "domain":"...",
-          "title":"...",
-          "role":"...",
-          "description":"compact 1 sentence on daily work"
-        }}
-        """
-
-        completion = client.chat.completions.create(
-            model="gpt-5",
-            messages=[
-                {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
-                {"role":"user","content": prompt}
-            ],
-        )
-
-        import json
-        obj = json.loads(completion.choices[0].message.content)
-
-        return JsonResponse({
-            "id": "ai",
-            "company": obj.get("company",""),
-            "title": obj.get("title",""),
-            "role": obj.get("role",""),
-            "location": user.country,
-            "logo_domain": obj.get("domain",""),
-            "desc": obj.get("description",""),
-            "badges": []
-        })
-
-    except Exception as e:
-        return JsonResponse({
-            "id": "fallback",
-            "company": "Internstart",
-            "title": "Internship",
-            "role": "",
-            "location": user.country,
-            "logo_domain": "",
-            "desc": "",
-            "badges": []
-        })
 
 @login_required
 def swipe_view(request):
@@ -1184,6 +1114,72 @@ def swipe_view(request):
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+
+from openai import OpenAI
+client = OpenAI()
+
+@login_required
+def next_card_json(request):
+    user = request.user
+
+    dt = (user.desired_job_title or "").strip()
+    lang = "english"
+    if user.country == "DK":
+        lang = "danish"
+
+    try:
+        prompt = f"""
+        Pick exactly 1 REAL company in {user.country} that is MID-SIZE 
+        (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon).
+
+        Match desired job title '{dt}' but make the job title short + very specific.
+        (Example: instead of "Marketing Intern", write "Performance Marketing Intern (Paid Social)")
+
+        Write in {lang}.
+
+        Return ONLY JSON like:
+        {{
+          "company":"...",
+          "domain":"...",
+          "title":"...",
+          "role":"...",
+          "description":"compact 1 sentence on daily work"
+        }}
+        """
+
+        completion = client.chat.completions.create(
+            model="gpt-5",
+            messages=[
+                {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
+                {"role":"user","content": prompt}
+            ],
+        )
+
+        import json
+        obj = json.loads(completion.choices[0].message.content)
+
+        return JsonResponse({
+            "id": "ai",
+            "company": obj.get("company",""),
+            "title": obj.get("title",""),
+            "role": obj.get("role",""),
+            "location": user.country,
+            "logo_domain": obj.get("domain",""),
+            "desc": obj.get("description",""),
+            "badges": []
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "id": "fallback",
+            "company": "Internstart",
+            "title": "Internship",
+            "role": "",
+            "location": user.country,
+            "logo_domain": "",
+            "desc": "",
+            "badges": []
+        })
 
 
 
