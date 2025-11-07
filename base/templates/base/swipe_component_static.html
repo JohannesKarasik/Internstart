@@ -2559,8 +2559,31 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     unmarkSwiped(roomId);
     alert("Error: " + data.error);
   } else {
-    swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
-  }
+  swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
+
+  // load next card content from AI
+  fetch("/swipe/next/")
+    .then(r => r.json())
+    .then(card => {
+      console.log("NEW CARD", card);
+
+      // put data into DOM
+      document.getElementById("cLogo").src  = "https://logo.clearbit.com/" + (card.logo_domain || "clearbit.com");
+      document.getElementById("cCompany").textContent = card.company || "";
+      document.getElementById("cTitle").textContent   = card.title   || "";
+      document.getElementById("cRole").textContent    = card.role    || "";
+      document.getElementById("cLoc").textContent     = card.location|| "";
+
+      document.getElementById("bCompany").textContent = card.company || "";
+      document.getElementById("bRole").textContent    = card.role    || "";
+      document.getElementById("bLoc").textContent     = card.location|| "";
+      document.getElementById("bDesc").textContent    = card.desc    || "";
+
+      document.getElementById("swipeCard").dataset.roomId = card.id;
+    })
+    .catch(err => console.error("Failed to load next AI card", err));
+}
+
 })
 .catch(err => {
   console.error("Fetch error:", err);
