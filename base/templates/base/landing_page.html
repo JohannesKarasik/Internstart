@@ -172,12 +172,10 @@
     popup.style.opacity = "0";
     popup.style.transform = "translateX(-120%)";
 
-    // Double RAF ensures first transition paints correctly
+    // Ensure layout is ready, then start animation cleanly
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        popup.style.transition = "";
-        popup.classList.add("visible");
-      });
+      popup.style.transition = "";
+      popup.classList.add("visible");
     });
 
     // Hide after 4 seconds
@@ -187,11 +185,11 @@
     }, 4000);
   }
 
-  // Slightly longer delay before first appearance for smoother entry
+  // Slightly longer delay before the first popup (3.5s) for smoother animation
   setTimeout(() => {
     showPopup();
     setInterval(showPopup, 6000);
-  }, 3000);
+  }, 3500);
 })();
 </script>
 
