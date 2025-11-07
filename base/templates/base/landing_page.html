@@ -136,7 +136,7 @@
     "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
   ];
 
-  // ✅ Generate a random realistic timeframe between 12 minutes and 4 hours
+  // ✅ Generate random realistic timeframe between 12 minutes and 4 hours
   function randomTimeframe() {
     const minMinutes = 12;
     const maxMinutes = 240; // 4 hours
@@ -185,11 +185,13 @@
     }, 4000);
   }
 
-  // Loop: every 6 seconds (2 sec gap after hide)
+  // ✅ Show first popup after 10 seconds, then one more after another 10 seconds
   setTimeout(() => {
-    showPopup();
-    setInterval(showPopup, 6000);
-  }, 2000);
+    showPopup(); // first
+    setTimeout(() => {
+      showPopup(); // second
+    }, 10000);
+  }, 10000);
 })();
 </script>
 
