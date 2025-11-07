@@ -61,14 +61,12 @@
     --logos-border: rgba(255,255,255,.38);
     --logos-shadow: 0 10px 30px rgba(2,8,23,.10);
 
-    /* Lighter palette for more transparency */
     --g-violet: rgba(122, 77, 255, 0.4);
     --g-purple: rgba(164, 99, 255, 0.35);
     --g-magenta: rgba(255, 79, 216, 0.35);
     --g-orange: rgba(255, 142, 110, 0.35);
     --g-cyan: rgba(104, 192, 255, 0.35);
 
-    /* === Parallel Band Angles (kept parallel, tilted) === */
     --band-top-left: 50%;
     --band-top-right: 15%;
     --band-bottom-left: 95%;
@@ -103,7 +101,6 @@
     pointer-events:none;
   }
 
-  /* Lighter & more transparent background gradients */
   .logos::before{
     background:
       radial-gradient(80vmax 80vmax at 20% 20%, rgba(255,142,110,.45) 0%, rgba(255,79,216,.25) 45%, transparent 100%),
@@ -130,13 +127,16 @@
     z-index: 1;
   }
 
+  /* Heading picks up subtle color tint from background using mix-blend-mode */
   .logos__title{
     text-align: center;
     font-weight: 800;
     letter-spacing: -0.015em;
-    font-size: clamp(28px, 3.8vw, 48px); /* Larger heading */
-    color: rgba(11, 18, 32, 0.85);       /* Slightly transparent text */
-    margin-bottom: 24px;
+    font-size: clamp(30px, 4.2vw, 52px);
+    color: #0b1220;
+    margin-bottom: 28px;
+    mix-blend-mode: overlay; /* blends slightly with background colors */
+    background: transparent;
   }
 
   .logos__viewport{
