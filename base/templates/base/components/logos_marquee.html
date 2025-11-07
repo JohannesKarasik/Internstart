@@ -133,9 +133,9 @@
     animation: marquee linear infinite;
   }
 
-  .logos__track--a{ animation-duration: 8s; }   /* much faster */
-  .logos__track--b{ animation-duration: 2s; opacity:.96; }  /* much faster */
-  .logos__track--c{ animation-duration: 2; opacity:.94; }  /* much faster */
+  .logos__track--a{ animation-duration: 8s; }
+.logos__track--b{ animation-duration: 10s; }
+.logos__track--c{ animation-duration: 12s; }
 
 
   @keyframes marquee{
@@ -185,7 +185,7 @@
       const speed = Number(track.dataset.speed || 32);
       const children = Array.from(track.children);
       children.forEach(node => track.appendChild(node.cloneNode(true)));
-      track.style.animationDuration = `${Math.max(18, speed)}s`;
+      track.style.animationDuration = `${Math.max(4, speed / 4)}s`;
     });
   });
 })();
