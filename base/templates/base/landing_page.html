@@ -20,75 +20,85 @@
 
     <div class="reviews__viewport">
       <ul class="reviews__track">
-        <!-- Staged reviews — replace later -->
-        <li class="review-card">
+        <!-- Staged reviews — replace later (US, UK, DK only) -->
+        <li class="review-card" data-country="US">
           <span class="review-flag" aria-hidden="true">🇺🇸</span>
           <div class="stars" style="--rating:4.9"></div>
           <p class="review-text">“The experience felt premium from day one. I landed two interviews in a week.”</p>
           <div class="reviewer">Ava Thompson</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
+        <li class="review-card" data-country="UK">
           <span class="review-flag" aria-hidden="true">🇬🇧</span>
           <div class="stars" style="--rating:5"></div>
           <p class="review-text">“Clean UI, fast results, and genuinely useful suggestions. Totally worth it.”</p>
           <div class="reviewer">Oliver Bennett</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇨🇦</span>
+        <li class="review-card" data-country="DK">
+          <span class="review-flag" aria-hidden="true">🇩🇰</span>
           <div class="stars" style="--rating:4.7"></div>
-          <p class="review-text">“I loved the clarity and the nudges. It saved me hours.”</p>
-          <div class="reviewer">Sofia Martin</div>
+          <p class="review-text">“Virkelig nemt at bruge, og resultaterne kom hurtigt.”</p>
+          <div class="reviewer">Sofie Madsen</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇩🇪</span>
+        <li class="review-card" data-country="US">
+          <span class="review-flag" aria-hidden="true">🇺🇸</span>
           <div class="stars" style="--rating:4.8"></div>
           <p class="review-text">“Super polished. The insights were spot on and easy to act on.”</p>
-          <div class="reviewer">Lukas Schneider</div>
+          <div class="reviewer">Marcus Lee</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇫🇷</span>
+        <li class="review-card" data-country="UK">
+          <span class="review-flag" aria-hidden="true">🇬🇧</span>
           <div class="stars" style="--rating:4.6"></div>
-          <p class="review-text">“A modern product that actually helps. The little details are excellent.”</p>
-          <div class="reviewer">Camille Dupont</div>
+          <p class="review-text">“A modern product that actually helps. The small details shine.”</p>
+          <div class="reviewer">Camilla Wright</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇦🇺</span>
+        <li class="review-card" data-country="DK">
+          <span class="review-flag" aria-hidden="true">🇩🇰</span>
           <div class="stars" style="--rating:4.9"></div>
-          <p class="review-text">“Seamless from start to finish. I recommend it to friends.”</p>
-          <div class="reviewer">Mia Wilson</div>
+          <p class="review-text">“Smidigt fra start til slut. Jeg anbefaler det.”</p>
+          <div class="reviewer">Mikkel Andersen</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇮🇳</span>
+        <li class="review-card" data-country="US">
+          <span class="review-flag" aria-hidden="true">🇺🇸</span>
           <div class="stars" style="--rating:4.8"></div>
           <p class="review-text">“Great UX and even better outcomes. Interviews came quickly.”</p>
-          <div class="reviewer">Arjun Mehta</div>
+          <div class="reviewer">Arjun Patel</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇪🇸</span>
+        <li class="review-card" data-country="UK">
+          <span class="review-flag" aria-hidden="true">🇬🇧</span>
           <div class="stars" style="--rating:4.7"></div>
-          <p class="review-text">“Rápido, claro y muy útil. Me encantó.”</p>
-          <div class="reviewer">Lucía Romero</div>
+          <p class="review-text">“Fast, clear, and genuinely helpful. Brilliant.”</p>
+          <div class="reviewer">Lucia Carter</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇧🇷</span>
+        <li class="review-card" data-country="DK">
+          <span class="review-flag" aria-hidden="true">🇩🇰</span>
           <div class="stars" style="--rating:4.9"></div>
-          <p class="review-text">“Design lindo e resultados reais. Amei!”</p>
-          <div class="reviewer">Gabriel Almeida</div>
+          <p class="review-text">“Designet er flot, og resultaterne er reelle.”</p>
+          <div class="reviewer">Gabriel Nielsen</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
 
-        <li class="review-card">
-          <span class="review-flag" aria-hidden="true">🇸🇬</span>
+        <li class="review-card" data-country="US">
+          <span class="review-flag" aria-hidden="true">🇺🇸</span>
           <div class="stars" style="--rating:5"></div>
           <p class="review-text">“Polished experience with measurable results. Fantastic.”</p>
-          <div class="reviewer">Chloe Tan</div>
+          <div class="reviewer">Chloe Adams</div>
+          <span class="translated" aria-hidden="true">translated</span>
         </li>
       </ul>
     </div>
@@ -100,6 +110,7 @@
     --rv-gap: clamp(14px, 2vw, 22px);
     --rv-card-w: clamp(260px, 28vw, 360px);
     --rv-card-h: auto;
+    --rv-pad-y: clamp(48px, 7vw, 100px); /* equal top/bottom padding */
     --rv-bg: #ffffff;
     --rv-ink: #0f172a;
     --rv-muted: #667085;
@@ -111,7 +122,7 @@
 
   .reviews{
     position: relative;
-    padding: clamp(40px, 6vw, 92px) 0;
+    padding: var(--rv-pad-y) 0; /* equal top & bottom */
     background:
       radial-gradient(80vmax 60vmax at 15% 30%, var(--rv-grad1) 0%, transparent 60%),
       radial-gradient(80vmax 60vmax at 85% 70%, var(--rv-grad2) 0%, transparent 60%),
@@ -129,7 +140,6 @@
 
   .reviews__viewport{
     overflow: hidden;
-    /* soft mask on sides */
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
   }
@@ -158,6 +168,17 @@
     position: absolute; top: 10px; right: 10px;
     font-size: 18px; filter: saturate(1.1);
   }
+  .translated{
+    display: none;
+    position: absolute; top: 10px; left: 10px;
+    padding: 4px 8px; border-radius: 999px;
+    background: #eef2ff; color:#4f46e5;
+    font: 700 11px/1 var(--font,system-ui); letter-spacing:.02em;
+    text-transform: uppercase;
+  }
+  /* Only show the "translated" badge for DK */
+  .review-card[data-country="DK"] .translated{ display: inline-flex; align-items: center; }
+
   .stars{
     --rating: 4.8; /* 0..5 */
     position: relative; display: inline-block; font-size: 18px; line-height:1;
@@ -175,7 +196,6 @@
     margin-top: 4px; color:#344054; font: 800 13px/1 var(--font,system-ui);
   }
 
-  /* Reduced motion: show static list, no auto-slide */
   @media (prefers-reduced-motion: reduce){
     .reviews__track{ transform: none !important; transition: none !important; }
   }
@@ -203,14 +223,12 @@
     if (!first) return;
     const rect = first.getBoundingClientRect();
     const styles = getComputedStyle(track);
-    // gap can be "normal" in some browsers; default to 0 if not a number
     const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
     gapPx = rawGap;
     step = rect.width + gapPx;
-    // Reset transform to align to exact pixel to avoid drift
+
     track.style.transition = 'none';
     track.style.transform = `translateX(${-index * step}px)`;
-    // next tick restore transition
     requestAnimationFrame(() => track.style.transition = '');
   };
 
@@ -219,29 +237,24 @@
     track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
     track.style.transform = `translateX(${-index * step}px)`;
 
-    // When we've scrolled past the originals, jump back seamlessly
     if (index >= originals.length) {
-      // After the transition completes, snap back without visual jump
       setTimeout(() => {
         track.style.transition = 'none';
         index = 0;
         track.style.transform = 'translateX(0)';
-        // next frame re-enable transition
         requestAnimationFrame(() => track.style.transition = '');
       }, 620);
     }
   };
 
-  // Recompute sizes on load/resize
   const ro = new ResizeObserver(computeStep);
   ro.observe(viewport);
   window.addEventListener('load', computeStep, { once:true });
   computeStep();
 
-  // Move one card every second
-  const timer = setInterval(advance, 1000);
+  // Move one card every 3 seconds
+  const timer = setInterval(advance, 3000);
 
-  // Optional: stop when element leaves the viewport to save work
   const io = new IntersectionObserver((entries) => {
     const visible = entries[0].isIntersecting;
     if (!visible) { track.style.transition = 'none'; }
