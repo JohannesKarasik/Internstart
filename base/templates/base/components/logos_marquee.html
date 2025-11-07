@@ -53,10 +53,9 @@
 
 <style>
   /* =======================================================
-     STATIC, PARALLEL "BAND" BACKGROUND
-     - White in top-left & bottom-right corners
-     - No background animations
-     - Only marquee rows move
+     STATIC, PARALLEL "BAND" BACKGROUND — SLIGHTLY BLEEDS OUTSIDE SECTION
+     - Band now extends subtly beyond the container, not full page
+     - Controlled by modest inset and thickness
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -74,10 +73,11 @@
     --g-orange: #ff8e6e;
     --g-cyan:   #68c0ff;
 
-    /* Parallel band controls (centered) */
-    --band-top-left: 48%;
-    --band-top-right: 28%;
-    --band-thickness: 35%;
+    /* Parallel band controls */
+    /* Subtle overspill into adjacent sections (not full-page) */
+    --band-top-left: 40%;
+    --band-top-right: 20%;
+    --band-thickness: 60%;
     --band-bottom-left: calc(var(--band-top-left) + var(--band-thickness));
     --band-bottom-right: calc(var(--band-top-right) + var(--band-thickness));
   }
@@ -85,18 +85,19 @@
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    overflow: hidden;
+    overflow: visible; /* allows soft bleed into nearby sections */
     isolation: isolate;
-    background: #fff; /* corners remain white */
+    background: #fff;
+    z-index: 0;
   }
 
-  /* Static gradient blobs, clipped to one clean slanted band — NO animations */
+  /* Static gradient band that bleeds a bit beyond the section */
   .logos::before,
   .logos::after{
     content:"";
     position:absolute;
-    inset:-30% -20%;
-    z-index:0;
+    inset:-40vh -15vw; /* modest extension beyond bounds */
+    z-index:-1;
     background-repeat:no-repeat;
     clip-path: polygon(
       0%  var(--band-top-left),
@@ -104,26 +105,27 @@
       100% var(--band-bottom-right),
       0%  var(--band-bottom-left)
     );
+    pointer-events:none;
   }
 
   /* Base static layer */
   .logos::before{
     background:
-      radial-gradient(60vmax 60vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, transparent 100%),
-      radial-gradient(70vmax 70vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 50%, transparent 100%),
-      radial-gradient(65vmax 65vmax at 70% 80%, rgba(255,79,216,.70) 0%, rgba(104,192,255,.45) 60%, transparent 100%),
-      radial-gradient(60vmax 60vmax at 30% 85%, rgba(122,77,255,.70) 0%, rgba(255,142,110,.35) 65%, transparent 100%);
-    filter: saturate(1.15) contrast(1.05) blur(8px);
+      radial-gradient(80vmax 80vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, transparent 100%),
+      radial-gradient(90vmax 90vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 50%, transparent 100%),
+      radial-gradient(85vmax 85vmax at 70% 80%, rgba(255,79,216,.70) 0%, rgba(104,192,255,.45) 60%, transparent 100%),
+      radial-gradient(80vmax 80vmax at 30% 85%, rgba(122,77,255,.70) 0%, rgba(255,142,110,.35) 65%, transparent 100%);
+    filter: saturate(1.1) contrast(1.03) blur(10px);
   }
 
   /* Secondary static layer for depth */
   .logos::after{
     background:
-      radial-gradient(80vmax 80vmax at 15% 25%, rgba(255,79,216,.28) 0%, transparent 70%),
-      radial-gradient(90vmax 80vmax at 85% 25%, rgba(104,192,255,.30) 0%, transparent 70%),
-      radial-gradient(90vmax 80vmax at 75% 80%, rgba(122,77,255,.28) 0%, transparent 70%),
-      radial-gradient(95vmax 85vmax at 25% 85%, rgba(255,142,110,.26) 0%, transparent 70%);
-    filter: blur(10px) saturate(1.1);
+      radial-gradient(100vmax 90vmax at 15% 25%, rgba(255,79,216,.28) 0%, transparent 70%),
+      radial-gradient(110vmax 90vmax at 85% 25%, rgba(104,192,255,.30) 0%, transparent 70%),
+      radial-gradient(110vmax 90vmax at 75% 80%, rgba(122,77,255,.28) 0%, transparent 70%),
+      radial-gradient(115vmax 95vmax at 25% 85%, rgba(255,142,110,.26) 0%, transparent 70%);
+    filter: blur(12px) saturate(1.05);
   }
 
   .logos__inner{
