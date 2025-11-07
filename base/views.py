@@ -907,10 +907,17 @@ def loginPage(request, template='base/login_register.html'):
 
 
 def login_view(request):
-    return loginPage(request, template='base/login_register_dk.html', extra_context={"lang":"dk"})
+    response = loginPage(request, template='base/login_register_dk.html')
+    # ensure lang is in context
+    response.context_data = response.context_data if hasattr(response, "context_data") else {}
+    response.context_data["lang"] = "dk"
+    return response
 
 def register_view(request):
-    return registerPage(request, template='base/login_register_dk.html', extra_context={"lang":"dk"})
+    response = registerPage(request, template='base/login_register_dk.html')
+    response.context_data = response.context_data if hasattr(response, "context_data") else {}
+    response.context_data["lang"] = "dk"
+    return response
 
 
 def logoutUser(request):
