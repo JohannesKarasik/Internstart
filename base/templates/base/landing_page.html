@@ -105,28 +105,47 @@
 <script>
   (() => {
     const popup = document.getElementById('upgradePopup');
-    const img   = document.getElementById('popupMap');
+    const img = document.getElementById('popupMap');
+  
+    // Your Google Maps Static API key
+    const apiKey = 'AIzaSyDNCnsQcKBNRrlPHuqOdLX2Lo-h5QMIVGQ';
   
     const cities = [
-      {lat:53.4808, lon:-2.2426},   // Manchester
-      {lat:51.5072, lon:-0.1276},   // London
-      {lat:42.3601, lon:-71.0589},  // Boston
-      {lat:25.7617, lon:-80.1918}   // Miami
+      { name: "Manchester", lat: 53.4808, lon: -2.2426 },
+      { name: "London",     lat: 51.5072, lon: -0.1276 },
+      { name: "Boston",     lat: 42.3601, lon: -71.0589 },
+      { name: "Miami",      lat: 25.7617, lon: -80.1918 }
     ];
   
-    function mapUrl(lat, lon){
-      const token = 'YOUR_MAPBOX_TOKEN_HERE';
-      return `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${lon},${lat},11,0/300x200?access_token=${token}`;
+    function mapUrl(lat, lon) {
+      return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
     }
   
-    setTimeout(()=>{
+    // Fallback skyline photos in case Maps API fails
+    const fallbackImages = [
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Manchester_Skyline_2018.jpg/320px-Manchester_Skyline_2018.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/London_Skyline_%28cropped%29.jpg/320px-London_Skyline_%28cropped%29.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Boston_skyline_from_the_Longfellow_Bridge_May_2010.jpg/320px-Boston_skyline_from_the_Longfellow_Bridge_May_2010.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Miami_skyline_2020.jpg/320px-Miami_skyline_2020.jpg"
+    ];
+  
+    function setSafeSrc(el, src, fallback) {
+      el.onerror = () => { el.onerror = null; el.src = fallback; };
+      el.src = src;
+    }
+  
+    // Show popup after 2 seconds
+    setTimeout(() => {
       popup.hidden = false;
       popup.classList.add('visible');
-      let i=0;
-      img.src = mapUrl(cities[i].lat, cities[i].lon);
-      setInterval(()=>{
-        i = (i+1) % cities.length;
-        img.src = mapUrl(cities[i].lat, cities[i].lon);
+  
+      let i = 0;
+      setSafeSrc(img, mapUrl(cities[i].lat, cities[i].lon), fallbackImages[i]);
+  
+      // Rotate map every 4 seconds
+      setInterval(() => {
+        i = (i + 1) % cities.length;
+        setSafeSrc(img, mapUrl(cities[i].lat, cities[i].lon), fallbackImages[i]);
       }, 4000);
     }, 2000);
   })();
