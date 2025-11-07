@@ -907,18 +907,22 @@ def loginPage(request, template='base/login_register.html'):
 
 
 def login_view(request):
-    return loginPage(
-        request,
-        template='base/login_register_dk.html',
-        extra_context={"lang": "dk"},
-    )
+    resp = loginPage(request, template='base/login_register_dk.html')
+    # resp is HttpResponse with already rendered HTML
+    # → need to re-render with lang added
+
+    return render(request, 'base/login_register_dk.html', {
+        **resp.context_data,   # original
+        "lang": "dk",          # force dk for header
+    })
+
 
 def register_view(request):
-    return registerPage(
-        request,
-        template='base/login_register_dk.html',
-        extra_context={"lang": "dk"},
-    )
+    resp = registerPage(request, template='base/login_register_dk.html')
+    return render(request, 'base/login_register_dk.html', {
+        **resp.context_data,
+        "lang": "dk",
+    })
 
 def logoutUser(request):
     print("🧭 landing_page", request.user.is_authenticated)
