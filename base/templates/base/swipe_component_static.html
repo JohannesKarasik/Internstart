@@ -462,7 +462,7 @@
 </script>
 </div>
 
-<div class="swipe-container" id="swipeDeck">
+<div class="swipe-container" id="swipeDeck" style="opacity:0; pointer-events:none;">
   <div class="swipe-card is-top" id="swipeCard" data-room-id="{{ first_room.id|default:'demo' }}">
     <div class="card-inner">
       <!-- FRONT -->
@@ -2355,10 +2355,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadNextCard() {
   try {
-    const r = await fetch("{% url 'next_card_json' %}", { credentials:'same-origin' });
+    const r = await fetch('/swipe/next/', { credentials:'same-origin' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const card = await r.json();
     setCardData(card);
+
+    // ✅ reveal card
+    const deck = document.getElementById("swipeDeck");
+    deck.style.opacity = "1";
+    deck.style.pointerEvents = "auto";
+
   } catch (err) {
     console.error('Failed to load next AI card', err);
     setCardData({
@@ -2370,8 +2376,14 @@ document.addEventListener('DOMContentLoaded', () => {
       logo_domain: 'internstart.com',
       desc: 'AI generated example. Try again.'
     });
+
+    // reveal anyway
+    const deck = document.getElementById("swipeDeck");
+    deck.style.opacity = "1";
+    deck.style.pointerEvents = "auto";
   }
 }
+
 
 
   /* ===============================
