@@ -59,9 +59,10 @@
 
 <style>
   /* =======================================================
-     Marquee with animated "Stripe-like" gradient background
-     - No green; cool purple/blue + pink/orange only
-     - Glassy, semi-transparent logo cards
+     Premium "Stripe-like" background
+     - No green; modern violet/indigo/cyan + magenta/orange
+     - Mix of soft mesh + crisp curved bands ("swooshes")
+     - Glassy, slightly see-through logo cards
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -69,70 +70,95 @@
     --section-pad-y: clamp(36px, 6vw, 84px);
 
     /* glass card tokens */
-    --logos-card: rgba(255,255,255,.58); /* semi-transparent */
-    --logos-border: rgba(255,255,255,.45);
+    --logos-card: rgba(255,255,255,.55);
+    --logos-border: rgba(255,255,255,.50);
     --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
 
-    /* gradient tokens (no green) */
-    --g-purple: #7b61ff;
-    --g-pink:   #ff5ecd;
-    --g-orange: #ff9966;
-    --g-cyan:   #67b8ff;
+    /* palette (no green, richer hues) */
+    --g-violet: #7a4dff;
+    --g-purple: #a463ff;
+    --g-magenta:#ff4fd8;
+    --g-orange: #ff8e6e;
+    --g-cyan:   #68c0ff;
   }
 
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    /* Fallback for older browsers */
-    background: linear-gradient(135deg,
-                var(--g-purple),
-                var(--g-pink),
-                var(--g-orange),
-                var(--g-cyan));
+    /* graceful fallback */
+    background: linear-gradient(135deg, var(--g-orange), var(--g-magenta), var(--g-purple), var(--g-cyan));
     border-top: 0;
     overflow: hidden;
     isolation: isolate;
   }
 
-  /* Animated gradient field behind content */
+  /* --- Base soft mesh --- */
   .logos::before{
     content:"";
     position:absolute;
-    inset:-10% -2%; /* bleed a bit for transforms */
+    inset:-10% -2%;
     z-index:0;
 
-    /* Four drifting blobs (no green layer) */
     background:
-      radial-gradient(40vmax 40vmax at 12% 18%, rgba(123, 97, 255, .95) 0%, rgba(123, 97, 255, .64) 22%, transparent 62%),
-      radial-gradient(42vmax 42vmax at 86% 12%, rgba(255, 94, 205, .88) 0%, rgba(255, 94, 205, .58) 24%, transparent 60%),
-      radial-gradient(46vmax 46vmax at 80% 78%, rgba(103, 184, 255, .92) 0%, rgba(103, 184, 255, .60) 26%, transparent 62%),
-      radial-gradient(44vmax 44vmax at 16% 84%, rgba(255, 153, 102, .88) 0%, rgba(255, 153, 102, .56) 24%, transparent 60%);
-
-    filter: saturate(1.06) contrast(1.02) blur(2px);
+      radial-gradient(50vmax 40vmax at 10% 20%, rgba(255,142,110,.90) 0%, rgba(255,142,110,.65) 28%, transparent 62%),
+      radial-gradient(60vmax 50vmax at 75% 10%, rgba(255,79,216,.88) 0%, rgba(255,79,216,.56) 30%, transparent 61%),
+      radial-gradient(70vmax 60vmax at 80% 80%, rgba(104,192,255,.90) 0%, rgba(104,192,255,.55) 28%, transparent 60%),
+      radial-gradient(70vmax 60vmax at 30% 80%, rgba(122,77,255,.85) 0%, rgba(122,77,255,.55) 32%, transparent 60%);
+    filter: saturate(1.06) contrast(1.02) blur(1.5px);
     transform: translateZ(0) scale(1.02);
-    animation: bg-shift 32s ease-in-out infinite alternate,
-               hue 48s linear infinite;
+    animation: bg-shift 32s ease-in-out infinite alternate, hue 48s linear infinite;
     will-change: transform, background-position, filter;
   }
 
-  /* optional subtle vignette for depth */
+  /* --- Crisp curved "swooshes" + vignette + sheen --- */
   .logos::after{
     content:"";
     position:absolute;
-    inset:0;
-    pointer-events:none;
-    background:
-      radial-gradient(120vmax 80vmax at 50% 60%, rgba(0,0,0,.0) 40%, rgba(0,0,0,.05) 80%);
-    mix-blend-mode: multiply;
+    inset:-12% -6%;
     z-index:0;
+    pointer-events:none;
+
+    /* Each radial-gradient draws a thin ring with hard edges */
+    background:
+      /* Magenta arc across top-right */
+      radial-gradient(135vmax 90vmax at 120% -10%,
+        transparent 0 52%,
+        rgba(255,79,216,.75) 52.4% 56.8%,
+        transparent 57.2% 100%),
+
+      /* Indigo arc across mid */
+      radial-gradient(160vmax 110vmax at 50% -20%,
+        transparent 0 47%,
+        rgba(122,77,255,.85) 47.4% 50.5%,
+        transparent 50.9% 100%),
+
+      /* Cyan arc sweeping bottom-right */
+      radial-gradient(150vmax 110vmax at 95% 85%,
+        transparent 0 61%,
+        rgba(104,192,255,.70) 61.5% 64.5%,
+        transparent 65% 100%),
+
+      /* Warm arc bottom-left */
+      radial-gradient(140vmax 110vmax at -10% 100%,
+        transparent 0 64%,
+        rgba(255,142,110,.65) 64.4% 67.6%,
+        transparent 68% 100%),
+
+      /* subtle sheen */
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 40%),
+
+      /* gentle vignette */
+      radial-gradient(120vmax 80vmax at 50% 60%, rgba(0,0,0,0) 40%, rgba(0,0,0,.06) 85%);
+    mix-blend-mode: normal;
+    animation: bands-shift 36s ease-in-out infinite alternate;
   }
 
   .logos__inner{
     max-width: min(1480px, 94vw);
     margin: 0 auto;
-    padding: 0 12px; /* keep normal page gutters for title only */
+    padding: 0 12px;
     position: relative;
-    z-index: 1; /* ensure content sits above gradient layers */
+    z-index: 1;
   }
 
   .logos__title{
@@ -145,36 +171,20 @@
   }
 
   .logos__viewport{
-    /* FULL-BLEED: pull viewport out of the container gutters */
     margin-inline: calc(50% - 50vw);
     width: 100vw;
-
     overflow: hidden;
-    border-radius: 0;                 /* let content reach page edges */
+    border-radius: 0;
     padding: var(--logos-pad-y) 0;
     display: flex;
     flex-direction: column;
     gap: 18px;
-
     background: transparent;
     border: 0;
     box-shadow: none;
 
-    /* Fades start almost at the edge */
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      #000 0.6%,
-      #000 99.4%,
-      transparent 100%
-    );
-            mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      #000 0.6%,
-      #000 99.4%,
-      transparent 100%
-    );
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
   }
 
   .logos__track{
@@ -195,34 +205,29 @@
     to  { transform: translateX(-50%); }
   }
 
-  /* Background drift + breathing scale */
+  /* Base mesh motion */
   @keyframes bg-shift{
-    0%{
-      background-position: 12% 18%, 86% 12%, 80% 78%, 16% 84%;
-      transform: translate3d(0,0,0) scale(1.02);
-    }
-    33%{
-      background-position: 18% 26%, 78% 18%, 72% 84%, 22% 76%;
-      transform: translate3d(0,0,0) scale(1.03);
-    }
-    66%{
-      background-position: 10% 24%, 82% 20%, 88% 70%, 10% 86%;
-      transform: translate3d(0,0,0) scale(1.015);
-    }
-    100%{
-      background-position: 20% 16%, 74% 26%, 70% 76%, 26% 88%;
-      transform: translate3d(0,0,0) scale(1.03);
-    }
+    0%   { background-position: 10% 20%, 75% 10%, 80% 80%, 30% 80%; transform: scale(1.02); }
+    33%  { background-position: 16% 26%, 70% 16%, 72% 84%, 24% 76%; transform: scale(1.028); }
+    66%  { background-position: 8% 24%, 78% 20%, 88% 70%, 18% 86%;  transform: scale(1.018); }
+    100% { background-position: 18% 16%, 68% 24%, 70% 76%, 26% 88%; transform: scale(1.028); }
   }
 
-  /* gentle color cycling for natural motion */
+  /* Band motion */
+  @keyframes bands-shift{
+    0%   { background-position: 0 0,0 0,0 0,0 0,0 0,0 0; }
+    50%  { background-position: -2% -1%, 1% 0, 1% 1%, -1% 1%, 0 0, 0 0; }
+    100% { background-position: 2% 1%, -1% 0, -1% -1%, 1% -1%, 0 0, 0 0; }
+  }
+
+  /* subtle hue motion */
   @keyframes hue{
-    0%   { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(2px); }
-    50%  { filter: saturate(1.10) contrast(1.04) hue-rotate(12deg) blur(2px); }
-    100% { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(2px); }
+    0%   { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(1.5px); }
+    50%  { filter: saturate(1.10) contrast(1.04) hue-rotate(10deg) blur(1.5px); }
+    100% { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(1.5px); }
   }
 
-  /* Glassy logo cards */
+  /* Premium glassy logo cards */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -235,16 +240,16 @@
     background: var(--logos-card);
     border: 1px solid var(--logos-border);
     border-radius: 16px;
-    box-shadow: var(--logos-shadow);
-    backdrop-filter: saturate(160%) blur(10px);
-    -webkit-backdrop-filter: saturate(160%) blur(10px);
+    box-shadow: var(--logos-shadow), inset 0 1px 0 rgba(255,255,255,.35);
+    backdrop-filter: saturate(160%) blur(12px);
+    -webkit-backdrop-filter: saturate(160%) blur(12px);
     background-clip: padding-box;
     transition: transform .25s ease, background-color .2s ease, box-shadow .2s ease;
   }
   .logo:hover{
     transform: translateY(-1px);
-    background: rgba(255,255,255,.66);
-    box-shadow: 0 12px 34px rgba(2,8,23,.16);
+    background: rgba(255,255,255,.64);
+    box-shadow: 0 12px 34px rgba(2,8,23,.16), inset 0 1px 0 rgba(255,255,255,.45);
   }
 
   .logo__img{
@@ -257,7 +262,8 @@
 
   @media (prefers-reduced-motion: reduce){
     .logos__track{ animation: none !important; }
-    .logos::before{ animation: none !important; transform: none; }
+    .logos::before,
+    .logos::after{ animation: none !important; transform: none; }
   }
 </style>
 
