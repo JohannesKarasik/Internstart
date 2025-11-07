@@ -1138,25 +1138,29 @@ def swipe_static_view(request):
     if dt:
         try:
             prompt = f"""
-            Pick exactly 1 REAL company in {user.country} that is MID-SIZE (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon, Microsoft).
+            Pick exactly 1 REAL mid-size employer in {user.country} that actually operates in the category implied by '{dt}'.
 
-            Match the desired job title '{dt}' but make the job title very specific and realistic.
+            - If the role sounds medical / therapy / care → pick a real clinic, hospital department, rehabilitation center or municipality.
+            - If the role sounds technical → pick a real software / SaaS company that is NOT big tech.
+            - If the role sounds marketing / business → pick a real marketing agency, performance bureau, brand studio or mid-market e-commerce brand.
 
-            IMPORTANT:
-            - job title must be max 5-7 words but still specific
-            - description must be max 12-14 words but still specific
+            NEVER pick big tech: Google, Meta, Apple, Tesla, Amazon, Microsoft.
+
+            Make the job title short but specific (max 5-7 words).
+            Make the description 1 sentence, short but specific (max 12-14 words).
 
             Write text fields in {lang}.
 
             Return ONLY valid JSON like:
             {{
-              "company":"...",
-              "domain":"...",
-              "title":"...",
-              "role":"...",
-              "description":"..."
+            "company":"...",
+            "domain":"...",
+            "title":"...",
+            "role":"...",
+            "description":"..."
             }}
             """
+
 
             completion = client.chat.completions.create(
                 model="gpt-5",
