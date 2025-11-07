@@ -907,21 +907,15 @@ def loginPage(request, template='base/login_register.html'):
 
 
 def login_view(request):
-    resp = loginPage(request, template='base/login_register_dk.html')
-    # resp is HttpResponse with already rendered HTML
-    # → need to re-render with lang added
-
+    # just render the dk version directly
     return render(request, 'base/login_register_dk.html', {
-        **resp.context_data,   # original
-        "lang": "dk",          # force dk for header
+        "lang": "dk"
     })
 
 
 def register_view(request):
-    resp = registerPage(request, template='base/login_register_dk.html')
     return render(request, 'base/login_register_dk.html', {
-        **resp.context_data,
-        "lang": "dk",
+        "lang": "dk"
     })
 
 def logoutUser(request):
