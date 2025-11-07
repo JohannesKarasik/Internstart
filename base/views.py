@@ -907,10 +907,10 @@ def loginPage(request, template='base/login_register.html'):
 
 
 def login_view(request):
-    return loginPage(request, template='base/login_register_dk.html')
+    return loginPage(request, template='base/login_register_dk.html', extra_context={"lang":"dk"})
 
 def register_view(request):
-    return registerPage(request, template='base/login_register_dk.html')
+    return registerPage(request, template='base/login_register_dk.html', extra_context={"lang":"dk"})
 
 
 def logoutUser(request):
