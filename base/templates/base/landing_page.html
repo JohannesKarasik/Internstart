@@ -47,8 +47,8 @@
 <!-- ✅ Bottom-left popup notification -->
 <div id="upgradePopup" class="upgrade-popup" hidden>
   <div class="upgrade-popup__content">
-    <strong>Mark upgraded to Pro</strong>
-    <p>10 minutes ago</p>
+    <strong id="upgradeName">Mark upgraded to Pro</strong>
+    <p id="upgradeTime">10 minutes ago</p>
     <img id="popupMap" src="" alt="City map" />
   </div>
 </div>
@@ -70,85 +70,92 @@
     transition: all 0.5s ease;
     z-index: 1000;
   }
-
-  .upgrade-popup.visible {
-    transform: translateY(0);
-    opacity: 1;
-  }
-
-  .upgrade-popup__content {
-    padding: 16px;
-    text-align: left;
-  }
-
-  .upgrade-popup__content strong {
-    display: block;
-    color: #111;
-    font-size: 16px;
-    margin-bottom: 4px;
-  }
-
-  .upgrade-popup__content p {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-
-  .upgrade-popup__content img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-  }
+  .upgrade-popup.visible { transform: translateY(0); opacity: 1; }
+  .upgrade-popup__content { padding: 16px; text-align: left; }
+  .upgrade-popup__content strong { display: block; color: #111; font-size: 16px; margin-bottom: 4px; }
+  .upgrade-popup__content p { color: #666; font-size: 14px; margin-bottom: 10px; }
+  .upgrade-popup__content img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
 </style>
 
 <script>
-  (() => {
-    const popup = document.getElementById('upgradePopup');
-    const img = document.getElementById('popupMap');
-  
-    // Pull the API key passed from Django (environment via settings)
-    const apiKey = "{{ google_maps_key }}";
-  
-    const cities = [
-      { name: "Manchester", lat: 53.4808, lon: -2.2426 },
-      { name: "London",     lat: 51.5072, lon: -0.1276 },
-      { name: "Boston",     lat: 42.3601, lon: -71.0589 },
-      { name: "Miami",      lat: 25.7617, lon: -80.1918 }
-    ];
-  
-    function mapUrl(lat, lon) {
-      return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
-    }
-  
-    // Fallback skyline photos in case Maps API fails
-    const fallbackImages = [
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Manchester_Skyline_2018.jpg/320px-Manchester_Skyline_2018.jpg",
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/London_Skyline_%28cropped%29.jpg/320px-London_Skyline_%28cropped%29.jpg",
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Boston_skyline_from_the_Longfellow_Bridge_May_2010.jpg/320px-Boston_skyline_from_the_Longfellow_Bridge_May_2010.jpg",
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Miami_skyline_2020.jpg/320px-Miami_skyline_2020.jpg"
-    ];
-  
-    function setSafeSrc(el, src, fallback) {
-      el.onerror = () => { el.onerror = null; el.src = fallback; };
-      el.src = src;
-    }
-  
-    // Show popup after 2 seconds
-    setTimeout(() => {
-      popup.hidden = false;
-      popup.classList.add('visible');
-  
-      let i = 0;
-      setSafeSrc(img, mapUrl(cities[i].lat, cities[i].lon), fallbackImages[i]);
-  
-      // Rotate map every 4 seconds
-      setInterval(() => {
-        i = (i + 1) % cities.length;
-        setSafeSrc(img, mapUrl(cities[i].lat, cities[i].lon), fallbackImages[i]);
-      }, 4000);
-    }, 2000);
-  })();
+(() => {
+  const popup = document.getElementById('upgradePopup');
+  const nameEl = document.getElementById('upgradeName');
+  const timeEl = document.getElementById('upgradeTime');
+  const img = document.getElementById('popupMap');
+
+  const apiKey = "{{ google_maps_key }}"; // safely passed from Django env
+
+  // 🔹 10 big US cities
+  const cities = [
+    { name: "New York", lat: 40.7128, lon: -74.0060 },
+    { name: "Los Angeles", lat: 34.0522, lon: -118.2437 },
+    { name: "Chicago", lat: 41.8781, lon: -87.6298 },
+    { name: "Houston", lat: 29.7604, lon: -95.3698 },
+    { name: "Phoenix", lat: 33.4484, lon: -112.0740 },
+    { name: "Philadelphia", lat: 39.9526, lon: -75.1652 },
+    { name: "San Francisco", lat: 37.7749, lon: -122.4194 },
+    { name: "Seattle", lat: 47.6062, lon: -122.3321 },
+    { name: "Miami", lat: 25.7617, lon: -80.1918 },
+    { name: "Boston", lat: 42.3601, lon: -71.0589 }
+  ];
+
+  // 🔹 40 possible user names
+  const names = [
+    "Olivia", "Liam", "Emma", "Noah", "Sophia", "James", "Ava", "Lucas", "Isabella", "Mason",
+    "Mia", "Ethan", "Charlotte", "Henry", "Amelia", "Alexander", "Harper", "Benjamin", "Evelyn", "Elijah",
+    "Ella", "Michael", "Scarlett", "Daniel", "Aria", "Matthew", "Luna", "Jack", "Layla", "Owen",
+    "Zoe", "Sebastian", "Nora", "Aiden", "Hazel", "David", "Grace", "Carter", "Chloe", "Wyatt"
+  ];
+
+  // 🔹 20 timeframes (latest: 12 minutes ago)
+  const timeframes = [
+    "Just now", "1 minute ago", "2 minutes ago", "3 minutes ago", "4 minutes ago",
+    "5 minutes ago", "6 minutes ago", "7 minutes ago", "8 minutes ago", "9 minutes ago",
+    "10 minutes ago", "11 minutes ago", "12 minutes ago", "a few moments ago", "moments ago",
+    "about 2 minutes ago", "recently", "this minute", "a few seconds ago", "less than 1 minute ago"
+  ];
+
+  function mapUrl(lat, lon) {
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
+  }
+
+  function randomItem(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function setSafeSrc(el, src) {
+    const testImg = new Image();
+    testImg.onload = () => el.src = src;
+    testImg.onerror = () => el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
+    testImg.src = src;
+  }
+
+  // 🔹 Show popup after 2 seconds
+  setTimeout(() => {
+    popup.hidden = false;
+    popup.classList.add('visible');
+
+    // Set random first combo immediately
+    const firstCity = randomItem(cities);
+    const firstName = randomItem(names);
+    const firstTime = randomItem(timeframes);
+    nameEl.textContent = `${firstName} upgraded to Pro`;
+    timeEl.textContent = firstTime;
+    setSafeSrc(img, mapUrl(firstCity.lat, firstCity.lon));
+
+    // 🔁 Rotate every 5 seconds with new random data
+    setInterval(() => {
+      const city = randomItem(cities);
+      const name = randomItem(names);
+      const time = randomItem(timeframes);
+
+      nameEl.textContent = `${name} upgraded to Pro`;
+      timeEl.textContent = time;
+      setSafeSrc(img, mapUrl(city.lat, city.lon));
+    }, 5000);
+  }, 2000);
+})();
 </script>
 
 
