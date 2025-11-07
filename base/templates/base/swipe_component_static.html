@@ -2354,24 +2354,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadNextCard() {
-    try {
-      const r = await fetch('/swipe/next/', { credentials:'same-origin' });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const card = await r.json();
-      setCardData(card);
-    } catch (err) {
-      console.error('Failed to load next AI card', err);
-      setCardData({
-        id: 'fallback',
-        company: 'Internstart',
-        title: 'Internship',
-        role: '',
-        location: '',
-        logo_domain: 'internstart.com',
-        desc: 'AI generated example. Try again.'
-      });
-    }
+  try {
+    const r = await fetch("{% url 'next_card_json' %}", { credentials:'same-origin' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const card = await r.json();
+    setCardData(card);
+  } catch (err) {
+    console.error('Failed to load next AI card', err);
+    setCardData({
+      id: 'fallback',
+      company: 'Internstart',
+      title: 'Internship',
+      role: '',
+      location: '',
+      logo_domain: 'internstart.com',
+      desc: 'AI generated example. Try again.'
+    });
   }
+}
+
 
   /* ===============================
      Undo stack
