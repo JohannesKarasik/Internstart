@@ -1034,6 +1034,38 @@ from django.utils import timezone
 
 from django.core.paginator import Paginator
 
+from django.http import JsonResponse
+from django.utils.html import strip_tags
+from .models import Room
+import random
+
+def next_card_json(request):
+    # pick the next job (replace with your logic or AI generator)
+    room = Room.objects.order_by('?').first()
+    if not room:
+        # safe fallback
+        return JsonResponse({
+            "id": "demo",
+            "company": "Internstart Demo",
+            "title": "Marketing Assistant",
+            "role": "Internship",
+            "location": "Remote • EU",
+            "logo_domain": "hubspot.com",
+            "desc": "Practice swiping with a demo card. Connect email to apply for real roles.",
+            "badges": ["Remote", "English", "Full-time"]
+        })
+
+    return JsonResponse({
+        "id": room.id,
+        "company": room.company_name or "Company",
+        "title": room.job_title or "Role",
+        "role": getattr(room, "job_type", "Internship"),
+        "location": room.location or "—",
+        "logo_domain": getattr(room, "logo_domain", "") or "clearbit.com",
+        "desc": strip_tags(room.description)[:600],
+        "badges": ["Hot", "In-office"]  # or serialize tags
+    })
+
 @login_required
 def swipe_view(request):
     user = request.user
