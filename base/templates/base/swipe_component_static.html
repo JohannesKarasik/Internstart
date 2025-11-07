@@ -2593,8 +2593,9 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     window.location.href = data.redirect;
   } else if (data.error) {
     unmarkSwiped(roomId);
-    alert("Error: " + data.error);
-  } else {
+    // just ignore silently — no alert
+    return;
+} else {
     swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
   }
 })
