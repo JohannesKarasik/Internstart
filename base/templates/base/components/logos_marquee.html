@@ -53,10 +53,10 @@
 
 <style>
   /* =======================================================
-     STATIC, PARALLEL "BAND" BACKGROUND — BLEEDS INTO NEIGHBOR SECTIONS
-     - No background animations (only marquees move)
-     - Massive pseudo-element that overflows section bounds
-     - Use overflow: visible and very large inset so band can extend
+     STATIC, PARALLEL "BAND" BACKGROUND
+     - White in top-left & bottom-right corners
+     - No background animations
+     - Only marquee rows move
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -74,11 +74,10 @@
     --g-orange: #ff8e6e;
     --g-cyan:   #68c0ff;
 
-    /* Parallel band controls */
-    /* Make the band MUCH thicker so it visually continues into other sections */
-    --band-top-left: 35%;
-    --band-top-right: 10%;
-    --band-thickness: 140%;
+    /* Parallel band controls (centered) */
+    --band-top-left: 48%;
+    --band-top-right: 28%;
+    --band-thickness: 35%;
     --band-bottom-left: calc(var(--band-top-left) + var(--band-thickness));
     --band-bottom-right: calc(var(--band-top-right) + var(--band-thickness));
   }
@@ -86,21 +85,18 @@
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    /* allow the pseudo-element to bleed outside this section */
-    overflow: visible;
-    isolation: isolate; /* keeps effects contained to this stacking context */
-    background: #fff;
-    z-index: 0; /* sits under any intentionally layered neighbors */
+    overflow: hidden;
+    isolation: isolate;
+    background: #fff; /* corners remain white */
   }
 
-  /* GIANT static gradient band — NO animations */
+  /* Static gradient blobs, clipped to one clean slanted band — NO animations */
   .logos::before,
   .logos::after{
     content:"";
     position:absolute;
-    /* Make the painting box huge so it can overflow far into neighbors */
-    inset: -200vh -25vw;
-    z-index: -1; /* render behind this section’s content */
+    inset:-30% -20%;
+    z-index:0;
     background-repeat:no-repeat;
     clip-path: polygon(
       0%  var(--band-top-left),
@@ -108,27 +104,26 @@
       100% var(--band-bottom-right),
       0%  var(--band-bottom-left)
     );
-    pointer-events: none; /* avoid blocking interactions in adjacent sections */
   }
 
   /* Base static layer */
   .logos::before{
     background:
-      radial-gradient(100vmax 100vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, transparent 100%),
-      radial-gradient(120vmax 120vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 50%, transparent 100%),
-      radial-gradient(110vmax 110vmax at 70% 80%, rgba(255,79,216,.70) 0%, rgba(104,192,255,.45) 60%, transparent 100%),
-      radial-gradient(100vmax 100vmax at 30% 85%, rgba(122,77,255,.70) 0%, rgba(255,142,110,.35) 65%, transparent 100%);
-    filter: saturate(1.1) contrast(1.03) blur(10px);
+      radial-gradient(60vmax 60vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, transparent 100%),
+      radial-gradient(70vmax 70vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 50%, transparent 100%),
+      radial-gradient(65vmax 65vmax at 70% 80%, rgba(255,79,216,.70) 0%, rgba(104,192,255,.45) 60%, transparent 100%),
+      radial-gradient(60vmax 60vmax at 30% 85%, rgba(122,77,255,.70) 0%, rgba(255,142,110,.35) 65%, transparent 100%);
+    filter: saturate(1.15) contrast(1.05) blur(8px);
   }
 
   /* Secondary static layer for depth */
   .logos::after{
     background:
-      radial-gradient(140vmax 120vmax at 15% 25%, rgba(255,79,216,.28) 0%, transparent 70%),
-      radial-gradient(150vmax 120vmax at 85% 25%, rgba(104,192,255,.30) 0%, transparent 70%),
-      radial-gradient(150vmax 120vmax at 75% 80%, rgba(122,77,255,.28) 0%, transparent 70%),
-      radial-gradient(160vmax 130vmax at 25% 85%, rgba(255,142,110,.26) 0%, transparent 70%);
-    filter: blur(12px) saturate(1.05);
+      radial-gradient(80vmax 80vmax at 15% 25%, rgba(255,79,216,.28) 0%, transparent 70%),
+      radial-gradient(90vmax 80vmax at 85% 25%, rgba(104,192,255,.30) 0%, transparent 70%),
+      radial-gradient(90vmax 80vmax at 75% 80%, rgba(122,77,255,.28) 0%, transparent 70%),
+      radial-gradient(95vmax 85vmax at 25% 85%, rgba(255,142,110,.26) 0%, transparent 70%);
+    filter: blur(10px) saturate(1.1);
   }
 
   .logos__inner{
