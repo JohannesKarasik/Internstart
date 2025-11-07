@@ -8,7 +8,6 @@
       {% blocktrans %}Land interviews at top companies with AI-tailored applications{% endblocktrans %}
     </h3>
 
-    <!-- Masked viewport -->
     <div class="logos__viewport" aria-hidden="true">
 
       <!-- Row A -->
@@ -56,10 +55,10 @@
 
 <style>
   /* =======================================================
-     Fully FADED color background
-     - Every patch softly fades inward and outward
-     - No solid zones; layered color blending
-     - Smooth gradients for a dynamic, premium look
+     Premium hybrid background
+     - Soft fading inside color areas
+     - Some zones retain crisp, geometric edges
+     - Subtle animation and vibrant depth
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -85,47 +84,51 @@
     isolation: isolate;
   }
 
-  /* --- Soft, fully faded background gradients --- */
+  /* --- Layer 1: faded blended base --- */
   .logos::before{
     content:"";
     position:absolute;
     inset:-10% -5%;
     z-index:0;
     background:
-      radial-gradient(80vmax 65vmax at 12% 22%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, rgba(122,77,255,.25) 80%, transparent 100%),
-      radial-gradient(85vmax 70vmax at 82% 12%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 45%, rgba(255,79,216,.3) 80%, transparent 100%),
-      radial-gradient(95vmax 80vmax at 70% 85%, rgba(255,79,216,.7) 0%, rgba(104,192,255,.45) 50%, rgba(255,142,110,.25) 85%, transparent 100%),
-      radial-gradient(85vmax 75vmax at 25% 85%, rgba(122,77,255,.7) 0%, rgba(255,79,216,.45) 50%, rgba(255,142,110,.3) 85%, transparent 100%),
-      radial-gradient(100vmax 90vmax at 50% 50%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 80%);
-    filter: saturate(1.1) contrast(1.05);
+      radial-gradient(80vmax 60vmax at 12% 22%, rgba(255,142,110,.78) 0%, rgba(255,79,216,.45) 40%, rgba(122,77,255,.25) 75%, transparent 100%),
+      radial-gradient(85vmax 70vmax at 80% 12%, rgba(104,192,255,.7) 0%, rgba(122,77,255,.45) 45%, rgba(255,79,216,.25) 80%, transparent 100%),
+      radial-gradient(95vmax 80vmax at 70% 85%, rgba(255,79,216,.65) 0%, rgba(104,192,255,.45) 55%, rgba(255,142,110,.25) 85%, transparent 100%),
+      radial-gradient(90vmax 75vmax at 25% 85%, rgba(122,77,255,.7) 0%, rgba(255,79,216,.45) 50%, rgba(255,142,110,.25) 85%, transparent 100%);
+    filter: saturate(1.1) contrast(1.04);
     animation: bgShift 38s ease-in-out infinite alternate;
   }
 
-  /* --- Layer of faint overlay color glow --- */
+  /* --- Layer 2: crisp-edged zones with soft inner fades --- */
   .logos::after{
     content:"";
     position:absolute;
     inset:-10% -6%;
     z-index:0;
+    pointer-events:none;
     background:
-      radial-gradient(70vmax 60vmax at 15% 25%, rgba(255,79,216,.25) 0%, transparent 70%),
-      radial-gradient(80vmax 70vmax at 85% 25%, rgba(104,192,255,.25) 0%, transparent 70%),
-      radial-gradient(90vmax 80vmax at 75% 80%, rgba(122,77,255,.25) 0%, transparent 70%),
-      radial-gradient(95vmax 75vmax at 25% 85%, rgba(255,142,110,.25) 0%, transparent 70%);
-    mix-blend-mode: screen;
-    animation: glowShift 60s ease-in-out infinite alternate;
+      radial-gradient(75vmax 65vmax at 15% 25%,
+        rgba(255,79,216,.9) 0 28%, rgba(255,79,216,.9) 28%, rgba(255,79,216,.4) 38%, transparent 60%),
+      radial-gradient(80vmax 70vmax at 85% 20%,
+        rgba(104,192,255,.9) 0 25%, rgba(104,192,255,.9) 25%, rgba(122,77,255,.4) 35%, transparent 58%),
+      radial-gradient(90vmax 80vmax at 70% 75%,
+        rgba(122,77,255,.88) 0 30%, rgba(122,77,255,.88) 30%, rgba(255,79,216,.4) 40%, transparent 62%),
+      radial-gradient(95vmax 85vmax at 25% 85%,
+        rgba(255,142,110,.9) 0 26%, rgba(255,142,110,.9) 26%, rgba(255,142,110,.4) 38%, transparent 60%);
+    filter: none;
+    animation: edgeShift 48s ease-in-out infinite alternate;
   }
 
   @keyframes bgShift{
-    0%{ background-position: 12% 22%, 82% 12%, 70% 85%, 25% 85%, 50% 50%; }
-    50%{ background-position: 10% 25%, 80% 15%, 72% 82%, 22% 88%, 48% 48%; }
-    100%{ background-position: 14% 18%, 76% 18%, 68% 88%, 26% 80%, 52% 52%; }
+    0%{ background-position: 12% 22%, 80% 12%, 70% 85%, 25% 85%; }
+    50%{ background-position: 10% 25%, 78% 18%, 74% 86%, 28% 78%; }
+    100%{ background-position: 14% 18%, 76% 20%, 68% 88%, 26% 80%; }
   }
 
-  @keyframes glowShift{
-    0%{ opacity: .6; transform: scale(1); }
-    50%{ opacity: .9; transform: scale(1.02); }
-    100%{ opacity: .6; transform: scale(1); }
+  @keyframes edgeShift{
+    0%{ transform: translate3d(0,0,0); }
+    50%{ transform: translate3d(-1%, 0.6%, 0); }
+    100%{ transform: translate3d(0.8%, -0.4%, 0); }
   }
 
   .logos__inner{
@@ -149,12 +152,10 @@
     margin-inline: calc(50% - 50vw);
     width: 100vw;
     overflow: hidden;
-    border-radius: 0;
     padding: var(--logos-pad-y) 0;
     display: flex;
     flex-direction: column;
     gap: 18px;
-    background: transparent;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
   }
