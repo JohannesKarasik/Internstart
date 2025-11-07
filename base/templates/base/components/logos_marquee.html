@@ -61,26 +61,22 @@
     --logos-border: rgba(255,255,255,.28);
     --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
 
-    /* Very light palette (subtle background presence) */
+    /* Ultra-light palette */
     --g-violet: rgba(122, 77, 255, 0.18);
     --g-purple: rgba(164, 99, 255, 0.16);
     --g-magenta: rgba(255, 79, 216, 0.18);
     --g-orange: rgba(255, 142, 110, 0.16);
     --g-cyan: rgba(104, 192, 255, 0.18);
 
-    /* === Oblique band placement (balanced for best visual alignment) ===
-       - Top edge sits just above Row A near the title on the left
-       - Crosses behind Row A mid-right
-       - Bottom edge lands just below Row C on the left and mid-right
-       - Parallel preserved: thickness = 26% on both sides
+    /* === STRAIGHT (HORIZONTAL) BAND ===
+       Set a single top & bottom to keep it perfectly horizontal.
+       Adjust these to move the band up/down or change height.
     */
-    --band-top-left: 44%;
-    --band-top-right: 22%;
-    --band-bottom-left: 70%;
-    --band-bottom-right: 48%;
+    --band-top: 42%;
+    --band-bottom: 70%;
 
-    /* Slight bleed so the band feels continuous without flooding the page */
-    --band-inset-vertical: -22vh;
+    /* Modest bleed so edges feel soft, but not overwhelming */
+    --band-inset-vertical: -12vh;
     --band-inset-horizontal: -12vw;
   }
 
@@ -93,38 +89,36 @@
     z-index: 0;
   }
 
+  /* Place the band OVER the logos but UNDER the title */
   .logos::before,
   .logos::after{
     content:"";
     position:absolute;
     inset: var(--band-inset-vertical) var(--band-inset-horizontal);
-    z-index:-1;
+    z-index: 2; /* sits above logos viewport (z:1) but below title (z:3) */
     background-repeat:no-repeat;
     clip-path: polygon(
-      0%  var(--band-top-left),
-      100% var(--band-top-right),
-      100% var(--band-bottom-right),
-      0%  var(--band-bottom-left)
+      0%  var(--band-top),
+      100% var(--band-top),
+      100% var(--band-bottom),
+      0%  var(--band-bottom)
     );
     pointer-events:none;
   }
 
-  /* Trimmed, lighter gradients positioned to sit under the logo rows */
+  /* Gentle, very transparent gradients for the straight band */
   .logos::before{
     background:
-      radial-gradient(60vmax 60vmax at 22% 30%, rgba(255,142,110,.18) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
-      radial-gradient(70vmax 70vmax at 78% 28%, rgba(104,192,255,.18) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
-      radial-gradient(65vmax 65vmax at 68% 72%, rgba(255,79,216,.16) 0%, rgba(104,192,255,.10) 60%, transparent 100%),
-      radial-gradient(58vmax 58vmax at 32% 78%, rgba(122,77,255,.16) 0%, rgba(255,142,110,.10) 65%, transparent 100%);
+      radial-gradient(60vmax 60vmax at 25% 50%, rgba(255,142,110,.18) 0%, rgba(255,79,216,.10) 50%, transparent 100%),
+      radial-gradient(70vmax 70vmax at 75% 48%, rgba(104,192,255,.18) 0%, rgba(122,77,255,.10) 55%, transparent 100%),
+      radial-gradient(65vmax 65vmax at 60% 60%, rgba(255,79,216,.14) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
     filter: saturate(1) contrast(1) blur(10px);
   }
 
   .logos::after{
     background:
-      radial-gradient(80vmax 70vmax at 18% 32%, rgba(255,79,216,.08) 0%, transparent 70%),
-      radial-gradient(86vmax 72vmax at 82% 26%, rgba(104,192,255,.08) 0%, transparent 70%),
-      radial-gradient(86vmax 72vmax at 74% 74%, rgba(122,77,255,.08) 0%, transparent 70%),
-      radial-gradient(90vmax 74vmax at 28% 82%, rgba(255,142,110,.08) 0%, transparent 70%);
+      radial-gradient(80vmax 70vmax at 20% 52%, rgba(255,79,216,.08) 0%, transparent 70%),
+      radial-gradient(86vmax 72vmax at 80% 46%, rgba(104,192,255,.08) 0%, transparent 70%);
     filter: blur(14px) saturate(1);
   }
 
@@ -133,22 +127,26 @@
     margin: 0 auto;
     padding: 0 12px;
     position: relative;
-    z-index: 1;
+    z-index: 1; /* base content layer */
   }
 
-  /* Heading subtly picks up color via blend mode (not transparent) */
+  /* Title remains ABOVE the band */
   .logos__title{
+    position: relative;
+    z-index: 3;              /* above band */
     text-align: center;
     font-weight: 800;
     letter-spacing: -0.015em;
     font-size: clamp(30px, 4.2vw, 52px);
-    color: #0b1220;         /* solid text */
+    color: #0b1220;          /* solid, not transparent */
     margin-bottom: 28px;
-    mix-blend-mode: overlay; /* slight influence from band colors */
+    mix-blend-mode: overlay; /* subtle color influence from band */
     background: transparent;
   }
 
   .logos__viewport{
+    position: relative;
+    z-index: 1; /* logos sit under the band (::before/::after at z:2) */
     margin-inline: calc(50% - 50vw);
     width: 100vw;
     overflow: hidden;
