@@ -107,34 +107,35 @@
     const popup = document.getElementById('upgradePopup');
     const img = document.getElementById('popupMap');
   
-    // reliable static map tiles from OpenStreetMap via Mapbox (no key required)
-    const cityCoords = [
+    // coordinates for each city
+    const cities = [
       { name: "Manchester", lat: 53.4808, lon: -2.2426 },
       { name: "London",     lat: 51.5072, lon: -0.1276 },
       { name: "Boston",     lat: 42.3601, lon: -71.0589 },
       { name: "Miami",      lat: 25.7617, lon: -80.1918 }
     ];
   
+    // generate a static map URL (Mapbox public tiles)
     function mapUrl(lat, lon) {
-      // Static Map from OSM tiles using StaticMapLite proxy (free, no key)
-      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=11&size=300x200&maptype=mapnik`;
+      return `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${lon},${lat},11,0/300x200?access_token=pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJja3YycG1zcncwMDRuMnZwZ3FrN2ZmbDBzIn0.5lxI0SmF1sD3ZPcSmmj7qQ`;
     }
   
-    // Show popup after 2 seconds
     setTimeout(() => {
       popup.hidden = false;
       popup.classList.add('visible');
-      let i = 0;
-      img.src = mapUrl(cityCoords[i].lat, cityCoords[i].lon);
   
-      // Rotate map every 4 seconds
+      let i = 0;
+      img.src = mapUrl(cities[i].lat, cities[i].lon);
+  
+      // Rotate between maps every 4 seconds
       setInterval(() => {
-        i = (i + 1) % cityCoords.length;
-        img.src = mapUrl(cityCoords[i].lat, cityCoords[i].lon);
+        i = (i + 1) % cities.length;
+        img.src = mapUrl(cities[i].lat, cities[i].lon);
       }, 4000);
     }, 2000);
   })();
   </script>
+  
   
 
 
