@@ -44,6 +44,101 @@
   
   </style>
 
+<!-- ✅ Bottom-left popup notification -->
+<div id="upgradePopup" class="upgrade-popup" hidden>
+  <div class="upgrade-popup__content">
+    <strong>Mark upgraded to Pro</strong>
+    <p>10 minutes ago</p>
+    <img id="popupMap" src="" alt="City map" />
+  </div>
+</div>
+
+<style>
+  .upgrade-popup {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    overflow: hidden;
+    width: 240px;
+    max-width: 90vw;
+    font-family: system-ui, sans-serif;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.5s ease;
+    z-index: 1000;
+  }
+
+  .upgrade-popup.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .upgrade-popup__content {
+    padding: 16px;
+    text-align: left;
+  }
+
+  .upgrade-popup__content strong {
+    display: block;
+    color: #111;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .upgrade-popup__content p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .upgrade-popup__content img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+</style>
+
+<script>
+(() => {
+  const maps = [
+    "https://maps.googleapis.com/maps/api/staticmap?center=Manchester&zoom=12&size=300x200&key=YOUR_API_KEY",
+    "https://maps.googleapis.com/maps/api/staticmap?center=London&zoom=12&size=300x200&key=YOUR_API_KEY",
+    "https://maps.googleapis.com/maps/api/staticmap?center=Boston&zoom=12&size=300x200&key=YOUR_API_KEY",
+    "https://maps.googleapis.com/maps/api/staticmap?center=Miami&zoom=12&size=300x200&key=YOUR_API_KEY"
+  ];
+
+  // fallback static images if no Google Maps key
+  const fallbackMaps = [
+    "https://upload.wikimedia.org/wikipedia/commons/3/39/Manchester_UK_map.png",
+    "https://upload.wikimedia.org/wikipedia/commons/4/4a/London_City_map.png",
+    "https://upload.wikimedia.org/wikipedia/commons/2/29/Boston_city_map.png",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Miami_map.png"
+  ];
+
+  const popup = document.getElementById('upgradePopup');
+  const img = document.getElementById('popupMap');
+
+  // Show popup after 2 seconds
+  setTimeout(() => {
+    popup.hidden = false;
+    popup.classList.add('visible');
+    let i = 0;
+    img.src = fallbackMaps[i];
+
+    // Rotate map every 4 seconds
+    setInterval(() => {
+      i = (i + 1) % fallbackMaps.length;
+      img.src = fallbackMaps[i];
+    }, 4000);
+  }, 2000);
+})();
+</script>
+
+
 {% endblock content %}
 
 
