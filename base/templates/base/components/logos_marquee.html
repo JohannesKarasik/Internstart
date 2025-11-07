@@ -138,10 +138,10 @@
 .logos__track--c{ animation-duration: 12s; }
 
 
-  @keyframes marquee{
-    from{ transform: translateX(0); }
-    to  { transform: translateX(-50%); }
-  }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
 
   .logo{
     flex: 0 0 auto;
@@ -173,20 +173,25 @@
 </style>
 
 <script>
-(() => {
-  const onReady = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
-
-  onReady(() => {
-    const tracks = document.querySelectorAll('.logos__track');
-    tracks.forEach(track => {
-      const speed = Number(track.dataset.speed || 32);
-      const children = Array.from(track.children);
-      children.forEach(node => track.appendChild(node.cloneNode(true)));
-      track.style.animationDuration = `${Math.max(4, speed / 4)}s`;
+  (() => {
+    const onReady = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    onReady(() => {
+      const tracks = document.querySelectorAll('.logos__track');
+      tracks.forEach(track => {
+        const speed = Number(track.dataset.speed || 32);
+  
+        // Duplicate the whole set once (so we have two full sequences)
+        const originalContent = track.innerHTML;
+        track.innerHTML = originalContent + originalContent;
+  
+        // Make it run faster if desired
+        track.style.animationDuration = `${Math.max(4, speed / 4)}s`;
+      });
     });
-  });
-})();
-</script>
+  })();
+  </script>
+  
