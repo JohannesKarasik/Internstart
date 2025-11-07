@@ -166,17 +166,20 @@
       timeEl.textContent = time;
       setSafeSrc(img, mapUrl(city.lat, city.lon));
   
-      // Start hidden and offscreen
+      // Prepare off-screen state
       popup.hidden = false;
       popup.classList.remove("hide", "visible");
-      popup.style.transition = "none"; // Disable transition just for initialization
+      popup.style.transition = "none";
       popup.style.opacity = "0";
       popup.style.transform = "translateX(-120%)";
   
-      // Force reflow and then trigger transition cleanly
+      // Force layout and re-enable transition cleanly
       requestAnimationFrame(() => {
-        popup.style.transition = "";
-        popup.classList.add("visible");
+        // Wait for one more frame to ensure transition is applied cleanly
+        requestAnimationFrame(() => {
+          popup.style.transition = ""; // restore CSS transitions
+          popup.classList.add("visible");
+        });
       });
   
       // Hide after 4 seconds
