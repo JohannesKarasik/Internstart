@@ -907,29 +907,11 @@ def loginPage(request, template='base/login_register.html'):
 
 
 def login_view(request):
-    resp = loginPage(request, template='base/login_register_dk.html')
-
-    return render(
-        request,
-        'base/login_register_dk.html',
-        {
-            **resp.context_data,   # all the original form / errors
-            "lang": "dk"
-        }
-    )
-
+    return loginPage(request, template='base/login_register_dk.html')
 
 def register_view(request):
-    resp = registerPage(request, template='base/login_register_dk.html')
+    return registerPage(request, template='base/login_register_dk.html')
 
-    return render(
-        request,
-        'base/login_register_dk.html',
-        {
-            **resp.context_data,
-            "lang": "dk"
-        }
-    )
 
 def logoutUser(request):
     print("🧭 landing_page", request.user.is_authenticated)
