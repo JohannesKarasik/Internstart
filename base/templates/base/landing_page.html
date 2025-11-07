@@ -65,16 +65,46 @@
     width: 240px;
     max-width: 90vw;
     font-family: system-ui, sans-serif;
-    transform: translateY(20px);
     opacity: 0;
-    transition: all 0.5s ease;
+    transform: translateX(-120%);
+    transition: transform 0.6s ease, opacity 0.6s ease;
     z-index: 1000;
   }
-  .upgrade-popup.visible { transform: translateY(0); opacity: 1; }
-  .upgrade-popup__content { padding: 16px; text-align: left; }
-  .upgrade-popup__content strong { display: block; color: #111; font-size: 16px; margin-bottom: 4px; }
-  .upgrade-popup__content p { color: #666; font-size: 14px; margin-bottom: 10px; }
-  .upgrade-popup__content img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
+
+  .upgrade-popup.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .upgrade-popup.hide {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+
+  .upgrade-popup__content {
+    padding: 16px;
+    text-align: left;
+  }
+
+  .upgrade-popup__content strong {
+    display: block;
+    color: #111;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .upgrade-popup__content p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .upgrade-popup__content img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
 </style>
 
 <script>
@@ -84,9 +114,8 @@
   const timeEl = document.getElementById('upgradeTime');
   const img = document.getElementById('popupMap');
 
-  const apiKey = "{{ google_maps_key }}"; // safely passed from Django env
+  const apiKey = "{{ google_maps_key }}";
 
-  // 🔹 10 big US cities
   const cities = [
     { name: "New York", lat: 40.7128, lon: -74.0060 },
     { name: "Los Angeles", lat: 34.0522, lon: -118.2437 },
@@ -100,60 +129,60 @@
     { name: "Boston", lat: 42.3601, lon: -71.0589 }
   ];
 
-  // 🔹 40 possible user names
   const names = [
-    "Olivia", "Liam", "Emma", "Noah", "Sophia", "James", "Ava", "Lucas", "Isabella", "Mason",
-    "Mia", "Ethan", "Charlotte", "Henry", "Amelia", "Alexander", "Harper", "Benjamin", "Evelyn", "Elijah",
-    "Ella", "Michael", "Scarlett", "Daniel", "Aria", "Matthew", "Luna", "Jack", "Layla", "Owen",
-    "Zoe", "Sebastian", "Nora", "Aiden", "Hazel", "David", "Grace", "Carter", "Chloe", "Wyatt"
+    "Olivia","Liam","Emma","Noah","Sophia","James","Ava","Lucas","Isabella","Mason",
+    "Mia","Ethan","Charlotte","Henry","Amelia","Alexander","Harper","Benjamin","Evelyn","Elijah",
+    "Ella","Michael","Scarlett","Daniel","Aria","Matthew","Luna","Jack","Layla","Owen",
+    "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
   ];
 
-  // 🔹 20 timeframes (latest: 12 minutes ago)
   const timeframes = [
-    "Just now", "1 minute ago", "2 minutes ago", "3 minutes ago", "4 minutes ago",
-    "5 minutes ago", "6 minutes ago", "7 minutes ago", "8 minutes ago", "9 minutes ago",
-    "10 minutes ago", "11 minutes ago", "12 minutes ago", "a few moments ago", "moments ago",
-    "about 2 minutes ago", "recently", "this minute", "a few seconds ago", "less than 1 minute ago"
+    "Just now","1 minute ago","2 minutes ago","3 minutes ago","4 minutes ago",
+    "5 minutes ago","6 minutes ago","7 minutes ago","8 minutes ago","9 minutes ago",
+    "10 minutes ago","11 minutes ago","12 minutes ago","a few moments ago","moments ago",
+    "about 2 minutes ago","recently","this minute","a few seconds ago","less than 1 minute ago"
   ];
 
   function mapUrl(lat, lon) {
     return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
   }
 
-  function randomItem(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
+  const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
 
   function setSafeSrc(el, src) {
     const testImg = new Image();
     testImg.onload = () => el.src = src;
-    testImg.onerror = () => el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
+    testImg.onerror = () =>
+      el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
     testImg.src = src;
   }
 
-  // 🔹 Show popup after 2 seconds
-  setTimeout(() => {
+  function showPopup() {
+    const city = randomItem(cities);
+    const name = randomItem(names);
+    const time = randomItem(timeframes);
+
+    nameEl.textContent = `${name} upgraded to Pro`;
+    timeEl.textContent = time;
+    setSafeSrc(img, mapUrl(city.lat, city.lon));
+
     popup.hidden = false;
-    popup.classList.add('visible');
+    popup.classList.remove("hide");
+    popup.classList.add("visible");
 
-    // Set random first combo immediately
-    const firstCity = randomItem(cities);
-    const firstName = randomItem(names);
-    const firstTime = randomItem(timeframes);
-    nameEl.textContent = `${firstName} upgraded to Pro`;
-    timeEl.textContent = firstTime;
-    setSafeSrc(img, mapUrl(firstCity.lat, firstCity.lon));
+    // Hide after 4 seconds
+    setTimeout(() => {
+      popup.classList.remove("visible");
+      popup.classList.add("hide");
+    }, 4000);
+  }
 
-    // 🔁 Rotate every 5 seconds with new random data
+  // Loop: every 6 seconds (2 sec gap after hide)
+  setTimeout(() => {
+    showPopup();
     setInterval(() => {
-      const city = randomItem(cities);
-      const name = randomItem(names);
-      const time = randomItem(timeframes);
-
-      nameEl.textContent = `${name} upgraded to Pro`;
-      timeEl.textContent = time;
-      setSafeSrc(img, mapUrl(city.lat, city.lon));
-    }, 5000);
+      showPopup();
+    }, 6000);
   }, 2000);
 })();
 </script>
