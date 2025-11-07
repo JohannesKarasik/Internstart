@@ -132,11 +132,10 @@
     gap: var(--logos-gap);
     animation: marquee linear infinite;
   }
-  .logos__viewport:hover .logos__track{ animation-play-state: paused; }
 
-  .logos__track--a{ animation-duration: 32s; }
-  .logos__track--b{ animation-duration: 42s; opacity:.96; }
-  .logos__track--c{ animation-duration: 52s; opacity:.94; }
+  .logos__track--a{ animation-duration: 16s; }  /* faster */
+  .logos__track--b{ animation-duration: 20s; opacity:.96; }  /* faster */
+  .logos__track--c{ animation-duration: 24s; opacity:.94; }  /* faster */
 
   @keyframes marquee{
     from{ transform: translateX(0); }
