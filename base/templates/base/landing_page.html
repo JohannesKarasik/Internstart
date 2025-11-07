@@ -108,92 +108,83 @@
 </style>
 
 <script>
-(() => {
-  const popup = document.getElementById('upgradePopup');
-  const nameEl = document.getElementById('upgradeName');
-  const timeEl = document.getElementById('upgradeTime');
-  const img = document.getElementById('popupMap');
-
-  const apiKey = "{{ google_maps_key }}";
-
-  const cities = [
-    { name: "New York", lat: 40.7128, lon: -74.0060 },
-    { name: "Los Angeles", lat: 34.0522, lon: -118.2437 },
-    { name: "Chicago", lat: 41.8781, lon: -87.6298 },
-    { name: "Houston", lat: 29.7604, lon: -95.3698 },
-    { name: "Phoenix", lat: 33.4484, lon: -112.0740 },
-    { name: "Philadelphia", lat: 39.9526, lon: -75.1652 },
-    { name: "San Francisco", lat: 37.7749, lon: -122.4194 },
-    { name: "Seattle", lat: 47.6062, lon: -122.3321 },
-    { name: "Miami", lat: 25.7617, lon: -80.1918 },
-    { name: "Boston", lat: 42.3601, lon: -71.0589 }
-  ];
-
-  const names = [
-    "Olivia","Liam","Emma","Noah","Sophia","James","Ava","Lucas","Isabella","Mason",
-    "Mia","Ethan","Charlotte","Henry","Amelia","Alexander","Harper","Benjamin","Evelyn","Elijah",
-    "Ella","Michael","Scarlett","Daniel","Aria","Matthew","Luna","Jack","Layla","Owen",
-    "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
-  ];
-
-  const timeframes = [
-    "Just now","1 minute ago","2 minutes ago","3 minutes ago","4 minutes ago",
-    "5 minutes ago","6 minutes ago","7 minutes ago","8 minutes ago","9 minutes ago",
-    "10 minutes ago","11 minutes ago","12 minutes ago","a few moments ago","moments ago",
-    "about 2 minutes ago","recently","this minute","a few seconds ago","less than 1 minute ago"
-  ];
-
-  function mapUrl(lat, lon) {
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&key=${apiKey}`;
-  }
-
-  const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
-
-  function setSafeSrc(el, src) {
-    const testImg = new Image();
-    testImg.onload = () => el.src = src;
-    testImg.onerror = () =>
-      el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
-    testImg.src = src;
-  }
-
-  function showPopup() {
-    const city = randomItem(cities);
-    const name = randomItem(names);
-    const time = randomItem(timeframes);
-
-    nameEl.textContent = `${name} upgraded to Pro`;
-    timeEl.textContent = time;
-    setSafeSrc(img, mapUrl(city.lat, city.lon));
-
-    // Start hidden and offscreen
-    popup.hidden = false;
-    popup.classList.remove("hide", "visible");
-    popup.style.transition = "none"; // Disable transition just for initialization
-    popup.style.opacity = "0";
-    popup.style.transform = "translateX(-120%)";
-
-    // Force reflow and then trigger transition cleanly
-    requestAnimationFrame(() => {
-      popup.style.transition = "";
+  (() => {
+    const popup = document.getElementById('upgradePopup');
+    const nameEl = document.getElementById('upgradeName');
+    const timeEl = document.getElementById('upgradeTime');
+    const img = document.getElementById('popupMap');
+  
+    const apiKey = "{{ google_maps_key }}";
+  
+    const cities = [
+      { name: "New York", lat: 40.7128, lon: -74.0060 },
+      { name: "Los Angeles", lat: 34.0522, lon: -118.2437 },
+      { name: "Chicago", lat: 41.8781, lon: -87.6298 },
+      { name: "Houston", lat: 29.7604, lon: -95.3698 },
+      { name: "Phoenix", lat: 33.4484, lon: -112.0740 },
+      { name: "Philadelphia", lat: 39.9526, lon: -75.1652 },
+      { name: "San Francisco", lat: 37.7749, lon: -122.4194 },
+      { name: "Seattle", lat: 47.6062, lon: -122.3321 },
+      { name: "Miami", lat: 25.7617, lon: -80.1918 },
+      { name: "Boston", lat: 42.3601, lon: -71.0589 }
+    ];
+  
+    const names = [
+      "Olivia","Liam","Emma","Noah","Sophia","James","Ava","Lucas","Isabella","Mason",
+      "Mia","Ethan","Charlotte","Henry","Amelia","Alexander","Harper","Benjamin","Evelyn","Elijah",
+      "Ella","Michael","Scarlett","Daniel","Aria","Matthew","Luna","Jack","Layla","Owen",
+      "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
+    ];
+  
+    const timeframes = [
+      "Just now","1 minute ago","2 minutes ago","3 minutes ago","4 minutes ago",
+      "5 minutes ago","6 minutes ago","7 minutes ago","8 minutes ago","9 minutes ago",
+      "10 minutes ago","11 minutes ago","12 minutes ago","a few moments ago","moments ago",
+      "about 2 minutes ago","recently","this minute","a few seconds ago","less than 1 minute ago"
+    ];
+  
+    // ✅ Removed marker parameter
+    function mapUrl(lat, lon) {
+      return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&key=${apiKey}`;
+    }
+  
+    const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
+  
+    function setSafeSrc(el, src) {
+      const testImg = new Image();
+      testImg.onload = () => el.src = src;
+      testImg.onerror = () =>
+        el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
+      testImg.src = src;
+    }
+  
+    function showPopup() {
+      const city = randomItem(cities);
+      const name = randomItem(names);
+      const time = randomItem(timeframes);
+  
+      nameEl.textContent = `${name} upgraded to Pro`;
+      timeEl.textContent = time;
+      setSafeSrc(img, mapUrl(city.lat, city.lon));
+  
+      popup.hidden = false;
+      popup.classList.remove("hide");
       popup.classList.add("visible");
-    });
-
-    // Hide after 4 seconds
+  
+      // Hide after 4 seconds
+      setTimeout(() => {
+        popup.classList.remove("visible");
+        popup.classList.add("hide");
+      }, 4000);
+    }
+  
+    // Loop: every 6 seconds (2 sec gap after hide)
     setTimeout(() => {
-      popup.classList.remove("visible");
-      popup.classList.add("hide");
-    }, 4000);
-  }
-
-  // Loop every 6 seconds, with initial delay
-  setTimeout(() => {
-    showPopup();
-    setInterval(showPopup, 6000);
-  }, 2000);
-})();
-</script>
-
+      showPopup();
+      setInterval(showPopup, 6000);
+    }, 2000);
+  })();
+  </script>
   
 
 
