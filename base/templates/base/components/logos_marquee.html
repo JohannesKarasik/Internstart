@@ -58,29 +58,32 @@
      - Controlled by modest inset and thickness
   ======================================================== */
   :root{
-    --logos-gap: clamp(16px, 2.2vw, 28px);
-    --logos-pad-y: clamp(28px, 5vw, 60px);
-    --section-pad-y: clamp(36px, 6vw, 84px);
+  --logos-gap: clamp(16px, 2.2vw, 28px);
+  --logos-pad-y: clamp(28px, 5vw, 60px);
+  --section-pad-y: clamp(36px, 6vw, 84px);
 
-    --logos-card: rgba(255,255,255,.54);
-    --logos-border: rgba(255,255,255,.48);
-    --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
+  --logos-card: rgba(255,255,255,.54);
+  --logos-border: rgba(255,255,255,.48);
+  --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
 
-    /* palette (static) */
-    --g-violet: #7a4dff;
-    --g-purple: #a463ff;
-    --g-magenta:#ff4fd8;
-    --g-orange: #ff8e6e;
-    --g-cyan:   #68c0ff;
+  /* palette (static) */
+  --g-violet: #7a4dff;
+  --g-purple: #a463ff;
+  --g-magenta:#ff4fd8;
+  --g-orange: #ff8e6e;
+  --g-cyan:   #68c0ff;
 
-    /* Parallel band controls */
-    /* Subtle overspill into adjacent sections (not full-page) */
-    --band-top-left: 40%;
-    --band-top-right: 20%;
-    --band-thickness: 60%;
-    --band-bottom-left: calc(var(--band-top-left) + var(--band-thickness));
-    --band-bottom-right: calc(var(--band-top-right) + var(--band-thickness));
-  }
+  /* === Fully Customizable Band Angles === */
+  --band-top-left: 40%;
+  --band-top-right: 20%;
+  --band-bottom-left: 85%;   /* independently set */
+  --band-bottom-right: 60%;  /* independently set */
+
+  /* You can tweak how far it extends beyond section here too */
+  --band-inset-vertical: -40vh;
+  --band-inset-horizontal: -15vw;
+}
+
 
   .logos{
     position: relative;
