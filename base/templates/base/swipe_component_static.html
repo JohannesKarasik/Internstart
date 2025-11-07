@@ -2157,52 +2157,56 @@ main.layout {
 </style>
 
 {% include "base/email_flow_showcase.html" %}
-<script src="{% static 'js/email_flow_showcase.js' %}"></script>
 
-  
+<script src="{% static 'js/email_flow_showcase.js' %}"></script>
 
   <!-- ===== Core JS ===== -->
 
   <script src="https://js.stripe.com/v3/"></script>
 
   <script>
+/* ===== Global helpers & safe defaults ===== */
+function getCSRF() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+let isPaid = (window.IS_PAID ?? false);
+let __redirecting = false;
 
+document.addEventListener('DOMContentLoaded', () => {
+  // attach to the upgrade button or any test button you have
+  const upgradeBtn = document.getElementById('openPremium'); // or some dedicated test button
 
-    document.addEventListener('DOMContentLoaded', () => {
-    // convenience
-    const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-    // attach to the upgrade button or any test button you have
-    const upgradeBtn = document.getElementById('openPremium'); // or some dedicated test button
-
-    // for demo: clicking "Upgrade" sets tier locally to starter without Stripe
-    upgradeBtn?.addEventListener('dblclick', async (e) => {
-      // 👆 use dblclick so you don’t override your normal modal on click
-      e.preventDefault();
-      try {
-        const res = await fetch('/debug/set-tier/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrf()
-          },
-          body: JSON.stringify({ tier: 'starter' })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || res.statusText);
-        alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
-        // optionally update the UI:
-        document.querySelector('.plan-text').textContent = data.tier;
-        document.getElementById('swipeLimit').textContent = data.limit;
-      } catch (err) {
-        console.error(err);
-        alert('Could not change tier');
-      }
-    });
+  // for demo: clicking "Upgrade" sets tier locally to starter without Stripe
+  upgradeBtn?.addEventListener('dblclick', async (e) => {
+    // 👆 use dblclick so you don’t override your normal modal on click
+    e.preventDefault();
+    try {
+      const res = await fetch('/debug/set-tier/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRF()
+        },
+        body: JSON.stringify({ tier: 'starter' })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
+      // optionally update the UI:
+      document.querySelector('.plan-text')?.textContent = data.tier;
+      const limitEl = document.getElementById('swipeLimit');
+      if (limitEl) limitEl.textContent = data.limit;
+    } catch (err) {
+      console.error(err);
+      alert('Could not change tier');
+    }
   });
+});
     
 document.addEventListener('DOMContentLoaded', () => {
   const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
   // === Persistently hide already-applied jobs (per user) ===
   const USER_ID = "{{ request.user.id|default_if_none:'anon' }}";
   const SWIPED_KEY = `swiped_jobs_${USER_ID}`;
@@ -2230,9 +2234,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   })();
 
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]').value;
-
   /* === Theme toggle === */
   const THEME_KEY = 'theme_v1';
   const root = document.documentElement;
@@ -2252,12 +2253,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* === Sidebar toggle === */
   const container = $('.swipe-container');
-  const cards = () => $$('.swipe-card', container);
+  const cards = () => (container ? $$('.swipe-card', container) : []);
   const ringBar = $('#ringBar');
   const cardsLeftEl = $('#cardsLeft');
-  const streakEl = $('#streakVal');
-  const comboEl = $('#comboBadge');
-
 
   const sidebar = $('#sidebar');
   const sidebarToggle = $('#sidebarToggle');
@@ -2265,6 +2263,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SB_KEY = 'ai_sidebar_open';
 
   function setSidebar(open){
+    if (!sidebar || !sidebarToggle || !sidebarBackdrop) return;
     sidebar.classList.toggle('is-open', open);
     sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     sidebarToggle.classList.toggle('rot', open);
@@ -2284,47 +2283,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedOpen = saved ? (saved === '1') : false;
   setSidebar(savedOpen);
 
-  sidebarToggle.addEventListener('click', () => setSidebar(!sidebar.classList.contains('is-open')));
-  sidebarBackdrop.addEventListener('click', () => setSidebar(false));
-  addEventListener('resize', () => setSidebar(sidebar.classList.contains('is-open')));
+  sidebarToggle?.addEventListener('click', () => setSidebar(!sidebar.classList.contains('is-open')));
+  sidebarBackdrop?.addEventListener('click', () => setSidebar(false));
+  addEventListener('resize', () => setSidebar(sidebar?.classList.contains('is-open')));
 
   /* === Swipes left setup === */
   const swipesLeftEl = document.getElementById('swipesLeft');
   fetch('/quota/')
     .then(r => r.json())
-    .then(data => swipesLeftEl.textContent = data.left);
+    .then(data => { if (swipesLeftEl) swipesLeftEl.textContent = data.left; })
+    .catch(()=>{});
 
-  /* === Premium Modal setup === */
+  /* === Premium Modal setup & Stripe Checkout wiring === */
+  const STRIPE_PK = "{{ STRIPE_PUBLISHABLE_KEY|default_if_none:'' }}"; // if using Django template context; otherwise inline
+  let stripe;
+  try { if (STRIPE_PK) stripe = Stripe(STRIPE_PK); } catch(e) { console.error("Stripe init failed", e); }
 
-  // === Stripe Checkout wiring ===
-const STRIPE_PK = "{{ STRIPE_PUBLISHABLE_KEY|default_if_none:'' }}"; // if using Django template context; otherwise inline
-let stripe;
-try { stripe = Stripe(STRIPE_PK); } catch(e) { console.error("Stripe init failed", e); }
-
-async function startCheckout(tier){
-  try{
-    const r = await fetch("/billing/create-checkout-session/", {
-      method:"POST",
-      headers: {"Content-Type":"application/json", "X-CSRFToken": csrf()},
-      body: JSON.stringify({ tier })
-    });
-    const data = await r.json();
-    if (data.error) throw new Error(data.error);
-    if (data.url) window.location.href = data.url;
-  }catch(err){
-    console.error(err);
-    showToast("Could not start checkout");
+  async function startCheckout(tier){
+    try{
+      const r = await fetch("/billing/create-checkout-session/", {
+        method:"POST",
+        headers: {"Content-Type":"application/json", "X-CSRFToken": getCSRF()},
+        body: JSON.stringify({ tier })
+      });
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+      if (data.url) window.location.href = data.url;
+    }catch(err){
+      console.error(err);
+      showToast("Could not start checkout");
+    }
   }
-}
 
-// Button in the modal
-document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
-  const tier = e.currentTarget.dataset.tier || "pro";
-  startCheckout(tier);
-});
-
-
-
+  // Button in the modal
+  document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
+    const tier = e.currentTarget.dataset.tier || "pro";
+    startCheckout(tier);
+  });
 
   const premiumModal = document.getElementById('premiumModal');
   function showPremiumModal(){
@@ -2345,59 +2340,57 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   let totalCards = cards().length;
   function updateDeckHUD() {
     const left = cards().length;
-    cardsLeftEl.textContent = left;
+    if (cardsLeftEl) cardsLeftEl.textContent = left;
     const pct = (1 - (left / Math.max(1,totalCards))) * 100;
     const CIRC = 2 * Math.PI * 16;
-    ringBar.style.strokeDasharray = CIRC;
-    ringBar.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+    if (ringBar) {
+      ringBar.style.strokeDasharray = CIRC;
+      ringBar.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+    }
   }
-
-
-
-
 
   function styleStack() {
-  const list = cards();
+    if (!container) return;
+    const list = cards();
 
-  // Hide all cards and reset their layers
-  list.forEach(c => {
-    c.style.display = 'none';
-    c.style.zIndex = '';
-    c.style.pointerEvents = 'none'; // prevent click/swipe on hidden or lower cards
-    c.classList.remove('is-top', 'is-next');
-  });
+    // Hide all cards and reset their layers
+    list.forEach(c => {
+      c.style.display = 'none';
+      c.style.zIndex = '';
+      c.style.pointerEvents = 'none'; // prevent click/swipe on hidden or lower cards
+      c.classList.remove('is-top', 'is-next');
+    });
 
-  const top = list[list.length - 1];
-  const next = list[list.length - 2];
+    const top = list[list.length - 1];
+    const next = list[list.length - 2];
 
-  // Make next card visible but not interactive
-  if (next) {
-    next.style.display = 'block';
-    next.style.zIndex = 5;
-    next.classList.add('is-next');
-    next.style.transform = 'scale(0.97) translateY(5px)';
-    next.style.opacity = '0.9';
-    next.style.pointerEvents = 'none'; // key line — disable clicking it
+    // Make next card visible but not interactive
+    if (next) {
+      next.style.display = 'block';
+      next.style.zIndex = 5;
+      next.classList.add('is-next');
+      next.style.transform = 'scale(0.97) translateY(5px)';
+      next.style.opacity = '0.9';
+      next.style.pointerEvents = 'none'; // key line — disable clicking it
+    }
+
+    // Top card visible + clickable
+    if (top) {
+      top.style.display = 'block';
+      top.style.zIndex = 10;
+      top.classList.add('is-top');
+      top.style.transform = 'scale(1) translateY(0)';
+      top.style.opacity = '1';
+      top.style.pointerEvents = 'auto'; // enable only the front card
+    }
   }
-
-  // Top card visible + clickable
-  if (top) {
-    top.style.display = 'block';
-    top.style.zIndex = 10;
-    top.classList.add('is-top');
-    top.style.transform = 'scale(1) translateY(0)';
-    top.style.opacity = '1';
-    top.style.pointerEvents = 'auto'; // enable only the front card
-  }
-}
-
 
   styleStack(); updateDeckHUD();
 
   const toastEl = $('#toast');
 
   // Click anywhere on card (except buttons) to flip
-  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+  container?.addEventListener('click', (e) => {
     if (e.target.closest('.swipe-btn')) return;
     const card = e.target.closest('.swipe-card');
     if (!card) return;
@@ -2434,13 +2427,13 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     if (lastDay !== today) s++;
     localStorage.setItem(userKey('last_day'), today);
     setNum(userKey('streak'), s);
-    document.getElementById('streakVal').textContent = s;
+    document.getElementById('streakVal')?.textContent = s;
     return s;
   }
 
-  document.getElementById('streakVal').textContent = getStreak();
+  document.getElementById('streakVal')?.textContent = getStreak();
   { const el = document.getElementById('xpVal'); if (el) el.textContent = getNum(userKey('xp'),0); }
-  appliedCountEl.textContent = getNum(userKey('applied'), 0);
+  if (appliedCountEl) appliedCountEl.textContent = getNum(userKey('applied'), 0);
 
   let combo=0, lastActionAt=0;
   function registerCombo(){
@@ -2448,9 +2441,11 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     combo = (now - lastActionAt < 4000) ? combo+1 : 1;
     lastActionAt = now;
     const comboEl = document.getElementById('comboBadge');
-    comboEl.textContent = combo>1 ? `Combo x${combo}!` : '';
-    comboEl.classList.toggle('is-active', combo>1);
-    setTimeout(()=> comboEl.classList.remove('is-active'), 1200);
+    if (comboEl) {
+      comboEl.textContent = combo>1 ? `Combo x${combo}!` : '';
+      comboEl.classList.toggle('is-active', combo>1);
+      setTimeout(()=> comboEl.classList.remove('is-active'), 1200);
+    }
   }
 
   function stamp(card, type){
@@ -2500,33 +2495,25 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     const next = prev + 1;
     setNum(userKey('applied'), next);
 
-    const start = Number(appliedCountEl.textContent || 0);
+    const start = Number(appliedCountEl?.textContent || 0);
     const duration = 350; let t0=null;
-    function step(ts){ if(!t0) t0 = ts; const p = Math.min(1, (ts - t0)/duration); appliedCountEl.textContent = String(Math.round(start + (next-start)*p)); if (p<1) requestAnimationFrame(step); }
+    function step(ts){ if(!t0) t0 = ts; const p = Math.min(1, (ts - t0)/duration); if (appliedCountEl) appliedCountEl.textContent = String(Math.round(start + (next-start)*p)); if (p<1) requestAnimationFrame(step); }
     requestAnimationFrame(step);
   }
 
   /* === Undo history === */
   const undoStack = [];
 
-
-
-  
   function throwCard(direction = 'right', { doFetch = false, save = false } = {}) {
-  if (direction === 'right' && doFetch) {
-    const left = parseInt(swipesLeftEl?.textContent || '0', 10);
-    if (left <= 0) {
-      const noSwipesModal = document.getElementById('noSwipesModal');
-      noSwipesModal?.classList.add('show');
-      document.documentElement.style.overflow = 'hidden';
-      return;
+    if (direction === 'right' && doFetch) {
+      const left = parseInt(swipesLeftEl?.textContent || '0', 10);
+      if (left <= 0) {
+        const noSwipesModal = document.getElementById('noSwipesModal');
+        noSwipesModal?.classList.add('show');
+        document.documentElement.style.overflow = 'hidden';
+        return;
+      }
     }
-  }
-
-
-
-
-
 
     const list = cards();
     if (!list.length) return;
@@ -2563,50 +2550,48 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     }, 680);
 
     if (doFetch) {
-  const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
-  swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
+      const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
+      if (swipesLeftEl) swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
 
-  const roomId = current.dataset.roomId;
-  markSwiped(roomId);
+      const roomId = current.dataset.roomId;
+      markSwiped(roomId);
 
-  fetch("{% url 'apply_swipe_job' %}", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-CSRFToken": csrftoken,
-  },
-  body: JSON.stringify({ room_id: roomId }),
-})
-.then(async r => {
-  const text = await r.text();   // read body once
-  try {
-    return JSON.parse(text);     // try JSON
-  } catch {
-    console.error("Non-JSON response from server:", text);
-    throw new Error("Server error, see logs.");
-  }
-})
-.then(data => {
-  if (data.error === "OAuth required" && data.redirect) {
-    unmarkSwiped(roomId);
-    window.location.href = data.redirect;
-  } else if (data.error) {
-    unmarkSwiped(roomId);
-    alert("Error: " + data.error);
-  } else {
-    swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
-  }
-})
-.catch(err => {
-  console.error("Fetch error:", err);
-  unmarkSwiped(roomId);
-});
-
-
-}
-
-
-
+      fetch("{% url 'apply_swipe_job' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRF(),
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ room_id: roomId }),
+      })
+      .then(async r => {
+        const text = await r.text();   // read body once
+        try {
+          return JSON.parse(text);     // try JSON
+        } catch {
+          console.error("Non-JSON response from server:", text);
+          throw new Error("Server error, see logs.");
+        }
+      })
+      .then(data => {
+        if (data.error === "OAuth required" && data.redirect) {
+          unmarkSwiped(roomId);
+          window.location.href = data.redirect;
+        } else if (data.error) {
+          unmarkSwiped(roomId);
+          alert("Error: " + data.error);
+        } else {
+          if (typeof data.left === 'number' && swipesLeftEl) {
+            swipesLeftEl.textContent = String(data.left);
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Fetch error:", err);
+        unmarkSwiped(roomId);
+      });
+    }
 
     // Gamification + counters
     if (direction === 'right' || save) {
@@ -2617,8 +2602,8 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
         const s = bumpStreak();
         incrementApplied();
         showToast(`Applied! +${xp} XP · 🔥 Streak ${s}`);
-        const t = appliedWidget.getBoundingClientRect();
-        confettiBurst(t.left + t.width / 2, t.top + t.height / 2, 22);
+        const t = appliedWidget?.getBoundingClientRect();
+        if (t) confettiBurst(t.left + t.width / 2, t.top + t.height / 2, 22);
       } else if (save) {
         showToast(`Saved! +${xp} XP`);
       }
@@ -2633,7 +2618,7 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     if (!last) { showToast('Nothing to undo'); return; }
 
     const el = last.el;
-    container.appendChild(el);
+    container?.appendChild(el);
 
     el.style.opacity = '0';
     el.style.transform = 'translateY(14px) scale(.98)';
@@ -2652,30 +2637,38 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     showToast('Brought back');
   }
 
-  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+  // Handle swipe button clicks (left/right/lightning/return)
+  container?.addEventListener('click', (e) => {
     const btn = e.target.closest('.swipe-btn');
     if (!btn) return;
     e.stopPropagation();
+
     const ripple = btn.querySelector('.btn-ripple'); 
     if (ripple){ ripple.classList.remove('run'); void ripple.offsetWidth; ripple.classList.add('run'); }
 
-    if (btn.classList.contains('swipe-left'))     return void throwCard('left');
+    if (btn.classList.contains('swipe-left'))
+      return void throwCard('left');
+
     if (btn.classList.contains('swipe-right')) {
-    // play the fast animation once
-    throwCard('right');
+      if (!isPaid) {
+        if (__redirecting) return;
+        __redirecting = true;
+        throwCard('right'); // animate out
+        setTimeout(() => { location.assign("{% url 'swipe_view' %}"); }, 720); // load swipe view
+        return;
+      }
+      return void throwCard('right', { doFetch: true });
+    }
 
-    // then redirect after animation finishes
-    setTimeout(() => {
-        window.location.href = "{% url 'swipe_view' %}";
-    }, 380);  // 350–400ms is perfect
-    return;
-}
-    if (btn.classList.contains('swipe-lightning'))return void throwCard('right', {doFetch:true});
-    if (btn.classList.contains('swipe-return'))   return void undoLast();
-  });
+    if (btn.classList.contains('swipe-lightning'))
+      return void throwCard('right', { doFetch: true });
 
+    if (btn.classList.contains('swipe-return'))
+      return void undoLast();
+  }); // ✅ properly close this listener
 
-  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+  // Separate listener for "favorite" (save) button
+  container?.addEventListener('click', (e) => {
     const favBtn = e.target.closest('.swipe-favorite');
     if (!favBtn) return;
     e.stopPropagation();
@@ -2687,7 +2680,11 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 
     fetch('/save-job/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'X-CSRFToken': getCSRF()
+      },
+      credentials: 'same-origin',
       body: JSON.stringify({ room_id: roomId })
     })
     .then(r => r.json())
@@ -2699,46 +2696,51 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
       const badge = document.getElementById('savedBadge');
       if (badge) badge.textContent = String(parseInt(badge.textContent||'0',10)+1);
       // after saving animate the card away as saved
-      throwCard('right', {save:true});
+      throwCard('right', { save:true });
     })
     .catch(console.error);
   });
-
-  
 
   document.addEventListener('keydown', (e) => {
     const topCard = cards().slice(-1)[0];
     if (!topCard) return;
     if (e.key === 'ArrowLeft')  throwCard('left');
-    if (e.key === 'ArrowRight') throwCard('right', {doFetch:true});
+    if (e.key === 'ArrowRight') {
+      if (!isPaid) {
+        if (__redirecting) return;
+        __redirecting = true;
+        throwCard('right'); // animate out
+        setTimeout(() => { location.assign("{% url 'swipe_view' %}"); }, 720);
+      } else {
+        throwCard('right', { doFetch: true });
+      }
+    }
     if (e.key.toLowerCase() === 's') throwCard('right', {save:true});
     if (e.key === 'Backspace')  undoLast();
-    if (e.key === '\\') setSidebar(!sidebar.classList.contains('is-open'));
+    if (e.key === '\\') setSidebar(!sidebar?.classList.contains('is-open'));
   });
 
-  document.querySelector('.swipe-container').addEventListener('mousemove', (e) => {
+  container?.addEventListener('mousemove', (e) => {
     const c = cards().slice(-1)[0]; if (!c) return;
     const inner = c.querySelector('.card-inner'); const r=c.getBoundingClientRect();
     const rx=((e.clientY-r.top)/r.height - .5)*-6; const ry=((e.clientX-r.left)/r.width - .5)*6;
     inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
   });
-  document.querySelector('.swipe-container').addEventListener('mouseleave', () => {
+  container?.addEventListener('mouseleave', () => {
     const c=cards().slice(-1)[0]; if (!c) return; c.querySelector('.card-inner').style.transform='';
   });
 
   let toastTimer; 
-  function showToast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 1400); }
+  function showToast(msg){
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 1400);
+  }
 });
 
-
-
-const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
 document.addEventListener('DOMContentLoaded', () => {
-  // grab CSRF token once
-  const csrftoken =
-    document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
   document.getElementById('selectStarter')?.addEventListener('click', async e => {
     e.preventDefault();
     try {
@@ -2746,7 +2748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken
+          'X-CSRFToken': getCSRF()
         },
         credentials: 'same-origin',  // sends your session cookie
         body: JSON.stringify({ tier: 'starter' })
@@ -2758,16 +2760,19 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
 
       // update plan label + limit
-      document.querySelector('.plan-text').textContent = data.tier;
-      document.getElementById('swipeLimit').textContent = data.limit;
+      document.querySelector('.plan-text')?.textContent = data.tier;
+      const lim = document.getElementById('swipeLimit');
+      if (lim) lim.textContent = data.limit;
 
       // update swipes left either from server response or fresh fetch
       if (typeof data.left === 'number') {
-        document.getElementById('swipesLeft').textContent = data.left;
+        const s = document.getElementById('swipesLeft');
+        if (s) s.textContent = data.left;
       } else {
         const quotaRes = await fetch('/quota/?t=' + Date.now(), { credentials:'same-origin' });
         const quota = await quotaRes.json();
-        document.getElementById('swipesLeft').textContent = quota.left;
+        const s = document.getElementById('swipesLeft');
+        if (s) s.textContent = quota.left;
       }
 
       document.getElementById('premiumModal')?.classList.remove('show');
@@ -2799,10 +2804,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-
 </script>
-
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -2814,11 +2816,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const PENDING_ONB_AFTER_OAUTH = 'pending_onb_after_oauth';
 
   function openEmailOnboarding() {
+    if (!overlay) return;
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
 
   function closeEmailOnboarding() {
+    if (!overlay) return;
     overlay.style.display = 'none';
     document.body.style.overflow = '';
     localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
@@ -2860,10 +2864,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-
-
-
-
 
   <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -3017,14 +3017,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailConfigured = main?.dataset.emailConfigured === 'true';
 
       function afterEmail() {
-      // Show the "Email connected" message
-      showEmailConnectedToast();
+        // Show the "Email connected" message
+        showEmailConnectedToast();
 
-      // Then open the button onboarding
-      open();
-      wireButtons(open);
-    }
-
+        // Then open the button onboarding
+        open();
+        wireButtons(open);
+      }
 
       document.addEventListener('onboarding:finished', afterEmail, { once:true });
 
@@ -3050,11 +3049,7 @@ function showEmailConnectedToast() {
     toast.style.transform = 'translate(-50%, -10px)';
   }, 2500);
 }
-
-
-
 </script>
-
 
 
 
