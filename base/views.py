@@ -1129,6 +1129,7 @@ def swipe_static_view(request):
     fake_title = "Growth Intern"
     fake_role = "Marketing Analytics Intern"
     fake_domain = "tesla.com"
+    fake_description = ""
 
     # detect language based on user.country (model Country field)
     lang = "english"
@@ -1138,13 +1139,22 @@ def swipe_static_view(request):
     if dt:
         try:
             prompt = f"""
-            Pick 1 real company in {user.country} that fits the desired job title '{dt}'.
-            Return a realistic job posting.
+            Pick exactly 1 REAL company in {user.country} that is MID-SIZE (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon, Microsoft).
+
+            Match the desired job title '{dt}' but make the job title very specific and realistic. 
+            Example: instead of "Marketing Intern", use "Performance Marketing Intern (Paid Social Focus)" 
+            Example: instead of "Software Developer", use "Junior Backend Developer (Python APIs + PostgreSQL)" 
 
             Write text fields in {lang}.
 
             Return ONLY valid JSON like:
-            {{"company":"...", "domain":"...", "title":"...", "role":"..."}}
+            {{
+              "company":"...",
+              "domain":"...",
+              "title":"...",
+              "role":"...",
+              "description":"a compact 1 sentence description of what the role actually works on day-to-day"
+            }}
             """
 
             completion = client.chat.completions.create(
@@ -1161,6 +1171,7 @@ def swipe_static_view(request):
             fake_title   = obj.get("title", fake_title)
             fake_role    = obj.get("role", fake_role)
             fake_domain  = obj.get("domain", fake_domain)
+            fake_description = obj.get("description", "")
         except:
             pass
     # ---------------------------------------------------
@@ -1210,7 +1221,8 @@ def swipe_static_view(request):
         "static_company": fake_company,
         "static_title": fake_title,
         "static_role": fake_role,
-        "static_domain": fake_domain,  # use this in clearbit
+        "static_domain": fake_domain,
+        "static_description": fake_description,
     }
 
     if partial:
