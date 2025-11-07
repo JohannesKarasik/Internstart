@@ -1148,10 +1148,11 @@ def next_card_json(request):
         """
 
         completion = client.chat.completions.create(
-            model="gpt-5",
+            model="gpt-4.1-mini",
             messages=[
                 {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
                 {"role":"user","content": prompt}
+
             ],
         )
 
@@ -1230,7 +1231,7 @@ def swipe_static_view(request):
 
 
             completion = client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4.1-mini",
                 messages=[
                     {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
                     {"role":"user","content": prompt}
