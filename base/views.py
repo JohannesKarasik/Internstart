@@ -907,16 +907,29 @@ def loginPage(request, template='base/login_register.html'):
 
 
 def login_view(request):
-    # just render the dk version directly
-    return render(request, 'base/login_register_dk.html', {
-        "lang": "dk"
-    })
+    resp = loginPage(request, template='base/login_register_dk.html')
+
+    return render(
+        request,
+        'base/login_register_dk.html',
+        {
+            **resp.context_data,   # all the original form / errors
+            "lang": "dk"
+        }
+    )
 
 
 def register_view(request):
-    return render(request, 'base/login_register_dk.html', {
-        "lang": "dk"
-    })
+    resp = registerPage(request, template='base/login_register_dk.html')
+
+    return render(
+        request,
+        'base/login_register_dk.html',
+        {
+            **resp.context_data,
+            "lang": "dk"
+        }
+    )
 
 def logoutUser(request):
     print("🧭 landing_page", request.user.is_authenticated)
