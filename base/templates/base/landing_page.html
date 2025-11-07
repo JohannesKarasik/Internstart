@@ -136,12 +136,19 @@
     "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
   ];
 
-  const timeframes = [
-    "Just now","1 minute ago","2 minutes ago","3 minutes ago","4 minutes ago",
-    "5 minutes ago","6 minutes ago","7 minutes ago","8 minutes ago","9 minutes ago",
-    "10 minutes ago","11 minutes ago","12 minutes ago","a few moments ago","moments ago",
-    "about 2 minutes ago","recently","this minute","a few seconds ago","less than 1 minute ago"
-  ];
+  // ✅ Generate a random realistic timeframe between 12 minutes and 4 hours
+  function randomTimeframe() {
+    const minMinutes = 12;
+    const maxMinutes = 240; // 4 hours
+    const randomMinutes = Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
+
+    if (randomMinutes >= 60) {
+      const hours = Math.floor(randomMinutes / 60);
+      return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+    } else {
+      return `${randomMinutes} minutes ago`;
+    }
+  }
 
   // ✅ Removed marker parameter
   function mapUrl(lat, lon) {
@@ -161,7 +168,7 @@
   function showPopup() {
     const city = randomItem(cities);
     const name = randomItem(names);
-    const time = randomItem(timeframes);
+    const time = randomTimeframe();
 
     nameEl.textContent = `${name} upgraded to Pro`;
     timeEl.textContent = time;
