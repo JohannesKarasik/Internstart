@@ -8,7 +8,9 @@
       {% blocktrans %}Land interviews at top companies with AI-tailored applications{% endblocktrans %}
     </h3>
 
+    <!-- Masked viewport -->
     <div class="logos__viewport" aria-hidden="true">
+
       <!-- Row A -->
       <div class="logos__track logos__track--a" data-speed="32">
         <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt="Netflix"></div>
@@ -47,16 +49,17 @@
         <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt="Uber"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt="DoorDash"></div>
       </div>
+
     </div>
   </div>
 </section>
 
 <style>
   /* =======================================================
-     REAL LAVA-LAMP MOVEMENT
-     - Blobs morph and drift continuously
-     - Color fields flow like liquid
-     - Layered gradients animate independently
+     LAVA LAMP EFFECT BACKGROUND
+     - Organic morphing movement
+     - Smooth blended fades
+     - Premium gradient palette (no solid fills)
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -82,81 +85,73 @@
     background: linear-gradient(135deg, var(--g-orange), var(--g-magenta), var(--g-purple), var(--g-cyan));
   }
 
-  /* === LAVA layers === */
-  .logos::before,
-  .logos::after {
+  /* Morphing fluid color field */
+  .logos::before{
     content:"";
     position:absolute;
-    inset:-30% -20%;
+    inset:-15% -10%;
     z-index:0;
-    background-repeat: no-repeat;
+    background:
+      radial-gradient(60vmax 60vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.5) 45%, transparent 100%),
+      radial-gradient(70vmax 70vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.5) 50%, transparent 100%),
+      radial-gradient(65vmax 65vmax at 70% 80%, rgba(255,79,216,.7) 0%, rgba(104,192,255,.5) 60%, transparent 100%),
+      radial-gradient(60vmax 60vmax at 30% 85%, rgba(122,77,255,.7) 0%, rgba(255,142,110,.4) 65%, transparent 100%);
+    mix-blend-mode: lighten;
+    filter: saturate(1.2) contrast(1.05) blur(4px);
+    animation: lavaFlow 50s ease-in-out infinite alternate,
+               hueCycle 60s linear infinite;
+  }
+
+  /* Extra dynamic overlay for parallax effect */
+  .logos::after{
+    content:"";
+    position:absolute;
+    inset:-20% -10%;
+    z-index:0;
+    background:
+      radial-gradient(80vmax 80vmax at 15% 25%, rgba(255,79,216,.25) 0%, transparent 70%),
+      radial-gradient(90vmax 80vmax at 85% 25%, rgba(104,192,255,.3) 0%, transparent 70%),
+      radial-gradient(90vmax 80vmax at 75% 80%, rgba(122,77,255,.3) 0%, transparent 70%),
+      radial-gradient(95vmax 85vmax at 25% 85%, rgba(255,142,110,.25) 0%, transparent 70%);
     mix-blend-mode: screen;
-    will-change: transform, background;
-    filter: blur(35px) saturate(1.2);
+    animation: lavaFlowReverse 70s ease-in-out infinite alternate;
+    filter: blur(6px);
   }
 
-  .logos::before {
-    background-image:
-      radial-gradient(circle at 20% 30%, rgba(255,142,110,.8) 0%, transparent 65%),
-      radial-gradient(circle at 70% 40%, rgba(255,79,216,.75) 0%, transparent 70%),
-      radial-gradient(circle at 40% 80%, rgba(104,192,255,.7) 0%, transparent 65%),
-      radial-gradient(circle at 80% 75%, rgba(122,77,255,.8) 0%, transparent 70%);
-    animation: blobMorph 40s ease-in-out infinite alternate;
-  }
-
-  .logos::after {
-    background-image:
-      radial-gradient(circle at 60% 25%, rgba(104,192,255,.6) 0%, transparent 70%),
-      radial-gradient(circle at 25% 75%, rgba(255,142,110,.5) 0%, transparent 70%),
-      radial-gradient(circle at 85% 65%, rgba(255,79,216,.5) 0%, transparent 75%);
-    animation: blobMorph2 60s ease-in-out infinite alternate-reverse;
-  }
-
-  @keyframes blobMorph {
-    0% {
-      transform: scale(1) translate(0,0) rotate(0deg);
-      background-size: 120% 120%;
-      background-position: 20% 30%, 70% 40%, 40% 80%, 80% 75%;
+  /* Morphing animation */
+  @keyframes lavaFlow{
+    0%{
+      transform: translate3d(0%,0%,0) scale(1);
+      background-position: 20% 20%, 80% 25%, 70% 80%, 30% 85%;
     }
-    25% {
-      transform: scale(1.1) translate(-2%,1%) rotate(10deg);
-      background-position: 30% 25%, 65% 50%, 45% 78%, 78% 70%;
+    25%{
+      transform: translate3d(-1%,1%,0) scale(1.03);
+      background-position: 25% 25%, 75% 20%, 65% 75%, 35% 90%;
     }
-    50% {
-      transform: scale(1.05) translate(2%,-2%) rotate(-8deg);
-      background-position: 18% 35%, 75% 45%, 35% 82%, 70% 80%;
+    50%{
+      transform: translate3d(1%,-1%,0) scale(1.05);
+      background-position: 18% 22%, 82% 18%, 72% 84%, 28% 78%;
     }
-    75% {
-      transform: scale(1.15) translate(-1%,2%) rotate(5deg);
-      background-position: 25% 40%, 70% 35%, 42% 75%, 76% 68%;
+    75%{
+      transform: translate3d(-1%,-1%,0) scale(1.02);
+      background-position: 14% 18%, 76% 20%, 68% 88%, 26% 80%;
     }
-    100% {
-      transform: scale(1) translate(1%,-1%) rotate(0deg);
-      background-position: 20% 30%, 70% 40%, 40% 80%, 80% 75%;
+    100%{
+      transform: translate3d(0.5%,1%,0) scale(1.04);
+      background-position: 22% 28%, 78% 22%, 70% 82%, 30% 84%;
     }
   }
 
-  @keyframes blobMorph2 {
-    0% {
-      transform: scale(1.05) translate(0%,0%) rotate(0deg);
-      background-position: 60% 25%, 25% 75%, 85% 65%;
-    }
-    25% {
-      transform: scale(1.1) translate(-1%,2%) rotate(12deg);
-      background-position: 55% 30%, 20% 70%, 88% 60%;
-    }
-    50% {
-      transform: scale(1.15) translate(2%,-1%) rotate(-10deg);
-      background-position: 65% 20%, 30% 78%, 82% 70%;
-    }
-    75% {
-      transform: scale(1.08) translate(-2%,1%) rotate(8deg);
-      background-position: 62% 28%, 22% 72%, 88% 68%;
-    }
-    100% {
-      transform: scale(1) translate(0%,0%) rotate(0deg);
-      background-position: 60% 25%, 25% 75%, 85% 65%;
-    }
+  @keyframes lavaFlowReverse{
+    0%{ transform: translate3d(0%,0%,0) scale(1); }
+    50%{ transform: translate3d(2%, -1%, 0) scale(1.05); }
+    100%{ transform: translate3d(-1%, 1%, 0) scale(1.02); }
+  }
+
+  @keyframes hueCycle{
+    0%{ filter: hue-rotate(0deg) saturate(1.2); }
+    50%{ filter: hue-rotate(25deg) saturate(1.3); }
+    100%{ filter: hue-rotate(0deg) saturate(1.2); }
   }
 
   .logos__inner{
@@ -196,7 +191,6 @@
     gap: var(--logos-gap);
     animation: marquee linear infinite;
   }
-
   .logos__viewport:hover .logos__track{ animation-play-state: paused; }
 
   .logos__track--a{ animation-duration: 32s; }
@@ -208,7 +202,7 @@
     to{ transform: translateX(-50%); }
   }
 
-  /* Glassy cards */
+  /* Glassy logo cards */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -241,8 +235,9 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .logos::before, .logos::after { animation: none !important; }
     .logos__track{ animation: none !important; }
+    .logos::before,
+    .logos::after{ animation: none !important; transform: none; }
   }
 </style>
 
