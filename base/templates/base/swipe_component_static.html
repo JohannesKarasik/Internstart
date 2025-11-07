@@ -468,7 +468,6 @@
 {% for room in rooms %}
 <div class="swipe-card {% cycle 'card-color-pink' 'card-color-blue' 'card-color-yellow' %}"
      data-room-id="{{ room.id }}"
-     data-go-url="{% url 'swipe_view' room.id %}" 
      role="button"
      aria-label="Flip card to see more info"
      tabindex="0"
@@ -2325,13 +2324,6 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 });
 
 
-function navigateToSwipeView(card){
-  if (!card) return;
-  const url = card.dataset.goUrl || `/apply/${card.dataset.roomId}/`;
-  if (!url) return;
-  // let the swipe animation breathe, then go
-  setTimeout(() => { window.location.assign(url); }, 150);
-}
 
 
   const premiumModal = document.getElementById('premiumModal');
@@ -2603,9 +2595,6 @@ function navigateToSwipeView(card){
     alert("Error: " + data.error);
   } else {
     swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
-
-    // 👇 this line is NEW
-    navigateToSwipeView(current);
   }
 })
 .catch(err => {
