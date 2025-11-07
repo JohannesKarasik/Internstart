@@ -13,7 +13,6 @@
 ========================= -->
 
 <section class="social-proof" id="social-proof">
-  <canvas class="shooting-stars" id="shootingStars" aria-hidden="true"></canvas>
   <div class="sp__inner">
     <header class="sp__head">
       <h2 class="sp__title">
@@ -580,25 +579,6 @@ html, body {
 /* make sure content sits above the stars layer */
 .sp__inner{ position:relative; z-index:1; }
 
-/* stars canvas sits over the grid (::before/::after are z-index:-1), but under content */
-.shooting-stars{
-  position:absolute;
-  inset:0;
-  z-index:0;                 /* grid -1, stars 0, content 1+ */
-  pointer-events:none;
-  opacity:.9;
-  /* soft fade toward the top like your grid masks */
-
-}
-
-.shooting-stars {
-  background: transparent !important;
-  opacity:1 !important;
-  z-index: 0;
-  pointer-events:none;
-}
-
-
 /* ===== Demo stage ===== */
 .demo-stage{ position:relative; width:100%; min-height: var(--card-h); }
 .demo-overlay{
@@ -753,7 +733,7 @@ html, body {
 .ai-demo__progress{ display:flex; align-items:center; gap:8px; }
 .ai-demo__bar{ --pct:0%; width:96px; height:6px; border-radius:999px; background:#e5e7eb; position:relative; overflow:hidden; }
 .ai-demo__bar::after{ content:""; position:absolute; inset:0 auto 0 0; width:var(--pct); background:linear-gradient(90deg,var(--ok),var(--accent)); transition:width .25s ease; }
-.ai-demo__pct{ font:500 11px/1 var(--font); color:#374151; min-width:32px; text-align:right; }
+.ai-demo__pct{ font:500 11px/1 var(--font); min-width:32px; text-align:right; color:#374151; }
 .ai-form{ padding:14px var(--ai-pad) 18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 16px; font-family:var(--font); }
 .ai-field{ position:relative; display:grid; grid-template-columns:1fr 28px; grid-template-rows:auto auto; gap:6px 8px; }
 .ai-field label{ grid-column:1/-1; font:600 12px/1 var(--font); color:#6b7280; }
@@ -1600,158 +1580,3 @@ html, body {
     io.observe(stage);
   })();
 </script>
-<script>
-  /* =========================
-     Background rocket planes (pinkj.png)
-  ========================= */
-  (() => {
-    const ready = (fn) =>
-      (document.readyState === 'loading'
-        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-        : fn());
-  
-    ready(() => {
-      const section = document.querySelector('.social-proof');
-      const canvas = document.getElementById('shootingStars');
-      if (!section || !canvas) return;
-  
-      const ctx = canvas.getContext('2d');
-  
-      const planeImg = new Image();
-      planeImg.src = "{% static 'images/pinkj.png' %}";
-  
-      const BRAND = '255,47,90';
-      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  
-      let dpr = Math.max(1, window.devicePixelRatio || 1);
-      let width = 0, height = 0, running = false, rafId = 0, spawnTimer = 0;
-  
-      function resize() {
-        const rect = section.getBoundingClientRect();
-        width = Math.max(1, Math.round(rect.width));
-        height = Math.max(1, Math.round(rect.height));
-        dpr = Math.max(1, window.devicePixelRatio || 1);
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        canvas.style.width = width + 'px';
-        canvas.style.height = height + 'px';
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-      resize();
-      window.addEventListener('resize', resize, { passive: true });
-      new ResizeObserver(() => resize()).observe(section);
-  
-      let planes = [];
-  
-      function spawnPlane() {
-        // start somewhere between left edge and 75% width
-        // 50% chance left side, 50% chance right side start
-        let startX;
-        if (Math.random() < 0.5) {
-          // normal left → mid
-          startX = (Math.random() * width * 0.75);
-        } else {
-          // start further to the right (like 60% → 100%)
-          startX = (width * 0.60) + Math.random() * (width * 0.40);
-        }
-        const startY = -80;
-  
-        const speed = (6 + Math.random() * 5) * 0.5;  // half speed
-        const angle = (Math.PI * 0.75); // always top-left → bottom-right
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-  
-        planes.push({
-          x: startX,
-          y: startY,
-          vx,
-          vy,
-          life: 0,
-          maxLife: 140 + Math.random() * 120,
-          len: 120 + Math.random() * 140
-        });
-  
-        // keep at most 3
-        if (planes.length > 3) planes.shift();
-      }
-  
-      function draw(now) {
-        ctx.clearRect(0,0,width,height);
-  
-        planes.forEach((p)=>{
-          p.x += p.vx;
-          p.y += p.vy;
-          p.life++;
-  
-          const t = Math.min(1, p.life / p.maxLife);
-          const alpha = 1 - t;
-  
-          const endX = p.x - p.vx * p.len;
-          const endY = p.y - p.vy * p.len;
-  
-          // trail
-          ctx.save();
-          ctx.globalAlpha = 0.4 * alpha;
-          const g = ctx.createLinearGradient(endX, endY, p.x, p.y);
-          g.addColorStop(0, `rgba(${BRAND},0)`);
-          g.addColorStop(1, `rgba(${BRAND},1)`);
-          ctx.strokeStyle = g;
-          ctx.lineWidth = 3.2;
-          ctx.beginPath();
-          ctx.moveTo(endX, endY);
-          ctx.lineTo(p.x, p.y);
-          ctx.stroke();
-          ctx.restore();
-  
-          // plane head img
-// rotate plane 180 deg around center
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(Math.PI); // 180 degrees
-          ctx.drawImage(planeImg, -18, -18, 36, 36);
-          ctx.restore();
-
-        });
-  
-        planes = planes.filter((p)=> p.x < width+200 && p.y < height+200);
-  
-        rafId = requestAnimationFrame(draw);
-      }
-  
-      function scheduleSpawn(){
-        clearTimeout(spawnTimer);
-        spawnTimer = setTimeout(()=>{
-          spawnPlane();
-          if (running) scheduleSpawn();
-        }, 900 + Math.random()*1200);
-      }
-  
-      function start(){
-        if (running) return;
-        running = true;
-        draw();
-        scheduleSpawn();
-      }
-      function stop(){
-        running = false;
-        cancelAnimationFrame(rafId);
-        clearTimeout(spawnTimer);
-      }
-  
-      const io = new IntersectionObserver((entries)=>{
-        if (prefersReduced) return;
-        const on = entries[0].isIntersecting;
-        if (on) start(); else stop();
-      },{threshold:0.1});
-      io.observe(section);
-  
-      if (prefersReduced){
-        draw();
-      } else {
-        const r = section.getBoundingClientRect();
-        if (r.top < window.innerHeight && r.bottom > 0) start();
-      }
-    });
-  })();
-  </script>
-  
