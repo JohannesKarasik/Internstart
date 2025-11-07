@@ -1129,7 +1129,6 @@ def swipe_static_view(request):
     fake_title = "Growth Intern"
     fake_role = "Marketing Analytics Intern"
     fake_domain = "tesla.com"
-    fake_description = ""
 
     # detect language based on user.country (model Country field)
     lang = "english"
@@ -1149,11 +1148,11 @@ def swipe_static_view(request):
 
             Return ONLY valid JSON like:
             {{
-              "company":"...",
-              "domain":"...",
-              "title":"...",
-              "role":"...",
-              "description":"a compact 1 sentence description of what the role actually works on day-to-day"
+            "company":"...",
+            "domain":"...",
+            "title":"...",
+            "role":"...",
+            "description":"a compact 1 sentence description of what the role actually works on day-to-day"
             }}
             """
 
@@ -1171,7 +1170,6 @@ def swipe_static_view(request):
             fake_title   = obj.get("title", fake_title)
             fake_role    = obj.get("role", fake_role)
             fake_domain  = obj.get("domain", fake_domain)
-            fake_description = obj.get("description", "")
         except:
             pass
     # ---------------------------------------------------
@@ -1221,8 +1219,7 @@ def swipe_static_view(request):
         "static_company": fake_company,
         "static_title": fake_title,
         "static_role": fake_role,
-        "static_domain": fake_domain,
-        "static_description": fake_description,
+        "static_domain": fake_domain,  # use this in clearbit
     }
 
     if partial:
