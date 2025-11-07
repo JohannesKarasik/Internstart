@@ -785,7 +785,12 @@ def landing_page(request):
     if request.user.is_authenticated and request.user.is_active and not request.GET.get("force_home"):
         return redirect('swipe_view')
 
-    return render(request, 'base/landing_page.html')
+    context = {
+        "google_maps_key": getattr(settings, "GOOGLE_MAPS_KEY", "")
+    }
+
+    return render(request, 'base/landing_page.html', context)
+
 
 
 
@@ -1363,10 +1368,6 @@ def debug_set_tier(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def landing_page(request):
-    return render(request, "landing_page.html", {
-        "google_maps_key": settings.GOOGLE_MAPS_KEY
-    })
 
 
 
