@@ -53,10 +53,10 @@
 
 <style>
   /* =======================================================
-     OBLIQUE "BAND" + LAVA-LAMP BACKGROUND
-     - White in top-left and bottom-right corners
-     - Colored band runs diagonally across the section
-     - Inside the band: smooth, morphing gradient blobs
+     OBLIQUE, PARALLEL "BAND" + LAVA-LAMP BACKGROUND
+     - White in top-left & bottom-right corners
+     - Colored band has the SAME angle top/bottom (parallel)
+     - Smooth, morphing blobs inside the band
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
@@ -74,11 +74,14 @@
     --g-orange: #ff8e6e;
     --g-cyan:   #68c0ff;
 
-    /* diagonal band shape (edit to tweak slant/thickness) */
-    --band-top-left: 32%;
-    --band-top-right: 12%;
-    --band-bot-right: 84%;
-    --band-bot-left: 62%;
+    /* ---------- Parallel band controls ---------- */
+    /* Top edge positions (y from top). Smaller value = higher (more white). */
+    --band-top-left: 34%;
+    --band-top-right: 14%;
+    /* Thickness of the band; bottom edge is top edge + thickness */
+    --band-thickness: 30%;
+    --band-bottom-left: calc(var(--band-top-left) + var(--band-thickness));
+    --band-bottom-right: calc(var(--band-top-right) + var(--band-thickness));
   }
 
   .logos{
@@ -86,10 +89,10 @@
     padding: var(--section-pad-y) 0;
     overflow: hidden;
     isolation: isolate;
-    background: #fff; /* keep corners pure white */
+    background: #fff; /* corners remain white */
   }
 
-  /* === Animated gradient blobs, clipped to a diagonal band === */
+  /* === Animated gradient blobs, clipped to ONE clean slanted band === */
   .logos::before,
   .logos::after{
     content:"";
@@ -98,13 +101,12 @@
     z-index:0;
     background-repeat:no-repeat;
     will-change: transform, background-position, filter;
-
-    /* The diagonal band mask: white (visible) inside, white outside handled by section bg */
+    /* PARALLEL diagonal band (top & bottom edges share the same angle) */
     clip-path: polygon(
-      0% var(--band-top-left),
+      0%  var(--band-top-left),
       100% var(--band-top-right),
-      100% var(--band-bot-right),
-      0% var(--band-bot-left)
+      100% var(--band-bottom-right),
+      0%  var(--band-bottom-left)
     );
   }
 
