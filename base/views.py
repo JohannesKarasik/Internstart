@@ -1036,23 +1036,40 @@ from django.core.paginator import Paginator
 
 from django.http import JsonResponse
 from django.utils.html import strip_tags
-from .models import Room
-import random
+from django.db.models import Q
+from .models import Room, SwipedJob
 
+@login_required
 def next_card_json(request):
-    # pick the next job (replace with your logic or AI generator)
-    room = Room.objects.order_by('?').first()
+    user = request.user
+
+    # get ids already swiped
+    swiped_ids = SwipedJob.objects.filter(user=user).values_list('room_id', flat=True)
+
+    # base qs
+    rooms_qs = Room.objects.exclude(id__in=swiped_ids)
+
+    # same filtering rules as swipe_view
+    if getattr(user, 'role', None) == 'student':
+        rooms_qs = rooms_qs.filter(
+            industry=user.student_industry,
+            country=user.country,
+            job_type=user.job_type
+        )
+
+    # pick 1 card
+    room = rooms_qs.order_by('?').first()
+
     if not room:
-        # safe fallback
         return JsonResponse({
             "id": "demo",
-            "company": "Internstart Demo",
-            "title": "Marketing Assistant",
-            "role": "Internship",
-            "location": "Remote • EU",
-            "logo_domain": "hubspot.com",
-            "desc": "Practice swiping with a demo card. Connect email to apply for real roles.",
-            "badges": ["Remote", "English", "Full-time"]
+            "company": "No more matches",
+            "title": "Try another job field?",
+            "role": "",
+            "location": "",
+            "logo_domain": "internstart.com",
+            "desc": "",
+            "badges": []
         })
 
     return JsonResponse({
@@ -1060,10 +1077,10 @@ def next_card_json(request):
         "company": room.company_name or "Company",
         "title": room.job_title or "Role",
         "role": getattr(room, "job_type", "Internship"),
-        "location": room.location or "—",
-        "logo_domain": getattr(room, "logo_domain", "") or "clearbit.com",
+        "location": room.location or "",
+        "logo_domain": getattr(room, "logo_domain", ""),
         "desc": strip_tags(room.description)[:600],
-        "badges": ["Hot", "In-office"]  # or serialize tags
+        "badges": []
     })
 
 @login_required
