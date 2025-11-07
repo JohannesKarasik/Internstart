@@ -2660,7 +2660,10 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     if (ripple){ ripple.classList.remove('run'); void ripple.offsetWidth; ripple.classList.add('run'); }
 
     if (btn.classList.contains('swipe-left'))     return void throwCard('left');
-    if (btn.classList.contains('swipe-right'))    return void throwCard('right', {doFetch:true});
+    if (btn.classList.contains('swipe-right')) {
+        window.location.href = "/no-subscription/";
+        return;
+      }
     if (btn.classList.contains('swipe-lightning'))return void throwCard('right', {doFetch:true});
     if (btn.classList.contains('swipe-return'))   return void undoLast();
   });
