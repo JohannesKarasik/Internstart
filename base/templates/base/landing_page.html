@@ -143,7 +143,6 @@
       "about 2 minutes ago","recently","this minute","a few seconds ago","less than 1 minute ago"
     ];
   
-    // ✅ Removed marker parameter
     function mapUrl(lat, lon) {
       return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&key=${apiKey}`;
     }
@@ -167,9 +166,18 @@
       timeEl.textContent = time;
       setSafeSrc(img, mapUrl(city.lat, city.lon));
   
+      // Start hidden and offscreen
       popup.hidden = false;
-      popup.classList.remove("hide");
-      popup.classList.add("visible");
+      popup.classList.remove("hide", "visible");
+      popup.style.transition = "none"; // Disable transition just for initialization
+      popup.style.opacity = "0";
+      popup.style.transform = "translateX(-120%)";
+  
+      // Force reflow and then trigger transition cleanly
+      requestAnimationFrame(() => {
+        popup.style.transition = "";
+        popup.classList.add("visible");
+      });
   
       // Hide after 4 seconds
       setTimeout(() => {
@@ -178,13 +186,14 @@
       }, 4000);
     }
   
-    // Loop: every 6 seconds (2 sec gap after hide)
+    // Loop every 6 seconds, with initial delay
     setTimeout(() => {
       showPopup();
       setInterval(showPopup, 6000);
     }, 2000);
   })();
   </script>
+  
   
 
 
