@@ -52,55 +52,46 @@
 </section>
 
 <style>
-  /* =======================================================
-     STATIC, PARALLEL "BAND" BACKGROUND — SLIGHTLY BLEEDS OUTSIDE SECTION
-     - Band now extends subtly beyond the container, not full page
-     - Controlled by modest inset and thickness
-  ======================================================== */
   :root{
-  --logos-gap: clamp(16px, 2.2vw, 28px);
-  --logos-pad-y: clamp(28px, 5vw, 60px);
-  --section-pad-y: clamp(36px, 6vw, 84px);
+    --logos-gap: clamp(16px, 2.2vw, 28px);
+    --logos-pad-y: clamp(28px, 5vw, 60px);
+    --section-pad-y: clamp(36px, 6vw, 84px);
 
-  --logos-card: rgba(255,255,255,.54);
-  --logos-border: rgba(255,255,255,.48);
-  --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
+    --logos-card: rgba(255,255,255,.45);
+    --logos-border: rgba(255,255,255,.38);
+    --logos-shadow: 0 10px 30px rgba(2,8,23,.10);
 
-  /* palette (static) */
-  --g-violet: #7a4dff;
-  --g-purple: #a463ff;
-  --g-magenta:#ff4fd8;
-  --g-orange: #ff8e6e;
-  --g-cyan:   #68c0ff;
+    /* Lighter palette for more transparency */
+    --g-violet: rgba(122, 77, 255, 0.4);
+    --g-purple: rgba(164, 99, 255, 0.35);
+    --g-magenta: rgba(255, 79, 216, 0.35);
+    --g-orange: rgba(255, 142, 110, 0.35);
+    --g-cyan: rgba(104, 192, 255, 0.35);
 
-  /* === Fully Customizable Band Angles === */
-  --band-top-left: 50%;   /* moved down from 40% → lowers left side */
---band-top-right: 15%;  /* moved up from 20% → raises right side */
---band-bottom-left: 95%; /* moved down from 85% */
---band-bottom-right: 60%; /* moved up from 60% to keep same slope */
+    /* === Parallel Band Angles (kept parallel, tilted) === */
+    --band-top-left: 50%;
+    --band-top-right: 15%;
+    --band-bottom-left: 95%;
+    --band-bottom-right: 60%;
 
-
-  /* You can tweak how far it extends beyond section here too */
-  --band-inset-vertical: -40vh;
-  --band-inset-horizontal: -15vw;
-}
-
+    --band-inset-vertical: -40vh;
+    --band-inset-horizontal: -15vw;
+  }
 
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    overflow: visible; /* allows soft bleed into nearby sections */
+    overflow: visible;
     isolation: isolate;
     background: #fff;
     z-index: 0;
   }
 
-  /* Static gradient band that bleeds a bit beyond the section */
   .logos::before,
   .logos::after{
     content:"";
     position:absolute;
-    inset:-40vh -15vw; /* modest extension beyond bounds */
+    inset: var(--band-inset-vertical) var(--band-inset-horizontal);
     z-index:-1;
     background-repeat:no-repeat;
     clip-path: polygon(
@@ -112,24 +103,23 @@
     pointer-events:none;
   }
 
-  /* Base static layer */
+  /* Lighter & more transparent background gradients */
   .logos::before{
     background:
-      radial-gradient(80vmax 80vmax at 20% 20%, rgba(255,142,110,.75) 0%, rgba(255,79,216,.45) 45%, transparent 100%),
-      radial-gradient(90vmax 90vmax at 80% 25%, rgba(104,192,255,.75) 0%, rgba(122,77,255,.45) 50%, transparent 100%),
-      radial-gradient(85vmax 85vmax at 70% 80%, rgba(255,79,216,.70) 0%, rgba(104,192,255,.45) 60%, transparent 100%),
-      radial-gradient(80vmax 80vmax at 30% 85%, rgba(122,77,255,.70) 0%, rgba(255,142,110,.35) 65%, transparent 100%);
-    filter: saturate(1.1) contrast(1.03) blur(10px);
+      radial-gradient(80vmax 80vmax at 20% 20%, rgba(255,142,110,.45) 0%, rgba(255,79,216,.25) 45%, transparent 100%),
+      radial-gradient(90vmax 90vmax at 80% 25%, rgba(104,192,255,.45) 0%, rgba(122,77,255,.25) 50%, transparent 100%),
+      radial-gradient(85vmax 85vmax at 70% 80%, rgba(255,79,216,.40) 0%, rgba(104,192,255,.25) 60%, transparent 100%),
+      radial-gradient(80vmax 80vmax at 30% 85%, rgba(122,77,255,.40) 0%, rgba(255,142,110,.25) 65%, transparent 100%);
+    filter: saturate(1.05) contrast(1) blur(8px);
   }
 
-  /* Secondary static layer for depth */
   .logos::after{
     background:
-      radial-gradient(100vmax 90vmax at 15% 25%, rgba(255,79,216,.28) 0%, transparent 70%),
-      radial-gradient(110vmax 90vmax at 85% 25%, rgba(104,192,255,.30) 0%, transparent 70%),
-      radial-gradient(110vmax 90vmax at 75% 80%, rgba(122,77,255,.28) 0%, transparent 70%),
-      radial-gradient(115vmax 95vmax at 25% 85%, rgba(255,142,110,.26) 0%, transparent 70%);
-    filter: blur(12px) saturate(1.05);
+      radial-gradient(100vmax 90vmax at 15% 25%, rgba(255,79,216,.18) 0%, transparent 70%),
+      radial-gradient(110vmax 90vmax at 85% 25%, rgba(104,192,255,.20) 0%, transparent 70%),
+      radial-gradient(110vmax 90vmax at 75% 80%, rgba(122,77,255,.18) 0%, transparent 70%),
+      radial-gradient(115vmax 95vmax at 25% 85%, rgba(255,142,110,.16) 0%, transparent 70%);
+    filter: blur(12px) saturate(1);
   }
 
   .logos__inner{
@@ -143,10 +133,10 @@
   .logos__title{
     text-align: center;
     font-weight: 800;
-    letter-spacing: -0.01em;
-    font-size: clamp(16px, 2.3vw, 22px);
-    color: #0b1220;
-    margin-bottom: 14px;
+    letter-spacing: -0.015em;
+    font-size: clamp(28px, 3.8vw, 48px); /* Larger heading */
+    color: rgba(11, 18, 32, 0.85);       /* Slightly transparent text */
+    margin-bottom: 24px;
   }
 
   .logos__viewport{
@@ -163,7 +153,6 @@
             mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
   }
 
-  /* The ONLY remaining animation: marquee movement */
   .logos__track{
     display: flex;
     align-items: center;
@@ -173,15 +162,14 @@
   .logos__viewport:hover .logos__track{ animation-play-state: paused; }
 
   .logos__track--a{ animation-duration: 32s; }
-  .logos__track--b{ animation-duration: 42s; opacity:.98; }
-  .logos__track--c{ animation-duration: 52s; opacity:.96; }
+  .logos__track--b{ animation-duration: 42s; opacity:.96; }
+  .logos__track--c{ animation-duration: 52s; opacity:.94; }
 
   @keyframes marquee{
     from{ transform: translateX(0); }
     to  { transform: translateX(-50%); }
   }
 
-  /* Glassy logo cards — no hover motion or transitions */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -190,12 +178,12 @@
     padding: 14px 18px;
     min-width: clamp(140px, 16vw, 220px);
     height: clamp(52px, 6vw, 68px);
-    background: var(--logos-card);
-    border: 1px solid var(--logos-border);
+    background: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.4);
     border-radius: 16px;
-    box-shadow: var(--logos-shadow), inset 0 1px 0 rgba(255,255,255,.35);
-    backdrop-filter: saturate(160%) blur(12px);
-    -webkit-backdrop-filter: saturate(160%) blur(12px);
+    box-shadow: var(--logos-shadow), inset 0 1px 0 rgba(255,255,255,.3);
+    backdrop-filter: saturate(150%) blur(10px);
+    -webkit-backdrop-filter: saturate(150%) blur(10px);
   }
 
   .logo__img{
@@ -203,7 +191,7 @@
     max-height: 28px;
     max-width: 140px;
     object-fit: contain;
-    filter: saturate(.95) contrast(1);
+    filter: saturate(.9) contrast(1);
   }
 
   @media (prefers-reduced-motion: reduce){
