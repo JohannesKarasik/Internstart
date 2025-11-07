@@ -1140,19 +1140,21 @@ def swipe_static_view(request):
             prompt = f"""
             Pick exactly 1 REAL company in {user.country} that is MID-SIZE (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon, Microsoft).
 
-            Match the desired job title '{dt}' but make the job title very specific and realistic. 
-            Example: instead of "Marketing Intern", use "Performance Marketing Intern (Paid Social Focus)" 
-            Example: instead of "Software Developer", use "Junior Backend Developer (Python APIs + PostgreSQL)" 
+            Match the desired job title '{dt}' but make the job title very specific and realistic.
+
+            IMPORTANT:
+            - job title must be max 5-7 words but still specific
+            - description must be max 12-14 words but still specific
 
             Write text fields in {lang}.
 
             Return ONLY valid JSON like:
             {{
-            "company":"...",
-            "domain":"...",
-            "title":"...",
-            "role":"...",
-            "description":"a compact 1 sentence description of what the role actually works on day-to-day"
+              "company":"...",
+              "domain":"...",
+              "title":"...",
+              "role":"...",
+              "description":"..."
             }}
             """
 
@@ -1219,7 +1221,7 @@ def swipe_static_view(request):
         "static_company": fake_company,
         "static_title": fake_title,
         "static_role": fake_role,
-        "static_domain": fake_domain,  # use this in clearbit
+        "static_domain": fake_domain,
     }
 
     if partial:
