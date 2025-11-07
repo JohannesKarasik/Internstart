@@ -2131,257 +2131,92 @@ main.layout {
   <script src="https://js.stripe.com/v3/"></script>
 
   <script>
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-    // convenience
-    const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-    // attach to the upgrade button or any test button you have
-    const upgradeBtn = document.getElementById('openPremium'); // or some dedicated test button
-
-    // for demo: clicking "Upgrade" sets tier locally to starter without Stripe
-    upgradeBtn?.addEventListener('dblclick', async (e) => {
-      // 👆 use dblclick so you don’t override your normal modal on click
-      e.preventDefault();
-      try {
-        const res = await fetch('/debug/set-tier/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrf()
-          },
-          body: JSON.stringify({ tier: 'starter' })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || res.statusText);
-        alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
-        // optionally update the UI:
-        document.querySelector('.plan-text').textContent = data.tier;
-        document.getElementById('swipeLimit').textContent = data.limit;
-      } catch (err) {
-        console.error(err);
-        alert('Could not change tier');
-      }
-    });
-  });
-    
 document.addEventListener('DOMContentLoaded', () => {
+  /* ===============================
+     Helpers
+  =============================== */
   const $  = (s, r=document) => r.querySelector(s);
-  // === Persistently hide already-applied jobs (per user) ===
-  const USER_ID = "{{ request.user.id|default_if_none:'anon' }}";
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+  const CSRF = () => document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+  // Persistently hide already-applied jobs (frontend safety)
+  const USER_ID   = "{{ request.user.id|default_if_none:'anon' }}";
   const SWIPED_KEY = `swiped_jobs_${USER_ID}`;
+  const getSwipedSet  = () => { try { return new Set(JSON.parse(localStorage.getItem(SWIPED_KEY) || "[]")); } catch { return new Set(); } };
+  const saveSwipedSet = (set) => localStorage.setItem(SWIPED_KEY, JSON.stringify([...set]));
+  const markSwiped    = (roomId) => { const s=getSwipedSet(); s.add(String(roomId)); saveSwipedSet(s); };
+  const unmarkSwiped  = (roomId) => { const s=getSwipedSet(); s.delete(String(roomId)); saveSwipedSet(s); };
 
-  function getSwipedSet() {
-    try { return new Set(JSON.parse(localStorage.getItem(SWIPED_KEY) || "[]")); }
-    catch { return new Set(); }
-  }
-  function saveSwipedSet(set) {
-    localStorage.setItem(SWIPED_KEY, JSON.stringify([...set]));
-  }
-  function markSwiped(roomId) {
-    const s = getSwipedSet(); s.add(String(roomId)); saveSwipedSet(s);
-  }
-  function unmarkSwiped(roomId) {
-    const s = getSwipedSet(); s.delete(String(roomId)); saveSwipedSet(s);
-  }
-
-  // On load, remove any cards the user already applied to (prevents flicker)
-  (function hidePreviouslySwiped() {
-    const swiped = getSwipedSet();
-    if (!swiped.size) return;
-    document.querySelectorAll('.swipe-card[data-room-id]').forEach(card => {
+  // Remove cards the user already applied to (in case multiple exist)
+  (function hidePreviouslySwiped(){
+    const swiped = getSwipedSet(); if (!swiped.size) return;
+    $$('.swipe-card[data-room-id]').forEach(card => {
       if (swiped.has(String(card.dataset.roomId))) card.remove();
     });
   })();
 
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  /* === Theme toggle === */
-  const THEME_KEY = 'theme_v1';
-  const root = document.documentElement;
-  function applyTheme(mode){
-    const light = (mode === 'light');
-    root.classList.toggle('theme-light', light);
-    const btn = document.getElementById('themeToggle');
-    if (btn) btn.setAttribute('aria-pressed', light ? 'true' : 'false');
-  }
-  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
-  const themeBtn = document.getElementById('themeToggle');
-  themeBtn?.addEventListener('click', () => {
-    const light = !root.classList.contains('theme-light');
-    applyTheme(light ? 'light' : 'dark');
-    localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
-  });
-
-  /* === Sidebar toggle === */
-  const container = $('.swipe-container');
-  const cards = () => $$('.swipe-card', container);
-  const ringBar = $('#ringBar');
-  const cardsLeftEl = $('#cardsLeft');
-  const streakEl = $('#streakVal');
-  const comboEl = $('#comboBadge');
-
-
-  const sidebar = $('#sidebar');
-  const sidebarToggle = $('#sidebarToggle');
-  const sidebarBackdrop = $('#sidebarBackdrop');
-  const SB_KEY = 'ai_sidebar_open';
-
-  function setSidebar(open){
-    sidebar.classList.toggle('is-open', open);
-    sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    sidebarToggle.classList.toggle('rot', open);
-    document.documentElement.classList.toggle('sb-open', open);
-
-    const isMobile = matchMedia('(max-width: 900px)').matches;
-    if (isMobile) {
-      sidebarBackdrop.hidden = !open;
-      sidebarBackdrop.classList.toggle('show', open);
-    } else {
-      sidebarBackdrop.hidden = true;
-      sidebarBackdrop.classList.remove('show');
-    }
-    try { localStorage.setItem(SB_KEY, open ? '1' : '0'); } catch(e){}
-  }
-  const saved = localStorage.getItem(SB_KEY);
-  const savedOpen = saved ? (saved === '1') : false;
-  setSidebar(savedOpen);
-
-  sidebarToggle.addEventListener('click', () => setSidebar(!sidebar.classList.contains('is-open')));
-  sidebarBackdrop.addEventListener('click', () => setSidebar(false));
-  addEventListener('resize', () => setSidebar(sidebar.classList.contains('is-open')));
-
-  /* === Swipes left setup === */
-  const swipesLeftEl = document.getElementById('swipesLeft');
-  fetch('/quota/')
-    .then(r => r.json())
-    .then(data => swipesLeftEl.textContent = data.left);
-
-  /* === Premium Modal setup === */
-
-  // === Stripe Checkout wiring ===
-const STRIPE_PK = "{{ STRIPE_PUBLISHABLE_KEY|default_if_none:'' }}"; // if using Django template context; otherwise inline
-let stripe;
-try { stripe = Stripe(STRIPE_PK); } catch(e) { console.error("Stripe init failed", e); }
-
-async function startCheckout(tier){
-  try{
-    const r = await fetch("/billing/create-checkout-session/", {
-      method:"POST",
-      headers: {"Content-Type":"application/json", "X-CSRFToken": csrf()},
-      body: JSON.stringify({ tier })
-    });
-    const data = await r.json();
-    if (data.error) throw new Error(data.error);
-    if (data.url) window.location.href = data.url;
-  }catch(err){
-    console.error(err);
-    showToast("Could not start checkout");
-  }
-}
-
-// Button in the modal
-document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
-  const tier = e.currentTarget.dataset.tier || "pro";
-  startCheckout(tier);
-});
-
-
-
-
-  const premiumModal = document.getElementById('premiumModal');
-  function showPremiumModal(){
-    premiumModal?.classList.add('show');
-    document.documentElement.style.overflow = 'hidden';
-  }
-  function hidePremiumModal(){
-    premiumModal?.classList.remove('show');
-    document.documentElement.style.overflow = '';
-  }
-  premiumModal?.addEventListener('click', e=>{
-    if (e.target.matches('.modal__close,[data-close],.modal__backdrop')) hidePremiumModal();
-  });
-
-  const appliedWidget = $('#appliedWidget');
+  /* ===============================
+     Deck & HUD
+  =============================== */
+  const container      = $('.swipe-container');
+  const cards          = () => $$('.swipe-card', container);
+  const ringBar        = $('#ringBar');
+  const cardsLeftEl    = $('#cardsLeft');
+  const appliedWidget  = $('#appliedWidget');
   const appliedCountEl = $('#appliedCount');
+  const toastEl        = $('#toast');
+  const swipesLeftEl   = $('#swipesLeft');
 
-  let totalCards = cards().length;
+  let totalCards = Math.max(1, cards().length || 1);
+
   function updateDeckHUD() {
-    const left = cards().length;
-    cardsLeftEl.textContent = left;
-    const pct = (1 - (left / Math.max(1,totalCards))) * 100;
-    const CIRC = 2 * Math.PI * 16;
-    ringBar.style.strokeDasharray = CIRC;
-    ringBar.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+    const left = Math.max(1, cards().length || 1);
+    if (cardsLeftEl) cardsLeftEl.textContent = left;
+    if (ringBar) {
+      const pct  = (1 - (left / totalCards)) * 100;
+      const CIRC = 2 * Math.PI * 16;
+      ringBar.style.strokeDasharray  = CIRC;
+      ringBar.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+    }
   }
-
-
-
-
 
   function styleStack() {
-  const list = cards();
+    const list = cards();
+    list.forEach(c => {
+      c.style.display = 'none';
+      c.style.zIndex = '';
+      c.style.pointerEvents = 'none';
+      c.classList.remove('is-top', 'is-next');
+    });
+    const top  = list[list.length - 1];
+    const next = list[list.length - 2];
 
-  // Hide all cards and reset their layers
-  list.forEach(c => {
-    c.style.display = 'none';
-    c.style.zIndex = '';
-    c.style.pointerEvents = 'none'; // prevent click/swipe on hidden or lower cards
-    c.classList.remove('is-top', 'is-next');
-  });
-
-  const top = list[list.length - 1];
-  const next = list[list.length - 2];
-
-  // Make next card visible but not interactive
-  if (next) {
-    next.style.display = 'block';
-    next.style.zIndex = 5;
-    next.classList.add('is-next');
-    next.style.transform = 'scale(0.97) translateY(5px)';
-    next.style.opacity = '0.9';
-    next.style.pointerEvents = 'none'; // key line — disable clicking it
-  }
-
-  // Top card visible + clickable
-  if (top) {
-    top.style.display = 'block';
-    top.style.zIndex = 10;
-    top.classList.add('is-top');
-    top.style.transform = 'scale(1) translateY(0)';
-    top.style.opacity = '1';
-    top.style.pointerEvents = 'auto'; // enable only the front card
-  }
-}
-
-
-  styleStack(); updateDeckHUD();
-
-  const toastEl = $('#toast');
-
-  // Click anywhere on card (except buttons) to flip
-  document.querySelector('.swipe-container').addEventListener('click', (e) => {
-    if (e.target.closest('.swipe-btn')) return;
-    const card = e.target.closest('.swipe-card');
-    if (!card) return;
-    card.querySelector('.card-inner')?.classList.toggle('is-flipped');
-  });
-
-  // Keyboard accessibility: Enter/Space flips focused card
-  document.addEventListener('keydown', (e) => {
-    const focusedCard = document.activeElement?.classList?.contains('swipe-card') ? document.activeElement : null;
-    if (focusedCard && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      focusedCard.querySelector('.card-inner')?.classList.toggle('is-flipped');
+    if (next) {
+      next.style.display = 'block';
+      next.style.zIndex = 5;
+      next.classList.add('is-next');
+      next.style.transform = 'scale(0.97) translateY(5px)';
+      next.style.opacity = '0.9';
+      next.style.pointerEvents = 'none';
     }
-  });
+    if (top) {
+      top.style.display = 'block';
+      top.style.zIndex = 10;
+      top.classList.add('is-top');
+      top.style.transform = 'scale(1) translateY(0)';
+      top.style.opacity = '1';
+      top.style.pointerEvents = 'auto';
+    }
+  }
 
-  const userKey = (suffix) => `if_swipe_${('{{ request.user.id|default_if_none:"anon" }}')}_${suffix}`;
-  const todayKey = () => new Date().toISOString().slice(0,10);
-  const getNum = (k,d=0)=> Number(localStorage.getItem(k) ?? d);
-  const setNum = (k,v)=> localStorage.setItem(k, String(v));
+  /* ===============================
+     Gamification / Streak
+  =============================== */
+  const userKey   = (suffix) => `if_swipe_${('{{ request.user.id|default_if_none:"anon" }}')}_${suffix}`;
+  const todayKey  = () => new Date().toISOString().slice(0,10);
+  const getNum    = (k,d=0)=> Number(localStorage.getItem(k) ?? d);
+  const setNum    = (k,v)=> localStorage.setItem(k, String(v));
+
   function getStreak(){
     const lastDay = localStorage.getItem(userKey('last_day'));
     const today = todayKey();
@@ -2399,13 +2234,11 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     if (lastDay !== today) s++;
     localStorage.setItem(userKey('last_day'), today);
     setNum(userKey('streak'), s);
-    document.getElementById('streakVal').textContent = s;
+    const el = document.getElementById('streakVal');
+    if (el) el.textContent = s;
     return s;
   }
-
-  document.getElementById('streakVal').textContent = getStreak();
-  { const el = document.getElementById('xpVal'); if (el) el.textContent = getNum(userKey('xp'),0); }
-  appliedCountEl.textContent = getNum(userKey('applied'), 0);
+  { const el = document.getElementById('streakVal'); if (el) el.textContent = getStreak(); }
 
   let combo=0, lastActionAt=0;
   function registerCombo(){
@@ -2413,15 +2246,19 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     combo = (now - lastActionAt < 4000) ? combo+1 : 1;
     lastActionAt = now;
     const comboEl = document.getElementById('comboBadge');
-    comboEl.textContent = combo>1 ? `Combo x${combo}!` : '';
-    comboEl.classList.toggle('is-active', combo>1);
-    setTimeout(()=> comboEl.classList.remove('is-active'), 1200);
+    if (comboEl) {
+      comboEl.textContent = combo>1 ? `Combo x${combo}!` : '';
+      comboEl.classList.toggle('is-active', combo>1);
+      setTimeout(()=> comboEl.classList.remove('is-active'), 1200);
+    }
   }
 
-  function stamp(card, type){
-    const el = card.querySelector(type==='right' ? '.stamp--apply' : '.stamp--dismiss');
-    if (!el) return; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-    setTimeout(()=> el.classList.remove('show'), 450);
+  function showToast(msg){
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 1400);
   }
 
   function confettiBurst(x, y, n=18){
@@ -2430,6 +2267,24 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     document.body.appendChild(canvas);
     const p=Array.from({length:n},()=>({x,y,vx:(Math.random()*2-1)*6,vy:(Math.random()*-4-2),g:.18+Math.random()*.2,s:4+Math.random()*3,c:`hsl(${Math.random()*360},85%,60%)`,life:60+Math.random()*20}));
     (function tick(){ ctx.clearRect(0,0,canvas.width,canvas.height); p.forEach(o=>{o.vy+=o.g;o.x+=o.vx;o.y+=o.vy;o.life--;ctx.fillStyle=o.c;ctx.fillRect(o.x,o.y,o.s,o.s);}); if(p.some(o=>o.life>0)) requestAnimationFrame(tick); else canvas.remove(); })();
+  }
+
+  function incrementApplied(){
+    const prev = getNum(userKey('applied'), 0);
+    const next = prev + 1;
+    setNum(userKey('applied'), next);
+    if (!appliedCountEl) return;
+    const start = Number(appliedCountEl.textContent || 0);
+    const duration = 350; let t0=null;
+    function step(ts){ if(!t0) t0 = ts; const p = Math.min(1, (ts - t0)/duration); appliedCountEl.textContent = String(Math.round(start + (next-start)*p)); if (p<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+
+  function stamp(card, type){
+    const el = card.querySelector(type==='right' ? '.stamp--apply' : '.stamp--dismiss');
+    if (!el) return;
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    setTimeout(()=> el.classList.remove('show'), 450);
   }
 
   function flyCardToAppliedCounter(fromCard){
@@ -2456,50 +2311,115 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
 
     ghost.addEventListener('transitionend', () => {
       ghost.remove();
-      appliedWidget.classList.remove('ping'); void appliedWidget.offsetWidth; appliedWidget.classList.add('ping','bump');
+      target.classList.remove('ping'); void target.offsetWidth; target.classList.add('ping','bump');
     }, { once:true });
   }
 
-  function incrementApplied(){
-    const prev = getNum(userKey('applied'), 0);
-    const next = prev + 1;
-    setNum(userKey('applied'), next);
+  /* ===============================
+     Single-card data binding
+  =============================== */
+  const elLogo    = $('#cLogo');
+  const elC       = $('#cCompany');
+  const elT       = $('#cTitle');
+  const elR       = $('#cRole');
+  const elLoc     = $('#cLoc');
+  const elBC      = $('#bCompany');
+  const elBR      = $('#bRole');
+  const elBLoc    = $('#bLoc');
+  const elBDesc   = $('#bDesc');
+  const elCard    = $('#swipeCard');
 
-    const start = Number(appliedCountEl.textContent || 0);
-    const duration = 350; let t0=null;
-    function step(ts){ if(!t0) t0 = ts; const p = Math.min(1, (ts - t0)/duration); appliedCountEl.textContent = String(Math.round(start + (next-start)*p)); if (p<1) requestAnimationFrame(step); }
-    requestAnimationFrame(step);
-  }
+  function setCardData(card) {
+    const company = card.company   || '';
+    const title   = card.title     || '';
+    const role    = card.role      || '';
+    const loc     = card.location  || '';
+    const desc    = card.desc      || '';
+    const domain  = (card.logo_domain || '').trim() || 'clearbit.com';
 
-  /* === Undo history === */
-  const undoStack = [];
+    if (elLogo)  elLogo.src = `https://logo.clearbit.com/${domain}`;
+    if (elC)     elC.textContent = company;
+    if (elT)     elT.textContent = title;
+    if (elR)     elR.textContent = role;
+    if (elLoc)   elLoc.textContent = loc;
 
+    if (elBC)    elBC.textContent = company;
+    if (elBR)    elBR.textContent = role;
+    if (elBLoc)  elBLoc.textContent = loc;
+    if (elBDesc) elBDesc.textContent = desc;
 
-
-  
-  function throwCard(direction = 'right', { doFetch = false, save = false } = {}) {
-  if (direction === 'right' && doFetch) {
-    const left = parseInt(swipesLeftEl?.textContent || '0', 10);
-    if (left <= 0) {
-      const noSwipesModal = document.getElementById('noSwipesModal');
-      noSwipesModal?.classList.add('show');
-      document.documentElement.style.overflow = 'hidden';
-      return;
+    if (elCard && card.id !== undefined && card.id !== null) {
+      elCard.dataset.roomId = card.id;
     }
   }
 
+  async function loadNextCard() {
+    try {
+      const r = await fetch('/swipe/next/', { credentials:'same-origin' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const card = await r.json();
+      setCardData(card);
+    } catch (err) {
+      console.error('Failed to load next AI card', err);
+      setCardData({
+        id: 'fallback',
+        company: 'Internstart',
+        title: 'Internship',
+        role: '',
+        location: '',
+        logo_domain: 'internstart.com',
+        desc: 'AI generated example. Try again.'
+      });
+    }
+  }
 
+  /* ===============================
+     Undo stack
+  =============================== */
+  const undoStack = [];
+  function undoLast(){
+    const last = undoStack.pop();
+    if (!last) { showToast('Nothing to undo'); return; }
 
+    container.appendChild(last.el);
+    last.el.style.opacity = '0';
+    last.el.style.transform = 'translateY(14px) scale(.98)';
+    last.el.style.transition = 'transform .26s ease, opacity .26s ease';
 
+    requestAnimationFrame(() => {
+      last.el.style.opacity = '1';
+      last.el.style.transform = 'translateY(0) scale(1)';
+    });
 
+    last.el.addEventListener('transitionend', () => {
+      last.el.style.transition = '';
+      styleStack(); updateDeckHUD();
+    }, { once:true });
 
+    showToast('Brought back');
+  }
+
+  /* ===============================
+     Throw card (single-card reuse)
+  =============================== */
+  function throwCard(direction = 'right', { doFetch = false, save = false } = {}) {
     const list = cards();
     if (!list.length) return;
     const current = list[list.length - 1];
 
-    // Snapshot for undo
+    if (direction === 'right' && doFetch) {
+      const left = parseInt(swipesLeftEl?.textContent || '0', 10);
+      if (left <= 0) {
+        const noSwipesModal = document.getElementById('noSwipesModal');
+        noSwipesModal?.classList.add('show');
+        document.documentElement.style.overflow = 'hidden';
+        return;
+      }
+    }
+
+    // Snapshot for undo (UI only)
     const clone = current.cloneNode(true);
-    clone.classList.remove('leaving', 'is-top', 'is-next', 'is-third');
+    clone.classList.remove('leaving', 'is-top', 'is-next');
     clone.style.transform = '';
     clone.style.opacity = '';
     clone.style.transition = '';
@@ -2509,6 +2429,7 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     current.classList.add('leaving');
     stamp(current, direction);
 
+    // animation
     if (direction === 'right' && doFetch) {
       current.style.opacity = 0;
       flyCardToAppliedCounter(current);
@@ -2522,268 +2443,123 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
     }
 
     setTimeout(() => {
-      current.remove();
-      styleStack();
-      updateDeckHUD();
+      // keep single card DOM; just reset classes/stack
+      current.classList.remove('leaving');
+      styleStack(); updateDeckHUD();
     }, 680);
 
+    // Server apply + then fetch NEXT AI JSON and fill current DOM
     if (doFetch) {
-  const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
-  swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
+      const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
+      if (swipesLeftEl) swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
 
-  const roomId = current.dataset.roomId;
-  markSwiped(roomId);
+      const roomId = current.dataset.roomId;
+      markSwiped(roomId);
 
-  fetch("{% url 'apply_swipe_job' %}", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-CSRFToken": csrftoken,
-  },
-  body: JSON.stringify({ room_id: roomId }),
-})
-.then(async r => {
-  const text = await r.text();   // read body once
-  try {
-    return JSON.parse(text);     // try JSON
-  } catch {
-    console.error("Non-JSON response from server:", text);
-    throw new Error("Server error, see logs.");
-  }
-})
-.then(data => {
-  if (data.error === "OAuth required" && data.redirect) {
-    unmarkSwiped(roomId);
-    window.location.href = data.redirect;
-  } else if (data.error) {
-    unmarkSwiped(roomId);
-    alert("Error: " + data.error);
-  } else {
-  swipesLeftEl.textContent = String(data.left ?? swipesLeftEl.textContent);
+      fetch("{% url 'apply_swipe_job' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF() },
+        body: JSON.stringify({ room_id: roomId }),
+        credentials: 'same-origin'
+      })
+      .then(async r => {
+        const text = await r.text();
+        try { return JSON.parse(text); }
+        catch { console.error("Non-JSON response from server:", text); throw new Error("Server error, see logs."); }
+      })
+      .then(async data => {
+        if (data.error === "OAuth required" && data.redirect) {
+          unmarkSwiped(roomId);
+          window.location.href = data.redirect;
+          return;
+        }
+        if (data.error) {
+          unmarkSwiped(roomId);
+          alert("Error: " + data.error);
+          return;
+        }
+        if (typeof data.left === 'number' && swipesLeftEl) {
+          swipesLeftEl.textContent = String(data.left);
+        }
+        // ✅ Load the next AI/job JSON and fill our single preview card
+        await loadNextCard();
+      })
+      .catch(err => {
+        console.error("Apply error:", err);
+        unmarkSwiped(roomId);
+      });
 
-  // load next card content from AI
-  fetch("/swipe/next/")
-    .then(r => r.json())
-    .then(card => {
-      console.log("NEW CARD", card);
-
-      // put data into DOM
-      document.getElementById("cLogo").src  = "https://logo.clearbit.com/" + (card.logo_domain || "clearbit.com");
-      document.getElementById("cCompany").textContent = card.company || "";
-      document.getElementById("cTitle").textContent   = card.title   || "";
-      document.getElementById("cRole").textContent    = card.role    || "";
-      document.getElementById("cLoc").textContent     = card.location|| "";
-
-      document.getElementById("bCompany").textContent = card.company || "";
-      document.getElementById("bRole").textContent    = card.role    || "";
-      document.getElementById("bLoc").textContent     = card.location|| "";
-      document.getElementById("bDesc").textContent    = card.desc    || "";
-
-      document.getElementById("swipeCard").dataset.roomId = card.id;
-    })
-    .catch(err => console.error("Failed to load next AI card", err));
-}
-
-})
-.catch(err => {
-  console.error("Fetch error:", err);
-  unmarkSwiped(roomId);
-});
-
-
-}
-
-
-
-
-    // Gamification + counters
-    if (direction === 'right' || save) {
-      const xp = direction === 'right' ? 15 : 8;
+      // Gamification + counters
+      const xp = 15;
       registerCombo();
-
-      if (direction === 'right' && doFetch) {
-        const s = bumpStreak();
-        incrementApplied();
-        showToast(`Applied! +${xp} XP · 🔥 Streak ${s}`);
-        const t = appliedWidget.getBoundingClientRect();
-        confettiBurst(t.left + t.width / 2, t.top + t.height / 2, 22);
-      } else if (save) {
-        showToast(`Saved! +${xp} XP`);
-      }
+      const s = bumpStreak();
+      incrementApplied();
+      showToast(`Applied! +${xp} XP · 🔥 Streak ${s}`);
+      const t = appliedWidget?.getBoundingClientRect?.();
+      if (t) confettiBurst(t.left + t.width / 2, t.top + t.height / 2, 22);
+    } else if (save) {
+      const xp = 8;
+      registerCombo();
+      showToast(`Saved! +${xp} XP`);
     } else if (direction === 'left') {
       combo = 0;
       showToast('Skipped');
     }
   }
 
-  function undoLast(){
-    const last = undoStack.pop();
-    if (!last) { showToast('Nothing to undo'); return; }
+  /* ===============================
+     UI wiring (buttons / keys / parallax)
+  =============================== */
+  container?.addEventListener('click', (e) => {
+    // flip
+    if (!e.target.closest('.swipe-btn')) {
+      const card = e.target.closest('.swipe-card');
+      card?.querySelector('.card-inner')?.classList.toggle('is-flipped');
+      return;
+    }
 
-    const el = last.el;
-    container.appendChild(el);
-
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(14px) scale(.98)';
-    el.style.transition = 'transform .26s ease, opacity .26s ease';
-
-    requestAnimationFrame(() => {
-      el.style.opacity = '1';
-      el.style.transform = 'translateY(0) scale(1)';
-    });
-
-    el.addEventListener('transitionend', () => {
-      el.style.transition = '';
-      styleStack(); updateDeckHUD();
-    }, { once:true });
-
-    showToast('Brought back');
-  }
-
-  document.querySelector('.swipe-container').addEventListener('click', (e) => {
+    // buttons
     const btn = e.target.closest('.swipe-btn');
     if (!btn) return;
     e.stopPropagation();
-    const ripple = btn.querySelector('.btn-ripple'); 
-    if (ripple){ ripple.classList.remove('run'); void ripple.offsetWidth; ripple.classList.add('run'); }
 
-    if (btn.classList.contains('swipe-left'))     return void throwCard('left');
-    if (btn.classList.contains('swipe-right'))    return void throwCard('right', {doFetch:true});
-    if (btn.classList.contains('swipe-lightning'))return void throwCard('right', {doFetch:true});
-    if (btn.classList.contains('swipe-return'))   return void undoLast();
+    if (btn.classList.contains('swipe-left'))      return void throwCard('left');
+    if (btn.classList.contains('swipe-right'))     return void throwCard('right', {doFetch:true});
+    if (btn.classList.contains('swipe-lightning')) return void throwCard('right', {doFetch:true});
+    if (btn.classList.contains('swipe-return'))    return void undoLast();
   });
-
-
-  document.querySelector('.swipe-container').addEventListener('click', (e) => {
-    const favBtn = e.target.closest('.swipe-favorite');
-    if (!favBtn) return;
-    e.stopPropagation();
-
-    const top = document.querySelectorAll('.swipe-card');
-    const card = top[top.length-1];
-    if (!card) return;
-    const roomId = card.dataset.roomId;
-
-    fetch('/save-job/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-      body: JSON.stringify({ room_id: roomId })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
-      const badge = document.getElementById('savedBadge');
-      if (badge) badge.textContent = String(parseInt(badge.textContent||'0',10)+1);
-      // after saving animate the card away as saved
-      throwCard('right', {save:true});
-    })
-    .catch(console.error);
-  });
-
-  
 
   document.addEventListener('keydown', (e) => {
     const topCard = cards().slice(-1)[0];
     if (!topCard) return;
-    if (e.key === 'ArrowLeft')  throwCard('left');
-    if (e.key === 'ArrowRight') throwCard('right', {doFetch:true});
-    if (e.key.toLowerCase() === 's') throwCard('right', {save:true});
-    if (e.key === 'Backspace')  undoLast();
-    if (e.key === '\\') setSidebar(!sidebar.classList.contains('is-open'));
+    if (e.key === 'ArrowLeft')  return void throwCard('left');
+    if (e.key === 'ArrowRight') return void throwCard('right', {doFetch:true});
+    if (e.key.toLowerCase() === 's') return void throwCard('right', {save:true});
+    if (e.key === 'Backspace')  return void undoLast();
   });
 
-  document.querySelector('.swipe-container').addEventListener('mousemove', (e) => {
+  container?.addEventListener('mousemove', (e) => {
     const c = cards().slice(-1)[0]; if (!c) return;
     const inner = c.querySelector('.card-inner'); const r=c.getBoundingClientRect();
     const rx=((e.clientY-r.top)/r.height - .5)*-6; const ry=((e.clientX-r.left)/r.width - .5)*6;
     inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
   });
-  document.querySelector('.swipe-container').addEventListener('mouseleave', () => {
+  container?.addEventListener('mouseleave', () => {
     const c=cards().slice(-1)[0]; if (!c) return; c.querySelector('.card-inner').style.transform='';
   });
 
-  let toastTimer; 
-  function showToast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 1400); }
+  // Initial layout
+  styleStack();
+  updateDeckHUD();
+
+  // ✅ Immediately load AI-generated preview card on first page load
+  loadNextCard();
 });
 
-
-
-const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-document.addEventListener('DOMContentLoaded', () => {
-  // grab CSRF token once
-  const csrftoken =
-    document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-  document.getElementById('selectStarter')?.addEventListener('click', async e => {
-    e.preventDefault();
-    try {
-      const r = await fetch('/debug/set-tier/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken
-        },
-        credentials: 'same-origin',  // sends your session cookie
-        body: JSON.stringify({ tier: 'starter' })
-      });
-
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || r.statusText);
-
-      alert(`Tier changed to ${data.tier} with limit ${data.limit}`);
-
-      // update plan label + limit
-      document.querySelector('.plan-text').textContent = data.tier;
-      document.getElementById('swipeLimit').textContent = data.limit;
-
-      // update swipes left either from server response or fresh fetch
-      if (typeof data.left === 'number') {
-        document.getElementById('swipesLeft').textContent = data.left;
-      } else {
-        const quotaRes = await fetch('/quota/?t=' + Date.now(), { credentials:'same-origin' });
-        const quota = await quotaRes.json();
-        document.getElementById('swipesLeft').textContent = quota.left;
-      }
-
-      document.getElementById('premiumModal')?.classList.remove('show');
-      document.documentElement.style.overflow = '';
-    } catch (err) {
-      console.error(err);
-      alert('Could not change tier');
-    }
-  });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  const noSwipesModal = document.getElementById('noSwipesModal');
-  if (!noSwipesModal) return;
-
-  const closeModal = () => {
-    noSwipesModal.classList.remove('show');
-    document.documentElement.style.overflow = '';
-  };
-
-  noSwipesModal.querySelector('.modal__close')?.addEventListener('click', closeModal);
-  noSwipesModal.querySelector('[data-close]')?.addEventListener('click', closeModal);
-  noSwipesModal.querySelector('.modal__backdrop')?.addEventListener('click', closeModal);
-
-  // Bonus: support Escape key
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && noSwipesModal.classList.contains('show')) {
-      closeModal();
-    }
-  });
-});
-
-
-</script>
-
-
-<script>
+/* ===============================
+   Email onboarding overlay wiring
+   (kept intact; triggers after OAuth etc.)
+=============================== */
 document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('onboarding-overlay');
   const primaryLink = document.getElementById('onb-primary-link');
@@ -2793,27 +2569,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const PENDING_ONB_AFTER_OAUTH = 'pending_onb_after_oauth';
 
   function openEmailOnboarding() {
+    if (!overlay) return;
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
-
   function closeEmailOnboarding() {
+    if (!overlay) return;
     overlay.style.display = 'none';
     document.body.style.overflow = '';
     localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
     document.dispatchEvent(new Event('onboarding:finished'));
   }
 
-  // listen for “start email onboarding”
   document.addEventListener('onboarding:email', openEmailOnboarding);
   nextBtn?.addEventListener('click', closeEmailOnboarding);
-
-  // ---- When user clicks “Configure email” (starts OAuth) ----
   primaryLink?.addEventListener('click', () => {
     localStorage.setItem(PENDING_ONB_AFTER_OAUTH, '1');
   });
 
-  // ---- Auto-trigger email onboarding for new users ----
   const main = document.querySelector('main.layout');
   const firstLogin = main?.dataset.firstLogin === 'true';
   if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
@@ -2822,10 +2595,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 600);
   }
 
-  // ---- If returning from OAuth ----
   if (localStorage.getItem(PENDING_ONB_AFTER_OAUTH) === '1') {
-    // Wait until the onboarding overlay is loaded before triggering
-    const maxWait = 6000; // 6 seconds timeout
+    const maxWait = 6000;
     const start = Date.now();
     const checkReady = setInterval(() => {
       const onb = document.getElementById('ifOnb');
@@ -2838,30 +2609,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 400);
   }
 });
-</script>
 
-
-
-
-
-  <script>
+/* ===============================
+   Button coachmarks onboarding
+=============================== */
 document.addEventListener('DOMContentLoaded', () => {
-  // 🧠 Prevent re-showing if user already completed both onboardings
-  if (localStorage.getItem('if_full_onboarding_done') === '1') {
-    return; // Stop everything else
-  }
+  if (localStorage.getItem('if_full_onboarding_done') === '1') return;
 
   const $ = s => document.querySelector(s);
-
-  // ---- Helper: wait until overlay DOM exists ----
   const whenReady = (ids, cb) => {
     const ok = () => ids.every(id => document.getElementById(id));
     if (ok()) return cb();
     const mo = new MutationObserver(() => { if (ok()) { mo.disconnect(); cb(); } });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-
-  // ---- Helper: make onboarding buttons visible ----
   function wireButtons(openFn) {
     const btnDesktop = document.getElementById('showOnboarding');
     const btnMobile  = document.getElementById('showOnboardingMobile');
@@ -2873,7 +2634,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---- Build coachmarks once the overlay DOM exists ----
   whenReady(
     ['ifOnb','ifOnbSpot','ifOnbTip','ifOnbTipTitle','ifOnbTipText','ifOnbDemo','ifOnbDemoStamp'],
     () => {
@@ -2886,7 +2646,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const demoStamp = $('#ifOnbDemoStamp');
       const leader = $('#ifOnbLeader');
 
-      // ---- Controls (Back / Next) ----
       const ctl = document.createElement('div');
       ctl.style.marginTop = '8px';
       ctl.innerHTML = `
@@ -2898,7 +2657,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const btnPrev = () => $('#ifOnbPrev2');
       const btnNext = () => $('#ifOnbNext2');
 
-      // ---- Steps ----
       const steps = [
         {
           target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
@@ -2915,14 +2673,12 @@ document.addEventListener('DOMContentLoaded', () => {
       ];
       let i = 0;
 
-      // ---- UI helpers ----
       function clearUI() {
         spot.classList.remove('show');
         tip.classList.remove('show','is-above','is-below');
         if (leader) leader.style.width = '0';
         stopDemo();
       }
-
       function place(targetEl) {
         if (!targetEl) { clearUI(); return; }
         const r = targetEl.getBoundingClientRect();
@@ -2949,7 +2705,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tip.style.top  = `${Math.max(PAD, Math.min(topY, innerHeight - tb.height - PAD))}px`;
         tip.classList.add(needBelow ? 'is-below' : 'is-above','show');
       }
-
       function stopDemo() { demo.style.display='none'; demoStamp.classList.remove('show'); }
       function playDemo(kind) {
         demo.style.display='flex';
@@ -2957,7 +2712,6 @@ document.addEventListener('DOMContentLoaded', () => {
         demoStamp.classList.add('show');
         setTimeout(stopDemo, 600);
       }
-
       function render() {
         const step = steps[i];
         title.textContent = step.title;
@@ -2967,46 +2721,38 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
         btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
       }
-
       function open()  { onb.hidden = false; render(); }
       function close() { onb.hidden = true; clearUI(); }
-      window.ifOnbOpen = open; // debug access
+      window.ifOnbOpen = open;
 
-      // ---- Control button behavior ----
       tip.addEventListener('click', e => {
-        if (e.target.id === 'ifOnbPrev2') {
-          i = Math.max(0, i - 1);
-          render();
-        }
+        if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
         if (e.target.id === 'ifOnbNext2') {
-          if (i < steps.length - 1) {
-            i++;
-            render();
-          } else {
-            // ✅ End of both onboardings
-            close();
-            localStorage.setItem('if_full_onboarding_done', '1');
-          }
+          if (i < steps.length - 1) { i++; render(); }
+          else { close(); localStorage.setItem('if_full_onboarding_done', '1'); }
         }
       });
 
-      // ---- Trigger order: Email onboarding → Coachmarks ----
-      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
-      const main = document.querySelector('main.layout');
-      const emailConfigured = main?.dataset.emailConfigured === 'true';
+      function showEmailConnectedToast() {
+        const toast = document.getElementById('emailConnectedToast');
+        if (!toast) return;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translate(-50%, 0)';
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translate(-50%, -10px)';
+        }, 2500);
+      }
 
       function afterEmail() {
-      // Show the "Email connected" message
-      showEmailConnectedToast();
-
-      // Then open the button onboarding
-      open();
-      wireButtons(open);
-    }
-
-
+        showEmailConnectedToast();
+        open();
+        wireButtons(open);
+      }
       document.addEventListener('onboarding:finished', afterEmail, { once:true });
 
+      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+      const main = document.querySelector('main.layout');
       const firstLogin = main?.dataset.firstLogin === 'true';
       if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
         setTimeout(() => {
@@ -3016,22 +2762,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   );
 });
-
-
-function showEmailConnectedToast() {
-  const toast = document.getElementById('emailConnectedToast');
-  if (!toast) return;
-
-  toast.style.opacity = '1';
-  toast.style.transform = 'translate(-50%, 0)';
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translate(-50%, -10px)';
-  }, 2500);
-}
-
-
-
 </script>
 
 
