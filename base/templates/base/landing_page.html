@@ -107,8 +107,8 @@
     const popup = document.getElementById('upgradePopup');
     const img = document.getElementById('popupMap');
   
-    // Your Google Maps Static API key
-    const apiKey = '';
+    // Pull the API key passed from Django (environment via settings)
+    const apiKey = "{{ google_maps_key }}";
   
     const cities = [
       { name: "Manchester", lat: 53.4808, lon: -2.2426 },
@@ -149,9 +149,8 @@
       }, 4000);
     }, 2000);
   })();
-  </script>
-  
-  
+</script>
+
 
 
 {% endblock content %}
