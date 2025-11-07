@@ -59,9 +59,9 @@
 
 <style>
   /* =======================================================
-     Premium "Stripe-like" background
-     - No green; modern violet/indigo/cyan + magenta/orange
-     - Mix of soft mesh + crisp curved bands ("swooshes")
+     Premium background with hard-edged COLOR AREAS (no tubes)
+     - Rich violet/indigo/cyan + magenta/orange
+     - Mix soft mesh + *crisp patches* using hard color stops
      - Glassy, slightly see-through logo cards
   ======================================================== */
   :root{
@@ -70,11 +70,11 @@
     --section-pad-y: clamp(36px, 6vw, 84px);
 
     /* glass card tokens */
-    --logos-card: rgba(255,255,255,.55);
-    --logos-border: rgba(255,255,255,.50);
+    --logos-card: rgba(255,255,255,.54);
+    --logos-border: rgba(255,255,255,.48);
     --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
 
-    /* palette (no green, richer hues) */
+    /* palette (no green) */
     --g-violet: #7a4dff;
     --g-purple: #a463ff;
     --g-magenta:#ff4fd8;
@@ -85,14 +85,13 @@
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    /* graceful fallback */
-    background: linear-gradient(135deg, var(--g-orange), var(--g-magenta), var(--g-purple), var(--g-cyan));
+    background: linear-gradient(135deg, var(--g-orange), var(--g-magenta), var(--g-purple), var(--g-cyan)); /* fallback */
     border-top: 0;
     overflow: hidden;
     isolation: isolate;
   }
 
-  /* --- Base soft mesh --- */
+  /* --- Base soft mesh (subtle, low blur) --- */
   .logos::before{
     content:"";
     position:absolute;
@@ -100,57 +99,48 @@
     z-index:0;
 
     background:
-      radial-gradient(50vmax 40vmax at 10% 20%, rgba(255,142,110,.90) 0%, rgba(255,142,110,.65) 28%, transparent 62%),
-      radial-gradient(60vmax 50vmax at 75% 10%, rgba(255,79,216,.88) 0%, rgba(255,79,216,.56) 30%, transparent 61%),
-      radial-gradient(70vmax 60vmax at 80% 80%, rgba(104,192,255,.90) 0%, rgba(104,192,255,.55) 28%, transparent 60%),
-      radial-gradient(70vmax 60vmax at 30% 80%, rgba(122,77,255,.85) 0%, rgba(122,77,255,.55) 32%, transparent 60%);
-    filter: saturate(1.06) contrast(1.02) blur(1.5px);
+      radial-gradient(55vmax 45vmax at 12% 22%, rgba(255,142,110,.88) 0%, rgba(255,142,110,.62) 28%, transparent 62%),
+      radial-gradient(62vmax 52vmax at 78% 12%, rgba(255,79,216,.86) 0%, rgba(255,79,216,.56) 30%, transparent 61%),
+      radial-gradient(72vmax 62vmax at 82% 82%, rgba(104,192,255,.88) 0%, rgba(104,192,255,.54) 28%, transparent 60%),
+      radial-gradient(70vmax 60vmax at 32% 84%, rgba(122,77,255,.84) 0%, rgba(122,77,255,.54) 32%, transparent 60%);
+    filter: saturate(1.06) contrast(1.02) blur(1px);
     transform: translateZ(0) scale(1.02);
-    animation: bg-shift 32s ease-in-out infinite alternate, hue 48s linear infinite;
+    animation: mesh-shift 30s ease-in-out infinite alternate, hue 48s linear infinite;
     will-change: transform, background-position, filter;
   }
 
-  /* --- Crisp curved "swooshes" + vignette + sheen --- */
+  /* --- CRISP color patches with hard edges (no lines) --- */
   .logos::after{
     content:"";
     position:absolute;
-    inset:-12% -6%;
+    inset:-10% -6%;
     z-index:0;
     pointer-events:none;
 
-    /* Each radial-gradient draws a thin ring with hard edges */
+    /* Make hard edges by repeating the stop percentage for two colors. */
     background:
-      /* Magenta arc across top-right */
-      radial-gradient(135vmax 90vmax at 120% -10%,
-        transparent 0 52%,
-        rgba(255,79,216,.75) 52.4% 56.8%,
-        transparent 57.2% 100%),
+      radial-gradient(60vmax 48vmax at 18% 30%,
+        rgba(255,79,216,.85) 0 33.2%,
+        rgba(255,79,216,.85) 33.2%,
+        transparent 33.5%),
 
-      /* Indigo arc across mid */
-      radial-gradient(160vmax 110vmax at 50% -20%,
-        transparent 0 47%,
-        rgba(122,77,255,.85) 47.4% 50.5%,
-        transparent 50.9% 100%),
+      radial-gradient(72vmax 54vmax at 82% 22%,
+        rgba(104,192,255,.82) 0 28.4%,
+        rgba(104,192,255,.82) 28.4%,
+        transparent 28.7%),
 
-      /* Cyan arc sweeping bottom-right */
-      radial-gradient(150vmax 110vmax at 95% 85%,
-        transparent 0 61%,
-        rgba(104,192,255,.70) 61.5% 64.5%,
-        transparent 65% 100%),
+      radial-gradient(88vmax 62vmax at 70% 78%,
+        rgba(122,77,255,.86) 0 30.0%,
+        rgba(122,77,255,.86) 30.0%,
+        transparent 30.3%),
 
-      /* Warm arc bottom-left */
-      radial-gradient(140vmax 110vmax at -10% 100%,
-        transparent 0 64%,
-        rgba(255,142,110,.65) 64.4% 67.6%,
-        transparent 68% 100%),
+      radial-gradient(74vmax 56vmax at 26% 86%,
+        rgba(255,142,110,.82) 0 26.2%,
+        rgba(255,142,110,.82) 26.2%,
+        transparent 26.5%);
 
-      /* subtle sheen */
-      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 40%),
-
-      /* gentle vignette */
-      radial-gradient(120vmax 80vmax at 50% 60%, rgba(0,0,0,0) 40%, rgba(0,0,0,.06) 85%);
-    mix-blend-mode: normal;
-    animation: bands-shift 36s ease-in-out infinite alternate;
+    /* no blur here -> razor edges */
+    animation: patches-shift 36s ease-in-out infinite alternate;
   }
 
   .logos__inner{
@@ -205,26 +195,26 @@
     to  { transform: translateX(-50%); }
   }
 
-  /* Base mesh motion */
-  @keyframes bg-shift{
-    0%   { background-position: 10% 20%, 75% 10%, 80% 80%, 30% 80%; transform: scale(1.02); }
-    33%  { background-position: 16% 26%, 70% 16%, 72% 84%, 24% 76%; transform: scale(1.028); }
-    66%  { background-position: 8% 24%, 78% 20%, 88% 70%, 18% 86%;  transform: scale(1.018); }
-    100% { background-position: 18% 16%, 68% 24%, 70% 76%, 26% 88%; transform: scale(1.028); }
+  /* Motion for the soft mesh (subtle) */
+  @keyframes mesh-shift{
+    0%   { background-position: 12% 22%, 78% 12%, 82% 82%, 32% 84%; transform: scale(1.02); }
+    33%  { background-position: 16% 28%, 70% 18%, 74% 86%, 26% 78%; transform: scale(1.026); }
+    66%  { background-position: 8% 26%, 82% 18%, 88% 72%, 18% 88%;  transform: scale(1.018); }
+    100% { background-position: 20% 18%, 68% 26%, 70% 78%, 28% 90%; transform: scale(1.026); }
   }
 
-  /* Band motion */
-  @keyframes bands-shift{
-    0%   { background-position: 0 0,0 0,0 0,0 0,0 0,0 0; }
-    50%  { background-position: -2% -1%, 1% 0, 1% 1%, -1% 1%, 0 0, 0 0; }
-    100% { background-position: 2% 1%, -1% 0, -1% -1%, 1% -1%, 0 0, 0 0; }
+  /* Slow floating/rotation for the crisp patches */
+  @keyframes patches-shift{
+    0%   { transform: translate3d(0,0,0) rotate(0.2deg) scale(1.01); }
+    50%  { transform: translate3d(-0.5%, 0.3%, 0) rotate(-0.6deg) scale(1.015); }
+    100% { transform: translate3d(0.6%, -0.4%, 0) rotate(0.6deg) scale(1.01); }
   }
 
-  /* subtle hue motion */
+  /* gentle hue motion */
   @keyframes hue{
-    0%   { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(1.5px); }
-    50%  { filter: saturate(1.10) contrast(1.04) hue-rotate(10deg) blur(1.5px); }
-    100% { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(1.5px); }
+    0%   { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(1px); }
+    50%  { filter: saturate(1.10) contrast(1.04) hue-rotate(10deg) blur(1px); }
+    100% { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(1px); }
   }
 
   /* Premium glassy logo cards */
@@ -248,7 +238,7 @@
   }
   .logo:hover{
     transform: translateY(-1px);
-    background: rgba(255,255,255,.64);
+    background: rgba(255,255,255,.62);
     box-shadow: 0 12px 34px rgba(2,8,23,.16), inset 0 1px 0 rgba(255,255,255,.45);
   }
 
