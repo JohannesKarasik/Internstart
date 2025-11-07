@@ -8,6 +8,248 @@
 {% block content %}
   {# Hero / phone carousel #}
   {% include "base/components/hero.html" %}
+  <!-- =========================
+     Reviews (Auto Carousel)
+========================= -->
+<section class="reviews" aria-label="User reviews">
+  <div class="reviews__inner">
+    <header class="reviews__head">
+      <h3 class="reviews__title">What people are saying</h3>
+      <p class="reviews__sub">Real success stories from across the world</p>
+    </header>
+
+    <div class="reviews__viewport">
+      <ul class="reviews__track">
+        <!-- Staged reviews — replace later -->
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇺🇸</span>
+          <div class="stars" style="--rating:4.9"></div>
+          <p class="review-text">“The experience felt premium from day one. I landed two interviews in a week.”</p>
+          <div class="reviewer">Ava Thompson</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇬🇧</span>
+          <div class="stars" style="--rating:5"></div>
+          <p class="review-text">“Clean UI, fast results, and genuinely useful suggestions. Totally worth it.”</p>
+          <div class="reviewer">Oliver Bennett</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇨🇦</span>
+          <div class="stars" style="--rating:4.7"></div>
+          <p class="review-text">“I loved the clarity and the nudges. It saved me hours.”</p>
+          <div class="reviewer">Sofia Martin</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇩🇪</span>
+          <div class="stars" style="--rating:4.8"></div>
+          <p class="review-text">“Super polished. The insights were spot on and easy to act on.”</p>
+          <div class="reviewer">Lukas Schneider</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇫🇷</span>
+          <div class="stars" style="--rating:4.6"></div>
+          <p class="review-text">“A modern product that actually helps. The little details are excellent.”</p>
+          <div class="reviewer">Camille Dupont</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇦🇺</span>
+          <div class="stars" style="--rating:4.9"></div>
+          <p class="review-text">“Seamless from start to finish. I recommend it to friends.”</p>
+          <div class="reviewer">Mia Wilson</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇮🇳</span>
+          <div class="stars" style="--rating:4.8"></div>
+          <p class="review-text">“Great UX and even better outcomes. Interviews came quickly.”</p>
+          <div class="reviewer">Arjun Mehta</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇪🇸</span>
+          <div class="stars" style="--rating:4.7"></div>
+          <p class="review-text">“Rápido, claro y muy útil. Me encantó.”</p>
+          <div class="reviewer">Lucía Romero</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇧🇷</span>
+          <div class="stars" style="--rating:4.9"></div>
+          <p class="review-text">“Design lindo e resultados reais. Amei!”</p>
+          <div class="reviewer">Gabriel Almeida</div>
+        </li>
+
+        <li class="review-card">
+          <span class="review-flag" aria-hidden="true">🇸🇬</span>
+          <div class="stars" style="--rating:5"></div>
+          <p class="review-text">“Polished experience with measurable results. Fantastic.”</p>
+          <div class="reviewer">Chloe Tan</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  :root{
+    --rv-gap: clamp(14px, 2vw, 22px);
+    --rv-card-w: clamp(260px, 28vw, 360px);
+    --rv-card-h: auto;
+    --rv-bg: #ffffff;
+    --rv-ink: #0f172a;
+    --rv-muted: #667085;
+    --rv-line: #e7edf5;
+    --rv-shadow: 0 18px 40px rgba(2,8,23,.08);
+    --rv-grad1: rgba(59,130,246,.08);
+    --rv-grad2: rgba(16,185,129,.08);
+  }
+
+  .reviews{
+    position: relative;
+    padding: clamp(40px, 6vw, 92px) 0;
+    background:
+      radial-gradient(80vmax 60vmax at 15% 30%, var(--rv-grad1) 0%, transparent 60%),
+      radial-gradient(80vmax 60vmax at 85% 70%, var(--rv-grad2) 0%, transparent 60%),
+      linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
+  }
+  .reviews__inner{ max-width: 1480px; margin:0 auto; padding:0 16px; }
+  .reviews__head{ text-align:center; margin-bottom: clamp(18px,2vw,24px); }
+  .reviews__title{
+    margin:0; font: 900 clamp(22px,3.2vw,36px)/1.1 var(--font,system-ui);
+    color:#0b1220; letter-spacing:-.02em;
+  }
+  .reviews__sub{
+    margin:.6rem 0 0; color:var(--rv-muted); font:600 clamp(14px,1.6vw,16px)/1.5 var(--font,system-ui);
+  }
+
+  .reviews__viewport{
+    overflow: hidden;
+    /* soft mask on sides */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  }
+  .reviews__track{
+    display: flex;
+    align-items: stretch;
+    gap: var(--rv-gap);
+    will-change: transform;
+  }
+
+  .review-card{
+    position: relative;
+    flex: 0 0 var(--rv-card-w);
+    width: var(--rv-card-w);
+    min-height: var(--rv-card-h);
+    background: var(--rv-bg);
+    border: 1px solid var(--rv-line);
+    border-radius: 16px;
+    box-shadow: var(--rv-shadow);
+    padding: 18px 18px 16px;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    row-gap: 10px;
+  }
+  .review-flag{
+    position: absolute; top: 10px; right: 10px;
+    font-size: 18px; filter: saturate(1.1);
+  }
+  .stars{
+    --rating: 4.8; /* 0..5 */
+    position: relative; display: inline-block; font-size: 18px; line-height:1;
+    letter-spacing: 2px; user-select:none;
+  }
+  .stars::before{ content: "★★★★★"; color:#e5e7eb; }
+  .stars::after{
+    content: "★★★★★"; color:#f59e0b; position:absolute; left:0; top:0;
+    width: calc(var(--rating) / 5 * 100%); overflow: hidden; white-space: nowrap;
+  }
+  .review-text{
+    margin: 0; color: #0f172a; font: 600 14px/1.55 var(--font,system-ui);
+  }
+  .reviewer{
+    margin-top: 4px; color:#344054; font: 800 13px/1 var(--font,system-ui);
+  }
+
+  /* Reduced motion: show static list, no auto-slide */
+  @media (prefers-reduced-motion: reduce){
+    .reviews__track{ transform: none !important; transition: none !important; }
+  }
+</style>
+
+<script>
+(() => {
+  const viewport = document.querySelector('.reviews__viewport');
+  const track = document.querySelector('.reviews__track');
+  if (!viewport || !track) return;
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) return;
+
+  // Duplicate items once for a smooth, infinite loop
+  const originals = Array.from(track.children);
+  originals.forEach(node => track.appendChild(node.cloneNode(true)));
+
+  let step = 0;
+  let index = 0;
+  let gapPx = 0;
+
+  const computeStep = () => {
+    const first = track.querySelector('.review-card');
+    if (!first) return;
+    const rect = first.getBoundingClientRect();
+    const styles = getComputedStyle(track);
+    // gap can be "normal" in some browsers; default to 0 if not a number
+    const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+    gapPx = rawGap;
+    step = rect.width + gapPx;
+    // Reset transform to align to exact pixel to avoid drift
+    track.style.transition = 'none';
+    track.style.transform = `translateX(${-index * step}px)`;
+    // next tick restore transition
+    requestAnimationFrame(() => track.style.transition = '');
+  };
+
+  const advance = () => {
+    index += 1;
+    track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
+    track.style.transform = `translateX(${-index * step}px)`;
+
+    // When we've scrolled past the originals, jump back seamlessly
+    if (index >= originals.length) {
+      // After the transition completes, snap back without visual jump
+      setTimeout(() => {
+        track.style.transition = 'none';
+        index = 0;
+        track.style.transform = 'translateX(0)';
+        // next frame re-enable transition
+        requestAnimationFrame(() => track.style.transition = '');
+      }, 620);
+    }
+  };
+
+  // Recompute sizes on load/resize
+  const ro = new ResizeObserver(computeStep);
+  ro.observe(viewport);
+  window.addEventListener('load', computeStep, { once:true });
+  computeStep();
+
+  // Move one card every second
+  const timer = setInterval(advance, 1000);
+
+  // Optional: stop when element leaves the viewport to save work
+  const io = new IntersectionObserver((entries) => {
+    const visible = entries[0].isIntersecting;
+    if (!visible) { track.style.transition = 'none'; }
+  }, { threshold: 0.05 });
+  io.observe(viewport);
+})();
+</script>
+
 
   {% include "base/components/logos_marquee.html" %}
 
