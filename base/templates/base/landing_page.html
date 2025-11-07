@@ -185,15 +185,26 @@
     }, 4000);
   }
 
-  // ✅ Show first popup after 10 seconds, then one more after another 10 seconds
+  // ✅ Show first popup after 10s, then one every 10s up to 5 total
   setTimeout(() => {
-    showPopup(); // first
-    setTimeout(() => {
-      showPopup(); // second
+    let count = 0;
+    const maxPopups = 5;
+    const popupInterval = setInterval(() => {
+      if (count >= maxPopups) {
+        clearInterval(popupInterval);
+        return;
+      }
+      showPopup();
+      count++;
     }, 10000);
+
+    // Show first immediately at 10s
+    showPopup();
+    count++;
   }, 10000);
 })();
 </script>
+
 
 
 
