@@ -1155,7 +1155,7 @@ html, body {
       formEl.classList.add('is-success');
       success.overlay.removeAttribute('hidden');
       success.overlay.classList.add('is-visible');
-      success.ok?.focus();
+      + success.ok?.focus?.({ preventScroll: true });
     };
     const hideSuccess = () => {
       success.overlay.classList.remove('is-visible');
@@ -1488,6 +1488,10 @@ html, body {
 
 <script>
   function startOrchestrator(){
+    // prevent overlapping runs
+    if (startOrchestrator.__busy) return;
+    startOrchestrator.__busy = true;
+
     (async () => {
 
       if (HTMLElement.prototype.scrollIntoView) {
@@ -1507,10 +1511,10 @@ html, body {
         else { el.setAttribute('hidden',''); el.setAttribute('aria-hidden','true'); el.style.display='none'; }
       };
 
-      const resumeEl  = document.getElementById('resumeStep');
+      const resumeEl   = document.getElementById('resumeStep');
       const analysisEl = document.getElementById('analysisStep');
-      const tinderEl  = document.querySelector('.tinder-section');
-      const formEl    = document.querySelector('.ai-demo');
+      const tinderEl   = document.querySelector('.tinder-section');
+      const formEl     = document.querySelector('.ai-demo');
 
       const exclusive = (name) => {
         setVisible(resumeEl,  name === 'resume');
@@ -1529,6 +1533,15 @@ html, body {
         overlay?.classList.add('is-deck-right');
         if (overlayText){ overlayText.textContent = text; overlayText.classList.add('is-visible'); }
       };
+
+      // ===== Visibility guard to prevent unwanted scrolling/focus when offscreen
+      let stageInView = true;
+      const visIO = new IntersectionObserver((entries) => {
+        stageInView = !!entries[0]?.isIntersecting;
+        // When offscreen, make stage inert so programmatic focus inside it can't steal viewport
+        if (stageInView) stage?.removeAttribute('inert'); else stage?.setAttribute('inert','');
+      }, { threshold: 0.2 });
+      if (stage) visIO.observe(stage);
 
       exclusive(null);
 
@@ -1560,7 +1573,17 @@ html, body {
 
       /* loop AFTER everything COMPLETE */
       await pause(1800);
-      startOrchestrator();
+
+      // allow new run only if the stage is visible; otherwise re-arm for when it comes back
+      startOrchestrator.__busy = false;
+      if (stageInView) {
+        startOrchestrator();
+      } else if (stage) {
+        const rearmIO = new IntersectionObserver((entries) => {
+          if (entries[0]?.isIntersecting) { rearmIO.disconnect(); startOrchestrator(); }
+        }, { threshold: 0.35 });
+        rearmIO.observe(stage);
+      }
 
     })();
   }
