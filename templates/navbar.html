@@ -86,7 +86,7 @@
           
         </div>
     
-        {% if lang == "dk" %}
+        {% if request.path|slice:":3" == "/da" or request.path|slice:":3" == "/dk" %}
         <a href="{% url 'app_login_dk' %}" 
            style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
            Log ind
@@ -107,6 +107,7 @@
            Start applying to jobs with AI
         </a>
         {% endif %}
+        
         
     
     </div>
