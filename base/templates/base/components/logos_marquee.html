@@ -60,36 +60,35 @@
 <style>
   /* =======================================================
      Marquee with animated "Stripe-like" gradient background
-     - Multi-layer radial gradients that drift like liquid.
-     - GPU-friendly transforms; stops on prefers-reduced-motion.
+     - No green; cool purple/blue + pink/orange only
+     - Glassy, semi-transparent logo cards
   ======================================================== */
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
     --logos-pad-y: clamp(28px, 5vw, 60px);
     --section-pad-y: clamp(36px, 6vw, 84px);
 
-    --logos-card: #ffffff;
-    --logos-border: rgba(255,255,255,.35);
-    --logos-shadow: 0 8px 24px rgba(2,8,23,.10);
+    /* glass card tokens */
+    --logos-card: rgba(255,255,255,.58); /* semi-transparent */
+    --logos-border: rgba(255,255,255,.45);
+    --logos-shadow: 0 10px 30px rgba(2,8,23,.12);
 
-    /* gradient tokens */
-    --g-purple: #7b61ff;   /* purple */
-    --g-pink:   #ff5ecd;   /* pink   */
-    --g-orange: #ff9966;   /* orange */
-    --g-cyan:   #4dd2ff;   /* blue/cyan */
-    --g-green:  #80ff72;   /* green  */
-    --g-bg:     #eef1ff;   /* light fallback background */
+    /* gradient tokens (no green) */
+    --g-purple: #7b61ff;
+    --g-pink:   #ff5ecd;
+    --g-orange: #ff9966;
+    --g-cyan:   #67b8ff;
   }
 
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
+    /* Fallback for older browsers */
     background: linear-gradient(135deg,
                 var(--g-purple),
                 var(--g-pink),
                 var(--g-orange),
-                var(--g-cyan),
-                var(--g-green)); /* Fallback if animations aren't supported */
+                var(--g-cyan));
     border-top: 0;
     overflow: hidden;
     isolation: isolate;
@@ -102,13 +101,12 @@
     inset:-10% -2%; /* bleed a bit for transforms */
     z-index:0;
 
-    /* Five drifting "blobs" using radial-gradients. Transparent edges keep it airy. */
+    /* Four drifting blobs (no green layer) */
     background:
-      radial-gradient(40vmax 40vmax at 12% 18%, rgba(123, 97, 255, .95) 0%, rgba(123, 97, 255, .75) 22%, transparent 62%) ,
-      radial-gradient(42vmax 42vmax at 86% 12%, rgba(255, 94, 205, .92) 0%, rgba(255, 94, 205, .65) 24%, transparent 60%),
-      radial-gradient(46vmax 46vmax at 80% 78%, rgba(77, 210, 255, .90) 0%, rgba(77, 210, 255, .65) 26%, transparent 62%),
-      radial-gradient(44vmax 44vmax at 16% 84%, rgba(255, 153, 102, .90) 0%, rgba(255, 153, 102, .60) 24%, transparent 60%),
-      radial-gradient(52vmax 52vmax at 52% 50%, rgba(128, 255, 114, .85) 0%, rgba(128, 255, 114, .55) 28%, transparent 64%);
+      radial-gradient(40vmax 40vmax at 12% 18%, rgba(123, 97, 255, .95) 0%, rgba(123, 97, 255, .64) 22%, transparent 62%),
+      radial-gradient(42vmax 42vmax at 86% 12%, rgba(255, 94, 205, .88) 0%, rgba(255, 94, 205, .58) 24%, transparent 60%),
+      radial-gradient(46vmax 46vmax at 80% 78%, rgba(103, 184, 255, .92) 0%, rgba(103, 184, 255, .60) 26%, transparent 62%),
+      radial-gradient(44vmax 44vmax at 16% 84%, rgba(255, 153, 102, .88) 0%, rgba(255, 153, 102, .56) 24%, transparent 60%);
 
     filter: saturate(1.06) contrast(1.02) blur(2px);
     transform: translateZ(0) scale(1.02);
@@ -142,7 +140,7 @@
     font-weight: 800;
     letter-spacing: -0.01em;
     font-size: clamp(16px, 2.3vw, 22px);
-    color: #000000;
+    color: #0b1220;
     margin-bottom: 14px;
   }
 
@@ -200,39 +198,19 @@
   /* Background drift + breathing scale */
   @keyframes bg-shift{
     0%{
-      background-position:
-        12% 18%,
-        86% 12%,
-        80% 78%,
-        16% 84%,
-        52% 50%;
+      background-position: 12% 18%, 86% 12%, 80% 78%, 16% 84%;
       transform: translate3d(0,0,0) scale(1.02);
     }
     33%{
-      background-position:
-        18% 26%,
-        78% 18%,
-        72% 84%,
-        22% 76%,
-        48% 54%;
+      background-position: 18% 26%, 78% 18%, 72% 84%, 22% 76%;
       transform: translate3d(0,0,0) scale(1.03);
     }
     66%{
-      background-position:
-        10% 24%,
-        82% 20%,
-        88% 70%,
-        10% 86%,
-        56% 46%;
+      background-position: 10% 24%, 82% 20%, 88% 70%, 10% 86%;
       transform: translate3d(0,0,0) scale(1.015);
     }
     100%{
-      background-position:
-        20% 16%,
-        74% 26%,
-        70% 76%,
-        26% 88%,
-        50% 50%;
+      background-position: 20% 16%, 74% 26%, 70% 76%, 26% 88%;
       transform: translate3d(0,0,0) scale(1.03);
     }
   }
@@ -244,6 +222,7 @@
     100% { filter: saturate(1.06) contrast(1.02) hue-rotate(0deg) blur(2px); }
   }
 
+  /* Glassy logo cards */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -252,10 +231,20 @@
     padding: 14px 18px;
     min-width: clamp(140px, 16vw, 220px);
     height: clamp(52px, 6vw, 68px);
+
     background: var(--logos-card);
     border: 1px solid var(--logos-border);
     border-radius: 16px;
     box-shadow: var(--logos-shadow);
+    backdrop-filter: saturate(160%) blur(10px);
+    -webkit-backdrop-filter: saturate(160%) blur(10px);
+    background-clip: padding-box;
+    transition: transform .25s ease, background-color .2s ease, box-shadow .2s ease;
+  }
+  .logo:hover{
+    transform: translateY(-1px);
+    background: rgba(255,255,255,.66);
+    box-shadow: 0 12px 34px rgba(2,8,23,.16);
   }
 
   .logo__img{
