@@ -61,65 +61,28 @@
     --logos-border: rgba(255,255,255,.28);
     --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
 
-    /* Ultra-light palette */
+    /* Ultra-light palette for full-section background */
     --g-violet: rgba(122, 77, 255, 0.18);
     --g-purple: rgba(164, 99, 255, 0.16);
     --g-magenta: rgba(255, 79, 216, 0.18);
     --g-orange: rgba(255, 142, 110, 0.16);
     --g-cyan: rgba(104, 192, 255, 0.18);
-
-    /* === STRAIGHT (HORIZONTAL) BAND ===
-       Set a single top & bottom to keep it perfectly horizontal.
-       Adjust these to move the band up/down or change height.
-    */
-    --band-top: 42%;
-    --band-bottom: 70%;
-
-    /* Modest bleed so edges feel soft, but not overwhelming */
-    --band-inset-vertical: -12vh;
-    --band-inset-horizontal: -12vw;
   }
 
   .logos{
     position: relative;
     padding: var(--section-pad-y) 0;
-    overflow: visible;
+    overflow: hidden; /* tidy edges */
     isolation: isolate;
-    background: #fff;
+
+    /* ==== FULL-SECTION COLORED BACKGROUND ==== */
+    background:
+      radial-gradient(90vmax 80vmax at 15% 15%, rgba(255,142,110,.18) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
+      radial-gradient(100vmax 90vmax at 85% 20%, rgba(104,192,255,.18) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
+      radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, rgba(255,142,110,.10) 60%, transparent 100%),
+      radial-gradient(95vmax 90vmax at 25% 80%, rgba(255,79,216,.14) 0%, rgba(104,192,255,.10) 60%, transparent 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)); /* soft base for readability */
     z-index: 0;
-  }
-
-  /* Place the band OVER the logos but UNDER the title */
-  .logos::before,
-  .logos::after{
-    content:"";
-    position:absolute;
-    inset: var(--band-inset-vertical) var(--band-inset-horizontal);
-    z-index: 2; /* sits above logos viewport (z:1) but below title (z:3) */
-    background-repeat:no-repeat;
-    clip-path: polygon(
-      0%  var(--band-top),
-      100% var(--band-top),
-      100% var(--band-bottom),
-      0%  var(--band-bottom)
-    );
-    pointer-events:none;
-  }
-
-  /* Gentle, very transparent gradients for the straight band */
-  .logos::before{
-    background:
-      radial-gradient(60vmax 60vmax at 25% 50%, rgba(255,142,110,.18) 0%, rgba(255,79,216,.10) 50%, transparent 100%),
-      radial-gradient(70vmax 70vmax at 75% 48%, rgba(104,192,255,.18) 0%, rgba(122,77,255,.10) 55%, transparent 100%),
-      radial-gradient(65vmax 65vmax at 60% 60%, rgba(255,79,216,.14) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
-    filter: saturate(1) contrast(1) blur(10px);
-  }
-
-  .logos::after{
-    background:
-      radial-gradient(80vmax 70vmax at 20% 52%, rgba(255,79,216,.08) 0%, transparent 70%),
-      radial-gradient(86vmax 72vmax at 80% 46%, rgba(104,192,255,.08) 0%, transparent 70%);
-    filter: blur(14px) saturate(1);
   }
 
   .logos__inner{
@@ -127,26 +90,24 @@
     margin: 0 auto;
     padding: 0 12px;
     position: relative;
-    z-index: 1; /* base content layer */
+    z-index: 1;
   }
 
-  /* Title remains ABOVE the band */
+  /* Title stays above, with subtle blend so colors influence slightly */
   .logos__title{
     position: relative;
-    z-index: 3;              /* above band */
+    z-index: 2;
     text-align: center;
     font-weight: 800;
     letter-spacing: -0.015em;
     font-size: clamp(30px, 4.2vw, 52px);
-    color: #0b1220;          /* solid, not transparent */
+    color: #0b1220;
     margin-bottom: 28px;
-    mix-blend-mode: overlay; /* subtle color influence from band */
+    mix-blend-mode: overlay; /* optional: comment out if you want pure solid */
     background: transparent;
   }
 
   .logos__viewport{
-    position: relative;
-    z-index: 1; /* logos sit under the band (::before/::after at z:2) */
     margin-inline: calc(50% - 50vw);
     width: 100vw;
     overflow: hidden;
@@ -203,7 +164,6 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .logos::before, .logos::after { animation: none !important; }
     .logos__track{ animation: none !important; }
   }
 </style>
