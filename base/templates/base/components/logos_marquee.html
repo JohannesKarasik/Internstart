@@ -3,6 +3,9 @@
 {% load static %}
 
 <section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
+  <!-- Single background canvas -->
+  <div class="logos__bg" aria-hidden="true"></div>
+
   <div class="logos__inner">
     <h3 class="logos__title">
       {% blocktrans %}Land interviews at top companies with AI{% endblocktrans %}
@@ -54,25 +57,19 @@
 <style>
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
-
-    /* ↑ Taller section + marquee rows */
-    --logos-pad-y: clamp(36px, 5vw, 72px);
-    --section-pad-y: clamp(72px, 8vw, 128px);
+    --logos-pad-y: clamp(20px, 3vw, 44px);
+    --section-pad-y: clamp(40px, 6vw, 80px);
 
     --logos-card: rgba(255,255,255,.35);
     --logos-border: rgba(255,255,255,.28);
     --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
 
-    /* Ultra-light palette for full-section background */
+    /* palette used inside the single canvas */
     --g-violet: rgba(122, 77, 255, 0.18);
     --g-purple: rgba(164, 99, 255, 0.16);
     --g-magenta: rgba(255, 79, 216, 0.18);
     --g-orange: rgba(255, 142, 110, 0.16);
     --g-cyan: rgba(104, 192, 255, 0.18);
-
-    /* Accent picks for edge fades (feel free to tweak) */
-    --edge-top: rgba(122, 77, 255, 0.35);   /* violet */
-    --edge-bottom: rgba(255, 142, 110, 0.35);/* orange */
   }
 
   .logos{
@@ -80,36 +77,33 @@
     padding: var(--section-pad-y) 0;
     overflow: hidden;
     isolation: isolate;
-
-    /* ==== FULL-SECTION COLORED BACKGROUND ==== */
-    background:
-      radial-gradient(90vmax 80vmax at 15% 15%, rgba(255,142,110,.18) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
-      radial-gradient(100vmax 90vmax at 85% 20%, rgba(104,192,255,.18) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
-      radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, rgba(255,142,110,.10) 60%, transparent 100%),
-      radial-gradient(95vmax 90vmax at 25% 80%, rgba(255,79,216,.14) 0%, rgba(104,192,255,.10) 60%, transparent 100%),
-      linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85));
-    z-index: 0;
+    background: #fff; /* base white */
   }
 
-  /* Smooth white→color fades on top & bottom edges */
-  .logos::before,
-  .logos::after{
-    content: "";
+  /* Single full-bleed background canvas */
+  .logos__bg{
     position: absolute;
-    left: 0;
-    right: 0;
-    height: clamp(28px, 4vw, 56px);
+    inset: 0;
+    left: 50%;
+    width: 100vw;           /* extend edge-to-edge */
+    transform: translateX(-50%);
+    z-index: 0;
+
+    /* Layer 1: white → transparent → white fade (top & bottom) */
+    /* Layer 2+: soft color fields */
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff 0%,
+        rgba(255,255,255,0) 22%,
+        rgba(255,255,255,0) 78%,
+        #ffffff 100%
+      ),
+      radial-gradient(90vmax 80vmax at 15% 15%, var(--g-orange) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
+      radial-gradient(100vmax 90vmax at 85% 20%, var(--g-cyan) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
+      radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, var(--g-orange) 60%, transparent 100%),
+      radial-gradient(95vmax 90vmax at 25% 80%, var(--g-magenta) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
     pointer-events: none;
-    z-index: 2; /* above bg, below content */
-    mix-blend-mode: normal;
-  }
-  .logos::before{
-    top: 0;
-    background: linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0.75) 30%, rgba(255,255,255,0.35) 55%, var(--edge-top) 100%);
-  }
-  .logos::after{
-    bottom: 0;
-    background: linear-gradient(to top, #fff 0%, rgba(255,255,255,0.75) 30%, rgba(255,255,255,0.35) 55%, var(--edge-bottom) 100%);
   }
 
   .logos__inner{
@@ -117,19 +111,16 @@
     margin: 0 auto;
     padding: 0 12px;
     position: relative;
-    z-index: 3; /* above edge fades */
+    z-index: 1; /* above canvas */
   }
 
-  /* Title */
   .logos__title{
-    position: relative;
-    z-index: 3;
     text-align: center;
     font-weight: 800;
     letter-spacing: -0.015em;
     font-size: clamp(28px, 3.8vw, 48px);
     color: #0b1220;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
     background: transparent;
   }
 
@@ -138,23 +129,21 @@
     width: 100vw;
     overflow: hidden;
     border-radius: 0;
-    padding: var(--logos-pad-y) 0; /* taller marquee rows */
+    padding: var(--logos-pad-y) 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     background: transparent;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
   }
 
-  /* Only the marquees animate */
   .logos__track{
     display: flex;
     align-items: center;
     gap: var(--logos-gap);
     animation: marquee linear infinite;
   }
-
   .logos__track--a{ animation-duration: 16s; }
   .logos__track--b{ animation-duration: 20s; opacity:.96; }
   .logos__track--c{ animation-duration: 24s; opacity:.94; }
@@ -169,9 +158,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 18px;
+    padding: 12px 16px;
     min-width: clamp(120px, 14vw, 200px);
-    height: clamp(56px, 6vw, 74px); /* taller cards for more presence */
+    height: clamp(48px, 5.4vw, 64px);
     background: rgba(255,255,255,0.35);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 14px;
@@ -182,7 +171,7 @@
 
   .logo__img{
     display: block;
-    max-height: 30px; /* slightly larger logos */
+    max-height: 26px;
     max-width: 136px;
     object-fit: contain;
     filter: saturate(.85) contrast(.98);
