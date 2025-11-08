@@ -370,7 +370,7 @@
     <div class="kpi__item">
       <div class="kpi__label">Pro users who landed an interview</div>
       <div class="kpi__value">
-        <span class="countup" data-target="67" data-suffix="%" data-locale="es-ES">81%</span>
+        <span class="countup" data-target="73" data-suffix="%" data-locale="es-ES">81%</span>
       </div>
     </div>
   </div>
@@ -514,6 +514,53 @@
   }
 })();
 </script>
+
+<script>
+  (function(){
+    const today = new Date().toISOString().slice(0,10);
+    const saved = JSON.parse(localStorage.getItem('kpi_growth')||'{}');
+  
+    // BASE
+    const baseApps  = 324261;
+    const baseUsers = 4795;
+  
+    // FIND ELEMENTS
+    const elApps  = document.querySelector('[data-target="324261"]');
+    const elUsers = document.querySelector('[data-target="4795"]');
+  
+    let apps;
+    let users;
+  
+    if(saved.date === today){
+      apps  = saved.apps;
+      users = saved.users;
+    } else {
+      // NEW DAY
+      const bumpApps  = Math.floor(Math.random()*1001) + 1000; // 1000–2000
+      const bumpUsers = 10;
+  
+      apps  = baseApps  + bumpApps;
+      users = baseUsers + bumpUsers;
+  
+      localStorage.setItem('kpi_growth', JSON.stringify({
+        date: today,
+        apps,
+        users
+      }));
+    }
+  
+    if(elApps){
+      elApps.textContent = apps.toLocaleString('es-ES');
+      elApps.setAttribute('data-target', apps);
+    }
+  
+    if(elUsers){
+      elUsers.textContent = users.toLocaleString('es-ES');
+      elUsers.setAttribute('data-target', users);
+    }
+  })();
+  </script>
+  
 
 <noscript>
   <style>.countup{opacity:1 !important}</style>
