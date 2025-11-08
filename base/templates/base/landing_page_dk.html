@@ -615,102 +615,104 @@
 </style>
 
 <script>
-(() => {
-  const popup = document.getElementById('upgradePopup');
-  const nameEl = document.getElementById('upgradeName');
-  const timeEl = document.getElementById('upgradeTime');
-  const img = document.getElementById('popupMap');
-
-  const apiKey = "{{ google_maps_key }}";
-
-  const cities = [
-
-    { name: "Chicago", lat: 41.8781, lon: -87.6298 },
-    { name: "Houston", lat: 29.7604, lon: -95.3698 },
-    { name: "Phoenix", lat: 33.4484, lon: -112.0740 },
-    { name: "Philadelphia", lat: 39.9526, lon: -75.1652 },
-    { name: "San Francisco", lat: 37.7749, lon: -122.4194 },
-    { name: "Seattle", lat: 47.6062, lon: -122.3321 },
-    { name: "Miami", lat: 25.7617, lon: -80.1918 },
-    { name: "Boston", lat: 42.3601, lon: -71.0589 }
-  ];
-
-  const names = [
-    "Olivia","Liam","Emma","Noah","Sophia","James","Ava","Lucas","Isabella","Mason",
-    "Mia","Ethan","Charlotte","Henry","Amelia","Alexander","Harper","Benjamin","Evelyn","Elijah",
-    "Ella","Michael","Scarlett","Daniel","Aria","Matthew","Luna","Jack","Layla","Owen",
-    "Zoe","Sebastian","Nora","Aiden","Hazel","David","Grace","Carter","Chloe","Wyatt"
-  ];
-
-  // ✅ Generate random realistic timeframe between 12 minutes and 4 hours
-  function randomTimeframe() {
-    const minMinutes = 12;
-    const maxMinutes = 240; // 4 hours
-    const randomMinutes = Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
-
-    if (randomMinutes >= 60) {
-      const hours = Math.floor(randomMinutes / 60);
-      return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-    } else {
-      return `${randomMinutes} minutes ago`;
-    }
-  }
-
-  // ✅ Removed marker parameter
-  function mapUrl(lat, lon) {
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&key=${apiKey}`;
-  }
-
-  const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
-
-  function setSafeSrc(el, src) {
-    const testImg = new Image();
-    testImg.onload = () => el.src = src;
-    testImg.onerror = () =>
-      el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
-    testImg.src = src;
-  }
-
-  function showPopup() {
-    const city = randomItem(cities);
-    const name = randomItem(names);
-    const time = randomTimeframe();
-
-    nameEl.textContent = `${name} upgraded to Pro`;
-    timeEl.textContent = time;
-    setSafeSrc(img, mapUrl(city.lat, city.lon));
-
-    popup.hidden = false;
-    popup.classList.remove("hide");
-    popup.classList.add("visible");
-
-    // Hide after 4 seconds
-    setTimeout(() => {
-      popup.classList.remove("visible");
-      popup.classList.add("hide");
-    }, 4000);
-  }
-
-  // ✅ Show first popup after 10s, then one every 10s up to 5 total
-  setTimeout(() => {
-    let count = 0;
-    const maxPopups = 5;
-    const popupInterval = setInterval(() => {
-      if (count >= maxPopups) {
-        clearInterval(popupInterval);
-        return;
+  (() => {
+    const popup = document.getElementById('upgradePopup');
+    const nameEl = document.getElementById('upgradeName');
+    const timeEl = document.getElementById('upgradeTime');
+    const img = document.getElementById('popupMap');
+  
+    const apiKey = "{{ google_maps_key }}";
+  
+    // Danske byer
+    const cities = [
+      { name: "København", lat: 55.6761, lon: 12.5683 },
+      { name: "Aarhus",    lat: 56.1629, lon: 10.2039 },
+      { name: "Odense",    lat: 55.4038, lon: 10.4024 },
+      { name: "Aalborg",   lat: 57.0488, lon: 9.9217 },
+      { name: "Esbjerg",   lat: 55.4765, lon: 8.4594 },
+      { name: "Randers",   lat: 56.4607, lon: 10.0364 },
+      { name: "Kolding",   lat: 55.4904, lon: 9.4722 },
+      { name: "Vejle",     lat: 55.7113, lon: 9.5364 }
+    ];
+  
+    // Danske navne
+    const names = [
+      "Oliver","Ida","William","Freja","Emil","Alma","Oscar","Clara","Noah","Sofia",
+      "Lucas","Anna","Victor","Karla","Elias","Laura","Magnus","Ella","Aksel","Maja",
+      "Jonas","Julie","Mikkel","Maria","Felix","Sofie","Jakob","Caroline","Rasmus","Louise",
+      "Tobias","Josefine","Nicolai","Camilla","Simon","Anders","Line","Malthe","Anton","Signe"
+    ];
+  
+    // ✅ Tilfældig tidsramme mellem 12 minutter og 4 timer (dansk)
+    function randomTimeframe() {
+      const minMinutes = 12;
+      const maxMinutes = 240; // 4 timer
+      const randomMinutes = Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
+  
+      if (randomMinutes >= 60) {
+        const hours = Math.floor(randomMinutes / 60);
+        return hours === 1 ? "for 1 time siden" : `for ${hours} timer siden`;
+      } else {
+        return `for ${randomMinutes} minutter siden`;
       }
+    }
+  
+    // ✅ Ingen marker-parameter
+    function mapUrl(lat, lon) {
+      return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=12&size=300x200&scale=2&maptype=roadmap&key=${apiKey}`;
+    }
+  
+    const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
+  
+    function setSafeSrc(el, src) {
+      const testImg = new Image();
+      testImg.onload = () => el.src = src;
+      testImg.onerror = () =>
+        el.src = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
+      testImg.src = src;
+    }
+  
+    function showPopup() {
+      const city = randomItem(cities);
+      const name = randomItem(names);
+      const time = randomTimeframe();
+  
+      // Dansk synlig tekst
+      nameEl.textContent = `${name} opgraderede til Pro`;
+      timeEl.textContent = time;
+      setSafeSrc(img, mapUrl(city.lat, city.lon));
+  
+      popup.hidden = false;
+      popup.classList.remove("hide");
+      popup.classList.add("visible");
+  
+      // Skjul efter 4 sekunder
+      setTimeout(() => {
+        popup.classList.remove("visible");
+        popup.classList.add("hide");
+      }, 4000);
+    }
+  
+    // ✅ Vis første popup efter 10s, derefter én hver 10s op til 5 i alt
+    setTimeout(() => {
+      let count = 0;
+      const maxPopups = 5;
+      const popupInterval = setInterval(() => {
+        if (count >= maxPopups) {
+          clearInterval(popupInterval);
+          return;
+        }
+        showPopup();
+        count++;
+      }, 10000);
+  
+      // Vis første med det samme ved 10s
       showPopup();
       count++;
     }, 10000);
-
-    // Show first immediately at 10s
-    showPopup();
-    count++;
-  }, 10000);
-})();
-</script>
-
+  })();
+  </script>
+  
 
 {% endblock content %}
 
