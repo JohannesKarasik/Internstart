@@ -268,10 +268,10 @@
 
 .hero__sticky {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
+  bottom: 48px;    /* further down */
+  right: 38px;     /* further right */
   z-index: 9999;
-  pointer-events: none; /* prevents blocking other interactions */
+  pointer-events: none;
 }
 
 .btn--sticky {
@@ -279,7 +279,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #FF2F5A;
+  background: #ff6b85; /* softer tone of #FF2F5A */
   color: #fff;
   font-family: 'Manrope', sans-serif;
   font-weight: 700;
@@ -288,22 +288,24 @@
   text-decoration: none;
   border-radius: 999px;
   padding: 14px 22px;
-  box-shadow: 0 6px 20px rgba(255,47,90,0.25);
-  transition: 
-    transform 0.25s ease, 
-    box-shadow 0.25s ease, 
+  box-shadow:
+    0 6px 20px rgba(255, 107, 133, 0.28),
+    0 0 0 1px rgba(255, 47, 90, 0.12);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
     background 0.25s ease;
 }
 
 .btn--sticky:hover {
-  background: #e92650;
+  background: #ff5471;
   transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(255,47,90,0.3);
+  box-shadow: 0 10px 28px rgba(255, 47, 90, 0.3);
 }
 
 .btn--sticky:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(255,47,90,0.25);
+  box-shadow: 0 4px 12px rgba(255, 47, 90, 0.25);
 }
 
 .btn--sticky .chev {
@@ -317,17 +319,15 @@
   transform: rotate(180deg) translateY(2px);
 }
 
-/* Optional: smaller and centered on mobile */
+/* Mobile adjustments */
 @media (max-width: 600px) {
   .hero__sticky {
-    bottom: 18px;
-    right: 50%;
-    transform: translateX(50%);
+    bottom: 30px;
+    right: 22px;
   }
   .btn--sticky {
     font-size: 14px;
     padding: 12px 18px;
-    border-radius: 999px;
   }
 }
 
