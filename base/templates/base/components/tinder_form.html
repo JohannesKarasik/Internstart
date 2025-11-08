@@ -17,7 +17,7 @@
     <header class="sp__head">
       <h2 class="sp__title">
         <span id="spTitle"
-              data-default="{% trans 'Do like everyone else — apply with AI' %}"
+              data-default="Apply to jobs with one click"
               data-left="{% trans 'Swipe left to dismiss' %}"
               data-right="{% trans 'Swipe right to apply' %}">
     Apply to jobs with one click
@@ -1562,7 +1562,7 @@ html, body {
       exclusive(null);
 
       /* ========== 3) Tinder Deck ========== */
-      if (spTitle) spTitle.innerHTML = `{{ _("Do like everyone else —") }} <span style="color:#FF2F5A;">{{ _("apply") }}</span> {{ _("with") }} <span style="color:#FF2F5A;">{{ _("AI") }}</span>`;
+      if (spTitle) spTitle.innerHTML = `{{ _("Apply to jobs with") }} <span style="color:#FF2F5A;">{{ _("one click") }}</span>`;
       showOverlayDeck('{{ _("Swipe right to apply") }}');
       exclusive('tinder');
       await window.TinderDemo?.runOnce?.();
