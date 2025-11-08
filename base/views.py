@@ -2990,3 +2990,19 @@ def how_to_find_internships_with_no_experience(request):
     Renders the blog page: 'When to Apply for Summer Internships'
     """
     return render(request, 'base/blog/how_to_find_internships_with_no_experience.html')
+
+
+
+def how_to_get_a_remote_internship(request):
+    """
+    Renders the blog page: 'When to Apply for Summer Internships'
+    """
+    return render(request, 'base/blog/how_to_get_a_remote_internship.html')
+
+
+
+def skills_for_internship_resume(request):
+    """
+    Renders the blog page: 'When to Apply for Summer Internships'
+    """
+    return render(request, 'base/blog/skills_for_internship_resume.html')

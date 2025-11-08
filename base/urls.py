@@ -150,7 +150,18 @@ urlpatterns = [
         name='how_to_find_internships_with_no_experience',
     ),
 
+        path(
+        'blog/how_to_get_a_remote_internship/',
+        views.how_to_get_a_remote_internship,
+        name='how_to_get_a_remote_internship',
+    ),
 
+
+        path(
+        'blog/skills_for_internship_resume/',
+        views.skills_for_internship_resume,
+        name='skills_for_internship_resume',
+    ),
 
 
     ##############################################

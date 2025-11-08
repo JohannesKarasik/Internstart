@@ -1,0 +1,491 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+
+<html lang="en">
+<head>
+  <!-- META SEO -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+
+  <title>Skills for Internship Resume (What to Include + Examples by Field)</title>
+  <meta name="description"
+        content="Exactly which skills to put on an internship resume: core skills, role-specific tools, and ATS keywords. See examples by field (marketing, finance, software, data, design) and copyable templates.">
+
+
+  <link rel="canonical" href="https://internstart.com/blog/skills-for-internship-resume/">
+  <meta property="og:title" content="Skills for Internship Resume (What to Include + Examples by Field)">
+  <meta property="og:description" content="The right skills to add to an internship resume—plus examples by major, ATS keyword tips, and templates. Apply faster with Internstart’s AI.">
+  <meta property="og:type" content="article">
+
+
+  <!-- ✅ FAVICON (copied from main template) -->
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+  <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+  <meta name="theme-color" content="#ff2a55">
+
+
+  <!-- FONT -->
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+
+  <style>
+    :root {
+      --text-main:#0f172a;
+      --text-dim:#6b7280;
+      --bg:#ffffff;
+      --border:#e5e7eb;
+      --accent:#FF2F5A;
+      --content-width:760px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+    }
+    img { max-width: 100%; height: auto; border-radius: 12px; }
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+
+    /* highlight spans for keyword phrases */
+    .keyword-highlight {
+      background: rgba(255,47,90,.08);
+      border-radius: 4px;
+      padding: 0 .25em;
+      box-decoration-break: clone;
+    }
+
+    /* Header */
+    .site-header {
+      border-bottom: 1px solid var(--border);
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .site-header-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      row-gap: 8px;
+    }
+    .brand-block { display: flex; flex-direction: column; gap: 4px; }
+    .brand-row {
+      display: flex; align-items: baseline; gap: 8px;
+      font-size: 16px; font-weight: 700; color: var(--text-main); line-height: 1.2;
+    }
+    .brand-badge {
+      background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+      line-height: 1; padding: 3px 6px; border-radius: 4px;
+    }
+    .breadcrumb { font-size: 14px; color: var(--text-dim); line-height: 1.4; }
+    .breadcrumb a { color: var(--text-dim); font-weight: 500; text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent); text-decoration: underline; }
+    .cta-header {
+      display: inline-block; background-color: var(--accent); color: #fff;
+      border-radius: 6px; font-size: 14px; font-weight: 600; padding: 9px 13px;
+      line-height: 1.2; text-decoration: none;
+    }
+    .cta-header:hover { filter: brightness(1.05); text-decoration: none; }
+
+    /* Article layout */
+    .page-wrapper { max-width: var(--content-width); margin: 32px auto 80px; padding: 0 16px 64px; }
+    header.post-header { margin-bottom: 24px; }
+    .post-eyebrow {
+      color: var(--accent); font-size: 15px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: -.02em; margin-bottom: 8px;
+    }
+    h1.post-title {
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
+      line-height: 1.15; font-weight: 800; color: var(--text-main);
+      margin: 0 0 12px; letter-spacing: -.04em;
+    }
+    .post-meta { font-size: 16px; color: var(--text-dim); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-image { margin-top: 24px; margin-bottom: 32px; }
+
+    /* Typography blocks */
+    h2 {
+      font-size: 1.4rem; line-height: 1.3; font-weight: 700;
+      margin: 40px 0 12px; color: var(--text-main); letter-spacing: -.03em;
+    }
+    h3 {
+      font-size: 1.2rem; line-height: 1.4; font-weight: 600;
+      margin: 28px 0 8px; color: var(--text-main); letter-spacing: -.02em;
+    }
+    p { margin: 0 0 16px; font-size: 18px; color: var(--text-main); }
+    .example-note { font-weight: 600; font-size: 18px; }
+
+    /* Utilities */
+    .note {
+      background: #fff;
+      border: 1px dashed var(--border);
+      padding: 14px 16px; border-radius: 10px; color: var(--text-dim);
+      font-size: 15px;
+    }
+    .toc {
+      border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+      background: #fafafa; margin: 24px 0 8px; font-size: 16px;
+    }
+    .toc ul { margin: 0; padding-left: 18px; }
+    .toc a { font-weight: 600; }
+    .inline-cta {
+      background: rgba(255,47,90,.08);
+      border: 1px solid rgba(255,47,90,.25);
+      padding: 16px; border-radius: 12px; margin: 24px 0;
+    }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 16px; }
+    th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
+    th { background: #fbfbfb; font-weight: 700; }
+
+    /* Code blocks */
+    pre { background:#0f172a; color:#e5e7eb; padding:16px; border-radius:12px; overflow:auto; font-size:15px; line-height:1.5; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* Footer */
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      background-color: #fff;
+      padding: 32px 16px 64px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    .footer-inner { max-width: var(--content-width); margin: 0 auto; }
+    .footer-inner p { margin: 0 0 12px; line-height: 1.5; color: var(--text-dim); font-size: 14px; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: 14px; font-weight: 500; margin-top: 16px; }
+    .footer-nav a { color: var(--text-main); text-decoration: none; }
+    .footer-nav a:hover { color: var(--accent); text-decoration: underline; }
+  </style>
+
+
+  <!-- Article + FAQ structured data -->
+
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":"Skills for Internship Resume (What to Include + Examples by Field)",
+    "description":"Exactly which skills to add to an internship resume—with examples by field, ATS keyword tips, and templates.",
+    "author":{"@type":"Person","name":"Anna Blanchard"},
+    "publisher":{"@type":"Organization","name":"Internstart"},
+    "dateModified":"2025-11-08",
+    "datePublished":"2025-11-08",
+    "mainEntityOfPage":{"@type":"WebPage","@id":"https://internstart.com/blog/skills-for-internship-resume/"}
+  }
+  </script>
+
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"What skills should I put on an internship resume?",
+       "acceptedAnswer":{"@type":"Answer","text":"Mix core skills (communication, time management), role-specific tools (Excel, Python, Figma), and 3–5 keywords copied from the job description. Prove each skill with a tiny result or project."}},
+      {"@type":"Question","name":"How many skills should I list?",
+       "acceptedAnswer":{"@type":"Answer","text":"8–15 total, grouped by category. Prioritize the 6–8 most relevant to the role and remove anything outdated or irrelevant."}},
+      {"@type":"Question","name":"How do I pass ATS with my skills section?",
+       "acceptedAnswer":{"@type":"Answer","text":"Mirror exact phrases from the posting (e.g., “PivotTables,” “Looker Studio,” “React”). Place key skills in the top third of the resume and repeat naturally in bullet points."}},
+      {"@type":"Question","name":"Should I include proficiency levels?",
+       "acceptedAnswer":{"@type":"Answer","text":"Yes, but keep it simple: Basic / Intermediate / Advanced for tools you’ll be asked about. Avoid graphics like bars or stars that ATS can’t read."}},
+      {"@type":"Question","name":"How do I prove a skill with no experience?",
+       "acceptedAnswer":{"@type":"Answer","text":"Ship a 1–2 day project—a small dashboard, content calendar, script, or redesign—and link it. One concrete outcome beats generic claims."}}
+    ]
+  }
+  </script>
+
+
+</head>
+<body>
+
+
+  <!-- Global header -->
+
+
+  <header class="site-header">
+    <div class="site-header-inner">
+
+
+  <div class="brand-block">
+    <div class="brand-row">
+      <span>Internstart</span>
+      <span class="brand-badge">AI</span>
+    </div>
+    <div class="breadcrumb">
+      <a href="/blog/">Blog</a> /
+      <a>Skills for Internship Resume</a>
+    </div>
+  </div>
+
+  <a class="cta-header" href="/register/">
+    Apply to 1,000+ internships in minutes with AI
+  </a>
+</div>
+
+  </header>
+
+
+  <main class="page-wrapper">
+
+
+<!-- Post intro / hero -->
+<header class="post-header">
+  <div class="post-eyebrow">Internship Resume Skills Guide 2025</div>
+
+  <h1 class="post-title">
+    <a>Skills for Internship Resume</a>
+    (What to Include, Where to Put Them & ATS Tips)
+  </h1>
+
+  <div class="post-meta">
+    <div>Written by <strong>Anna Blanchard</strong></div>
+    <div>Updated: Nov 8, 2025</div>
+  </div>
+
+  <div class="hero-image">
+    <!-- Use the same image; replace later if desired -->
+    <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}"
+         alt="Student selecting skills for an internship resume">
+  </div>
+
+  <div class="note">
+    Short answer: the best <span class="keyword-highlight">skills for internship resume</span> mix
+    <strong>core skills</strong> (clear writing, time management),
+    <strong>role-specific tools</strong> (Excel, Python, Figma), and
+    <strong>keywords from the job description</strong>. Put them in the <strong>top third</strong> of your resume and
+    prove them with one-line results.
+  </div>
+
+  <nav class="toc" aria-label="Table of contents">
+    <strong>Contents</strong>
+    <ul>
+      <li><a href="#what">What counts as a “skill” for internships?</a></li>
+      <li><a href="#top-skills">Top skills recruiters scan for</a></li>
+      <li><a href="#by-field">Best skills by field (examples you can copy)</a></li>
+      <li><a href="#list">How to list skills (placement, levels, ATS)</a></li>
+      <li><a href="#bullets">Turn skills into results (bullet examples)</a></li>
+      <li><a href="#mistakes">Common mistakes</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </nav>
+</header>
+
+<h2 id="what">What counts as a skill on an internship resume?</h2>
+<p>
+  Skills include <em>tools</em> (Excel, Python, Canva), <em>methods</em> (A/B testing, user interviews),
+  and <em>work behaviors</em> (documentation, time management, stakeholder communication).
+  If it helps a team ship work faster or better, it belongs—<strong>as long as you can prove it</strong>.
+  For formatting the whole resume, read our guide:
+  <a href="/blog/how-to-write-resume-for-internship/">how to write a resume for internship</a>.
+</p>
+
+<h2 id="top-skills">Top skills recruiters scan for (across most internships)</h2>
+<table>
+  <thead>
+    <tr><th>Category</th><th>Examples to list</th><th>Simple proof you can add</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Communication</strong></td>
+      <td>Clear writing, slide making, stakeholder updates</td>
+      <td>“Wrote weekly updates for 20+ members; reduced meeting time 15%.”</td>
+    </tr>
+    <tr>
+      <td><strong>Analysis</strong></td>
+      <td>Excel (PivotTables), basic SQL/Sheets, research</td>
+      <td>“Built a cost tracker; flagged 8% saving.”</td>
+    </tr>
+    <tr>
+      <td><strong>Organization</strong></td>
+      <td>Task management, documentation, version control</td>
+      <td>“Created a Notion hub; improved handoffs for 3 teams.”</td>
+    </tr>
+    <tr>
+      <td><strong>Collaboration</strong></td>
+      <td>Slack/Teams etiquette, async updates, feedback</td>
+      <td>“Ran a 10-min async standup; raised on-time delivery to 95%.”</td>
+    </tr>
+    <tr>
+      <td><strong>Tech literacy</strong></td>
+      <td>Office/Google Suite, basic automation</td>
+      <td>“Automated file naming with a small script; cut manual work 2h/week.”</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="inline-cta">
+  Want a shortcut? <a href="/register/">Internstart</a> reads a job description, extracts the
+  <strong>exact ATS keywords</strong> and tools, then tailors your resume and <a href="/blog/cover-letter-for-internship/">cover letter</a>—and applies for you automatically.
+</div>
+
+<h2 id="by-field">Best skills by field (copy these into your resume—truthfully)</h2>
+<table>
+  <thead>
+    <tr><th>Field</th><th>Skills to list</th><th>1-line proof example</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Marketing</strong></td>
+      <td>Content calendar, short-form video, basic SEO, Meta/Google Ads, Canva, UTM tracking</td>
+      <td>“Planned 4-week calendar; +19% event sign-ups, tracked via UTM links.”</td>
+    </tr>
+    <tr>
+      <td><strong>Finance/Accounting</strong></td>
+      <td>Excel (PivotTables, VLOOKUP/XLOOKUP), budgeting, variance analysis, PowerPoint</td>
+      <td>“Built monthly spend report; flagged a 6% variance for review.”</td>
+    </tr>
+    <tr>
+      <td><strong>Software</strong></td>
+      <td>Python/JS basics, Git, REST APIs, unit tests, React or Flask/Django</td>
+      <td>“Shipped a small Flask API + tests; 35% fewer bugs by mid-term.”</td>
+    </tr>
+    <tr>
+      <td><strong>Data Analytics</strong></td>
+      <td>SQL, Excel/Sheets, pandas, Looker Studio/Tableau, data cleaning</td>
+      <td>“Cleaned sales CSVs and built a dashboard; weekly views by 5 leads.”</td>
+    </tr>
+    <tr>
+      <td><strong>Design/UX</strong></td>
+      <td>Figma, wireframing, component libraries, accessibility, simple prototyping</td>
+      <td>“Redesigned onboarding; cut form steps from 6→4 with clear labels.”</td>
+    </tr>
+    <tr>
+      <td><strong>Operations</strong></td>
+      <td>Process docs, SOPs, inventory basics, Excel tracking, Notion/Asana</td>
+      <td>“Documented returns SOP; average processing time −22%.”</td>
+    </tr>
+    <tr>
+      <td><strong>Engineering (Mech/EE/Civil)</strong></td>
+      <td>CAD basics, lab safety, bill of materials, test plans, reporting</td>
+      <td>“Drafted BOM and test checklist; 0 rework on prototype v2.”</td>
+    </tr>
+    <tr>
+      <td><strong>Product/PM</strong></td>
+      <td>Backlog grooming, user stories, PRD writing, stakeholder syncs</td>
+      <td>“Wrote PRD for feature X; aligned design/eng and shipped v1 on time.”</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="list">How to list skills (placement, levels, ATS)</h2>
+<ul>
+  <li><strong>Placement:</strong> Put 6–10 relevant skills in the <em>top third</em> under a “Skills” or “Core Skills” line.</li>
+  <li><strong>Group & label:</strong> <em>Analysis:</em> Excel (PivotTables), SQL • <em>Tools:</em> Looker, Notion • <em>Methods:</em> A/B testing.</li>
+  <li><strong>Levels (optional):</strong> Excel (Advanced), SQL (Basic), Python (Intermediate).</li>
+  <li><strong>Mirror keywords:</strong> Copy exact phrases from the posting (e.g., “XLOOKUP,” not just “Excel”).</li>
+  <li><strong>Repeat in bullets:</strong> Reference your most important skills inside experience bullets so ATS sees them twice.</li>
+  <li><strong>Avoid:</strong> Graphic bars/stars; ATS can’t parse them well.</li>
+</ul>
+
+<h3>Skills section template</h3>
+<pre><code><strong>Core Skills:</strong> Excel (PivotTables, XLOOKUP), SQL (basic), Python (pandas), Looker Studio, Notion, Clear writing, Time management</code></pre>
+
+<h2 id="bullets">Turn skills into results (bullet examples you can adapt)</h2>
+<p class="example-note">Replace adjectives with outcomes. Use “Did X → got Y in Z time/tools.”</p>
+<ul>
+  <li><strong>Excel/Analysis:</strong> “Built a budget tracker with PivotTables; reduced monthly variance by 6%.”</li>
+  <li><strong>Python:</strong> “Wrote a script to clean CSVs; saved ~2h/week for the team.”</li>
+  <li><strong>Content/SEO:</strong> “Shipped 12 posts in 4 weeks; +28% organic clicks (Search Console).”</li>
+  <li><strong>Figma/Design:</strong> “Prototyped a mobile flow; 5/6 testers finished in under 30s.”</li>
+  <li><strong>Project management:</strong> “Ran a Notion board and weekly recap; on-time delivery 95%.”</li>
+</ul>
+
+<div class="inline-cta">
+  Want your bullets written for you? <a href="/register/">Internstart</a> turns your projects into
+  <strong>proof-based bullets</strong> and mirrors the right skills for each internship—then submits your applications automatically.
+</div>
+
+<h2 id="mistakes">Common mistakes with the skills section</h2>
+<ul>
+  <li><strong>Listing everything you’ve ever touched.</strong> Relevance beats volume—trim to 8–15.</li>
+  <li><strong>Only soft skills.</strong> Pair soft skills with tools/methods recruiters can search for.</li>
+  <li><strong>No proof.</strong> Add a metric, link, or tiny project to make each skill believable.</li>
+  <li><strong>Wrong synonyms.</strong> Use the job’s exact wording (ATS cares).</li>
+  <li><strong>Hiding skills at the bottom.</strong> Put key skills <em>above the fold</em> in the top third.</li>
+</ul>
+
+<h2 id="faq">FAQ</h2>
+
+<h3>How many skills should I include?</h3>
+<p>8–15 total. Prioritize the 6–8 that match the posting. Cut the rest.</p>
+
+<h3>Where should the skills section go?</h3>
+<p>Top third of page, under your summary/education—or right under contact info if you’re early in your degree.</p>
+
+<h3>How do I pick the right keywords?</h3>
+<p>Copy 3–5 exact phrases from the job description (tools, methods, certifications). Internstart can pull them for you automatically.</p>
+
+<h2>Next steps</h2>
+<p>
+  Pair these skills with strong materials:
+  <a href="/blog/how-to-write-resume-for-internship/">how to write a resume for internship</a>,
+  <a href="/blog/cover-letter-for-internship/">cover letter for internship</a>, and
+  <a href="/blog/how-to-find-internships-with-no-experience/">how to find internships with no experience</a>.
+</p>
+<p>
+  Or upload once and let <a href="/register/">Internstart</a> match roles, insert the right skills/keywords, draft tailored bullets, and send applications for you.
+</p>
+
+  </main>
+
+
+  <footer class="site-footer">
+    <div class="footer__inner">
+      <h3>Internstart</h3>
+      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+
+
+  <nav class="footer__links" aria-label="Footer">
+    <a href="{% url 'about' %}">About</a>
+    <a href="#">Careers</a>
+    <a href="{% url 'blog_index' %}">Blog</a>
+    <a href="{% url 'contact' %}">Contact</a>
+    <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+  </nav>
+
+  <div class="footer__legal">
+    © 2025 Internship Platform. All rights reserved.
+  </div>
+</div>
+
+  </footer>
+
+
+  <style>
+    /* Footer */
+    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
+    .footer__inner{ max-width:1000px; margin:0 auto; }
+    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
+    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
+    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
+    .footer__links{ margin-bottom:28px; }
+    .footer__legal{ font-size:14px; color:#777; }
+  </style>
+
+
+</body>
+</html>
