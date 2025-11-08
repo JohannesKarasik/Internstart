@@ -12,7 +12,7 @@
 
   <title>Cover Letter for Internship (Examples, Templates & Email Tips)</title>
   <meta name="description"
-        content="Cover Letter for Internship: simple structure, copyable template, short examples, subject lines, ATS keywords, and common mistakes—so you can write a winning internship cover letter fast.">
+        content="Cover Letter for Internship: simple structure, copyable template, industry mini-templates, subject lines, ATS keywords, and common mistakes—so you can write a winning internship cover letter fast.">
 
 
   <link rel="canonical" href="https://internstart.com/blog/cover-letter-for-internship/">
@@ -107,6 +107,24 @@
     p { margin:0 0 16px; font-size:18px; }
     ul,ol { margin:0 0 16px 20px; }
 
+    /* Cards (for normal text templates) */
+    .template-card {
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      margin:16px 0;
+    }
+    .template-card p { margin:0 0 12px; white-space:pre-line; }
+    .templates-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:16px;
+    }
+    @media (min-width: 760px){
+      .templates-grid { grid-template-columns:1fr 1fr; }
+    }
+
     /* Utilities */
     .note { background:#fff; border:1px dashed var(--border); padding:14px 16px; border-radius:10px; color:var(--text-dim); font-size:15px; }
     .toc { border:1px solid var(--border); border-radius:12px; padding:16px; background:#fafafa; margin:24px 0 8px; font-size:16px; }
@@ -117,10 +135,6 @@
     table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:16px; }
     th,td { border:1px solid var(--border); padding:10px 12px; text-align:left; }
     th { background:#fbfbfb; font-weight:700; }
-
-    /* Code blocks */
-    pre { background:#0f172a; color:#e5e7eb; padding:16px; border-radius:12px; overflow:auto; font-size:15px; line-height:1.5; }
-    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
 
     /* Footer */
     footer.site-footer { border-top:1px solid var(--border); background:#fff; padding:32px 16px 64px; color:var(--text-dim); font-size:14px; }
@@ -219,7 +233,7 @@
       <li><a href="#why">Why a Cover Letter for Internship matters</a></li>
       <li><a href="#structure">The 5-part structure</a></li>
       <li><a href="#template">Copyable template</a></li>
-      <li><a href="#examples">Short examples (no experience & software)</a></li>
+      <li><a href="#industry">Mini templates by industry</a></li>
       <li><a href="#email">Subject lines & sign-off</a></li>
       <li><a href="#keywords">ATS keywords & formatting</a></li>
       <li><a href="#mistakes">Common mistakes</a></li>
@@ -248,64 +262,91 @@
   Skip manual edits. <a href="/register/">Internstart</a> reads each job, mirrors the right keywords, drafts your <strong>Cover Letter for Internship</strong>, fills ATS forms, and submits—so you focus on interviews.
 </div>
 
-<h2 id="template">Copy-and-paste template</h2>
-<pre><code>Dear Hiring Manager,
+<h2 id="template">Copy-and-paste template (plain text)</h2>
+<div class="template-card">
+  <p>Dear Hiring Manager,</p>
+  <p>I’m a second-year Business student at Copenhagen Business School applying for the Marketing Intern role at BrightBean. I’m excited by your creator marketing program and can help with Excel reporting, social content, and customer research.</p>
+  <p>Recently, I planned a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. I also built an Airtable to track posts and UTM links so we knew what drove event RSVPs. These projects taught me to ship useful work quickly, communicate clearly, and ask better questions.</p>
+  <p>I’m available May–August and would love to support the marketing team.</p>
+  <p>Best regards,<br>(Your Name)<br>(your.email@example.com) · (your phone) · (LinkedIn/portfolio)</p>
+</div>
 
-I’m a second-year Business student at Copenhagen Business School applying for the Marketing Intern role at BrightBean. I’m excited by your creator marketing program and can help with Excel reporting, social content, and customer research.
+<h2 id="industry">Mini templates by industry (plain text)</h2>
+<div class="templates-grid">
+  <div class="template-card">
+    <h3>Marketing Internship</h3>
+    <p>Dear Hiring Manager,</p>
+    <p>I’m a Marketing student applying for the Marketing Intern role at (Company). I follow your (campaign/product) and want to help with content planning, short-form video, and basic analytics.</p>
+    <p>For my campus club, I scheduled a month of Reels/TikToks that reached ~42,000 views and increased sign-ups 19%. I also set up UTM tracking to see which posts drove RSVPs.</p>
+    <p>Available June–August. I’d be excited to support your social calendar and reporting.</p>
+    <p>Best,<br>(Your Name)</p>
+  </div>
 
-Recently, I planned a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. I also built an Airtable to track posts and UTM links so we knew what drove event RSVPs. These projects taught me to ship useful work quickly, communicate clearly, and ask better questions.
+  <div class="template-card">
+    <h3>Software Engineering Internship</h3>
+    <p>Dear Ms. López,</p>
+    <p>I’m a CS student (Python/JS) applying for the Software Engineering Intern role at (Company). Your move toward (feature/stack) is exciting; I’ve been prototyping something similar.</p>
+    <p>Last semester I built a small Flask API and a React UI used by ~600 students in week one. I added tests and CI, which reduced bugs by 35% mid-term.</p>
+    <p>Available May–August. Happy to help with frontend components, data fetching, and bug triage.</p>
+    <p>Best regards,<br>(Your Name)</p>
+  </div>
 
-I’m available May–August and would love to support the marketing team.
+  <div class="template-card">
+    <h3>Data Analytics Internship</h3>
+    <p>Dear Hiring Manager,</p>
+    <p>I’m a Business Analytics student applying for the Data Analytics Intern role at (Company). I can help with SQL, Excel/PivotTables, and dashboards (Looker/Tableau).</p>
+    <p>Recently I cleaned sales CSVs and built a weekly dashboard for a student project; the ops lead used it to flag a 6% variance.</p>
+    <p>Available May–August. I’d love to support your reporting and ad-hoc analysis.</p>
+    <p>Sincerely,<br>(Your Name)</p>
+  </div>
 
-Best regards,
-Maya Nilsson
-maya.nilsson@email.com · +1 (555) 123-4567 · linkedin.com/in/mayanilsson
+  <div class="template-card">
+    <h3>Finance/Accounting Internship</h3>
+    <p>Dear Hiring Manager,</p>
+    <p>I’m a Finance student applying for the Finance Intern role at (Company). I’m confident with Excel (PivotTables/XLOOKUP) and monthly variance analysis.</p>
+    <p>I built a budget tracker for a club event that flagged a 6% variance and helped keep spending on plan.</p>
+    <p>Available May–August. I’m eager to assist with reporting and reconciliations.</p>
+    <p>Best,<br>(Your Name)</p>
+  </div>
 
-<h2 id="examples">Short examples you can model</h2>
+  <div class="template-card">
+    <h3>Design/UX Internship</h3>
+    <p>Dear Hiring Manager,</p>
+    <p>I’m a Design student applying for the Design Intern role at (Company). I work in Figma, component libraries, and quick user tests.</p>
+    <p>I redesigned a student onboarding flow and cut the steps from 6 to 4; 5 of 6 testers completed in under 30 seconds.</p>
+    <p>Available June–August. I’d love to help with wireframes and prototypes.</p>
+    <p>Kind regards,<br>(Your Name)</p>
+  </div>
 
-<h3>Example — No Experience (Marketing Intern)</h3>
-<pre><code>Dear Hiring Manager,
-
-I’m a first-year Business student at CBS applying for the Marketing Intern role at BrightBean. I love how your TikTok spotlights student creators and I’d like to help scale that.
-
-For my campus club, I scheduled a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. I also set up UTM tracking in Airtable to see which posts drove RSVPs.
-
-I’m available June–August and can support content calendaring, short-form video, and basic analytics.
-
-Best,
-Maya Nilsson
-
-<h3>Example — Software Engineering Intern</h3>
-<pre><code>Dear Ms. López,
-
-I’m a CS student (Python/JS) applying for the Software Engineering Intern role at Orbit. Your shift to edge-rendered dashboards is exciting; I’ve been prototyping similar charts.
-
-Last semester I built a Flask API that aggregates canteen prices and a React UI to chart them. ~600 students used it in week one. I added tests and CI, which cut bugs 35% by mid-term.
-
-I’m available May–August and happy to help with frontend components, data fetching, and bug triage.
-
-Best regards,
-Arun Patel
+  <div class="template-card">
+    <h3>Operations Internship</h3>
+    <p>Dear Hiring Manager,</p>
+    <p>I’m an Operations/Management student applying for the Operations Intern role at (Company). I’m strong in documentation, SOPs, and Excel tracking.</p>
+    <p>Recently I wrote a returns SOP for a campus event that reduced processing time by 22%.</p>
+    <p>Available May–August and ready to support process mapping and reporting.</p>
+    <p>Best regards,<br>(Your Name)</p>
+  </div>
+</div>
 
 <h2 id="email">Email subject lines & sign-off</h2>
 <p><strong>Subject lines that get opened:</strong></p>
 <ul>
-  <li>Marketing Intern — Maya Nilsson (CBS · Reels & Analytics)</li>
-  <li>Software Engineering Intern — Arun Patel (React · Flask · Tests)</li>
-  <li>Design Intern Application — Portfolio inside (Figma · Motion)</li>
+  <li>Marketing Intern — (Your Name) (Reels & Analytics)</li>
+  <li>Software Engineering Intern — (Your Name) (React · Flask · Tests)</li>
+  <li>Data Analytics Intern — (Your Name) (SQL · Dashboards)</li>
 </ul>
-<p><strong>Sign-off:</strong> “Best regards,” + name + two contacts (email, phone) + one link (LinkedIn/portfolio).</p>
+<p><strong>Sign-off:</strong> “Best regards,” + (Your Name) + two contacts (email, phone) + one link (LinkedIn/portfolio).</p>
 
 <h2 id="keywords">ATS keywords & formatting tips</h2>
 <ul>
   <li>Mirror the posting’s exact phrases: “PivotTables,” “customer interviews,” “Django,” “SolidWorks.”</li>
   <li>200–350 words, standard fonts, normal section names.</li>
-  <li>Save as PDF: <em>Firstname-Lastname-Internship-Cover-Letter.pdf</em>. If there’s a text box, paste the text and attach the PDF.</li>
+  <li>Save as PDF: <em>(Firstname)-(Lastname)-Internship-Cover-Letter.pdf</em>. If there’s a text box, paste the text and attach the PDF.</li>
 </ul>
 
 <h2 id="mistakes">Common mistakes to avoid</h2>
 <ul>
-  <li><strong>Vague claims.</strong> Replace “hard-working team player” with a one-line proof and a number.</li>
+  <li><strong>Vague claims.</strong> Replace “hard-working team player” with one-line proof and a number.</li>
   <li><strong>Same letter everywhere.</strong> Customize the hook and 3–5 keywords for each role.</li>
   <li><strong>Wall of text.</strong> Use short paragraphs; make skimming effortless.</li>
   <li><strong>No availability.</strong> Always state months (e.g., “May–August”).</li>
@@ -319,7 +360,7 @@ Arun Patel
 <p>Use “Dear Hiring Manager” and reference the specific team or program in your opening line.</p>
 
 <h3>What if I’m switching fields?</h3>
-<p>Lead with transferable skills and a tiny proof project (dashboard, script, or design). One tangible result beats adjectives.</p>
+<p>Lead with transferable skills and a tiny proof project (dashboard, script, or redesign). One tangible result beats adjectives.</p>
 
 <h2 id="next">Next steps</h2>
 <p>Pair your letter with these guides: <a href="/blog/how-to-write-resume-for-internship/">how to write a resume for internship</a> and <a href="/blog/when-to-apply-for-summer-internships/">when to apply for summer internships</a>.</p>
