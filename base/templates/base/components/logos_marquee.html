@@ -16,7 +16,6 @@
       <div class="logos__track logos__track--a" data-speed="32">
         <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt="Netflix"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/airbnb.png' %}" alt="Airbnb"></div>
-        <div class="logo"><img class="logo__img" src="{% static 'images/amazon.png' %}" alt="Amazon"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/anthropic.png' %}" alt="Anthropic"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/adobe.png' %}" alt="Adobe"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/facebook.png' %}" alt="Facebook"></div>
@@ -42,7 +41,6 @@
         <div class="logo"><img class="logo__img" src="{% static 'images/anduril.png' %}" alt="Anduril"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/x.jpg' %}" alt="X (Twitter)"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/databricks.png' %}" alt="Databricks"></div>
-        <div class="logo"><img class="logo__img" src="{% static 'images/figma.png' %}" alt="Figma"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/paypal.png' %}" alt="PayPal"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt="Uber"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt="DoorDash"></div>
@@ -78,6 +76,7 @@
     background: #fff;
   }
 
+  /* Clean, sharp color area — no fade to white */
   .logos__bg{
     position: absolute;
     inset: 0;
@@ -86,24 +85,13 @@
     transform: translateX(-50%);
     z-index: 0;
 
-    /* smoother fade and slight white overlay to unify the blend */
     background:
-      /* top and bottom fade */
-      linear-gradient(
-        to bottom,
-        #ffffff 0%,
-        rgba(255,255,255,0.1) 12%,
-        rgba(255,255,255,0.1) 88%,
-        #ffffff 100%
-      ),
-      /* soft subtle white veil over all gradients */
-      linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(255,255,255,0.25)),
-      /* color fields */
       radial-gradient(90vmax 80vmax at 15% 15%, var(--g-orange) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
       radial-gradient(100vmax 90vmax at 85% 20%, var(--g-cyan) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
       radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, var(--g-orange) 60%, transparent 100%),
       radial-gradient(95vmax 90vmax at 25% 80%, var(--g-magenta) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
-    background-blend-mode: lighten;
+    background-color: #fff; /* ensures clean, solid edges */
+    background-blend-mode: normal;
     pointer-events: none;
   }
 
@@ -128,7 +116,6 @@
     margin-inline: calc(50% - 50vw);
     width: 100vw;
     overflow: hidden;
-    border-radius: 0;
     padding: var(--logos-pad-y) 0;
     display: flex;
     flex-direction: column;
@@ -144,6 +131,7 @@
     gap: var(--logos-gap);
     animation: marquee linear infinite;
   }
+
   .logos__track--a{ animation-duration: 16s; }
   .logos__track--b{ animation-duration: 20s; opacity:.96; }
   .logos__track--c{ animation-duration: 24s; opacity:.94; }
