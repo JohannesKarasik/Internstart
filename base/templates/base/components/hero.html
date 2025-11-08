@@ -268,10 +268,11 @@
 
 .hero__sticky {
   position: fixed;
-  bottom: 48px;    /* further down */
-  right: 38px;     /* further right */
+  bottom: 0;       /* flush with bottom */
+  right: 0;        /* flush with right */
   z-index: 9999;
   pointer-events: none;
+  padding: 18px;   /* gives space inside viewport edges */
 }
 
 .btn--sticky {
@@ -279,12 +280,11 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #ff6b85; /* softer tone of #FF2F5A */
+  background: #ff6b85; /* softer brand tone */
   color: #fff;
   font-family: 'Manrope', sans-serif;
   font-weight: 700;
   font-size: 15px;
-  line-height: 1;
   text-decoration: none;
   border-radius: 999px;
   padding: 14px 22px;
@@ -319,11 +319,10 @@
   transform: rotate(180deg) translateY(2px);
 }
 
-/* Mobile adjustments */
+/* Mobile: smaller and a bit higher to avoid UI overlap */
 @media (max-width: 600px) {
   .hero__sticky {
-    bottom: 30px;
-    right: 22px;
+    padding: 12px;
   }
   .btn--sticky {
     font-size: 14px;
