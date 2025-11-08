@@ -134,7 +134,7 @@ urlpatterns = [
 
    'blog/when-to-apply-for-summer-internships/',
     views.blog_when_to_apply_for_summer_internships,
-    name='blog_when_to_apply_for_summer_internships'
+    name='blog_when_to_apply_for_summer_internships',
 
 
     # Health Check URL
