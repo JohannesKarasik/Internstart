@@ -513,6 +513,44 @@
 </noscript>
 
 
+
+
+
+
+
+  {# Tinder cards + AI form section #}
+  {% include "base/components/tinder_form_dk.html" %}
+
+  <footer class="site-footer">
+    <div class="footer__inner">
+      <h3>Internstart</h3>
+      <p>Hjælper studerende og nyuddannede med at finde topvirksomheder og karrieremuligheder.</p>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="{% url 'about' %}">Om os</a>
+        <a href="#">Karriere</a>
+        <a href="{% url 'contact' %}">Kontakt</a>
+        <a href="{% url 'privacy_policy' %}">Privatlivspolitik</a>
+      </nav>
+      <div class="footer__legal">© 2025 Praktikplatform. Alle rettigheder forbeholdes.</div>
+    </div>
+</footer>
+
+  
+  <style>
+  
+    /* Footer */
+    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
+    .footer__inner{ max-width:1000px; margin:0 auto; }
+    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
+    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
+    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
+    .footer__links{ margin-bottom:28px; }
+    .footer__legal{ font-size:14px; color:#777; }
+  
+  
+  </style>
+
+
 !-- ✅ Bottom-left popup notification -->
 <div id="upgradePopup" class="upgrade-popup" hidden>
   <div class="upgrade-popup__content">
@@ -673,41 +711,6 @@
 })();
 </script>
 
-
-
-
-
-  {# Tinder cards + AI form section #}
-  {% include "base/components/tinder_form_dk.html" %}
-
-  <footer class="site-footer">
-    <div class="footer__inner">
-      <h3>Internstart</h3>
-      <p>Hjælper studerende og nyuddannede med at finde topvirksomheder og karrieremuligheder.</p>
-      <nav class="footer__links" aria-label="Footer">
-        <a href="{% url 'about' %}">Om os</a>
-        <a href="#">Karriere</a>
-        <a href="{% url 'contact' %}">Kontakt</a>
-        <a href="{% url 'privacy_policy' %}">Privatlivspolitik</a>
-      </nav>
-      <div class="footer__legal">© 2025 Praktikplatform. Alle rettigheder forbeholdes.</div>
-    </div>
-</footer>
-
-  
-  <style>
-  
-    /* Footer */
-    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
-    .footer__inner{ max-width:1000px; margin:0 auto; }
-    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
-    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
-    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
-    .footer__links{ margin-bottom:28px; }
-    .footer__legal{ font-size:14px; color:#777; }
-  
-  
-  </style>
 
 {% endblock content %}
 
