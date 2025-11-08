@@ -121,13 +121,14 @@
   </div>
 
   <div class="hero__sticky">
-    <a href="#social-proof" class="btn btn--sticky" aria-label="{% trans 'See how it works' %}">
+    <a href="#social-proof" class="btn btn--sticky" aria-label="See how it works">
       See how it works
       <svg class="chev" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 16l-6-6h12l-6 6z" fill="currentColor"/>
       </svg>
     </a>
   </div>
+  
 </section>
 
 <style>
@@ -263,6 +264,73 @@
   color:#9ca3af;
   margin-left: -4px; /* was 6 */
 }
+
+
+.hero__sticky {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  pointer-events: none; /* prevents blocking other interactions */
+}
+
+.btn--sticky {
+  pointer-events: all;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #FF2F5A;
+  color: #fff;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  box-shadow: 0 6px 20px rgba(255,47,90,0.25);
+  transition: 
+    transform 0.25s ease, 
+    box-shadow 0.25s ease, 
+    background 0.25s ease;
+}
+
+.btn--sticky:hover {
+  background: #e92650;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(255,47,90,0.3);
+}
+
+.btn--sticky:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(255,47,90,0.25);
+}
+
+.btn--sticky .chev {
+  width: 16px;
+  height: 16px;
+  transform: rotate(180deg);
+  transition: transform 0.25s ease;
+}
+
+.btn--sticky:hover .chev {
+  transform: rotate(180deg) translateY(2px);
+}
+
+/* Optional: smaller and centered on mobile */
+@media (max-width: 600px) {
+  .hero__sticky {
+    bottom: 18px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+  .btn--sticky {
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 999px;
+  }
+}
+
 
 </style>
 
