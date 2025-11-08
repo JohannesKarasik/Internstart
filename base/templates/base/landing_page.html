@@ -376,7 +376,7 @@
     --kpi-bg:#fff;
   }
   .kpi{
-    padding: 28px 0 16px; /* compact top as requested earlier */
+    padding: 28px 0 16px;
     background: transparent;
   }
   .kpi__inner{
@@ -404,13 +404,12 @@
   }
   .kpi__value{
     font: 800 clamp(24px, 5vw, 44px)/1.1 system-ui, sans-serif;
-    color: var(--kpi-ink);
+    color: #0b1220;
   }
   .kpi__value .countup{
-    color: var(--kpi-ink);
-    text-shadow: 0 0 0 rgba(0,0,0,0); /* keeps subpixel crisp */
+    color: #0b1220;
+    text-shadow: 0 0 0 rgba(0,0,0,0);
   }
-  /* Accent underline bar for a subtle AI SaaS vibe */
   .kpi__item::after{
     content:"";
     display:block;
@@ -420,10 +419,17 @@
     background: linear-gradient(90deg, #FF2F5A, rgba(255,47,90,0.15));
     border-radius: 999px;
   }
-
   @media (max-width: 840px){
     .kpi__inner{ grid-template-columns: 1fr; }
     .kpi__item::after{ width: 28%; }
+  }
+
+  /* Canvas for confetti */
+  .confetti-canvas{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99999;
   }
 </style>
 
@@ -431,49 +437,143 @@
 (() => {
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ============== Confetti (vanilla, lightweight) ============== */
+  let confettiCanvas, ctx, confettiActive = false;
+  const colors = ['#FF2F5A', '#FF7A1A', '#FFB3C0', '#ffd1d8', '#ffc7a3'];
+
+  function ensureCanvas(){
+    if (confettiCanvas) return;
+    confettiCanvas = document.createElement('canvas');
+    confettiCanvas.className = 'confetti-canvas';
+    document.body.appendChild(confettiCanvas);
+    ctx = confettiCanvas.getContext('2d');
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+  }
+  function resizeCanvas(){
+    if (!confettiCanvas) return;
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+
+  function confettiBurstAt(el){
+    if (prefersReduced) return;
+
+    ensureCanvas();
+
+    // find element center in viewport coords
+    const rect = el.getBoundingClientRect();
+    const x = rect.left + rect.width/2;
+    const y = rect.top  + rect.height/2;
+
+    const particles = [];
+    const count = 120; // nice burst
+    for (let i=0;i<count;i++){
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 5;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2, // slight upward bias
+        g: 0.12 + Math.random()*0.12,
+        size: 3 + Math.random()*4,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        life: 60 + Math.random()*40,
+        alpha: 1
+      });
+    }
+
+    let frame = 0;
+    confettiActive = true;
+
+    const animate = () => {
+      if (!confettiActive) return;
+      frame++;
+
+      ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+
+      particles.forEach(p => {
+        p.vy += p.g;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha = Math.max(0, p.alpha - 0.012);
+        p.life--;
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size * 0.6);
+      });
+
+      // keep only alive particles
+      for (let i=particles.length-1; i>=0; i--){
+        if (particles[i].life <= 0 || particles[i].alpha <= 0 || particles[i].y > window.innerHeight+20){
+          particles.splice(i,1);
+        }
+      }
+
+      if (particles.length > 0){
+        requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+        confettiActive = false;
+      }
+    };
+    requestAnimationFrame(animate);
+  }
+
+  /* ============== Count Up ============== */
   const formatNumber = (value, locale = 'es-ES', suffix = '') => {
-    // Use integer formatter with dot thousands for es-ES
     const formatted = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
     return suffix ? formatted + suffix : formatted;
   };
 
-  const animateCount = (el, target, { duration = 1600, locale = 'es-ES', suffix = '' } = {}) => {
-    if (prefersReduced) { 
-      el.textContent = formatNumber(target, locale, suffix);
-      return;
-    }
-    const start = 0;
-    const startTime = performance.now();
-    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  // Slower duration + smoother easing
+  const easeOutQuint = t => 1 - Math.pow(1 - t, 5);
 
-    const tick = now => {
-      const p = Math.min(1, (now - startTime) / duration);
-      const eased = easeOutCubic(p);
-      const current = Math.round(start + (target - start) * eased);
-      el.textContent = formatNumber(current, locale, suffix);
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+  const animateCount = (el, target, { duration = 2800, locale = 'es-ES', suffix = '' } = {}) => {
+    return new Promise(resolve => {
+      if (prefersReduced) { 
+        el.textContent = formatNumber(target, locale, suffix);
+        resolve();
+        return;
+      }
+      const start = 0;
+      const startTime = performance.now();
+
+      const tick = now => {
+        const p = Math.min(1, (now - startTime) / duration);
+        const eased = easeOutQuint(p);
+        const current = Math.round(start + (target - start) * eased);
+        el.textContent = formatNumber(current, locale, suffix);
+        if (p < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(tick);
+    });
   };
 
   const init = () => {
     const nodes = document.querySelectorAll('.countup');
     if (!nodes.length) return;
 
-    // Trigger once when section is visible
     const seen = new WeakSet();
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          if (seen.has(el)) return;
-          seen.add(el);
+      entries.forEach(async entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        if (seen.has(el)) return;
+        seen.add(el);
 
-          const target = Number(el.getAttribute('data-target') || '0');
-          const suffix = el.getAttribute('data-suffix') || '';
-          const locale = el.getAttribute('data-locale') || 'es-ES';
-          animateCount(el, target, { locale, suffix });
-        }
+        const target = Number(el.getAttribute('data-target') || '0');
+        const suffix = el.getAttribute('data-suffix') || '';
+        const locale = el.getAttribute('data-locale') || 'es-ES';
+
+        // Run the animation (slower & smoother), then confetti
+        await animateCount(el, target, { locale, suffix, duration: 3000 });
+        // Confetti from this value's position
+        confettiBurstAt(el);
       });
     }, { threshold: 0.25 });
 
@@ -489,7 +589,6 @@
 </script>
 
 <noscript>
-  <!-- Fallback values when JS is disabled -->
   <style>.countup{opacity:1 !important}</style>
 </noscript>
 
