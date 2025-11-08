@@ -2961,3 +2961,8 @@ def blog_index(request):
 def blog_resume_internship(request):
     return render(request, 'base/blog/how_to_write_resume_for_internship.html')
 
+def blog_when_to_apply_for_summer_internships(request):
+    """
+    Renders the blog page: 'When to Apply for Summer Internships'
+    """
+    return render(request, 'base/blog/when_to_apply_for_summerinternships.html')

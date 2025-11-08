@@ -66,7 +66,7 @@ urlpatterns = [
     path("process-text/", views.process_text_page, name="process_text_page"),
     path("test-landing/", views.landing_page_test, name="landing_page_test"),
     path('blog/', views.blog_index, name='blog_index'),
-    path('blog/how-to-write-resume-for-internship/', views.blog_resume_internship, name='blog_resume_internship'),
+
     path('', views.landing_page, name='landing_page'),       # US default
     path('uk/', views.landing_page_uk, name='landing_page_uk'),
     path('dk/', views.landing_page_dk, name='landing_page_dk'),
@@ -76,6 +76,7 @@ urlpatterns = [
     path("swipe/preview/", swipe_static_view, name="swipe_static_view"),
     # urls.py
     path("swipe/next/", views.next_card_json, name="next_card_json"),
+    
 
 
 
@@ -127,6 +128,15 @@ urlpatterns = [
     path('messages/<int:user_id>/', views.message_room, name='message_room'),
     path('load_messages_fragment/<int:user_id>/', views.load_messages_fragment, name='load_messages_fragment'),
     
+
+    #blog posts
+    path('blog/how-to-write-resume-for-internship/', views.blog_resume_internship, name='blog_resume_internship'),
+
+   'blog/when-to-apply-for-summer-internships/',
+    views.blog_when_to_apply_for_summer_internships,
+    name='blog_when_to_apply_for_summer_internships'
+
+
     # Health Check URL
     path('health/', views.health_check, name='health_check'),
 ]
