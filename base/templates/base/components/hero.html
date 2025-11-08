@@ -18,9 +18,11 @@
     </p>
 
     <div class="hero__ctas">
-      <a href="{% url 'register' %}" class="btn btn--primary">
-       Start applying to jobs with AI
-      </a>
+      <a href="{% url 'register' %}"
+      class="cta-pulse"
+      style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
+      Start applying to jobs with AI
+   </a>
       <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;">
        Login
       </a>
@@ -329,7 +331,15 @@
     padding: 12px 18px;
   }
 }
+@keyframes ctaPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
 
+.cta-pulse {
+  animation: ctaPulse 2.6s ease-in-out infinite;
+}
 
 </style>
 
