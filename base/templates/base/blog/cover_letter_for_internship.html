@@ -176,18 +176,94 @@
 
   <header class="site-header">
     <div class="site-header-inner">
-      <div class="brand-block">
-        <div class="brand-row">
-          <span>Internstart</span>
-          <span class="brand-badge">AI</span>
-        </div>
-        <div class="breadcrumb">
-          <a href="/blog/">Blog</a> / <a>Cover Letter for Internship</a>
+      
+      <!-- Left: Logo + Breadcrumb -->
+      <div class="brand-block" style="display:flex; align-items:center; gap:16px;">
+        <a href="/" class="brand-logo-link" style="display:flex; align-items:center; text-decoration:none;">
+          <img 
+            src="{% static 'images/Internstartlogo (1).jpg' %}" 
+            alt="Internstart Logo" 
+            width="160" 
+            height="auto" 
+            style="border-radius:6px;"
+          >
+        </a>
+  
+        <div>
+          <div class="brand-row">
+            <span style="font-weight:700; font-size:18px; color:#0f172a;">Internstart</span>
+            <span class="brand-badge">AI</span>
+          </div>
+          <div class="breadcrumb">
+            <a href="/blog/">Blog</a> / <a>Cover Letter for Internship</a>
+          </div>
         </div>
       </div>
-      <a class="cta-header" href="/register/">Apply to 1,000+ internships in minutes with AI</a>
+  
+      <!-- Right: CTA -->
+      <a class="cta-header" href="/register/">
+        Apply to 1,000+ internships in minutes with AI
+      </a>
+  
     </div>
   </header>
+  
+  <style>
+  .site-header {
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .site-header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .brand-badge {
+    background: #FF2F5A;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+  .breadcrumb {
+    font-size: 14px;
+    color: #6b7280;
+  }
+  .breadcrumb a {
+    color: #6b7280;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .breadcrumb a:hover { color: #FF2F5A; text-decoration: underline; }
+  .cta-header {
+    display: inline-block;
+    background-color: #FF2F5A;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+  .cta-header:hover {
+    background-color: #e92650;
+    text-decoration: none;
+  }
+  </style>
+  
 
 
   <main class="page-wrapper">
