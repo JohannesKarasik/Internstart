@@ -8,7 +8,7 @@
 
   <div class="logos__inner">
     <h3 class="logos__title">
-      {% blocktrans %}Land interviews at top companies with AI{% endblocktrans %}
+      Land <span class="t-accent">interviews</span> at top companies with <span class="t-accent">AI</span>
     </h3>
 
     <div class="logos__viewport" aria-hidden="true">
@@ -54,6 +54,7 @@
     --logos-gap: clamp(17px, 2.3vw, 30px);
     --logos-pad-y: clamp(20px, 3vw, 40px);
     --section-pad-y: clamp(48px, 6vw, 90px);
+    --accent: #FF2F5A; /* outline + heading accent */
   }
 
   .logos{
@@ -77,13 +78,28 @@
     z-index: 1;
   }
 
+  /* Refined heading: lighter weight, better tracking/line-height, balanced wrap */
   .logos__title{
     text-align: center;
-    font-weight: 800;
-    letter-spacing: -0.015em;
-    font-size: clamp(26px, 3.2vw, 42px);
+    font-weight: 700; /* less bulky than 800 */
+    letter-spacing: -0.01em; /* ease tracking a touch */
+    font-size: clamp(24px, 3vw, 40px); /* slightly slimmer scale */
+    line-height: 1.15;
     color: #0b1220;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    text-wrap: balance; /* modern, non-critical enhancement */
+  }
+
+  /* Accent spans in the heading */
+  .logos__title .t-accent{
+    color: var(--accent);
+    background: rgba(255, 47, 90, 0.06);
+    border: 1px solid rgba(255, 47, 90, 0.18);
+    padding: .06em .32em;
+    margin: 0 .04em;
+    border-radius: .45em;
+    font-weight: 700; /* keep emphasis without making whole title heavy */
+    white-space: nowrap;
   }
 
   .logos__viewport{
