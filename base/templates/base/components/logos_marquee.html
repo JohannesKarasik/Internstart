@@ -115,7 +115,7 @@
     to  { transform: translateX(-50%); }
   }
 
-  /* Modern AI SaaS-style logo cards with #FF2F5A outline */
+  /* Subtle, light outline using #FF2F5A */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -125,19 +125,27 @@
     min-width: clamp(110px, 12vw, 180px);
     height: clamp(44px, 4.8vw, 60px);
     background: #fff;
-    border: 1.5px solid #FF2F5A;             /* primary outline */
+    border: 1px solid rgba(255, 47, 90, 0.28);      /* lighter coral outline */
     border-radius: 14px;
     box-shadow:
-      0 2px 8px rgba(16, 24, 40, 0.06),      /* soft neutral depth */
-      0 0 0 3px rgba(255, 47, 90, 0.08);     /* subtle neon-style ring */
-    transition: box-shadow .25s ease, transform .25s ease;
+      0 1px 3px rgba(16, 24, 40, 0.05);            /* very soft depth */
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
   }
 
   .logo:hover{
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+    border-color: rgba(255, 47, 90, 0.4);          /* a touch stronger on hover */
     box-shadow:
-      0 6px 20px rgba(16, 24, 40, 0.10),
-      0 0 0 4px rgba(255, 47, 90, 0.14);
+      0 4px 14px rgba(16, 24, 40, 0.08),
+      0 0 0 2px rgba(255, 47, 90, 0.10);           /* subtle ring on hover */
+  }
+
+  /* Accessible focus state (keyboard) */
+  .logo:focus-visible{
+    outline: none;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px rgba(255, 47, 90, 0.28);
   }
 
   .logo__img{
