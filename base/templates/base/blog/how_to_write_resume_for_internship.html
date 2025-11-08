@@ -15,6 +15,14 @@
   <meta property="og:description" content="How to write resume for internship with no experience. Internship resume format, examples, and how AI can apply for internships for you automatically.">
   <meta property="og:type" content="article">
 
+  <!-- ✅ FAVICON (copied from main template) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+  <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+  <meta name="theme-color" content="#ff2a55">
+
   <!-- FONT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -421,20 +429,38 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-inner">
-      <p><strong>Internstart</strong> — Apply to dozens of internships automatically using AI.</p>
-      <p>Upload your resume once. We fill out the forms and send the applications for you.</p>
-
-      <div class="footer-nav">
-        <a href="/register/">Get Started</a>
-        <a href="/blog/">Blog</a>
-        <a href="/blog/how-to-write-cover-letter-for-internship/">Cover Letter Tips</a>
-        <a href="/blog/ai-tools-for-internships/">AI Tools for Internships</a>
-        <a href="/privacy/">Privacy</a>
-        <a href="/terms/">Terms</a>
+    <div class="footer__inner">
+      <h3>Internstart</h3>
+      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+      
+      <nav class="footer__links" aria-label="Footer">
+        <a href="{% url 'about' %}">About</a>
+        <a href="#">Careers</a>
+        <a href="{% url 'blog_index' %}">Blog</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+      </nav>
+  
+      <div class="footer__legal">
+        © 2025 Internship Platform. All rights reserved.
       </div>
     </div>
   </footer>
+
+  
+  <style>
+  
+    /* Footer */
+    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
+    .footer__inner{ max-width:1000px; margin:0 auto; }
+    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
+    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
+    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
+    .footer__links{ margin-bottom:28px; }
+    .footer__legal{ font-size:14px; color:#777; }
+  
+  
+  </style>
 
 </body>
 </html>
