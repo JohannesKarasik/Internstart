@@ -124,14 +124,13 @@
       --rv-card-w: clamp(320px, 30vw, 420px);
       --rv-card-h: 280px;
       --rv-pad-y: clamp(56px, 8vw, 112px);
-      --rv-bg: #ffffff;
-      --rv-shadow: 0 18px 40px rgba(2,8,23,.08);
+      --rv-shadow: 0 16px 36px rgba(0,0,0,0.06);
     }
   
     .reviews{
       position: relative;
       padding: var(--rv-pad-y) 0;
-      background: #ffced7;
+      background: none; /* no section background */
     }
   
     .reviews__inner{
@@ -143,12 +142,11 @@
     .reviews__viewport{
       overflow: hidden;
       position: relative;
-      background: #ffced7; /* match parent */
       -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
               mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
     }
   
-    /* remove any subpixel line below */
+    /* cover subpixel artifact line */
     .reviews__viewport::after{
       content: "";
       position: absolute;
@@ -156,7 +154,7 @@
       left: 0;
       width: 100%;
       height: 3px;
-      background: #ffced7;
+      background: #fff;
       pointer-events: none;
       z-index: 3;
     }
@@ -168,19 +166,26 @@
       will-change: transform;
     }
   
+    /* ✨ New subtle card background */
     .review-card{
       position: relative;
       flex: 0 0 var(--rv-card-w);
       width: var(--rv-card-w);
       min-height: var(--rv-card-h);
-      background: var(--rv-bg);
-      border: none;
+      background: linear-gradient(145deg, #ffffff, #f9fafc, #f6f7fb);
+      border: 1px solid rgba(200,200,210,0.15);
       border-radius: 18px;
       box-shadow: var(--rv-shadow);
       padding: 22px 22px 18px;
       display: grid;
       grid-template-rows: auto 1fr auto;
       row-gap: 12px;
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+  
+    .review-card:hover{
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
     }
   
     .review-flag{
@@ -234,70 +239,6 @@
     }
   </style>
   
-
-<script>
-(() => {
-  const viewport = document.querySelector('.reviews__viewport');
-  const track = document.querySelector('.reviews__track');
-  if (!viewport || !track) return;
-
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (prefersReduced) return;
-
-  // Duplicate items once for a smooth, infinite loop
-  const originals = Array.from(track.children);
-  originals.forEach(node => track.appendChild(node.cloneNode(true)));
-
-  let step = 0;
-  let index = 0;
-  let gapPx = 0;
-
-  const computeStep = () => {
-    const first = track.querySelector('.review-card');
-    if (!first) return;
-    const rect = first.getBoundingClientRect();
-    const styles = getComputedStyle(track);
-    const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
-    gapPx = rawGap;
-    step = rect.width + gapPx;
-
-    track.style.transition = 'none';
-    track.style.transform = `translateX(${-index * step}px)`;
-    requestAnimationFrame(() => track.style.transition = '');
-  };
-
-  const advance = () => {
-    index += 1;
-    track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
-    track.style.transform = `translateX(${-index * step}px)`;
-
-    if (index >= originals.length) {
-      setTimeout(() => {
-        track.style.transition = 'none';
-        index = 0;
-        track.style.transform = 'translateX(0)';
-        requestAnimationFrame(() => track.style.transition = '');
-      }, 620);
-    }
-  };
-
-  const ro = new ResizeObserver(computeStep);
-  ro.observe(viewport);
-  window.addEventListener('load', computeStep, { once:true });
-  computeStep();
-
-  // Move one card every 3 seconds
-  setInterval(advance, 3000);
-
-  // Pause transition when scrolled out (optional)
-  const io = new IntersectionObserver((entries) => {
-    const visible = entries[0].isIntersecting;
-    if (!visible) { track.style.transition = 'none'; }
-  }, { threshold: 0.05 });
-  io.observe(viewport);
-})();
-</script>
-
 
   {% include "base/components/logos_marquee.html" %}
 
