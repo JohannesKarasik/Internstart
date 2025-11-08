@@ -59,13 +59,6 @@
     --logos-card: rgba(255,255,255,.35);
     --logos-border: rgba(255,255,255,.28);
     --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
-
-    /* palette used inside the single canvas */
-    --g-violet: rgba(122, 77, 255, 0.18);
-    --g-purple: rgba(164, 99, 255, 0.16);
-    --g-magenta: rgba(255, 79, 216, 0.18);
-    --g-orange: rgba(255, 142, 110, 0.16);
-    --g-cyan: rgba(104, 192, 255, 0.18);
   }
 
   .logos{
@@ -76,7 +69,7 @@
     background: #fff;
   }
 
-  /* Clean, sharp color area — no fade to white */
+  /* Updated gradient background */
   .logos__bg{
     position: absolute;
     inset: 0;
@@ -85,13 +78,13 @@
     transform: translateX(-50%);
     z-index: 0;
 
-    background:
-      radial-gradient(90vmax 80vmax at 15% 15%, var(--g-orange) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
-      radial-gradient(100vmax 90vmax at 85% 20%, var(--g-cyan) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
-      radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, var(--g-orange) 60%, transparent 100%),
-      radial-gradient(95vmax 90vmax at 25% 80%, var(--g-magenta) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
-    background-color: #fff; /* ensures clean, solid edges */
-    background-blend-mode: normal;
+    background: linear-gradient(
+      115deg,
+      #FF2F5A 0%,
+      #FF4B2E 25%,
+      #FF7A1A 55%,
+      #FF5400 100%
+    );
     pointer-events: none;
   }
 
