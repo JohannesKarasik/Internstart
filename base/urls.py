@@ -132,9 +132,11 @@ urlpatterns = [
     #blog posts
     path('blog/how-to-write-resume-for-internship/', views.blog_resume_internship, name='blog_resume_internship'),
 
-   'blog/when-to-apply-for-summer-internships/',
-    views.blog_when_to_apply_for_summer_internships,
-    name='blog_when_to_apply_for_summer_internships',
+    path(
+        'blog/when-to-apply-for-summer-internships/',
+        views.blog_when_to_apply_for_summer_internships,
+        name='blog_when_to_apply_for_summer_internships',
+    ),
 
 
     # Health Check URL
