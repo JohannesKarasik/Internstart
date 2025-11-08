@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 <!-- Google Font (safe to include here; duplicate loads are ignored by browser) -->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
@@ -9,126 +10,124 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      Apply to <span class="accent">200+ jobs</span> in<br>
-      minutes powered by <span class="accent">AI</span>
+      Ansøg til <span class="accent">200+ jobs</span> på<br>
+      få minutter drevet af <span class="accent">AI</span>
     </h1>
 
-    <p class="hero__subhead">
-      Internstart finds the right opportunities, fills out applications, and sends them for you. Land interviews faster without the endless forms.
-    </p>
+```
+<p class="hero__subhead">
+  Internstart finder de rette muligheder, udfylder ansøgningerne og sender dem for dig. Få samtaler hurtigere uden endeløse formularer.
+</p>
 
-    <div class="hero__ctas">
-      <a href="{% url 'register' %}" class="btn btn--primary">
-       Start applying to jobs with AI
-      </a>
-      <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;">
-       Login
-      </a>
-    </div>
-
-    <div class="hero__rating"
-    aria-label="Rated 4.8 out of 5">
-
-    <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
-    <span class="rating__text">
-      <strong>4.8</strong>
-      <span class="muted">out of 5</span>
-    </span>
-  
-    <span class="rating__sep">•</span>   <!-- HERE add this small dot -->
-  
-    <div class="hero__faces">
-      <img src="{% static 'images/review1.png' %}" alt="" class="hero__face">
-      <img src="{% static 'images/review2.png' %}" alt="" class="hero__face">
-      <img src="{% static 'images/review3.png' %}" alt="" class="hero__face">
-    </div>
-  
-
-  
-
-  <span class="rating__more muted"> + 354 more</span>
-
+<div class="hero__ctas">
+  <a href="{% url 'register' %}" class="btn btn--primary">
+    Begynd at søge jobs med AI
+  </a>
+  <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;">
+    Log ind
+  </a>
 </div>
 
+<div class="hero__rating"
+     aria-label="Bedømt 4,8 ud af 5">
 
-</div>
-</div>
+  <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
+  <span class="rating__text">
+    <strong>4,8</strong>
+    <span class="muted">ud af 5</span>
+  </span>
 
+  <span class="rating__sep">•</span>
+
+  <div class="hero__faces">
+    <img src="{% static 'images/review1.png' %}" alt="" class="hero__face">
+    <img src="{% static 'images/review2.png' %}" alt="" class="hero__face">
+    <img src="{% static 'images/review3.png' %}" alt="" class="hero__face">
+  </div>
+
+  <span class="rating__more muted"> + 354 flere</span>
+</div>
+```
+
+  </div>
 
   <!-- Phone-shaped TikTok-style carousel -->
+
   <div class="hero__phone">
-    <div class="sp__rail" aria-label="{% trans 'User videos' %}">
+    <div class="sp__rail" aria-label="Brugervideoer">
       <!-- Card 1 -->
       <article class="sp__card is-active">
         <video class="sp__video" playsinline muted loop preload="metadata"
                src="{% static 'images/internstart1_small.mp4' %}"></video>
         <div class="sp__overlay">
           <div class="sp__meta">
-            <div class="sp__handle">@sofia • CBS" </div>
-            <div class="sp__caption">Sent 40 apps this week.</div>
+            <div class="sp__handle">@sofia • CBS</div>
+            <div class="sp__caption">Sendte 40 ansøgninger i denne uge.</div>
           </div>
           <div class="sp__actions">
-            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
+            <button type="button" class="sp__mute" aria-pressed="true" aria-label="Slå lyden til">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
               </svg>
             </button>
-            <div class="sp__stat">❤️ 1.2k</div>
+            <div class="sp__stat">❤️ 1,2k</div>
           </div>
         </div>
       </article>
 
-      <!-- Card 2 -->
-      <article class="sp__card">
-        <video class="sp__video" playsinline muted loop preload="metadata"
-               src="{% static 'images/internstart2_small.mp4' %}"></video>
-        <div class="sp__overlay">
-          <div class="sp__meta">
-            <div class="sp__handle">@Sophi • {% trans "UF" %}</div>
-            <div class="sp__caption">AI filled my apps while I studied.</div>
-          </div>
-          <div class="sp__actions">
-            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
-              </svg>
-            </button>
-            <div class="sp__stat">❤️ 980</div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Card 3 -->
-      <article class="sp__card">
-        <video class="sp__video" playsinline muted loop preload="metadata"
-               src="{% static 'images/internstart3_small.mp4' %}"></video>
-        <div class="sp__overlay">
-          <div class="sp__meta">
-            <div class="sp__handle">@Anas • NCU</div>
-            <div class="sp__caption">2 interviews after one evening.</div>
-          </div>
-          <div class="sp__actions">
-            <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
-              </svg>
-            </button>
-            <div class="sp__stat">❤️ 1.6k</div>
-          </div>
-        </div>
-      </article>
+```
+  <!-- Card 2 -->
+  <article class="sp__card">
+    <video class="sp__video" playsinline muted loop preload="metadata"
+           src="{% static 'images/internstart2_small.mp4' %}"></video>
+    <div class="sp__overlay">
+      <div class="sp__meta">
+        <div class="sp__handle">@Sophi • {% trans "UF" %}</div>
+        <div class="sp__caption">AI udfyldte mine ansøgninger, mens jeg studerede.</div>
+      </div>
+      <div class="sp__actions">
+        <button type="button" class="sp__mute" aria-pressed="true" aria-label="Slå lyden til">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+          </svg>
+        </button>
+        <div class="sp__stat">❤️ 980</div>
+      </div>
     </div>
+  </article>
+
+  <!-- Card 3 -->
+  <article class="sp__card">
+    <video class="sp__video" playsinline muted loop preload="metadata"
+           src="{% static 'images/internstart3_small.mp4' %}"></video>
+    <div class="sp__overlay">
+      <div class="sp__meta">
+        <div class="sp__handle">@Anas • NCU</div>
+        <div class="sp__caption">2 samtaler efter én aften.</div>
+      </div>
+      <div class="sp__actions">
+        <button type="button" class="sp__mute" aria-pressed="true" aria-label="Slå lyden til">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
+          </svg>
+        </button>
+        <div class="sp__stat">❤️ 1,6k</div>
+      </div>
+    </div>
+  </article>
+</div>
+```
+
   </div>
 
   <div class="hero__sticky">
-    <a href="#social-proof" class="btn btn--sticky" aria-label="See how it works">
-      See how it works
+    <a href="#social-proof" class="btn btn--sticky" aria-label="Se hvordan det virker">
+      Se hvordan det virker
       <svg class="chev" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 16l-6-6h12l-6 6z" fill="currentColor"/>
       </svg>
     </a>
   </div>
-  
 </section>
 
 <style>
@@ -156,9 +155,6 @@
   background-clip:text;
   color:transparent;
 }
-
-
-
 
 .hero__subhead{ font-family:var(--font); font-size: clamp(20px, 2vw, 26px); line-height:1.6; color: var(--muted); max-width: 65ch; margin: 0 0 36px; }
 
@@ -238,7 +234,7 @@
 .hero__faces{
   display:flex;
   align-items:center;
-  margin-left:4px; /* was 10 */
+  margin-left:4px;
 }
 
 .hero__face{
@@ -251,7 +247,6 @@
   background:#eee;
 }
 
-
 .rating__sep{
   color:#c6cbd2;
   margin:0 6px;
@@ -262,17 +257,16 @@
   font-weight:600;
   font-size:13px;
   color:#9ca3af;
-  margin-left: -4px; /* was 6 */
+  margin-left: -4px;
 }
-
 
 .hero__sticky {
   position: fixed;
-  bottom: 0;       /* flush with bottom */
-  right: 0;        /* flush with right */
+  bottom: 0;
+  right: 0;
   z-index: 9999;
   pointer-events: none;
-  padding: 18px;   /* gives space inside viewport edges */
+  padding: 18px;
 }
 
 .btn--sticky {
@@ -329,8 +323,6 @@
     padding: 12px 18px;
   }
 }
-
-
 </style>
 
 <script>
@@ -363,7 +355,7 @@
       setInterval(() => { index = (index + 1) % cards.length; showCard(index); }, DURATION);
     }
 
-    // B) Tap to toggle mute (per card)
+    // B) Tap to toggle mute (per card) — Danish aria-labels
     document.querySelectorAll('.hero__phone .sp__mute').forEach((btn) => {
       const card = btn.closest('.sp__card');
       const video = card?.querySelector('video');
@@ -373,14 +365,14 @@
         video.muted = !video.muted;
         btn.classList.toggle('is-on', !video.muted);
         btn.setAttribute('aria-pressed', String(!video.muted));
-        btn.setAttribute('aria-label', video.muted ? '{{ _("Unmute video") }}' : '{{ _("Mute video") }}');
+        btn.setAttribute('aria-label', video.muted ? 'Slå lyden til' : 'Slå lyden fra');
         if (!video.paused) video.play().catch(() => {});
       });
       // Click anywhere on card to toggle
       card.addEventListener('click', () => btn.click());
     });
 
-    // C) Smooth scroll for sticky CTA (respects fixed headers if you later add an offset)
+    // C) Smooth scroll for sticky CTA
     document.addEventListener('click', function(e){
       const a = e.target.closest('.btn--sticky[href^="#"]');
       if(!a) return;
