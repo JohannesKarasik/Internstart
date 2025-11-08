@@ -2966,3 +2966,27 @@ def blog_when_to_apply_for_summer_internships(request):
     Renders the blog page: 'When to Apply for Summer Internships'
     """
     return render(request, 'base/blog/when_to_apply_for_summerinternships.html')
+
+def blog_when_to_apply_for_summer_internships(request):
+    """
+    Renders the blog page: 'When to Apply for Summer Internships'
+    """
+    return render(request, 'base/blog/when_to_apply_for_summerinternships.html')
+
+
+
+def cover_letter_for_internship(request):
+    """
+    Renders the blog page: 'When to Apply for Summer Internships'
+    """
+    return render(request, 'base/blog/cover_letter_for_internship.html')
+
+
+
+
+
+def how_to_find_internships_with_no_experience(request):
+    """
+    Renders the blog page: 'When to Apply for Summer Internships'
+    """
+    return render(request, 'base/blog/how_to_find_internships_with_no_experience.html')

@@ -174,7 +174,3 @@ def stripe_webhook(request):
 
     return HttpResponse(status=200)
 
-def landing_page(request):
-    return render(request, "landing_page.html", {
-        "google_maps_key": settings.GOOGLE_MAPS_KEY
-    })

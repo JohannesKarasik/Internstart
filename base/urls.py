@@ -129,7 +129,7 @@ urlpatterns = [
     path('load_messages_fragment/<int:user_id>/', views.load_messages_fragment, name='load_messages_fragment'),
     
 
-    #blog posts
+    #blog posts####################################
     path('blog/how-to-write-resume-for-internship/', views.blog_resume_internship, name='blog_resume_internship'),
 
     path(
@@ -137,6 +137,23 @@ urlpatterns = [
         views.blog_when_to_apply_for_summer_internships,
         name='blog_when_to_apply_for_summer_internships',
     ),
+
+    path(
+        'blog/cover-letter-for-internship/',
+        views.cover_letter_for_internship,
+        name='blog_cover_letter_for_internship',
+    ),
+
+        path(
+        'blog/how_to_find_internships_with_no_experience/',
+        views.how_to_find_internships_with_no_experience,
+        name='how_to_find_internships_with_no_experience',
+    ),
+
+
+
+
+    ##############################################
 
 
     # Health Check URL
