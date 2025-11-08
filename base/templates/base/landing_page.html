@@ -140,36 +140,14 @@
       padding: 0 16px;
     }
   
-    /* ✨ Modern SaaS-style subtle outline */
     .reviews__viewport{
       overflow: hidden;
       position: relative;
       padding: 40px 0 60px;
-      border-radius: 22px;
-      background: #fff;
-      /* Gradient border effect */
-      border: 1px solid rgba(255, 47, 90, 0.25);
-      box-shadow:
-        0 0 0 1px rgba(255, 47, 90, 0.08),
-        0 0 22px rgba(255, 47, 90, 0.12),
-        0 0 48px rgba(255, 47, 90, 0.05);
-      transition: box-shadow 0.3s ease, border 0.3s ease;
-    }
-  
-    .reviews__viewport:hover {
-      box-shadow:
-        0 0 0 1px rgba(255, 47, 90, 0.2),
-        0 0 28px rgba(255, 47, 90, 0.18),
-        0 0 64px rgba(255, 47, 90, 0.08);
-    }
-  
-    /* Remove fade edges */
-    .reviews__viewport {
       -webkit-mask-image: none !important;
               mask-image: none !important;
     }
   
-    /* Clean bottom edge (no artifact) */
     .reviews__viewport::after{
       content: "";
       position: absolute;
@@ -189,28 +167,60 @@
       will-change: transform;
     }
   
-    /* ✨ Subtle card background */
+    /* ✨ Modern subtle AI-style card outline */
     .review-card{
       position: relative;
       flex: 0 0 var(--rv-card-w);
       width: var(--rv-card-w);
       min-height: var(--rv-card-h);
       background: linear-gradient(145deg, #ffffff, #fafbfc);
-      border: 1px solid rgba(200,200,210,0.15);
+      border: 1px solid rgba(255, 47, 90, 0.15);
       border-radius: 18px;
-      box-shadow: var(--rv-shadow);
+      box-shadow:
+        0 0 0 1px rgba(255, 47, 90, 0.08),
+        0 0 12px rgba(255, 47, 90, 0.05),
+        var(--rv-shadow);
       padding: 22px 22px 18px;
       display: grid;
       grid-template-rows: auto 1fr auto;
       row-gap: 12px;
-      transition: transform .25s ease, box-shadow .25s ease, border .25s ease;
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        border .25s ease;
     }
   
     .review-card:hover{
-      transform: translateY(-3px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-      border-color: rgba(255, 47, 90, 0.25);
+      transform: translateY(-4px);
+      border-color: rgba(255, 47, 90, 0.3);
+      box-shadow:
+        0 0 0 1px rgba(255, 47, 90, 0.2),
+        0 0 18px rgba(255, 47, 90, 0.15),
+        0 12px 28px rgba(0,0,0,0.06);
     }
+  
+    /* Optional subtle animated shimmer border (uncomment if you want it) */
+    /*
+    .review-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,47,90,0.3), rgba(255,47,90,0.1), rgba(255,47,90,0.3));
+      -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      animation: shimmer 6s linear infinite;
+    }
+  
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    */
   
     .review-flag{
       position: absolute;
