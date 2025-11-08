@@ -142,8 +142,9 @@
     .reviews__viewport{
       overflow: hidden;
       position: relative;
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-              mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+      /* ❌ Removed fade mask */
+      -webkit-mask-image: none !important;
+              mask-image: none !important;
     }
   
     /* cover subpixel artifact line */
@@ -166,7 +167,7 @@
       will-change: transform;
     }
   
-    /* ✨ New subtle card background */
+    /* ✨ Subtle card background */
     .review-card{
       position: relative;
       flex: 0 0 var(--rv-card-w);
@@ -238,6 +239,7 @@
       .reviews__track{ transform: none !important; transition: none !important; }
     }
   </style>
+  
   
 
   <script>
