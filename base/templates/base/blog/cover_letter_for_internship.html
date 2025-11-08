@@ -12,16 +12,17 @@
 
   <title>Cover Letter for Internship (Examples, Templates & Email Tips)</title>
   <meta name="description"
-        content="Write a winning cover letter for internship applications—even with no experience. Follow our step-by-step structure, copy templates, and see examples recruiters love.">
+        content="Cover Letter for Internship: simple structure, copyable template, short examples, subject lines, ATS keywords, and common mistakes—so you can write a winning internship cover letter fast.">
 
 
   <link rel="canonical" href="https://internstart.com/blog/cover-letter-for-internship/">
   <meta property="og:title" content="Cover Letter for Internship (Examples, Templates & Email Tips)">
-  <meta property="og:description" content="The exact structure, examples, and templates to write a great internship cover letter—plus email subject lines and ATS keyword tips. Apply faster with Internstart’s AI.">
+  <meta property="og:description" content="Write a strong Cover Letter for Internship with our step-by-step structure, template, and examples. Apply faster with Internstart’s AI.">
   <meta property="og:type" content="article">
+  <meta name="theme-color" content="#ff2a55">
 
 
-  <!-- ✅ FAVICON (copied from main template) -->
+  <!-- ✅ FAVICON -->
 
 
   <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
@@ -29,7 +30,6 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
   <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
   <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-  <meta name="theme-color" content="#ff2a55">
 
 
   <!-- FONT -->
@@ -37,9 +37,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 
   <style>
@@ -51,137 +49,90 @@
       --accent:#FF2F5A;
       --content-width:760px;
     }
-
-    * { box-sizing: border-box; }
+    * { box-sizing:border-box; }
     body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      line-height: 1.6;
-      margin: 0;
+      background:var(--bg);
+      color:var(--text-main);
+      font-family:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      line-height:1.6;
+      margin:0;
     }
-    img { max-width: 100%; height: auto; border-radius: 12px; }
-    a { color: var(--accent); text-decoration: none; font-weight: 600; }
-    a:hover { text-decoration: underline; }
+    img { max-width:100%; height:auto; border-radius:12px; }
+    a { color:var(--accent); text-decoration:none; font-weight:600; }
+    a:hover { text-decoration:underline; }
 
-    /* highlight spans for keyword phrases */
+    /* Highlight */
     .keyword-highlight {
-      background: rgba(255,47,90,.08);
-      border-radius: 4px;
-      padding: 0 .25em;
-      box-decoration-break: clone;
+      background:rgba(255,47,90,.08);
+      border-radius:4px;
+      padding:0 .25em;
+      box-decoration-break:clone;
     }
 
     /* Header */
     .site-header {
-      border-bottom: 1px solid var(--border);
-      background-color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 9999;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-bottom:1px solid var(--border);
+      background:#fff;
+      position:sticky; top:0; z-index:9999;
+      box-shadow:0 1px 3px rgba(0,0,0,.06);
     }
     .site-header-inner {
-      max-width: var(--content-width);
-      margin: 0 auto;
-      padding: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      row-gap: 8px;
+      max-width:var(--content-width);
+      margin:0 auto; padding:16px;
+      display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; row-gap:8px;
     }
-    .brand-block { display: flex; flex-direction: column; gap: 4px; }
-    .brand-row {
-      display: flex; align-items: baseline; gap: 8px;
-      font-size: 16px; font-weight: 700; color: var(--text-main); line-height: 1.2;
-    }
-    .brand-badge {
-      background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
-      line-height: 1; padding: 3px 6px; border-radius: 4px;
-    }
-    .breadcrumb { font-size: 14px; color: var(--text-dim); line-height: 1.4; }
-    .breadcrumb a { color: var(--text-dim); font-weight: 500; text-decoration: none; }
-    .breadcrumb a:hover { color: var(--accent); text-decoration: underline; }
+    .brand-block { display:flex; flex-direction:column; gap:4px; }
+    .brand-row { display:flex; align-items:baseline; gap:8px; font-size:16px; font-weight:700; }
+    .brand-badge { background:var(--accent); color:#fff; font-size:11px; font-weight:700; line-height:1; padding:3px 6px; border-radius:4px; }
+    .breadcrumb { font-size:14px; color:var(--text-dim); }
+    .breadcrumb a { color:var(--text-dim); font-weight:500; }
+    .breadcrumb a:hover { color:var(--accent); }
     .cta-header {
-      display: inline-block; background-color: var(--accent); color: #fff;
-      border-radius: 6px; font-size: 14px; font-weight: 600; padding: 9px 13px;
-      line-height: 1.2; text-decoration: none;
+      display:inline-block; background:var(--accent); color:#fff; border-radius:6px;
+      font-size:14px; font-weight:600; padding:9px 13px; line-height:1.2;
     }
-    .cta-header:hover { filter: brightness(1.05); text-decoration: none; }
+    .cta-header:hover { filter:brightness(1.05); text-decoration:none; }
 
     /* Article layout */
-    .page-wrapper { max-width: var(--content-width); margin: 32px auto 80px; padding: 0 16px 64px; }
-    header.post-header { margin-bottom: 24px; }
-    .post-eyebrow {
-      color: var(--accent); font-size: 15px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: -.02em; margin-bottom: 8px;
-    }
-    h1.post-title {
-      font-size: clamp(2.2rem, 4vw, 2.8rem);
-      line-height: 1.15; font-weight: 800; color: var(--text-main);
-      margin: 0 0 12px; letter-spacing: -.04em;
-    }
-    .post-meta { font-size: 16px; color: var(--text-dim); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 12px; }
-    .hero-image { margin-top: 24px; margin-bottom: 32px; }
+    .page-wrapper { max-width:var(--content-width); margin:32px auto 80px; padding:0 16px 64px; }
+    header.post-header { margin-bottom:24px; }
+    .post-eyebrow { color:var(--accent); font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:-.02em; margin-bottom:8px; }
+    h1.post-title { font-size:clamp(2.2rem,4vw,2.8rem); line-height:1.15; font-weight:800; margin:0 0 12px; letter-spacing:-.03em; }
+    .post-meta { font-size:16px; color:var(--text-dim); display:flex; flex-wrap:wrap; gap:12px; }
+    .hero-image { margin-top:24px; margin-bottom:32px; }
 
-    /* Typography blocks */
-    h2 {
-      font-size: 1.4rem; line-height: 1.3; font-weight: 700;
-      margin: 40px 0 12px; color: var(--text-main); letter-spacing: -.03em;
-    }
-    h3 {
-      font-size: 1.2rem; line-height: 1.4; font-weight: 600;
-      margin: 28px 0 8px; color: var(--text-main); letter-spacing: -.02em;
-    }
-    p { margin: 0 0 16px; font-size: 18px; color: var(--text-main); }
-    .example-note { font-weight: 600; font-size: 18px; }
+    /* Typography */
+    h2 { font-size:1.35rem; line-height:1.3; font-weight:800; margin:36px 0 12px; letter-spacing:-.02em; }
+    h3 { font-size:1.1rem; line-height:1.35; font-weight:700; margin:24px 0 8px; }
+    p { margin:0 0 16px; font-size:18px; }
+    ul,ol { margin:0 0 16px 20px; }
 
     /* Utilities */
-    .note {
-      background: #fff;
-      border: 1px dashed var(--border);
-      padding: 14px 16px; border-radius: 10px; color: var(--text-dim);
-      font-size: 15px;
-    }
-    .toc {
-      border: 1px solid var(--border); border-radius: 12px; padding: 16px;
-      background: #fafafa; margin: 24px 0 8px; font-size: 16px;
-    }
-    .toc ul { margin: 0; padding-left: 18px; }
-    .toc a { font-weight: 600; }
-    .inline-cta {
-      background: rgba(255,47,90,.08);
-      border: 1px solid rgba(255,47,90,.25);
-      padding: 16px; border-radius: 12px; margin: 24px 0;
-    }
+    .note { background:#fff; border:1px dashed var(--border); padding:14px 16px; border-radius:10px; color:var(--text-dim); font-size:15px; }
+    .toc { border:1px solid var(--border); border-radius:12px; padding:16px; background:#fafafa; margin:24px 0 8px; font-size:16px; }
+    .toc ul { margin:8px 0 0; padding-left:18px; }
+    .inline-cta { background:rgba(255,47,90,.08); border:1px solid rgba(255,47,90,.25); padding:16px; border-radius:12px; margin:24px 0; }
 
     /* Tables */
-    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 16px; }
-    th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
-    th { background: #fbfbfb; font-weight: 700; }
+    table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:16px; }
+    th,td { border:1px solid var(--border); padding:10px 12px; text-align:left; }
+    th { background:#fbfbfb; font-weight:700; }
 
     /* Code blocks */
     pre { background:#0f172a; color:#e5e7eb; padding:16px; border-radius:12px; overflow:auto; font-size:15px; line-height:1.5; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
 
     /* Footer */
-    footer.site-footer {
-      border-top: 1px solid var(--border);
-      background-color: #fff;
-      padding: 32px 16px 64px;
-      color: var(--text-dim);
-      font-size: 14px;
-    }
-    .footer-inner { max-width: var(--content-width); margin: 0 auto; }
-    .footer-inner p { margin: 0 0 12px; line-height: 1.5; color: var(--text-dim); font-size: 14px; }
-    .footer-nav { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: 14px; font-weight: 500; margin-top: 16px; }
-    .footer-nav a { color: var(--text-main); text-decoration: none; }
-    .footer-nav a:hover { color: var(--accent); text-decoration: underline; }
+    footer.site-footer { border-top:1px solid var(--border); background:#fff; padding:32px 16px 64px; color:var(--text-dim); font-size:14px; }
+    .footer-inner { max-width:var(--content-width); margin:0 auto; }
+    .footer-inner p { margin:0 0 12px; line-height:1.5; font-size:14px; }
+    .footer-nav { display:flex; flex-wrap:wrap; gap:12px 20px; font-size:14px; font-weight:500; margin-top:16px; }
+    .footer-nav a { color:var(--text-main); }
+    .footer-nav a:hover { color:var(--accent); }
   </style>
 
 
-  <!-- Article + FAQ structured data -->
+  <!-- Article structured data -->
 
 
   <script type="application/ld+json">
@@ -189,7 +140,7 @@
     "@context":"https://schema.org",
     "@type":"Article",
     "headline":"Cover Letter for Internship (Examples, Templates & Email Tips)",
-    "description":"The exact structure, examples, and templates to write a great internship cover letter—plus email subject lines and ATS keyword tips.",
+    "description":"Simple guide to write a strong Cover Letter for Internship: structure, template, examples, subject lines, and ATS tips.",
     "author":{"@type":"Person","name":"Anna Blanchard"},
     "publisher":{"@type":"Organization","name":"Internstart"},
     "dateModified":"2025-11-08",
@@ -199,23 +150,22 @@
   </script>
 
 
+  <!-- FAQ structured data -->
+
+
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"FAQPage",
     "mainEntity":[
       {"@type":"Question","name":"How do I write a cover letter for an internship?",
-       "acceptedAnswer":{"@type":"Answer","text":"Use a 5-part structure: header, hook, fit, proof, close. Mirror the role’s keywords and show 1–2 relevant achievements using the STAR method."}},
+       "acceptedAnswer":{"@type":"Answer","text":"Use five parts: Header, Hook, Fit, Proof, Close. Keep it 200–350 words, mirror the job’s keywords, and show one or two results with numbers."}},
       {"@type":"Question","name":"Do I need a cover letter for internship applications?",
-       "acceptedAnswer":{"@type":"Answer","text":"Yes when requested or when a free-form field is provided. On rolling applications, a concise cover letter can be the tie-breaker."}},
+       "acceptedAnswer":{"@type":"Answer","text":"Yes when requested or when a text field is provided. A short, tailored letter is often the tie-breaker on competitive, rolling roles."}},
+      {"@type":"Question","name":"How long should a cover letter for internship be?",
+       "acceptedAnswer":{"@type":"Answer","text":"One page or 200–350 words. Short paragraphs, clear headings, and easy skimming."}},
       {"@type":"Question","name":"What if I have no experience?",
-       "acceptedAnswer":{"@type":"Answer","text":"Leverage class projects, clubs, part-time work, or personal builds. Show impact with numbers, e.g., views, sign-ups, cost/time saved."}},
-      {"@type":"Question","name":"How long should it be?",
-       "acceptedAnswer":{"@type":"Answer","text":"200–350 words (one page max). Hiring teams skim. Keep paragraphs tight and scannable."}},
-      {"@type":"Question","name":"How should I address the cover letter?",
-       "acceptedAnswer":{"@type":"Answer","text":"Use a name if possible (e.g., “Dear Ms. López”). If unknown, use “Dear Hiring Manager” and reference the team or program by name."}},
-      {"@type":"Question","name":"Should I email it or upload a PDF?",
-       "acceptedAnswer":{"@type":"Answer","text":"If the ATS requests an upload, attach a PDF. If emailing, paste the letter into the email body and attach a PDF copy as well."}}
+       "acceptedAnswer":{"@type":"Answer","text":"Use class projects, clubs, part-time work, or a small personal build. Show impact with simple metrics, like sign-ups, views, cost or time saved."}}
     ]
   }
   </script>
@@ -230,267 +180,168 @@
 
   <header class="site-header">
     <div class="site-header-inner">
-
-
-  <div class="brand-block">
-    <div class="brand-row">
-      <span>Internstart</span>
-      <span class="brand-badge">AI</span>
+      <div class="brand-block">
+        <div class="brand-row">
+          <span>Internstart</span>
+          <span class="brand-badge">AI</span>
+        </div>
+        <div class="breadcrumb">
+          <a href="/blog/">Blog</a> / <a>Cover Letter for Internship</a>
+        </div>
+      </div>
+      <a class="cta-header" href="/register/">Apply to 1,000+ internships in minutes with AI</a>
     </div>
-    <div class="breadcrumb">
-      <a href="/blog/">Blog</a> /
-      <a>Cover Letter for Internship</a>
-    </div>
-  </div>
-
-
-  <a class="cta-header" href="/register/">
-    Apply to 1,000+ internships in minutes with AI
-  </a>
-</div>
-
-
   </header>
 
 
   <main class="page-wrapper">
-
-
-<!-- Post intro / hero -->
-
-
-<header class="post-header">
-  <div class="post-eyebrow">Internship Cover Letter Guide 2025</div>
-
-
-  <h1 class="post-title">
-    <a>Cover Letter for Internship</a>
-    (Examples, Templates & Email Tips)
-  </h1>
-
-
-  <div class="post-meta">
-    <div>Written by <strong>Anna Blanchard</strong></div>
-    <div>Updated: Nov 8, 2025</div>
-  </div>
+    <!-- Post intro / hero -->
+    <header class="post-header">
+      <div class="post-eyebrow">Internship Cover Letter Guide 2025</div>
+      <h1 class="post-title"><a>Cover Letter for Internship</a> (Examples, Templates & Email Tips)</h1>
+      <div class="post-meta">
+        <div>Written by <strong>Anna Blanchard</strong></div>
+        <div>Updated: Nov 8, 2025</div>
+      </div>
 
 
   <div class="hero-image">
-    <!-- Use the same image as the previous article; replace later if you wish -->
-    <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}"
-         alt="Student writing a cover letter for internship on a laptop">
+    <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}" alt="Student writing a Cover Letter for Internship on a laptop">
   </div>
-
 
   <div class="note">
-    Short answer: a great <span class="keyword-highlight">cover letter for internship</span> is <strong>short, specific, and proof-based</strong>. Hook them in the first 2 lines, mirror the job’s keywords, and show 1–2 quick wins that prove you’re useful—even without formal experience.
+    The fastest way to write a winning <span class="keyword-highlight">Cover Letter for Internship</span> is to keep it short, specific, and proof-based. Use the structure below, copy the template, then send it with your resume.
   </div>
-
 
   <nav class="toc" aria-label="Table of contents">
     <strong>Contents</strong>
     <ul>
-      <li><a href="#why">Why internship cover letters matter</a></li>
-      <li><a href="#structure">The structure that works (5 parts)</a></li>
-      <li><a href="#template">Fill-in-the-blank template</a></li>
-      <li><a href="#examples">Realistic examples (no experience + role-specific)</a></li>
-      <li><a href="#email">Email subject lines & send-off</a></li>
-      <li><a href="#keywords">ATS keywords & formatting tips</a></li>
-      <li><a href="#mistakes">Common mistakes to avoid</a></li>
+      <li><a href="#why">Why a Cover Letter for Internship matters</a></li>
+      <li><a href="#structure">The 5-part structure</a></li>
+      <li><a href="#template">Copyable template</a></li>
+      <li><a href="#examples">Short examples (no experience & software)</a></li>
+      <li><a href="#email">Subject lines & sign-off</a></li>
+      <li><a href="#keywords">ATS keywords & formatting</a></li>
+      <li><a href="#mistakes">Common mistakes</a></li>
       <li><a href="#faq">FAQ</a></li>
+      <li><a href="#next">Next steps</a></li>
     </ul>
   </nav>
 </header>
 
+<h2 id="why">Why your <span class="keyword-highlight">Cover Letter for Internship</span> matters</h2>
+<p>Recruiters skim dozens of similar resumes. A concise cover letter shows communication skills, motivation, and specific fit for the team. It often decides who gets the interview.</p>
 
-<h2 id="why">Why your <span class="keyword-highlight">cover letter for internship</span> matters</h2>
-<p>
-  When recruiters see dozens of similar resumes, a tight cover letter is the tie-breaker. It shows <em>communication skills</em>, motivation, and fit for the specific team. The trick is to be concrete and brief—show impact, not adjectives.
-</p>
-
-
-<h2 id="structure">The 5-part structure that wins interviews</h2>
+<h2 id="structure">The 5-part structure that works</h2>
 <table>
-  <thead>
-    <tr><th>Part</th><th>What to write</th><th>Pro tip</th></tr>
-  </thead>
+  <thead><tr><th>Part</th><th>What to write</th><th>Pro tip</th></tr></thead>
   <tbody>
-    <tr>
-      <td><strong>Header</strong></td>
-      <td>Name, contact, date, company, role.</td>
-      <td>Match your resume header; link LinkedIn/portfolio.</td>
-    </tr>
-    <tr>
-      <td><strong>Hook</strong></td>
-      <td>1–2 lines tying your skills to the team’s goals.</td>
-      <td>Reference a product, campaign, or mission they care about.</td>
-    </tr>
-    <tr>
-      <td><strong>Fit</strong></td>
-      <td>Mirror 3–5 keywords from the posting.</td>
-      <td>Use exact phrases (Excel, Python, social content, CAD).</td>
-    </tr>
-    <tr>
-      <td><strong>Proof</strong></td>
-      <td>1–2 STAR-style mini stories with numbers.</td>
-      <td>“Built X that led to Y result in Z time.”</td>
-    </tr>
-    <tr>
-      <td><strong>Close</strong></td>
-      <td>1 line of enthusiasm + availability.</td>
-      <td>“I’m available May–August; I’d love to help with ___.”</td>
-    </tr>
+    <tr><td><strong>Header</strong></td><td>Name, contact, date, company, role.</td><td>Match your resume header.</td></tr>
+    <tr><td><strong>Hook</strong></td><td>1–2 lines tying your skills to their goals.</td><td>Reference a product, campaign, or mission.</td></tr>
+    <tr><td><strong>Fit</strong></td><td>Mirror 3–5 keywords from the posting.</td><td>Use exact phrases (Excel, Python, CAD, SEO).</td></tr>
+    <tr><td><strong>Proof</strong></td><td>1–2 mini results with numbers.</td><td>“Built X → got Y result in Z time.”</td></tr>
+    <tr><td><strong>Close</strong></td><td>1 line of enthusiasm + availability.</td><td>“Available May–August.”</td></tr>
   </tbody>
 </table>
 
-
 <div class="inline-cta">
-  Skip the blank page. <a href="/register/">Internstart</a> scans a job description, pulls your skills, and drafts a tailored <strong>internship cover letter</strong> automatically—then applies for you.
+  Skip manual edits. <a href="/register/">Internstart</a> reads each job, mirrors the right keywords, drafts your <strong>Cover Letter for Internship</strong>, fills ATS forms, and submits—so you focus on interviews.
 </div>
 
-
-<h2 id="template">Copy-and-paste template (fill in under 5 minutes)</h2>
+<h2 id="template">Copy-and-paste template</h2>
 <pre><code>Dear Hiring Manager,
 
+I’m a second-year Business student at Copenhagen Business School applying for the Marketing Intern role at BrightBean. I’m excited by your creator marketing program and can help with Excel reporting, social content, and customer research.
 
-I’m a second-year Business student at Copenhagen Business School applying for the Marketing Intern role at BrightBean. I’m excited by your creator marketing program and believe I can help with Excel reporting, social content, and customer research.
+Recently, I planned a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. I also built an Airtable to track posts and UTM links so we knew what drove event RSVPs. These projects taught me to ship useful work quickly, communicate clearly, and ask better questions.
 
-Recently, I planned a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. In another project, I built a simple Airtable to track posts and UTM links so we knew what drove event RSVPs. These experiences taught me to ship useful work quickly, communicate clearly, and ask better questions.
-
-I’m available May–August and eager to contribute to the marketing team. I’d welcome the chance to learn more about your goals and how I can help.
+I’m available May–August and would love to support the marketing team.
 
 Best regards,
 Maya Nilsson
-+1 (555) 123-4567 · maya.nilsson@email.com · linkedin.com/in/mayanilsson
+maya.nilsson@email.com · +1 (555) 123-4567 · linkedin.com/in/mayanilsson
 
-<h2 id="examples">Examples you can model</h2>
+<h2 id="examples">Short examples you can model</h2>
 
-
-<h3>Example 1 — <em>No experience</em> (Marketing Intern)</h3>
+<h3>Example — No Experience (Marketing Intern)</h3>
 <pre><code>Dear Hiring Manager,
 
+I’m a first-year Business student at CBS applying for the Marketing Intern role at BrightBean. I love how your TikTok spotlights student creators and I’d like to help scale that.
 
-I’m a first-year Business student at CBS applying for the Marketing Intern role at BrightBean. I love how your TikTok spotlights student creators; I’d like to help scale that.
+For my campus club, I scheduled a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. I also set up UTM tracking in Airtable to see which posts drove RSVPs.
 
-For my campus club, I planned a month of Reels/TikToks that reached ~42,000 views and grew sign-ups 19%. I also built a simple Airtable to track posts and UTM links, so we knew what drove event RSVPs.
-
-I’m available June–August and would love to support content calendaring, short-form video, and basic analytics.
+I’m available June–August and can support content calendaring, short-form video, and basic analytics.
 
 Best,
 Maya Nilsson
-LinkedIn · Portfolio
 
-<h3>Example 2 — Software Engineering Intern</h3>
+<h3>Example — Software Engineering Intern</h3>
 <pre><code>Dear Ms. López,
 
+I’m a CS student (Python/JS) applying for the Software Engineering Intern role at Orbit. Your shift to edge-rendered dashboards is exciting; I’ve been prototyping similar charts.
 
-I’m a CS student (Python/JS) applying for the Software Engineering Intern role at Orbit. Your recent move to edge-rendered dashboards is exciting; I’ve been prototyping similar charts.
-
-Last semester, I built a Flask API that aggregates school canteen prices and displays charts in a responsive React app. ~600 students used it in the first week. I also wrote tests and CI, which cut bugs 35% by mid-term.
+Last semester I built a Flask API that aggregates canteen prices and a React UI to chart them. ~600 students used it in week one. I added tests and CI, which cut bugs 35% by mid-term.
 
 I’m available May–August and happy to help with frontend components, data fetching, and bug triage.
 
 Best regards,
 Arun Patel
-GitHub · LinkedIn
 
 <h2 id="email">Email subject lines & sign-off</h2>
 <p><strong>Subject lines that get opened:</strong></p>
 <ul>
-  <li>“Marketing Intern — Maya Nilsson (CBS, Reels + Analytics)”</li>
-  <li>“Software Engineering Intern — Arun Patel (React · Flask · Tests)”</li>
-  <li>“Design Intern Application — Portfolio inside (Figma · Motion)”</li>
+  <li>Marketing Intern — Maya Nilsson (CBS · Reels & Analytics)</li>
+  <li>Software Engineering Intern — Arun Patel (React · Flask · Tests)</li>
+  <li>Design Intern Application — Portfolio inside (Figma · Motion)</li>
 </ul>
-<p><strong>Sign-off formula:</strong> “Best regards,” + name + 2 fastest contact methods (email, phone) + 1 link (LinkedIn/portfolio).</p>
-
+<p><strong>Sign-off:</strong> “Best regards,” + name + two contacts (email, phone) + one link (LinkedIn/portfolio).</p>
 
 <h2 id="keywords">ATS keywords & formatting tips</h2>
 <ul>
-  <li>Mirror exact keywords from the posting (e.g., “PivotTables,” “customer interviews,” “Django,” “SolidWorks”).</li>
-  <li>Keep to one page, 200–350 words. Use normal fonts and standard section names.</li>
-  <li>Save as PDF named “Firstname-Lastname-Internship-Cover-Letter.pdf”.</li>
-  <li>If the platform has a text box, paste the text and attach the PDF as well.</li>
+  <li>Mirror the posting’s exact phrases: “PivotTables,” “customer interviews,” “Django,” “SolidWorks.”</li>
+  <li>200–350 words, standard fonts, normal section names.</li>
+  <li>Save as PDF: <em>Firstname-Lastname-Internship-Cover-Letter.pdf</em>. If there’s a text box, paste the text and attach the PDF.</li>
 </ul>
-
 
 <h2 id="mistakes">Common mistakes to avoid</h2>
 <ul>
-  <li><strong>Vague claims:</strong> Replace “hard-working team player” with a 1-line proof and a number.</li>
-  <li><strong>Copy-pasting the same letter:</strong> Customize the hook and 3–5 keywords for each role.</li>
-  <li><strong>Wall of text:</strong> Use short paragraphs. Make skimming effortless.</li>
-  <li><strong>No availability:</strong> Always state your months (e.g., “May–August”).</li>
+  <li><strong>Vague claims.</strong> Replace “hard-working team player” with a one-line proof and a number.</li>
+  <li><strong>Same letter everywhere.</strong> Customize the hook and 3–5 keywords for each role.</li>
+  <li><strong>Wall of text.</strong> Use short paragraphs; make skimming effortless.</li>
+  <li><strong>No availability.</strong> Always state months (e.g., “May–August”).</li>
 </ul>
 
-
-<div class="inline-cta">
-  Ready to apply at scale? <a href="/register/">Internstart</a> finds matching roles, tailors your <span class="keyword-highlight">cover letter for internship</span> to each job, fills ATS forms, and submits—so you focus on interviews.
-</div>
-
-
 <h2 id="faq">FAQ</h2>
-
-
-<h3>Do I need a cover letter if the job doesn’t ask?</h3>
-<p>If there’s a field to add one, do it. For competitive internships, a short, tailored letter improves your odds.</p>
-
+<h3>Do I need a Cover Letter for Internship if the job doesn’t ask?</h3>
+<p>If there’s a field to add one, do it. On competitive, rolling internships, a short letter improves your odds.</p>
 
 <h3>How do I address it without a name?</h3>
 <p>Use “Dear Hiring Manager” and reference the specific team or program in your opening line.</p>
 
-
 <h3>What if I’m switching fields?</h3>
-<p>Lead with transferable skills and a quick proof (e.g., a small project, certificate, or volunteer work) that shows you can contribute immediately.</p>
+<p>Lead with transferable skills and a tiny proof project (dashboard, script, or design). One tangible result beats adjectives.</p>
 
-
-<h2>Next steps</h2>
-<p>
-  Pair this letter with a sharp resume:
-  read <a href="/blog/how-to-write-resume-for-internship/">how to write a resume for internship</a>,
-  and make sure you’re on the right timeline with
-  <a href="/blog/when-to-apply-for-summer-internships/">when to apply for summer internships</a>.
-</p>
-<p>
-  Or skip manual tweaks and <a href="/register/">apply to internships with Internstart</a>—upload once, and our AI drafts tailored cover letters and submits applications for you.
-</p>
-
+<h2 id="next">Next steps</h2>
+<p>Pair your letter with these guides: <a href="/blog/how-to-write-resume-for-internship/">how to write a resume for internship</a> and <a href="/blog/when-to-apply-for-summer-internships/">when to apply for summer internships</a>.</p>
+<p>Or upload once and let <a href="/register/">Internstart</a> match roles, draft your <span class="keyword-highlight">Cover Letter for Internship</span>, and submit applications automatically.</p>
 
   </main>
 
 
   <footer class="site-footer">
-    <div class="footer__inner">
+    <div class="footer-inner">
       <h3>Internstart</h3>
       <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
-
-
-  <nav class="footer__links" aria-label="Footer">
-    <a href="{% url 'about' %}">About</a>
-    <a href="#">Careers</a>
-    <a href="{% url 'blog_index' %}">Blog</a>
-    <a href="{% url 'contact' %}">Contact</a>
-    <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
-  </nav>
-
-
-  <div class="footer__legal">
-    © 2025 Internship Platform. All rights reserved.
-  </div>
-</div>
-
-
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="{% url 'about' %}">About</a>
+        <a href="#">Careers</a>
+        <a href="{% url 'blog_index' %}">Blog</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+      </nav>
+      <div class="footer__legal">© 2025 Internship Platform. All rights reserved.</div>
+    </div>
   </footer>
-
-
-  <style>
-    /* Footer */
-    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
-    .footer__inner{ max-width:1000px; margin:0 auto; }
-    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
-    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
-    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
-    .footer__links{ margin-bottom:28px; }
-    .footer__legal{ font-size:14px; color:#777; }
-  </style>
 
 
 </body>
