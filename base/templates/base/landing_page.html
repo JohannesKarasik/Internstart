@@ -118,7 +118,6 @@
     </div>
   </section>
   
-
   <style>
     :root{
       --rv-gap: clamp(16px, 2.4vw, 28px);
@@ -126,9 +125,6 @@
       --rv-card-h: 280px;
       --rv-pad-y: clamp(56px, 8vw, 112px);
       --rv-bg: #ffffff;
-      --rv-ink: #0f172a;
-      --rv-muted: #667085;
-      --rv-line: #e7edf5;
       --rv-shadow: 0 18px 40px rgba(2,8,23,.08);
     }
   
@@ -138,20 +134,32 @@
       background: #ffced7;
     }
   
-    .reviews__inner{ 
-      max-width: 1480px; 
-      margin: 0 auto; 
-      padding: 0 16px; 
+    .reviews__inner{
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 0 16px;
     }
   
-    .reviews__viewport {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-          mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-  border: none !important;            /* ⛔ ensures no border */
-  box-shadow: none !important;        /* ⛔ ensures no internal drop shadow */
-  background: #ffced7;                /* match the section background exactly */
-}
+    .reviews__viewport{
+      overflow: hidden;
+      position: relative;
+      background: #ffced7; /* match parent */
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+              mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+    }
+  
+    /* remove any subpixel line below */
+    .reviews__viewport::after{
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: #ffced7;
+      pointer-events: none;
+      z-index: 3;
+    }
   
     .reviews__track{
       display: flex;
@@ -166,7 +174,7 @@
       width: var(--rv-card-w);
       min-height: var(--rv-card-h);
       background: var(--rv-bg);
-      border: none; /* Removed border entirely */
+      border: none;
       border-radius: 18px;
       box-shadow: var(--rv-shadow);
       padding: 22px 22px 18px;
@@ -176,10 +184,10 @@
     }
   
     .review-flag{
-      position: absolute; 
-      top: 12px; 
+      position: absolute;
+      top: 12px;
       right: 12px;
-      font-size: 20px; 
+      font-size: 20px;
       filter: saturate(1.1);
     }
   
@@ -189,83 +197,41 @@
       gap: 10px;
     }
   
-    .translated{
-      display: none;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color:#4f46e5;
-      font: 700 11px/1 var(--font,system-ui);
-      letter-spacing:.02em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-  
-    .review-card[data-country="DK"] .translated{ 
-      display: inline-flex; 
-      align-items: center; 
-    }
-  
     .stars{
       --rating: 4.8;
       position: relative;
       display: inline-block;
-      font-size: 20px; 
-      line-height:1;
+      font-size: 20px;
       letter-spacing: 2px;
       user-select:none;
     }
     .stars::before{ content: "★★★★★"; color:#e5e7eb; }
     .stars::after{
-      content: "★★★★★"; 
-      color:#f59e0b; 
-      position:absolute; 
-      left:0; 
+      content: "★★★★★";
+      color:#f59e0b;
+      position:absolute;
+      left:0;
       top:0;
       width: calc(var(--rating) / 5 * 100%);
-      overflow: hidden; 
+      overflow: hidden;
       white-space: nowrap;
     }
   
     .review-text{
       margin: 0;
       color: #0f172a;
-      font: 600 15.5px/1.7 var(--font,system-ui);
+      font: 600 15.5px/1.7 system-ui, sans-serif;
     }
   
     .reviewer{
       margin-top: 2px;
       color:#344054;
-      font: 800 13.5px/1 var(--font,system-ui);
+      font: 800 13.5px/1 system-ui, sans-serif;
     }
   
     @media (prefers-reduced-motion: reduce){
       .reviews__track{ transform: none !important; transition: none !important; }
     }
-
-    .reviews__viewport {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-          mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-  border: none !important;
-  box-shadow: none !important;
-  background: #ffced7; /* same as section background */
-  position: relative;
-}
-
-/* Removes the faint antialiased "border" under the viewport */
-.reviews__viewport::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;         /* cover the artifact line */
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: #ffced7;  /* match the section background */
-  z-index: 2;
-  pointer-events: none;
-}
-
   </style>
   
 
