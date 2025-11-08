@@ -3,7 +3,7 @@
 {% load static %}
 
 <section class="logos" aria-label="{% trans 'Companies where users landed interviews' %}">
-  <!-- Single background canvas -->
+  <!-- Background removed (kept node for structure but hidden) -->
   <div class="logos__bg" aria-hidden="true"></div>
 
   <div class="logos__inner">
@@ -52,13 +52,8 @@
 <style>
   :root{
     --logos-gap: clamp(17px, 2.3vw, 30px);
-    --logos-pad-y: clamp(20px, 3vw, 40px); /* reduced vertical padding */
-    --section-pad-y: clamp(48px, 6vw, 90px); /* compact section height */
-
-    /* logo card appearance */
-    --logos-card: rgba(255,255,255,.35);
-    --logos-border: rgba(255,255,255,.28);
-    --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
+    --logos-pad-y: clamp(20px, 3vw, 40px);
+    --section-pad-y: clamp(48px, 6vw, 90px);
   }
 
   .logos{
@@ -66,26 +61,12 @@
     padding: var(--section-pad-y) 0;
     overflow: hidden;
     isolation: isolate;
-    background: #fff;
+    background: #fff; /* pure white background */
   }
 
-  /* More visible warm gradient background */
+  /* Background removed */
   .logos__bg{
-    position: absolute;
-    inset: 0;
-    left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    z-index: 0;
-
-    background: linear-gradient(
-      115deg,
-      rgba(255, 47, 90, 0.45) 0%,
-      rgba(255, 75, 46, 0.42) 25%,
-      rgba(255, 122, 26, 0.40) 55%,
-      rgba(255, 84, 0, 0.42) 100%
-    );
-    pointer-events: none;
+    display: none !important;
   }
 
   .logos__inner{
@@ -100,7 +81,7 @@
     text-align: center;
     font-weight: 800;
     letter-spacing: -0.015em;
-    font-size: clamp(26px, 3.2vw, 42px); /* slightly smaller title */
+    font-size: clamp(26px, 3.2vw, 42px);
     color: #0b1220;
     margin-bottom: 10px;
   }
@@ -126,40 +107,50 @@
   }
 
   .logos__track--a{ animation-duration: 16s; }
-  .logos__track--b{ animation-duration: 20s; opacity:.96; }
-  .logos__track--c{ animation-duration: 24s; opacity:.94; }
+  .logos__track--b{ animation-duration: 20s; opacity:.97; }
+  .logos__track--c{ animation-duration: 24s; opacity:.95; }
 
   @keyframes marquee{
     from{ transform: translateX(0); }
     to  { transform: translateX(-50%); }
   }
 
+  /* Modern AI SaaS-style logo cards with #FF2F5A outline */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 12px 14px;
+    padding: 12px 16px;
     min-width: clamp(110px, 12vw, 180px);
     height: clamp(44px, 4.8vw, 60px);
-    background: rgba(255,255,255,0.35);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 12px;
-    box-shadow: var(--logos-shadow), inset 0 1px 0 rgba(255,255,255,.25);
-    backdrop-filter: saturate(120%) blur(8px);
-    -webkit-backdrop-filter: saturate(120%) blur(8px);
+    background: #fff;
+    border: 1.5px solid #FF2F5A;             /* primary outline */
+    border-radius: 14px;
+    box-shadow:
+      0 2px 8px rgba(16, 24, 40, 0.06),      /* soft neutral depth */
+      0 0 0 3px rgba(255, 47, 90, 0.08);     /* subtle neon-style ring */
+    transition: box-shadow .25s ease, transform .25s ease;
+  }
+
+  .logo:hover{
+    transform: translateY(-2px);
+    box-shadow:
+      0 6px 20px rgba(16, 24, 40, 0.10),
+      0 0 0 4px rgba(255, 47, 90, 0.14);
   }
 
   .logo__img{
     display: block;
-    max-height: 24px;
-    max-width: 120px;
+    max-height: 26px;
+    max-width: 136px;
     object-fit: contain;
-    filter: saturate(.85) contrast(.98);
+    filter: saturate(.95) contrast(1);
   }
 
   @media (prefers-reduced-motion: reduce){
     .logos__track{ animation: none !important; }
+    .logo{ transition: none; }
   }
 </style>
 
