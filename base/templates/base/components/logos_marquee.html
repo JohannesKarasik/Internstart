@@ -54,7 +54,7 @@
     --logos-gap: clamp(17px, 2.3vw, 30px);
     --logos-pad-y: clamp(20px, 3vw, 40px);
     --section-pad-y: clamp(48px, 6vw, 90px);
-    --accent: #FF2F5A; /* outline + heading accent */
+    --accent: #FF2F5A; /* heading accent color */
   }
 
   .logos{
@@ -78,28 +78,25 @@
     z-index: 1;
   }
 
-  /* Refined heading: lighter weight, better tracking/line-height, balanced wrap */
+  /* Nicer, lighter heading */
   .logos__title{
     text-align: center;
-    font-weight: 700; /* less bulky than 800 */
-    letter-spacing: -0.01em; /* ease tracking a touch */
-    font-size: clamp(24px, 3vw, 40px); /* slightly slimmer scale */
-    line-height: 1.15;
+    font-weight: 600;                 /* lighter than before */
+    letter-spacing: -0.005em;         /* gentle tracking */
+    font-size: clamp(22px, 2.7vw, 36px);
+    line-height: 1.2;
     color: #0b1220;
     margin-bottom: 12px;
-    text-wrap: balance; /* modern, non-critical enhancement */
+    text-wrap: balance;
   }
 
-  /* Accent spans in the heading */
+  /* Accent spans: ONLY color change (no outline/highlight/blue) */
   .logos__title .t-accent{
     color: var(--accent);
-    background: rgba(255, 47, 90, 0.06);
-    border: 1px solid rgba(255, 47, 90, 0.18);
-    padding: .06em .32em;
-    margin: 0 .04em;
-    border-radius: .45em;
-    font-weight: 700; /* keep emphasis without making whole title heavy */
-    white-space: nowrap;
+    background: none;
+    border: none;
+    text-decoration: none;
+    font-weight: inherit;             /* keep overall heading light */
   }
 
   .logos__viewport{
@@ -131,7 +128,7 @@
     to  { transform: translateX(-50%); }
   }
 
-  /* Subtle, light outline using #FF2F5A */
+  /* Subtle, light outline using #FF2F5A for cards */
   .logo{
     flex: 0 0 auto;
     display: inline-flex;
@@ -141,27 +138,21 @@
     min-width: clamp(110px, 12vw, 180px);
     height: clamp(44px, 4.8vw, 60px);
     background: #fff;
-    border: 1px solid rgba(255, 47, 90, 0.28);      /* lighter coral outline */
+    border: 1px solid rgba(255, 47, 90, 0.28);
     border-radius: 14px;
-    box-shadow:
-      0 1px 3px rgba(16, 24, 40, 0.05);            /* very soft depth */
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
     transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
   }
 
   .logo:hover{
     transform: translateY(-1px);
-    border-color: rgba(255, 47, 90, 0.4);          /* a touch stronger on hover */
-    box-shadow:
-      0 4px 14px rgba(16, 24, 40, 0.08),
-      0 0 0 2px rgba(255, 47, 90, 0.10);           /* subtle ring on hover */
+    border-color: rgba(255, 47, 90, 0.4);
+    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.08), 0 0 0 2px rgba(255, 47, 90, 0.10);
   }
 
-  /* Accessible focus state (keyboard) */
   .logo:focus-visible{
     outline: none;
-    box-shadow:
-      0 0 0 2px #fff,
-      0 0 0 4px rgba(255, 47, 90, 0.28);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(255, 47, 90, 0.28);
   }
 
   .logo__img{
