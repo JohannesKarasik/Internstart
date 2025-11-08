@@ -57,10 +57,8 @@
 <style>
   :root{
     --logos-gap: clamp(16px, 2.2vw, 28px);
-
-    /* Taller section + marquee */
-    --logos-pad-y: clamp(36px, 5vw, 80px);
-    --section-pad-y: clamp(96px, 12vw, 176px);
+    --logos-pad-y: clamp(20px, 3vw, 44px);
+    --section-pad-y: clamp(40px, 6vw, 80px);
 
     --logos-card: rgba(255,255,255,.35);
     --logos-border: rgba(255,255,255,.28);
@@ -80,8 +78,6 @@
     overflow: hidden;
     isolation: isolate;
     background: #fff; /* base white */
-    /* Responsive minimum height so the color has room to breathe */
-    min-height: clamp(420px, 56vh, 720px);
   }
 
   /* Single full-bleed background canvas */
@@ -93,20 +89,20 @@
     transform: translateX(-50%);
     z-index: 0;
 
-    /* Layer 1: wider white→transparent→white window so more mid-area shows color */
+    /* Layer 1: white → transparent → white fade (top & bottom) */
+    /* Layer 2+: soft color fields */
     background:
       linear-gradient(
         to bottom,
         #ffffff 0%,
-        rgba(255,255,255,0) 12%,
-        rgba(255,255,255,0) 88%,
+        rgba(255,255,255,0) 22%,
+        rgba(255,255,255,0) 78%,
         #ffffff 100%
       ),
-      /* Larger/softer color fields for the taller canvas */
-      radial-gradient(110vmax 100vmax at 15% 12%, var(--g-orange) 0%, rgba(255,79,216,.10) 48%, transparent 100%),
-      radial-gradient(130vmax 120vmax at 85% 18%, var(--g-cyan) 0%, rgba(122,77,255,.10) 52%, transparent 100%),
-      radial-gradient(140vmax 130vmax at 75% 88%, rgba(122,77,255,.16) 0%, var(--g-orange) 60%, transparent 100%),
-      radial-gradient(120vmax 110vmax at 25% 85%, var(--g-magenta) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
+      radial-gradient(90vmax 80vmax at 15% 15%, var(--g-orange) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
+      radial-gradient(100vmax 90vmax at 85% 20%, var(--g-cyan) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
+      radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, var(--g-orange) 60%, transparent 100%),
+      radial-gradient(95vmax 90vmax at 25% 80%, var(--g-magenta) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
     pointer-events: none;
   }
 
@@ -124,7 +120,7 @@
     letter-spacing: -0.015em;
     font-size: clamp(28px, 3.8vw, 48px);
     color: #0b1220;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
     background: transparent;
   }
 
@@ -136,7 +132,7 @@
     padding: var(--logos-pad-y) 0;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 14px;
     background: transparent;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
@@ -162,9 +158,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 18px;
+    padding: 12px 16px;
     min-width: clamp(120px, 14vw, 200px);
-    height: clamp(56px, 6vw, 78px); /* slightly taller cards */
+    height: clamp(48px, 5.4vw, 64px);
     background: rgba(255,255,255,0.35);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 14px;
@@ -175,7 +171,7 @@
 
   .logo__img{
     display: block;
-    max-height: 30px;
+    max-height: 26px;
     max-width: 136px;
     object-fit: contain;
     filter: saturate(.85) contrast(.98);
