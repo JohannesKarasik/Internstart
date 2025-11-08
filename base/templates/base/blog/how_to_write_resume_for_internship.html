@@ -6,14 +6,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-  <title>How to Write Resume for Internship (Step-by-Step Guide for Students)</title>
+  <title>Internstart Blog — Career & Internship Guides</title>
   <meta name="description"
-        content="How to write resume for internship with no experience. Structure, what to include, and how to stand out so you actually get an interview.">
+        content="Explore the latest internship and career guides for students and graduates. Learn how to write resumes, cover letters, and apply to internships using AI.">
 
-  <link rel="canonical" href="https://internstart.com/blog/how-to-write-resume-for-internship/">
-  <meta property="og:title" content="How to Write Resume for Internship (Step-by-Step Guide for Students)">
-  <meta property="og:description" content="How to write resume for internship with no experience. Internship resume format, examples, and how AI can apply for internships for you automatically.">
-  <meta property="og:type" content="article">
+  <link rel="canonical" href="https://internstart.com/blog/">
+  <meta property="og:title" content="Internstart Blog — Career & Internship Guides">
+  <meta property="og:description" content="Explore the latest internship and career guides for students and graduates. Learn how to write resumes, cover letters, and apply to internships using AI.">
+  <meta property="og:type" content="website">
 
   <!-- FONT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,25 +29,16 @@
       --bg:#ffffff;
       --border:#e5e7eb;
       --accent:#FF2F5A;
-      --content-width:760px;
+      --content-width:900px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background-color: var(--bg);
       color: var(--text-main);
       font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       line-height: 1.6;
-      margin: 0;
-    }
-
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 12px;
     }
 
     a {
@@ -55,17 +46,7 @@
       text-decoration: none;
       font-weight: 600;
     }
-    a:hover {
-      text-decoration: underline;
-    }
-
-    /* highlight spans for keyword phrases */
-    .keyword-highlight {
-      background: rgba(255,47,90,.08);
-      border-radius: 4px;
-      padding: 0 .25em;
-      box-decoration-break: clone;
-    }
+    a:hover { text-decoration: underline; }
 
     /* Header */
     .site-header {
@@ -123,11 +104,9 @@
     .breadcrumb a {
       color: var(--text-dim);
       font-weight: 500;
-      text-decoration: none;
     }
     .breadcrumb a:hover {
       color: var(--accent);
-      text-decoration: underline;
     }
 
     .cta-header {
@@ -146,77 +125,88 @@
       text-decoration: none;
     }
 
-    /* Article layout */
-    .page-wrapper {
+    /* Blog catalog layout */
+    main.blog-list {
       max-width: var(--content-width);
-      margin: 32px auto 80px;
-      padding: 0 16px 64px;
+      margin: 40px auto 80px;
+      padding: 0 16px;
     }
 
-    header.post-header {
-      margin-bottom: 24px;
-    }
-
-    .post-eyebrow {
-      color: var(--accent);
-      font-size: 15px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: -.02em;
-      margin-bottom: 8px;
-    }
-
-    h1.post-title {
-      font-size: clamp(2.4rem,1vw,2.8rem);
-      line-height: 1.15;
+    h1.page-title {
+      font-size: clamp(2rem, 1vw + 1rem, 2.4rem);
       font-weight: 800;
+      margin-bottom: 28px;
+      text-align: center;
       color: var(--text-main);
-      margin: 0 0 12px;
-      letter-spacing: -.04em;
     }
 
-    .post-meta {
-      font-size: 16px;
-      color: var(--text-dim);
-      line-height: 1.4;
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    .blog-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background-color: #fff;
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 1px 2px rgba(17,19,24,.06), 0 6px 20px rgba(17,19,24,.06);
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+      flex-direction: column;
     }
 
-    .hero-image {
-      margin-top: 24px;
-      margin-bottom: 32px;
+    .blog-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 10px rgba(17,19,24,.08), 0 10px 30px rgba(17,19,24,.08);
     }
 
-    /* Typography blocks */
-    h2 {
-      font-size: 1.4rem;
-      line-height: 1.3;
+    .blog-thumb {
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #fff 0%, #fff 20%, #ffe6eb 20%, #ffe6eb 100%);
+      display: grid;
+      place-items: center;
+    }
+
+    .blog-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .blog-content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .blog-title {
+      font-size: 20px;
       font-weight: 700;
-      margin: 40px 0 12px;
       color: var(--text-main);
-      letter-spacing: -.03em;
+      line-height: 1.3;
     }
 
-    h3 {
-      font-size: 1.2rem;
-      line-height: 1.4;
-      font-weight: 600;
-      margin: 28px 0 8px;
-      color: var(--text-main);
-      letter-spacing: -.02em;
+    .blog-excerpt {
+      color: var(--text-dim);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 6px;
     }
 
-    p {
-      margin: 0 0 16px;
-      font-size: 18px;
-      color: var(--text-main);
+    .blog-meta {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-top: auto;
     }
 
-    .example-note {
-      font-weight: 600;
-      font-size: 18px;
+    .read-more {
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 8px;
+      font-size: 15px;
     }
 
     /* Footer */
@@ -258,7 +248,6 @@
       color: var(--accent);
       text-decoration: underline;
     }
-
   </style>
 </head>
 <body>
@@ -266,15 +255,13 @@
   <!-- Global header -->
   <header class="site-header">
     <div class="site-header-inner">
-
       <div class="brand-block">
         <div class="brand-row">
           <span>Internstart</span>
           <span class="brand-badge">AI</span>
         </div>
         <div class="breadcrumb">
-          <a href="/blog/">Blog</a> /
-          <a>How to Write Resume for Internship</a>
+          <a href="/">Home</a> / <a>Blog</a>
         </div>
       </div>
 
@@ -284,140 +271,33 @@
     </div>
   </header>
 
-  <main class="page-wrapper">
+  <main class="blog-list">
+    <h1 class="page-title">Internstart Blog</h1>
 
-    <!-- Post intro / hero -->
-    <header class="post-header">
-      <div class="post-eyebrow">Internship Resume Guide 2025</div>
+    <div class="blog-grid">
+      <!-- Blog Post 1 -->
+      <article class="blog-card">
+        <a href="/blog/how-to-write-resume-for-internship/">
+          <div class="blog-thumb">
+            <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}" alt="How to Write Resume for Internship">
+          </div>
+        </a>
 
-      <h1 class="post-title">
-        <a>How to Write Resume for Internship</a>
-        (Step-by-Step Guide for Students)
-      </h1>
+        <div class="blog-content">
+          <a href="/blog/how-to-write-resume-for-internship/" class="blog-title">
+            How to Write Resume for Internship (Step-by-Step Guide for Students)
+          </a>
+          <p class="blog-excerpt">
+            How to write a resume for an internship with no experience — structure, what to include, and how to stand out so you actually get an interview.
+          </p>
+          <div class="blog-meta">Updated: Oct 31, 2025 · 7 min read</div>
+          <a href="/blog/how-to-write-resume-for-internship/" class="read-more">Read more →</a>
+        </div>
+      </article>
 
-      <div class="post-meta">
-        <div>Written by <strong>Anna Blanchard</strong></div>
-        <div>Updated: Oct 31, 2025</div>
-      </div>
+      <!-- To add more posts later, just duplicate this <article class="blog-card"> block -->
 
-      <div class="hero-image">
-        <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}"
-             alt="Resume writing hero image">
-      </div>
-    </header>
-
-    <h2>Why <a>internship resumes</a> feel hard when you have “no experience”</h2>
-
-    <p>
-      Most people writing their first <a>internship resume</a> think “I haven’t done anything yet, so I have nothing to put.” That’s not actually how companies look at it. For internships, they don’t expect years of experience. They expect proof that you’re useful. That proof can come from school projects, part-time work, small things you built, or responsibility you’ve had.
-    </p>
-
-    <p>
-      Below is the exact structure I recommend when you write your
-      <a>resume for internship</a> applications. After that, I’ll show you how to make yourself stand out, even if you’re just starting.
-    </p>
-
-    <h2>The <a>internship resume</a> structure that gets read</h2>
-
-    <p>
-      Your resume should stay on one page and follow this order: contact info, objective, education, experience, skills, and then any leadership or achievements. That order matters because recruiters (and their software) scan from the top. The first third of the page should answer: Who are you, what can you do, and are you relevant.
-    </p>
-
-    <h3>Contact info</h3>
-
-    <p>
-      Put your full name, phone, professional email, city + country, and a LinkedIn link. Add a GitHub or portfolio only if it supports the internship you’re applying for. You do not need to include age, photo, nationality, or anything personal. The only goal here is “Can they reach you easily.”
-    </p>
-
-    <h3>Objective</h3>
-
-    <p>
-      Your objective is 2–3 sentences. Say what you study, what you can already do in a useful way, and what kind of internship you’re looking for. This replaces “3+ years of experience.”
-    </p>
-
-    <p class="example-note">
-      Example: “Business student with hands-on social media experience for a local café. Looking for a marketing internship where I can apply data-driven content, paid social, and short-form video growth skills.”
-    </p>
-
-    <p>
-      That kind of line works because it sounds like “Here’s how I can help you this summer,” not “I am passionate and detail-oriented.”
-    </p>
-
-    <h3>Education</h3>
-
-    <p>
-      Education is not filler. For most <a>internship resumes</a>, it’s the main value. List your school, degree, and expected graduation date. Then add relevant coursework, tools you’ve learned (Excel, accounting, data analysis, etc.), and any awards or honors. This is especially important if you’re googling
-      <a>how to write resume for internship</a> with no experience. Your classes and projects count as experience.
-    </p>
-
-    <p class="example-note">
-      Example: “Copenhagen Business School — BSc International Business, Expected June 2027. Relevant coursework: Financial Accounting, Excel for Business Analytics, Marketing Strategy. Dean’s List 2024.”
-    </p>
-
-    <h3>Experience</h3>
-
-    <p>
-      Experience does not mean “official corporate internship.” You can include part-time jobs, club roles, volunteer work, freelance work for a local business, or real class projects. The important part is how you describe it.
-    </p>
-
-    <p>
-      Don’t just write what you were told to do. Write what happened because you did it. Instead of saying “Helped with social media,” say “Created 12 Instagram and TikTok posts per week for a local café and helped increase weekend sales by ~18%.” That sounds like impact. That’s what hiring managers want to see.
-    </p>
-
-    <h3>Skills</h3>
-
-    <p>
-      Your Skills section is not decoration. Many companies use an Applicant Tracking System (ATS) that looks for keywords. If the internship description says “Excel,” “budget tracking,” “Python,” or “market research,” those exact words should appear somewhere on your
-      <a>internship resume</a> (only if they’re true for you). Otherwise you can get filtered out before a human even sees your name.
-    </p>
-
-    <p>
-      Be specific and honest. Instead of just “Excel,” write “Excel (PivotTables, basic financial tracking).” Instead of just “Python,” write “Python (simple automation and data cleanup scripts).” Instead of just “communication,” write “Presented weekly budget updates to leadership.”
-    </p>
-
-    <p>
-      And if you feel like you have zero “real” skills: build a starter version of the skill and include it. You can learn basic Excel functions and PivotTables from free YouTube videos in a weekend. You can write a small Python script that scrapes simple public info and drops it in a spreadsheet. You can design short-form content in Canva for a real club or local café. All of that is valid to list.
-    </p>
-
-    <h2>How to make yourself stand out</h2>
-
-    <p>
-      Near the bottom of your <a>internship resume</a>, add anything that shows initiative or ownership. That could be managing a student club budget, placing in a case competition, running social content for an event, building a spreadsheet people actually used, or helping onboard new members. Titles don’t impress people. Responsibility does.
-    </p>
-
-    <p>
-      You can also tilt your <a>resume for internship</a> depending on the type of role. For marketing roles, lean into content, growth, and reach (“ran TikTok content that promoted local events and drove weekend traffic”). For finance or operations, lean into structure and reporting (“built and presented monthly spend reports in Excel to club leadership”). For data or software, lean into building useful tools (“wrote a small Python script to collect and clean pricing data, exported to Excel for comparison”).
-    </p>
-
-    <h2>Easy mistakes that hurt your chances</h2>
-
-    <p>
-      One mistake is writing a resume that’s pretty but unreadable. A lot of Canva-style layouts with icons, sidebars, and weird shapes get rejected automatically because the ATS can’t parse them. Keep it one column, normal headings (“Education,” “Experience,” etc.), export as PDF.
-    </p>
-
-    <p>
-      Another mistake is using the same resume for every role. You’ll get better results if you slightly refocus it. For finance internships, move Excel and budgeting up. For marketing internships, move content and growth up. For data internships, move Python and automation up. If you don’t want to keep rewriting, you can use <a href="/register/">Internstart</a>. You upload your resume once, our AI pulls your skills, adjusts how they’re described for each internship type, and then sends actual applications for you.
-    </p>
-
-    <h2>Last step: quality plus volume</h2>
-
-    <p>
-      The internship game is not “apply to three dream companies and wait.” The people who get interviews usually apply to a lot of good-fit roles, fast. The formula is simple: build a clear one-page
-      <a>internship resume</a> that shows why you’re useful, then get that resume in front of as many relevant openings as possible.
-    </p>
-
-    <p>
-      That’s exactly what <a href="/register/">Internstart</a> is built for. You upload your resume once. We read your skills (Excel, Python, content, budgeting, whatever fits you), match you with relevant internships, tailor how you’re presented for each one, and submit the boring applications for you. You spend your time preparing for interviews instead of copy-pasting your LinkedIn URL into 40 forms.
-    </p>
-
-    <p>
-      If you want to go deeper after the resume, you can read
-      <a href="/blog/how-to-write-cover-letter-for-internship/">how to write a cover letter for internship</a>.
-      If you just want to start applying with AI, go here:
-      <a href="/register/">apply to internships with Internstart</a>.
-      You can also browse more guides on <a href="/blog/">the main blog page</a>.
-    </p>
-
+    </div>
   </main>
 
   <footer class="site-footer">
