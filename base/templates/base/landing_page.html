@@ -125,12 +125,13 @@
       --rv-card-h: 280px;
       --rv-pad-y: clamp(56px, 8vw, 112px);
       --rv-shadow: 0 16px 36px rgba(0,0,0,0.06);
+      --accent: #FF2F5A;
     }
   
     .reviews{
       position: relative;
       padding: var(--rv-pad-y) 0;
-      background: none; /* no section background */
+      background: none;
     }
   
     .reviews__inner{
@@ -139,17 +140,36 @@
       padding: 0 16px;
     }
   
+    /* ✨ Modern SaaS-style subtle outline */
     .reviews__viewport{
       overflow: hidden;
       position: relative;
-      padding-bottom: 50px;
-      /* ❌ Removed fade mask */
-      -webkit-mask-image: none !important;
-              mask-image: none !important;
-      
+      padding: 40px 0 60px;
+      border-radius: 22px;
+      background: #fff;
+      /* Gradient border effect */
+      border: 1px solid rgba(255, 47, 90, 0.25);
+      box-shadow:
+        0 0 0 1px rgba(255, 47, 90, 0.08),
+        0 0 22px rgba(255, 47, 90, 0.12),
+        0 0 48px rgba(255, 47, 90, 0.05);
+      transition: box-shadow 0.3s ease, border 0.3s ease;
     }
   
-    /* cover subpixel artifact line */
+    .reviews__viewport:hover {
+      box-shadow:
+        0 0 0 1px rgba(255, 47, 90, 0.2),
+        0 0 28px rgba(255, 47, 90, 0.18),
+        0 0 64px rgba(255, 47, 90, 0.08);
+    }
+  
+    /* Remove fade edges */
+    .reviews__viewport {
+      -webkit-mask-image: none !important;
+              mask-image: none !important;
+    }
+  
+    /* Clean bottom edge (no artifact) */
     .reviews__viewport::after{
       content: "";
       position: absolute;
@@ -175,7 +195,7 @@
       flex: 0 0 var(--rv-card-w);
       width: var(--rv-card-w);
       min-height: var(--rv-card-h);
-      background: #fff;
+      background: linear-gradient(145deg, #ffffff, #fafbfc);
       border: 1px solid rgba(200,200,210,0.15);
       border-radius: 18px;
       box-shadow: var(--rv-shadow);
@@ -183,12 +203,13 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       row-gap: 12px;
-      transition: transform .25s ease, box-shadow .25s ease;
+      transition: transform .25s ease, box-shadow .25s ease, border .25s ease;
     }
   
     .review-card:hover{
       transform: translateY(-3px);
       box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      border-color: rgba(255, 47, 90, 0.25);
     }
   
     .review-flag{
@@ -213,6 +234,7 @@
       letter-spacing: 2px;
       user-select:none;
     }
+  
     .stars::before{ content: "★★★★★"; color:#e5e7eb; }
     .stars::after{
       content: "★★★★★";
