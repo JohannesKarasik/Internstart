@@ -240,6 +240,70 @@
   </style>
   
 
+  <script>
+    (() => {
+      const viewport = document.querySelector('.reviews__viewport');
+      const track = document.querySelector('.reviews__track');
+      if (!viewport || !track) return;
+    
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) return;
+    
+      // Duplicate items once for a smooth, infinite loop
+      const originals = Array.from(track.children);
+      originals.forEach(node => track.appendChild(node.cloneNode(true)));
+    
+      let step = 0;
+      let index = 0;
+      let gapPx = 0;
+    
+      const computeStep = () => {
+        const first = track.querySelector('.review-card');
+        if (!first) return;
+        const rect = first.getBoundingClientRect();
+        const styles = getComputedStyle(track);
+        const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+        gapPx = rawGap;
+        step = rect.width + gapPx;
+    
+        track.style.transition = 'none';
+        track.style.transform = `translateX(${-index * step}px)`;
+        requestAnimationFrame(() => track.style.transition = '');
+      };
+    
+      const advance = () => {
+        index += 1;
+        track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
+        track.style.transform = `translateX(${-index * step}px)`;
+    
+        if (index >= originals.length) {
+          setTimeout(() => {
+            track.style.transition = 'none';
+            index = 0;
+            track.style.transform = 'translateX(0)';
+            requestAnimationFrame(() => track.style.transition = '');
+          }, 620);
+        }
+      };
+    
+      const ro = new ResizeObserver(computeStep);
+      ro.observe(viewport);
+      window.addEventListener('load', computeStep, { once:true });
+      computeStep();
+    
+      // Move one card every 3 seconds
+      setInterval(advance, 3000);
+    
+      // Pause transition when scrolled out (optional)
+      const io = new IntersectionObserver((entries) => {
+        const visible = entries[0].isIntersecting;
+        if (!visible) { track.style.transition = 'none'; }
+      }, { threshold: 0.05 });
+      io.observe(viewport);
+    })();
+    </script>
+
+
   {% include "base/components/logos_marquee.html" %}
 
 
