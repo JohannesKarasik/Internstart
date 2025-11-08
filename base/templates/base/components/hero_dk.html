@@ -9,34 +9,51 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      Søg <span class="accent">200+ jobs</span> på få<br>
-      minutter med <span class="accent">AI</span>
-      
+      Apply to <span class="accent">200+ jobs</span> in<br>
+      minutes powered by <span class="accent">AI</span>
     </h1>
 
     <p class="hero__subhead">
-      Internstart finder de rigtige jobs, udfylder ansøgningerne og sender dem for dig. Få samtaler hurtigere – uden at du selv skal bruge timer på det.    </p>
+      Internstart finds the right opportunities, fills out applications, and sends them for you. Land interviews faster without the endless forms.
+    </p>
 
     <div class="hero__ctas">
       <a href="{% url 'register' %}" class="btn btn--primary">
-        {% trans "Start applying to jobs with AI" %}
+       Start applying to jobs with AI
       </a>
       <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;">
-        {% trans "Login" %}
+       Login
       </a>
     </div>
 
     <div class="hero__rating"
-         aria-label="{% blocktrans %}Rated 4.8 out of 5 from 327 reviews{% endblocktrans %}">
-      <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
-      <span class="rating__text">
-        <strong>4.8</strong>
-        <span class="muted">ud af 5</span>
-        <span class="dot" aria-hidden="true">•</span>
-        <span class="muted">327 reviews</span>
-      </span>
+    aria-label="Rated 4.8 out of 5">
+
+    <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
+    <span class="rating__text">
+      <strong>4.8</strong>
+      <span class="muted">out of 5</span>
+    </span>
+  
+    <span class="rating__sep">•</span>   <!-- HERE add this small dot -->
+  
+    <div class="hero__faces">
+      <img src="{% static 'images/review1.png' %}" alt="" class="hero__face">
+      <img src="{% static 'images/review2.png' %}" alt="" class="hero__face">
+      <img src="{% static 'images/review3.png' %}" alt="" class="hero__face">
     </div>
-  </div>
+  
+
+  
+
+  <span class="rating__more muted"> + 354 more</span>
+
+</div>
+
+
+</div>
+</div>
+
 
   <!-- Phone-shaped TikTok-style carousel -->
   <div class="hero__phone">
@@ -47,8 +64,8 @@
                src="{% static 'images/internstart1_small.mp4' %}"></video>
         <div class="sp__overlay">
           <div class="sp__meta">
-            <div class="sp__handle">@sofia • {% trans "CBS" %}</div>
-            <div class="sp__caption">trans Sendte 40 ansøgningerne på en uge.</div>
+            <div class="sp__handle">@sofia • CBS" </div>
+            <div class="sp__caption">Sent 40 apps this week.</div>
           </div>
           <div class="sp__actions">
             <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
@@ -68,7 +85,7 @@
         <div class="sp__overlay">
           <div class="sp__meta">
             <div class="sp__handle">@Sophi • {% trans "UF" %}</div>
-            <div class="sp__caption">AI fandt et job til mig</div>
+            <div class="sp__caption">AI filled my apps while I studied.</div>
           </div>
           <div class="sp__actions">
             <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
@@ -87,8 +104,8 @@
                src="{% static 'images/internstart3_small.mp4' %}"></video>
         <div class="sp__overlay">
           <div class="sp__meta">
-            <div class="sp__handle">@Anas • {% trans "NCU" %}</div>
-            <div class="sp__caption">{% trans "“2 interviews after one evening.”" %}</div>
+            <div class="sp__handle">@Anas • NCU</div>
+            <div class="sp__caption">2 interviews after one evening.</div>
           </div>
           <div class="sp__actions">
             <button type="button" class="sp__mute" aria-pressed="true" aria-label="{% trans 'Unmute video' %}">
@@ -104,13 +121,14 @@
   </div>
 
   <div class="hero__sticky">
-    <a href="#social-proof" class="btn btn--sticky" aria-label="{% trans 'See how it works' %}">
-      Se hvordan det virker
+    <a href="#social-proof" class="btn btn--sticky" aria-label="See how it works">
+      See how it works
       <svg class="chev" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 16l-6-6h12l-6 6z" fill="currentColor"/>
       </svg>
     </a>
   </div>
+  
 </section>
 
 <style>
@@ -131,7 +149,17 @@
 }
 .hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; align-self:stretch; max-width:900px; padding-top:8vh; }
 .hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
-.hero__title .accent{ background-color:var(--brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+.hero__title .accent{
+  background-color:var(--brand);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+
+
+
 .hero__subhead{ font-family:var(--font); font-size: clamp(20px, 2vw, 26px); line-height:1.6; color: var(--muted); max-width: 65ch; margin: 0 0 36px; }
 
 .btn{ display:inline-flex; align-items:center; justify-content:center; height:56px; padding:0 22px; border-radius:12px; font-weight:700; font-size:18px; text-decoration:none; transition:.2s ease; border:1px solid transparent; }
@@ -206,6 +234,103 @@
   .rating__stars{ --size:16px; --spacing:2px; }
   .hero__rating .rating__text{ font-size:13px; }
 }
+
+.hero__faces{
+  display:flex;
+  align-items:center;
+  margin-left:4px; /* was 10 */
+}
+
+.hero__face{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #fff;
+  margin-left:-10px;
+  background:#eee;
+}
+
+
+.rating__sep{
+  color:#c6cbd2;
+  margin:0 6px;
+  font-weight:700;
+}
+
+.rating__more{
+  font-weight:600;
+  font-size:13px;
+  color:#9ca3af;
+  margin-left: -4px; /* was 6 */
+}
+
+
+.hero__sticky {
+  position: fixed;
+  bottom: 0;       /* flush with bottom */
+  right: 0;        /* flush with right */
+  z-index: 9999;
+  pointer-events: none;
+  padding: 18px;   /* gives space inside viewport edges */
+}
+
+.btn--sticky {
+  pointer-events: all;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #ff6b85; /* softer brand tone */
+  color: #fff;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  box-shadow:
+    0 6px 20px rgba(255, 107, 133, 0.28),
+    0 0 0 1px rgba(255, 47, 90, 0.12);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.btn--sticky:hover {
+  background: #ff5471;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(255, 47, 90, 0.3);
+}
+
+.btn--sticky:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(255, 47, 90, 0.25);
+}
+
+.btn--sticky .chev {
+  width: 16px;
+  height: 16px;
+  transform: rotate(180deg);
+  transition: transform 0.25s ease;
+}
+
+.btn--sticky:hover .chev {
+  transform: rotate(180deg) translateY(2px);
+}
+
+/* Mobile: smaller and a bit higher to avoid UI overlap */
+@media (max-width: 600px) {
+  .hero__sticky {
+    padding: 12px;
+  }
+  .btn--sticky {
+    font-size: 14px;
+    padding: 12px 18px;
+  }
+}
+
+
 </style>
 
 <script>

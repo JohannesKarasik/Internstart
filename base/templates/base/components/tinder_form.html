@@ -1027,7 +1027,7 @@ html, body {
         // Title/overlay switch to form look, but do NOT start the form here
         if (spTitle) {
           spTitle.style.removeProperty('display');
-          spTitle.textContent = '{{ _("AI fills out your applications for you") }}';
+          spTitle.innerHTML = `<span style="color:#FF2F5A;">{{ _("AI") }}</span> {{ _("fills out your applications for you") }}`;
         }
         overlay?.classList.remove('is-deck-right');
         overlay?.classList.add('is-form');
