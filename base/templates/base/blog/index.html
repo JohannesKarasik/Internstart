@@ -1,195 +1,320 @@
-{% extends "main.html" %}
-{% block content %}
-<section class="container" id="blog-catalog" role="main" aria-label="Blog catalog">
-  <!-- Filters -->
-  <div class="filters" aria-label="Search and sort">
-    <div class="searchbox" role="search">
-      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.2-4.2m1.2-4.8a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input id="q" type="search" placeholder="Search blog posts…" aria-label="Search posts" />
-    </div>
-    <div class="sort">
-      <label for="sort" class="sr-only">Sort</label>
-      <select id="sort" class="select" aria-label="Sort posts">
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-        <option value="popular">Most popular</option>
-      </select>
-    </div>
-  </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- META SEO -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-  <!-- Grid -->
-  <section class="grid" id="grid" aria-label="Posts grid">
-    {% for p in posts %}
-    <article class="card" data-title="{{ p.title|lower }}" data-views="{{ p.views|default(0) }}" data-date="{{ p.date }}">
-      <div class="thumb" aria-hidden="true">
-        {% if p.featured %}<span class="badge">Featured</span>{% endif %}
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 17V7A1.5 1.5 0 0 1 4 5.5Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M7 15l3.5-4 3 3 2-2 1.5 3H7Z" fill="currentColor" opacity=".25"/>
-          <circle cx="8.5" cy="9" r="1.25" fill="currentColor"/>
-        </svg>
-      </div>
-      <div class="content">
-        <h2 class="title"><a href="{{ p.url }}">{{ p.title }}</a></h2>
-        <p class="excerpt">{{ p.excerpt }}</p>
-        <div class="meta">
-          <span data-date>{{ p.date }}</span>
-          <span>•</span>
-          <span>{{ p.read|default('5 min') }}</span>
-          {% if p.views is defined %}
-          <span>•</span>
-          <span>{{ (p.views/1000)|round(1) }}k views</span>
-          {% endif %}
+  <title>Internstart Blog — Career & Internship Guides</title>
+  <meta name="description"
+        content="Explore the latest internship and career guides for students and graduates. Learn how to write resumes, cover letters, and apply to internships using AI.">
+
+  <link rel="canonical" href="https://internstart.com/blog/">
+  <meta property="og:title" content="Internstart Blog — Career & Internship Guides">
+  <meta property="og:description" content="Explore the latest internship and career guides for students and graduates. Learn how to write resumes, cover letters, and apply to internships using AI.">
+  <meta property="og:type" content="website">
+
+  <!-- FONT -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --text-main:#0f172a;
+      --text-dim:#6b7280;
+      --bg:#ffffff;
+      --border:#e5e7eb;
+      --accent:#FF2F5A;
+      --content-width:900px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .site-header {
+      border-bottom: 1px solid var(--border);
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .site-header-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      row-gap: 8px;
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .brand-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 3px 6px;
+      border-radius: 4px;
+    }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    .breadcrumb a {
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+    .breadcrumb a:hover {
+      color: var(--accent);
+    }
+
+    .cta-header {
+      display: inline-block;
+      background-color: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 13px;
+      line-height: 1.2;
+      text-decoration: none;
+    }
+    .cta-header:hover {
+      filter: brightness(1.05);
+      text-decoration: none;
+    }
+
+    /* Blog catalog layout */
+    main.blog-list {
+      max-width: var(--content-width);
+      margin: 40px auto 80px;
+      padding: 0 16px;
+    }
+
+    h1.page-title {
+      font-size: clamp(2rem, 1vw + 1rem, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 28px;
+      text-align: center;
+      color: var(--text-main);
+    }
+
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    .blog-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background-color: #fff;
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 1px 2px rgba(17,19,24,.06), 0 6px 20px rgba(17,19,24,.06);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .blog-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 10px rgba(17,19,24,.08), 0 10px 30px rgba(17,19,24,.08);
+    }
+
+    .blog-thumb {
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #fff 0%, #fff 20%, #ffe6eb 20%, #ffe6eb 100%);
+      display: grid;
+      place-items: center;
+    }
+
+    .blog-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .blog-content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .blog-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .blog-excerpt {
+      color: var(--text-dim);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .blog-meta {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-top: auto;
+    }
+
+    .read-more {
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    /* Footer */
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      background-color: #fff;
+      padding: 32px 16px 64px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    .footer-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+    }
+
+    .footer-inner p {
+      margin: 0 0 12px;
+      line-height: 1.5;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 16px;
+    }
+
+    .footer-nav a {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .footer-nav a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Global header -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="brand-block">
+        <div class="brand-row">
+          <span>Internstart</span>
+          <span class="brand-badge">AI</span>
         </div>
-        {% if p.tags %}
-        <div class="tags">
-          {% for t in p.tags %}
-          <span class="tag">{{ t }}</span>
-          {% endfor %}
+        <div class="breadcrumb">
+          <a href="/">Home</a> / <a>Blog</a>
         </div>
-        {% endif %}
-        <a class="more" href="{{ p.url }}" aria-label="Read {{ p.title }}">Read more</a>
       </div>
-    </article>
-    {% endfor %}
-  </section>
 
-  <!-- Pagination (client-side demo) -->
-  <nav class="pagination" id="pagination" role="navigation" aria-label="Pagination"></nav>
-</section>
+      <a class="cta-header" href="/register/">
+        Apply to 1,000+ internships in minutes with AI
+      </a>
+    </div>
+  </header>
 
-<style>
-  :root{
-    --accent:#FF2F5A; --accent-700:#e0244d; --bg:#fff; --ink:#111318; --ink-2:#3a3f47;
-    --muted:#6b7280; --line:#e5e7eb; --card:#fff; --shadow:0 1px 2px rgba(17,19,24,.06),0 6px 20px rgba(17,19,24,.06);
-    --radius:14px; --radius-sm:10px;
-  }
-  .container{max-width:1200px;margin-inline:auto;padding:28px 20px}
+  <main class="blog-list">
+    <h1 class="page-title">Internstart Blog</h1>
 
-  /* Filters */
-  .filters{display:grid;gap:14px;margin:12px 0 22px;grid-template-columns:1fr}
-  .searchbox{
-    display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);background:#fff;border-radius:999px;
-    padding:8px 12px;transition:border-color .15s ease, box-shadow .15s ease;
-  }
-  .searchbox:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(255,47,90,.12)}
-  .searchbox input{border:0;outline:0;flex:1;font-size:15px;background:transparent;color:var(--ink)}
-  .sort{display:flex;gap:10px;align-items:center;justify-content:flex-end}
-  .select{border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;color:var(--ink-2);font-weight:600}
+    <div class="blog-grid">
+      <!-- Blog Post 1 -->
+      <article class="blog-card">
+        <a href="/blog/how-to-write-resume-for-internship/">
+          <div class="blog-thumb">
+            <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}" alt="How to Write Resume for Internship">
+          </div>
+        </a>
 
-  /* Grid & cards */
-  .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;
-    box-shadow:var(--shadow);transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;min-height:100%;
-  }
-  .card:hover{transform:translateY(-2px);box-shadow:0 2px 10px rgba(17,19,24,.08),0 10px 30px rgba(17,19,24,.08)}
-  .thumb{
-    aspect-ratio:16/9;background:
-      radial-gradient(1200px 500px at 0% 0%, rgba(255,47,90,.08), transparent 60%),
-      linear-gradient(135deg,#fff 0%,#fff 20%,#ffe6eb 20%,#ffe6eb 100%);
-    display:grid;place-items:center;position:relative;
-  }
-  .thumb svg{width:48px;height:48px;opacity:.8;color:var(--accent)}
-  .badge{position:absolute;top:10px;left:10px;background:#fff;color:var(--accent);border:1px solid rgba(255,47,90,.35);
-    padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px}
-  .content{padding:16px;display:flex;flex-direction:column;gap:10px}
-  .title{font-size:clamp(18px,1.3vw + 14px,20px);line-height:1.3;font-weight:800;letter-spacing:.2px}
-  .excerpt{color:var(--ink-2)}
-  .meta{display:flex;gap:12px;color:var(--muted);font-size:13px;flex-wrap:wrap}
-  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
-  .tag{font-size:12px;padding:6px 10px;border-radius:999px;background:rgba(255,47,90,.08);color:var(--accent);border:1px solid rgba(255,47,90,.25);font-weight:700}
-  .card a.more{margin-top:10px;align-self:flex-start;color:var(--accent);font-weight:800;border-bottom:2px solid rgba(255,47,90,.25);padding-bottom:2px}
-  .card a.more:focus{outline:none;box-shadow:0 0 0 4px rgba(255,47,90,.15);border-radius:6px}
+        <div class="blog-content">
+          <a href="/blog/how-to-write-resume-for-internship/" class="blog-title">
+            How to Write Resume for Internship (Step-by-Step Guide for Students)
+          </a>
+          <p class="blog-excerpt">
+            How to write a resume for an internship with no experience — structure, what to include, and how to stand out so you actually get an interview.
+          </p>
+          <div class="blog-meta">Updated: Oct 31, 2025 · 7 min read</div>
+          <a href="/blog/how-to-write-resume-for-internship/" class="read-more">Read more →</a>
+        </div>
+      </article>
 
-  /* Pagination */
-  .pagination{display:flex;justify-content:center;gap:8px;margin:26px 0 10px;flex-wrap:wrap}
-  .page{border:1.5px solid var(--line);background:#fff;border-radius:10px;min-width:36px;height:36px;display:grid;place-items:center;font-weight:700;color:var(--ink-2);cursor:pointer}
-  .page[aria-current="page"]{border-color:rgba(255,47,90,.35);background:rgba(255,47,90,.08);color:var(--accent)}
-  .page:hover{border-color:var(--accent)}
+      <!-- To add more posts later, just duplicate this <article class="blog-card"> block -->
 
-  @media (min-width: 900px){ .filters{grid-template-columns:minmax(0,1fr) auto} }
-  @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
-  :focus-visible{outline:3px solid rgba(255,47,90,.35);outline-offset:2px;border-radius:6px}
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-</style>
+    </div>
+  </main>
 
-<script>
-  // Client-side search/sort + simple pagination over server-sent list
-  const PAGE_SIZE = 9;
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p><strong>Internstart</strong> — Apply to dozens of internships automatically using AI.</p>
+      <p>Upload your resume once. We fill out the forms and send the applications for you.</p>
 
-  const $grid = document.getElementById('grid');
-  const $q = document.getElementById('q');
-  const $sort = document.getElementById('sort');
-  const $pagination = document.getElementById('pagination');
+      <div class="footer-nav">
+        <a href="/register/">Get Started</a>
+        <a href="/blog/">Blog</a>
+        <a href="/blog/how-to-write-cover-letter-for-internship/">Cover Letter Tips</a>
+        <a href="/blog/ai-tools-for-internships/">AI Tools for Internships</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+      </div>
+    </div>
+  </footer>
 
-  // Extract posts from DOM to keep template simple
-  const POSTS = [...$grid.querySelectorAll('.card')].map(card => ({
-    el: card,
-    title: card.dataset.title || '',
-    date: card.dataset.date || '',
-    views: Number(card.dataset.views || 0)
-  }));
-
-  let state = { q:'', sort:'newest', page:1 };
-
-  function parseDateISO(iso){ return iso ? new Date(iso) : new Date(0); }
-
-  function applyFilters(){
-    let rows = POSTS.slice();
-
-    const q = state.q.trim().toLowerCase();
-    if(q){
-      rows = rows.filter(p => p.title.includes(q) || p.el.querySelector('.excerpt')?.textContent.toLowerCase().includes(q));
-    }
-
-    if(state.sort === 'newest') rows.sort((a,b)=> parseDateISO(b.date)-parseDateISO(a.date));
-    if(state.sort === 'oldest') rows.sort((a,b)=> parseDateISO(a.date)-parseDateISO(b.date));
-    if(state.sort === 'popular') rows.sort((a,b)=> b.views-a.views);
-
-    return rows;
-    }
-
-  function render(){
-    const rows = applyFilters();
-    const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-    state.page = Math.min(state.page, totalPages);
-
-    // Clear grid
-    $grid.innerHTML = '';
-
-    const start = (state.page - 1) * PAGE_SIZE;
-    const visible = rows.slice(start, start + PAGE_SIZE);
-
-    if(visible.length === 0){
-      $grid.innerHTML = `<p role="status">No posts match your search.</p>`;
-    } else {
-      visible.forEach(p => $grid.appendChild(p.el));
-    }
-
-    // Pagination buttons
-    let pages = '';
-    for(let i=1;i<=totalPages;i++){
-      pages += `<button class="page" ${i===state.page?'aria-current="page"':''} data-page="${i}" aria-label="Go to page ${i}">${i}</button>`;
-    }
-    $pagination.innerHTML = pages;
-  }
-
-  $q.addEventListener('input', e => { state.q = e.target.value; state.page=1; render(); });
-  $sort.addEventListener('change', e => { state.sort = e.target.value; render(); });
-  $pagination.addEventListener('click', e=>{
-    const btn = e.target.closest('.page'); if(!btn) return;
-    state.page = +btn.dataset.page; render();
-    $grid.setAttribute('tabindex','-1'); $grid.focus({preventScroll:false});
-  });
-
-  // Format any plain ISO date text nodes into locale format
-  document.querySelectorAll('[data-date]').forEach(node=>{
-    const iso = node.textContent.trim();
-    const d = iso ? new Date(iso) : null;
-    if(d && !isNaN(+d)) node.textContent = d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'});
-  });
-
-  render();
-</script>
-{% endblock %}
+</body>
+</html>
