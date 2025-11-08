@@ -342,6 +342,156 @@
 
   {% include "base/components/logos_marquee.html" %}
 
+<!-- ===== Count Up (KPIs) ===== -->
+<section class="kpi" aria-label="Key product stats">
+  <div class="kpi__inner">
+    <div class="kpi__item">
+      <div class="kpi__label">Applications sent</div>
+      <div class="kpi__value">
+        <span class="countup" data-target="324261" data-locale="es-ES">324.261</span>
+      </div>
+    </div>
+
+    <div class="kpi__item">
+      <div class="kpi__label">All-time users</div>
+      <div class="kpi__value">
+        <span class="countup" data-target="4795" data-locale="es-ES">4.795</span>
+      </div>
+    </div>
+
+    <div class="kpi__item">
+      <div class="kpi__label">Pro users who landed an interview</div>
+      <div class="kpi__value">
+        <span class="countup" data-target="67" data-suffix="%" data-locale="es-ES">67%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  :root{
+    --kpi-accent:#FF2F5A;
+    --kpi-ink:#0b1220;
+    --kpi-muted:#667085;
+    --kpi-bg:#fff;
+  }
+  .kpi{
+    padding: 28px 0 16px; /* compact top as requested earlier */
+    background: transparent;
+  }
+  .kpi__inner{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: clamp(14px, 3vw, 28px);
+  }
+  .kpi__item{
+    background: var(--kpi-bg);
+    border: 1px solid rgba(255,47,90,0.16);
+    border-radius: 16px;
+    padding: clamp(16px, 2.4vw, 22px);
+    box-shadow:
+      0 0 0 1px rgba(255,47,90,0.06),
+      0 8px 24px rgba(2,8,23,0.06);
+  }
+  .kpi__label{
+    font: 600 13px/1.3 system-ui, sans-serif;
+    color: var(--kpi-muted);
+    letter-spacing:.02em;
+    margin-bottom: 8px;
+  }
+  .kpi__value{
+    font: 800 clamp(24px, 5vw, 44px)/1.1 system-ui, sans-serif;
+    color: var(--kpi-ink);
+  }
+  .kpi__value .countup{
+    color: var(--kpi-ink);
+    text-shadow: 0 0 0 rgba(0,0,0,0); /* keeps subpixel crisp */
+  }
+  /* Accent underline bar for a subtle AI SaaS vibe */
+  .kpi__item::after{
+    content:"";
+    display:block;
+    height: 3px;
+    width: 42%;
+    margin-top: 12px;
+    background: linear-gradient(90deg, #FF2F5A, rgba(255,47,90,0.15));
+    border-radius: 999px;
+  }
+
+  @media (max-width: 840px){
+    .kpi__inner{ grid-template-columns: 1fr; }
+    .kpi__item::after{ width: 28%; }
+  }
+</style>
+
+<script>
+(() => {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const formatNumber = (value, locale = 'es-ES', suffix = '') => {
+    // Use integer formatter with dot thousands for es-ES
+    const formatted = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
+    return suffix ? formatted + suffix : formatted;
+  };
+
+  const animateCount = (el, target, { duration = 1600, locale = 'es-ES', suffix = '' } = {}) => {
+    if (prefersReduced) { 
+      el.textContent = formatNumber(target, locale, suffix);
+      return;
+    }
+    const start = 0;
+    const startTime = performance.now();
+    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+
+    const tick = now => {
+      const p = Math.min(1, (now - startTime) / duration);
+      const eased = easeOutCubic(p);
+      const current = Math.round(start + (target - start) * eased);
+      el.textContent = formatNumber(current, locale, suffix);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const init = () => {
+    const nodes = document.querySelectorAll('.countup');
+    if (!nodes.length) return;
+
+    // Trigger once when section is visible
+    const seen = new WeakSet();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          if (seen.has(el)) return;
+          seen.add(el);
+
+          const target = Number(el.getAttribute('data-target') || '0');
+          const suffix = el.getAttribute('data-suffix') || '';
+          const locale = el.getAttribute('data-locale') || 'es-ES';
+          animateCount(el, target, { locale, suffix });
+        }
+      });
+    }, { threshold: 0.25 });
+
+    nodes.forEach(n => io.observe(n));
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
+
+<noscript>
+  <!-- Fallback values when JS is disabled -->
+  <style>.countup{opacity:1 !important}</style>
+</noscript>
 
 
   {# Tinder cards + AI form section #}
