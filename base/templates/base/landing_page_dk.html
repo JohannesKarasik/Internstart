@@ -525,15 +525,21 @@
     <div class="footer__inner">
       <h3>Internstart</h3>
       <p>Hjælper studerende og nyuddannede med at finde topvirksomheder og karrieremuligheder.</p>
+  
       <nav class="footer__links" aria-label="Footer">
         <a href="{% url 'about' %}">Om os</a>
         <a href="#">Karriere</a>
+        <a href="{% url 'blog_catalog' %}">Blog</a>
         <a href="{% url 'contact' %}">Kontakt</a>
         <a href="{% url 'privacy_policy' %}">Privatlivspolitik</a>
       </nav>
-      <div class="footer__legal">© 2025 Praktikplatform. Alle rettigheder forbeholdes.</div>
+  
+      <div class="footer__legal">
+        © 2025 Praktikplatform. Alle rettigheder forbeholdes.
+      </div>
     </div>
-</footer>
+  </footer>
+  
 
   
   <style>
