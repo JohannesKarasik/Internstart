@@ -2956,7 +2956,7 @@ def landing_page_dk(request):
 
 
 def blog_index(request):
-    return render(request, 'blog/index.html')
+    return render(request, 'base/blog/index.html')
 
 def blog_resume_internship(request):
     return render(request, 'base/blog/how_to_write_resume_for_internship.html')
