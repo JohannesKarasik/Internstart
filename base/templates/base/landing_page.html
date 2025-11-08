@@ -242,6 +242,30 @@
     @media (prefers-reduced-motion: reduce){
       .reviews__track{ transform: none !important; transition: none !important; }
     }
+
+    .reviews__viewport {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  border: none !important;
+  box-shadow: none !important;
+  background: #ffced7; /* same as section background */
+  position: relative;
+}
+
+/* Removes the faint antialiased "border" under the viewport */
+.reviews__viewport::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;         /* cover the artifact line */
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #ffced7;  /* match the section background */
+  z-index: 2;
+  pointer-events: none;
+}
+
   </style>
   
 
