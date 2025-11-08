@@ -9,6 +9,510 @@
   {# Hero / phone carousel #}
   {% include "base/components/hero_dk.html" %}
 
+
+  <section class="reviews" aria-label="User reviews">
+    <div class="reviews__inner">
+      <div class="reviews__viewport">
+        <ul class="reviews__track">
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.7"></div>
+            </div>
+            <p class="review-text">“Rimelig god, købte starter først men ville have flere swipes så jeg tog pro, endte faktisk med at få et studiejob ud af det. Ikke det jeg helst ville have, men stadig en god app, kan ikke klage.”</p>
+            <div class="reviewer">Sune Højgaard</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:5"></div>
+            </div>
+            <p class="review-text">“Første ting jeg vil sige er STOR TIDSBESPARER. Ja, måske kunne jeg skrive bedre ansøgninger selv, men det handler om kvantitet fremfor kvalitet i det her sindssyge jobmarked. Sendte 200 ansøgninger i Boston og fik 4 samtaler, og fik faktisk 2 tilbud og tog det bedste. Fantastisk app.”</p>
+            <div class="reviewer">Emma Bech</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.6"></div>
+            </div>
+            <p class="review-text">“Lader dig sende ansøgninger meget hurtigere og de er også okay.”</p>
+            <div class="reviewer">Ahmed Sinar</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.9"></div>
+            </div>
+            <p class="review-text">“Gamechanger. Jeg prøvede et par andre AI apps men ansøgningerne de sendte var mere generiske og tydeligt AI. Jeg kan godt lide at den kun bruger det der er relevant fra CV’et og laver menneskelignende ansøgninger.”</p>
+            <div class="reviewer">Sofie Larsen</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.8"></div>
+            </div>
+            <p class="review-text">“Ansøgningerne er måske ikke helt så gode som dem man selv kan lave, men jeg fik faktisk flere svar af at bruge dette end når jeg sender ansøgninger selv, og her kunne jeg sende en bunke på få minutter haha.”</p>
+            <div class="reviewer">Oliver Holm</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:5"></div>
+            </div>
+            <p class="review-text">“Fremragende”</p>
+            <div class="reviewer">Laura Kristensen</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:5"></div>
+            </div>
+            <p class="review-text">“Kan varmt anbefales”</p>
+            <div class="reviewer">Nikolaj Sørensen</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.9"></div>
+            </div>
+            <p class="review-text">“En virkelig god app. Folk burde udnytte det her før rekrutteringsfolk begynder at bruge AI detektion fordi det her er en fuldstændig cheat code.”</p>
+            <div class="reviewer">Clara Rasmussen</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:5"></div>
+            </div>
+            <p class="review-text">“Bogstaveligt talt ændrede det mit liv. Fik et consulting internship efter at have sendt 300+ ansøgninger og fik flere andre tilbud også.”</p>
+            <div class="reviewer">Jonas Thomsen</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.7"></div>
+            </div>
+            <p class="review-text">“God app, sparede mig tid.”</p>
+            <div class="reviewer">Marcus Lund</div>
+          </li>
+  
+          <li class="review-card" data-country="DK">
+            <span class="review-flag" aria-hidden="true">🇩🇰</span>
+            <div class="review-meta">
+              <div class="stars" style="--rating:4.6"></div>
+            </div>
+            <p class="review-text">“Købte starter og sendte 50 ansøgninger på et minut basically, har ikke fået svar endnu men jeg sendte dem også lige. Jeg tjekkede ansøgningerne og jeg synes faktisk de er bedre end nogen jeg kunne skrive selv.”</p>
+            <div class="reviewer">Amanda Poulsen</div>
+          </li>
+  
+        </ul>
+      </div>
+    </div>
+  </section>
+  
+  
+  <style>
+    :root{
+      --rv-gap: clamp(16px, 2.4vw, 28px);
+      --rv-card-w: clamp(320px, 30vw, 420px);
+      --rv-card-h: 280px;
+      --rv-pad-y: clamp(56px, 8vw, 112px);
+      --rv-shadow: 0 16px 36px rgba(0,0,0,0.06);
+      --accent: #FF2F5A;
+    }
+  
+    .reviews{
+      position: relative;
+      background: none;
+      padding-top: 2px;
+    }
+  
+    .reviews__inner{
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+  
+    .reviews__viewport{
+      overflow: hidden;
+      position: relative;
+      padding: 0px 0 60px;
+      padding-top: 5px !important;
+      -webkit-mask-image: none !important;
+              mask-image: none !important;
+    }
+  
+    .reviews__viewport::after{
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: #fff;
+      pointer-events: none;
+      z-index: 3;
+    }
+  
+    .reviews__track{
+      display: flex;
+      align-items: stretch;
+      gap: var(--rv-gap);
+      will-change: transform;
+    }
+  
+    /* ✨ Modern subtle AI-style card outline */
+    .review-card{
+      position: relative;
+      flex: 0 0 var(--rv-card-w);
+      width: var(--rv-card-w);
+      min-height: var(--rv-card-h);
+      background: linear-gradient(145deg, #ffffff, #fafbfc);
+      border: 1px solid rgba(255, 47, 90, 0.15);
+      border-radius: 18px;
+      box-shadow:
+        0 0 0 1px rgba(255, 47, 90, 0.08),
+        0 0 12px rgba(255, 47, 90, 0.05),
+        var(--rv-shadow);
+      padding: 22px 22px 18px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      row-gap: 12px;
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        border .25s ease;
+    }
+  
+    .review-card:hover{
+      transform: translateY(-4px);
+      border-color: rgba(255, 47, 90, 0.3);
+      box-shadow:
+        0 0 0 1px rgba(255, 47, 90, 0.2),
+        0 0 18px rgba(255, 47, 90, 0.15),
+        0 12px 28px rgba(0,0,0,0.06);
+    }
+  
+    /* Optional subtle animated shimmer border (uncomment if you want it) */
+    /*
+    .review-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,47,90,0.3), rgba(255,47,90,0.1), rgba(255,47,90,0.3));
+      -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      animation: shimmer 6s linear infinite;
+    }
+  
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    */
+  
+    .review-flag{
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 20px;
+      filter: saturate(1.1);
+    }
+  
+    .review-meta{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+  
+    .stars{
+      --rating: 4.8;
+      position: relative;
+      display: inline-block;
+      font-size: 20px;
+      letter-spacing: 2px;
+      user-select:none;
+    }
+  
+    .stars::before{ content: "★★★★★"; color:#e5e7eb; }
+    .stars::after{
+      content: "★★★★★";
+      color:#f59e0b;
+      position:absolute;
+      left:0;
+      top:0;
+      width: calc(var(--rating) / 5 * 100%);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  
+    .review-text{
+      margin: 0;
+      color: #0f172a;
+      font: 600 15.5px/1.7 system-ui, sans-serif;
+    }
+  
+    .reviewer{
+      margin-top: 2px;
+      color:#344054;
+      font: 800 13.5px/1 system-ui, sans-serif;
+    }
+  
+    @media (prefers-reduced-motion: reduce){
+      .reviews__track{ transform: none !important; transition: none !important; }
+    }
+  </style>
+  
+  
+
+  <script>
+    (() => {
+      const viewport = document.querySelector('.reviews__viewport');
+      const track = document.querySelector('.reviews__track');
+      if (!viewport || !track) return;
+    
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) return;
+    
+      // Duplicate items once for a smooth, infinite loop
+      const originals = Array.from(track.children);
+      originals.forEach(node => track.appendChild(node.cloneNode(true)));
+    
+      let step = 0;
+      let index = 0;
+      let gapPx = 0;
+    
+      const computeStep = () => {
+        const first = track.querySelector('.review-card');
+        if (!first) return;
+        const rect = first.getBoundingClientRect();
+        const styles = getComputedStyle(track);
+        const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+        gapPx = rawGap;
+        step = rect.width + gapPx;
+    
+        track.style.transition = 'none';
+        track.style.transform = `translateX(${-index * step}px)`;
+        requestAnimationFrame(() => track.style.transition = '');
+      };
+    
+      const advance = () => {
+        index += 1;
+        track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
+        track.style.transform = `translateX(${-index * step}px)`;
+    
+        if (index >= originals.length) {
+          setTimeout(() => {
+            track.style.transition = 'none';
+            index = 0;
+            track.style.transform = 'translateX(0)';
+            requestAnimationFrame(() => track.style.transition = '');
+          }, 620);
+        }
+      };
+    
+      const ro = new ResizeObserver(computeStep);
+      ro.observe(viewport);
+      window.addEventListener('load', computeStep, { once:true });
+      computeStep();
+    
+      // Move one card every 3 seconds
+      setInterval(advance, 3000);
+    
+      // Pause transition when scrolled out (optional)
+      const io = new IntersectionObserver((entries) => {
+        const visible = entries[0].isIntersecting;
+        if (!visible) { track.style.transition = 'none'; }
+      }, { threshold: 0.05 });
+      io.observe(viewport);
+    })();
+    </script>
+
+
+  {% include "base/components/logos_marquee.html" %}
+
+<!-- ===== Count Up (KPIs) ===== -->
+<section class="kpi" aria-label="Key product stats">
+  <div class="kpi__inner">
+    <div class="kpi__item">
+      <div class="kpi__label">Applications sent</div>
+      <div class="kpi__value">
+        <span class="countup" data-target="324261" data-locale="es-ES">324.261</span>
+      </div>
+    </div>
+
+    <div class="kpi__item">
+      <div class="kpi__label"></div>
+      <div class="kpi__value">
+        <span class="countup" data-target="4795" data-locale="es-ES">4.795</span>
+      </div>
+    </div>
+
+    <div class="kpi__item">
+      <div class="kpi__label">Pro users who landed an interview</div>
+      <div class="kpi__value">
+        <span class="countup" data-target="67" data-suffix="%" data-locale="es-ES">67%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  :root{
+    --kpi-accent:#FF2F5A;
+    --kpi-ink:#0b1220;
+    --kpi-muted:#667085;
+    --kpi-bg:#fff;
+  }
+
+  /* Subtle themed background for the whole section */
+  .kpi{
+    padding: 28px 0 16px;
+    background:
+      linear-gradient(115deg,
+        rgba(255,47,90,0.06) 0%,
+        rgba(255,84,0,0.04) 55%,
+        rgba(255,47,90,0.05) 100%);
+  }
+
+  .kpi__inner{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: clamp(14px, 3vw, 28px);
+  }
+
+  .kpi__item{
+    background: var(--kpi-bg);
+    border: 1px solid rgba(255,47,90,0.16);
+    border-radius: 16px;
+    padding: clamp(16px, 2.4vw, 22px);
+    box-shadow:
+      0 0 0 1px rgba(255,47,90,0.06),
+      0 8px 24px rgba(2,8,23,0.06);
+  }
+
+  .kpi__label{
+    font: 600 13px/1.3 system-ui, sans-serif;
+    color: var(--kpi-muted);
+    letter-spacing:.02em;
+    margin-bottom: 8px;
+  }
+
+  .kpi__value{
+    font: 800 clamp(24px, 5vw, 44px)/1.1 system-ui, sans-serif;
+    color: var(--kpi-ink);
+  }
+
+  .kpi__value .countup{
+    color: var(--kpi-ink);
+  }
+
+  /* Subtle accent bar */
+  .kpi__item::after{
+    content:"";
+    display:block;
+    height: 3px;
+    width: 42%;
+    margin-top: 12px;
+    background: linear-gradient(90deg, #FF2F5A, rgba(255,47,90,0.15));
+    border-radius: 999px;
+  }
+
+  @media (max-width: 840px){
+    .kpi__inner{ grid-template-columns: 1fr; }
+    .kpi__item::after{ width: 28%; }
+  }
+</style>
+
+<script>
+(() => {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const formatNumber = (value, locale = 'es-ES', suffix = '') => {
+    const formatted = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
+    return suffix ? formatted + suffix : formatted;
+  };
+
+  // Smooth easing
+  const easeOutQuint = t => 1 - Math.pow(1 - t, 5);
+
+  // Animate one element from 0 -> target, returns a promise
+  const animateCount = (el, target, { duration = 3200, locale = 'es-ES', suffix = '' } = {}) => {
+    return new Promise(resolve => {
+      if (prefersReduced) {
+        el.textContent = formatNumber(target, locale, suffix);
+        resolve();
+        return;
+      }
+
+      const start = 0;
+      const startTime = performance.now();
+
+      const tick = now => {
+        const p = Math.min(1, (now - startTime) / duration);
+        const eased = easeOutQuint(p);
+        const current = Math.round(start + (target - start) * eased);
+        el.textContent = formatNumber(current, locale, suffix);
+        if (p < 1) requestAnimationFrame(tick);
+        else resolve();
+      };
+
+      requestAnimationFrame(tick);
+    });
+  };
+
+  const init = () => {
+    const section = document.querySelector('.kpi');
+    if (!section) return;
+    const nodes = Array.from(section.querySelectorAll('.countup'));
+    if (!nodes.length) return;
+
+    // Observe the section ONCE so all counters start together
+    const io = new IntersectionObserver(async (entries, obs) => {
+      if (!entries[0].isIntersecting) return;
+      obs.disconnect();
+
+      const DURATION = 3200; // all finish at the same time
+      await Promise.all(nodes.map(el => {
+        const target = Number(el.getAttribute('data-target') || '0');
+        const suffix = el.getAttribute('data-suffix') || '';
+        const locale = el.getAttribute('data-locale') || 'es-ES';
+        return animateCount(el, target, { duration: DURATION, locale, suffix });
+      }));
+    }, { threshold: 0.25 });
+
+    io.observe(section);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
+
+<noscript>
+  <style>.countup{opacity:1 !important}</style>
+</noscript>
+
+
   {% include "base/components/logos_marquee_dk.html" %}
 
 
