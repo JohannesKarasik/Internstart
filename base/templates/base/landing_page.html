@@ -144,11 +144,14 @@
       padding: 0 16px; 
     }
   
-    .reviews__viewport{
-      overflow: hidden;
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-              mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
-    }
+    .reviews__viewport {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  border: none !important;            /* ⛔ ensures no border */
+  box-shadow: none !important;        /* ⛔ ensures no internal drop shadow */
+  background: #ffced7;                /* match the section background exactly */
+}
   
     .reviews__track{
       display: flex;
