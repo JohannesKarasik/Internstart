@@ -57,20 +57,20 @@
 <style>
   :root{
     --logos-gap: clamp(17px, 2.3vw, 30px);
-  --logos-pad-y: clamp(28px, 4vw, 64px);     /* just a bit more breathing room */
-  --section-pad-y: clamp(72px, 8vw, 140px);  /* slightly taller overall section */
+    --logos-pad-y: clamp(28px, 4vw, 64px);
+    --section-pad-y: clamp(72px, 8vw, 140px);
 
-  /* logo card appearance */
-  --logos-card: rgba(255,255,255,.35);
-  --logos-border: rgba(255,255,255,.28);
-  --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
+    /* logo card appearance */
+    --logos-card: rgba(255,255,255,.35);
+    --logos-border: rgba(255,255,255,.28);
+    --logos-shadow: 0 8px 24px rgba(2,8,23,.06);
 
-  /* palette used inside the single canvas */
-  --g-violet: rgba(122, 77, 255, 0.18);
-  --g-purple: rgba(164, 99, 255, 0.16);
-  --g-magenta: rgba(255, 79, 216, 0.18);
-  --g-orange: rgba(255, 142, 110, 0.16);
-  --g-cyan: rgba(104, 192, 255, 0.18);
+    /* palette used inside the single canvas */
+    --g-violet: rgba(122, 77, 255, 0.18);
+    --g-purple: rgba(164, 99, 255, 0.16);
+    --g-magenta: rgba(255, 79, 216, 0.18);
+    --g-orange: rgba(255, 142, 110, 0.16);
+    --g-cyan: rgba(104, 192, 255, 0.18);
   }
 
   .logos{
@@ -78,32 +78,35 @@
     padding: var(--section-pad-y) 0;
     overflow: hidden;
     isolation: isolate;
-    background: #fff; /* base white */
+    background: #fff;
   }
 
-  /* Single full-bleed background canvas */
   .logos__bg{
     position: absolute;
     inset: 0;
     left: 50%;
-    width: 100vw;           /* extend edge-to-edge */
+    width: 100vw;
     transform: translateX(-50%);
     z-index: 0;
 
-    /* Layer 1: white → transparent → white fade (top & bottom) */
-    /* Layer 2+: soft color fields */
+    /* smoother fade and slight white overlay to unify the blend */
     background:
+      /* top and bottom fade */
       linear-gradient(
         to bottom,
         #ffffff 0%,
-        rgba(255,255,255,0) 22%,
-        rgba(255,255,255,0) 78%,
+        rgba(255,255,255,0.1) 12%,
+        rgba(255,255,255,0.1) 88%,
         #ffffff 100%
       ),
+      /* soft subtle white veil over all gradients */
+      linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(255,255,255,0.25)),
+      /* color fields */
       radial-gradient(90vmax 80vmax at 15% 15%, var(--g-orange) 0%, rgba(255,79,216,.10) 45%, transparent 100%),
       radial-gradient(100vmax 90vmax at 85% 20%, var(--g-cyan) 0%, rgba(122,77,255,.10) 50%, transparent 100%),
       radial-gradient(110vmax 100vmax at 75% 85%, rgba(122,77,255,.16) 0%, var(--g-orange) 60%, transparent 100%),
       radial-gradient(95vmax 90vmax at 25% 80%, var(--g-magenta) 0%, rgba(104,192,255,.10) 60%, transparent 100%);
+    background-blend-mode: lighten;
     pointer-events: none;
   }
 
@@ -112,7 +115,7 @@
     margin: 0 auto;
     padding: 0 12px;
     position: relative;
-    z-index: 1; /* above canvas */
+    z-index: 1;
   }
 
   .logos__title{
@@ -122,7 +125,6 @@
     font-size: clamp(28px, 3.8vw, 48px);
     color: #0b1220;
     margin-bottom: 14px;
-    background: transparent;
   }
 
   .logos__viewport{
