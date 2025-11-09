@@ -5,7 +5,8 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 from django.shortcuts import redirect
 from django.contrib.sitemaps.views import sitemap
-from .sitemaps import StaticViewSitemap, BlogSitemap
+from base.sitemaps import StaticViewSitemap, BlogSitemap
+
 
 def root_redirect(request):
     if request.user.is_authenticated:
