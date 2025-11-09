@@ -356,15 +356,14 @@
     </ul>
   </section>
 
-
   <footer class="site-footer">
     <div class="footer__inner">
-      <h3>Internstart</h3>
-      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+      <img src="{% static 'images/logo.png' %}" alt="Internstart" class="footer__logo">
       
+      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+  
       <nav class="footer__links" aria-label="Footer">
         <a href="{% url 'about' %}">About</a>
-
         <a href="{% url 'blog_index' %}">Blog</a>
         <a href="{% url 'contact' %}">Contact</a>
         <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
@@ -375,63 +374,58 @@
       </div>
     </div>
   </footer>
-
+  
   
   <style>
+  .site-footer{
+    background:none;
+    color:#111;
+    text-align:center;
+    padding:64px 20px;
+    margin-top:120px;
+    font-family:var(--font);
+  }
   
-/* Footer */
-.site-footer{
-  background:#111;
-  color:#ccc;
-  text-align:center;
-  padding:64px 20px;
-  margin-top:120px;
-  font-family:var(--font);
-}
-
-.footer__inner{
-  max-width:900px;
-  margin:0 auto;
-}
-
-.site-footer h3{
-  color:#fff;
-  font-weight:800;
-  font-size:28px;
-  margin:0 0 10px;
-  letter-spacing:-0.02em;
-}
-
-.site-footer p{
-  font-size:17px;
-  line-height:1.6;
-  margin:0 0 26px;
-  color:#d1d1d1;
-}
-
-.footer__links{
-  margin-bottom:30px;
-}
-
-.footer__links a{
-  color:#bbb;
-  text-decoration:none;
-  font-weight:600;
-  margin:0 14px;
-  transition:color .2s ease;
-}
-.footer__links a:hover{
-  color:white;
-}
-
-.footer__legal{
-  font-size:14px;
-  color:#888;
-  margin-top:8px;
-}
+  .footer__inner{
+    max-width:900px;
+    margin:0 auto;
+  }
   
+  .footer__logo{
+    width:120px;
+    height:auto;
+    margin-bottom:14px;
+  }
+  
+  .site-footer p{
+    font-size:17px;
+    line-height:1.6;
+    margin:0 0 26px;
+    color:#444;
+  }
+  
+  .footer__links{
+    margin-bottom:30px;
+  }
+  
+  .footer__links a{
+    color:#222;
+    text-decoration:none;
+    font-weight:600;
+    margin:0 14px;
+    transition:opacity .2s ease;
+  }
+  .footer__links a:hover{
+    opacity:.6;
+  }
+  
+  .footer__legal{
+    font-size:14px;
+    color:#666;
+    margin-top:8px;
+  }
   </style>
-
+  
 </main>
 
 </body>
