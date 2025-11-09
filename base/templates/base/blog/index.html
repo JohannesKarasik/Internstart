@@ -12,6 +12,7 @@
   <style>
     :root{
       --brand:#FF2F5A;
+      --brand2:#FF5400;
       --ink:#111;
       --muted:#667085;
       --card:#fff;
@@ -21,12 +22,54 @@
     }
     body{margin:0; font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:var(--bg);}
     .page{max-width:1200px; margin:40px auto 80px; padding:0 20px;}
-    .catalog-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:24px;}
-    .catalog-title{font-size:32px; line-height:1.15; margin:0;}
-    .catalog-sub{color:var(--muted); margin:0; font-size:16px;}
-    .grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px;}
+
+    /* ===== Catalog header (styled + aligned) ===== */
+    .catalog-head{
+      display:block;
+      margin: 8px 0 28px;
+      padding-left: 0;      /* aligns to same container as cards */
+    }
+    .catalog-title{
+      margin:0;
+      font-weight:800;
+      line-height:1.1;
+      letter-spacing:-.04em;
+      font-size: clamp(28px, 4.2vw, 42px);
+      display:inline-block;
+      position:relative;
+    }
+    .catalog-title::after{
+      content:"";
+      display:block;
+      width:82px;
+      height:6px;
+      margin-top:10px;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--brand) 0%, var(--brand2) 100%);
+    }
+    .catalog-sub{
+      margin:12px 0 0;
+      font-size:18px;
+      color:#4b5563;
+      max-width: 820px;
+    }
+
+    /* ===== Grid / cards ===== */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:24px;
+      list-style:none;      /* remove default UL padding */
+      margin:0;             /* keep grid flush with header container */
+      padding:0;
+    }
     @media (max-width:980px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-    @media (max-width:640px){ .grid{grid-template-columns:1fr;} .catalog-title{font-size:26px;} }
+    @media (max-width:640px){
+      .grid{grid-template-columns:1fr;}
+      .catalog-title{font-size:32px;}
+      .catalog-title::after{height:5px; width:72px;}
+      .catalog-sub{font-size:16px;}
+    }
 
     .card{background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease, box-shadow .12s ease;}
     .card:focus-within, .card:hover{transform:translateY(-2px); box-shadow:0 18px 40px rgba(0,0,0,.12);}
@@ -43,523 +86,180 @@
     .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:rgba(255,47,90,.08); color:var(--brand); font-size:11px; font-weight:600; margin-left:8px;}
   </style>
 
-  <!-- Google Font (same one you use elsewhere) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-{# ==== RECREATED HEADER (exact) ==== #}
+{# ==== RECREATED HEADER (unchanged) ==== #}
 {% load static %}
 {% load i18n %}
-
-
 <header class="header header--loggedIn" style="margin-bottom:0!important; padding-bottom:0!important; position:sticky; top:0; z-index:9999; background:white; box-shadow:0 4px 10px rgba(0,0,0,0.06);">
-  <!-- ===== Activity Ticker (top of header) ===== -->
-<div class="header__ticker" id="headerTicker" role="region" aria-label="Recent activity">
-  <div class="ticker__icon" aria-hidden="true">
-    <img
-      src="{% static 'images/transperantsmalllogo.png' %}"
-      alt=""
-      class="ticker__iconImg"
-      width="16" height="16"
-      decoding="async"
-    />
+  <div class="header__ticker" id="headerTicker" role="region" aria-label="Recent activity">
+    <div class="ticker__icon" aria-hidden="true">
+      <img src="{% static 'images/transperantsmalllogo.png' %}" alt="" class="ticker__iconImg" width="16" height="16" decoding="async"/>
+    </div>
+    <div class="ticker__viewport" aria-live="off"><div class="ticker__track" id="tickerTrack"></div></div>
+    <button class="ticker__close" type="button" aria-label="Hide updates">×</button>
   </div>
 
-  <div class="ticker__viewport" aria-live="off">
-    <div class="ticker__track" id="tickerTrack"></div>
-  </div>
+  <div class="container" style="display:flex; align-items:center; justify-content:space-between; position:relative; height:100px !important; padding-left:60px; padding-right:40px;">
+    <div class="header__logo" style="display:flex; align-items:center;">
+      <a href="{% url '' %}">
+        <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart Logo" class="logo-large"/>
+      </a>
+    </div>
 
-  <button class="ticker__close" type="button" aria-label="Hide updates">
-    ×
-  </button>
-</div>
-<!-- ===== /Activity Ticker ===== -->
-
-    <div class="container" 
-    style="display: flex; align-items: center; justify-content: space-between; position: relative; height: 100px !important; padding-left: 60px; padding-right: 40px;">      
-      <!-- Logo (left) -->
-      <div class="header__logo" style="display: flex; align-items: center;">
-          <a href="{% url '' %}">
-              <img src="{% static 'images/Internstartlogo (1).jpg' %}" 
-                   alt="Internstart Logo"
-                   class="logo-large" />
-          </a>
+    <nav class="header__nav" style="flex:1; display:flex; justify-content:center; font-family:'Manrope', sans-serif; font-weight:600;">
+      <div style="display:flex; gap:32px; background:#f5f5f5; padding:10px 30px; border-radius:14px; align-items:center; display:none;">
+        <a href="/browse/" style="text-decoration:none; color:#111; transition:color .3s;">Browse</a>
+        <a href="/companies/" style="text-decoration:none; color:#111; transition:color .3s;">Companies</a>
+        <a href="/resources/" style="text-decoration:none; color:#111; transition:color .3s;">Resources</a>
+        <a href="/faq/" style="text-decoration:none; color:#111; transition:color .3s;">FAQ</a>
+        <a href="/support/" style="text-decoration:none; color:#111; transition:color .3s;">Support</a>
+        <a href="/mission/" style="text-decoration:none; color:#111; transition:color .3s;">Our Mission</a>
       </div>
+    </nav>
 
-      <!-- Middle Menu -->
-      <nav class="header__nav" 
-           style="flex: 1; display: flex; justify-content: center; font-family: 'Manrope', sans-serif; font-weight: 600;">
-          <div style="display: flex; gap: 32px; background: #f5f5f5; padding: 10px 30px; border-radius: 14px; align-items: center; display: none;">
-              <a href="/browse/" style="text-decoration: none; color: #111; transition: color 0.3s;">Browse</a>
-              <a href="/companies/" style="text-decoration: none; color: #111; transition: color 0.3s;">Companies</a>
-              <a href="/resources/" style="text-decoration: none; color: #111; transition: color 0.3s;">Resources</a>
-              <a href="/faq/" style="text-decoration: none; color: #111; transition: color 0.3s;">FAQ</a>
-              <a href="/support/" style="text-decoration: none; color: #111; transition: color 0.3s;">Support</a>
-              <a href="/mission/" style="text-decoration: none; color: #111; transition: color 0.3s;">Our Mission</a>
-          </div>
-      </nav>
-
-      <!-- User / Auth (right) -->
-      <nav class="header__menu" style="display: flex; align-items: center;">
-        {% if request.user.is_authenticated %}
-        <div class="header__authCluster" style="padding-right: 20px; display:flex; align-items:center; gap:12px;">
-          <!-- Logout (left) -->
-          <form action="{% url 'logout' %}" method="post" class="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="btn btn--brand-700" aria-label="Log out">
-              <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" style="color: white !important;">
-                <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M6.2 6.2a8 8 0 1 0 11.6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              <span>Logout</span>
-            </button>
-          </form>
-      
-          <!-- Account (right) -->
-          <a href="{% url 'update-user' %}" class="btn btn--brand" aria-label="Account">
-            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" style="color: white !important;">
-              <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-              <path d="M4 20c1.8-3.4 5-5 8-5s6.2 1.6 8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <nav class="header__menu" style="display:flex; align-items:center;">
+      {% if request.user.is_authenticated %}
+      <div class="header__authCluster" style="padding-right:20px; display:flex; align-items:center; gap:12px;">
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--brand-700" aria-label="Log out">
+            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" style="color:#fff!important;">
+              <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M6.2 6.2a8 8 0 1 0 11.6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <span style="color: white;">Account</span>
-          </a>
-        </div>
+            <span>Logout</span>
+          </button>
+        </form>
+        <a href="{% url 'update-user' %}" class="btn btn--brand" aria-label="Account">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" style="color:#fff!important;">
+            <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M4 20c1.8-3.4 5-5 8-5s6.2 1.6 8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span style="color:#fff;">Account</span>
+        </a>
+      </div>
       {% else %}
-      <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
-
-        <div class="lang-select-wrapper" style="position:relative; margin-right: 10px;">
+      <div class="auth-buttons" style="display:flex; gap:12px; align-items:center; padding-right:20px;">
+        <div class="lang-select-wrapper" style="position:relative; margin-right:10px;">
           <select onchange="window.location.href=this.value" class="lang-select">
             <option data-emoji="🇺🇸" value="{% url 'landing_page' %}">🇺🇸 US</option>
             <option data-emoji="🇩🇰" value="{% url 'landing_page_dk' %}">🇩🇰 DK</option>
           </select>
-          
         </div>
-    
+
         {% if request.path|slice:":3" == "/da" or request.path|slice:":3" == "/dk" %}
-        <a href="{% url 'app_login_dk' %}" 
-           style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-           Log ind
-        </a>
-        
-        <a href="{% url 'register_dk' %}" 
-           style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-           Begynd at ansøge jobs med AI
-        </a>
+        <a href="{% url 'app_login_dk' %}" style="padding:10px 20px; background:#f5f5f5; border-radius:12px; text-decoration:none; font-weight:600; color:#111; font-family:'Manrope', sans-serif; transition:background .3s;">Log ind</a>
+        <a href="{% url 'register_dk' %}" style="padding:10px 20px; border-radius:12px; text-decoration:none; font-weight:600; background:#FF2F5A; color:#fff; font-family:'Manrope', sans-serif; transition:background .3s;">Begynd at ansøge jobs med AI</a>
         {% else %}
-        <a href="{% url 'app_login' %}" 
-           style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-           Login
-        </a>
-        
-        <a href="{% url 'register' %}"
-        class="cta-pulse"
-        style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-        Start applying to jobs with AI
-     </a>
+        <a href="{% url 'app_login' %}" style="padding:10px 20px; background:#f5f5f5; border-radius:12px; text-decoration:none; font-weight:600; color:#111; font-family:'Manrope', sans-serif; transition:background .3s;">Login</a>
+        <a href="{% url 'register' %}" class="cta-pulse" style="padding:10px 20px; border-radius:12px; text-decoration:none; font-weight:600; background:#FF2F5A; color:#fff; font-family:'Manrope', sans-serif; transition:background .3s;">Start applying to jobs with AI</a>
         {% endif %}
-        
-        
-    
-    </div>
-    
-    
-    
-          {% endif %}
-      </nav>
+      </div>
+      {% endif %}
+    </nav>
   </div>
 
   <style>
-
-
-@keyframes ctaPulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-
-.cta-pulse {
-  animation: ctaPulse 2.6s ease-in-out infinite;
-}
-    :root{
-      --brand:#FF2F5A;
-      --brand-700:#e92650;
+    @keyframes ctaPulse{0%{transform:scale(1);}50%{transform:scale(1.03);}100%{transform:scale(1);}}
+    .cta-pulse{animation:ctaPulse 2.6s ease-in-out infinite;}
+    :root{--brand:#FF2F5A; --brand-700:#e92650;}
+    .logo-large{width:220px!important; height:auto!important;}
+    .header__nav a:hover{color:var(--brand);}
+    .btn{display:inline-flex; align-items:center; gap:10px; padding:10px 18px; min-height:42px; box-sizing:border-box; font-family:'Manrope',sans-serif; font-weight:800; font-size:14px; line-height:1; color:#fff; text-decoration:none; border-radius:12px; border:1px solid transparent; background:var(--brand); box-shadow:0 6px 10px rgba(255,47,90,.18); transition:background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .06s ease; cursor:pointer;}
+    .btn--brand{background:var(--brand); border-color:var(--brand);}
+    .btn--brand-700{background:var(--brand-700); border-color:var(--brand-700);}
+    .btn__icon{width:18px; height:18px; flex:0 0 18px; color:currentColor;}
+    .btn:hover{transform:translateY(-1px); box-shadow:0 8px 14px rgba(0,0,0,.22);}
+    .btn--brand:hover{background:#e92650; border-color:#e92650;}
+    .btn--brand-700:hover{background:#d61f46; border-color:#d61f46;}
+    .btn:active{transform:translateY(0); box-shadow:0 4px 8px rgba(255,47,90,.18);}
+    .btn:focus{outline:none; box-shadow:0 0 0 3px rgba(255,47,90,.25);}
+    @media (max-width:600px){
+      .header__authCluster,.logout-form{display:none!important;}
+      .header .container{display:grid!important; grid-template-columns:1fr; align-items:center; justify-items:center; height:72px!important; padding-left:max(16px, env(safe-area-inset-left))!important; padding-right:max(16px, env(safe-area-inset-right))!important; gap:0;}
+      .header__logo{justify-self:center;}
+      .header__logo .logo-large{max-width:180px; height:auto!important; display:block;}
+      .header__nav{display:none!important;}
+      .auth-buttons,.header__user{display:none!important;}
     }
 
-    .logo-large {
-        width: 220px !important;
-        height: auto !important;
+    .header__ticker{
+      --ticker-bg: linear-gradient(90deg, #FF2F5A 0%, #FF5400 100%);
+      --ticker-fg:#fff; --ticker-gap:32px;
+      display:flex; align-items:center; gap:12px; width:100%; height:36px; padding:6px 14px;
+      background:var(--ticker-bg); color:var(--ticker-fg);
+      border-bottom:1px solid rgba(255,47,90,.18); box-sizing:border-box; overflow:hidden;
     }
+    .ticker__icon{display:grid; place-items:center; width:22px; height:22px; flex:0 0 auto;}
+    .ticker__viewport{flex:1 1 auto; overflow:hidden;}
+    .ticker__track{display:flex; align-items:center; gap:var(--ticker-gap); white-space:nowrap; will-change:transform; animation:ticker-scroll var(--duration,30s) linear infinite;}
+    .ticker__item{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; background:#FF657E; color:#fff; border:none; border-radius:999px; box-shadow:0 1px 2px rgba(0,0,0,.04); font-family:'Manrope',sans-serif; font-weight:600; font-size:13px; line-height:1;}
+    .ticker__item strong{font-weight:800;}
+    .ticker__close{appearance:none; border:0; background:transparent; color:#9a2c45; font-size:18px; line-height:1; padding:2px 6px; cursor:pointer; border-radius:6px;}
+    .ticker__close:hover{background:rgba(255,47,90,.08);}
+    .ticker__close:focus{outline:none; box-shadow:0 0 0 3px rgba(255,47,90,.25);}
+    @keyframes ticker-scroll{to{transform:translateX(-50%);}}
+    .header__ticker:hover .ticker__track{animation-play-state:paused;}
+    @media (prefers-reduced-motion:reduce){.ticker__track{animation:none!important; transform:none!important;}}
+    @media (max-width:600px){.header__ticker{height:34px; padding:6px 10px;} .ticker__item{font-size:12px; padding:5px 8px;} .ticker__icon{display:none;}}
+    .ticker__iconImg{display:block; width:26px; height:26px; object-fit:contain;}
 
-    .header__nav a:hover { color: var(--brand); }
-
-    /* Brand-filled Account button (white text, softer shadow) */
-    .btn-account{
-    color: white;
-      display:inline-flex; align-items:center; gap:10px;
-      padding: 10px 18px;
-      background:#FF2F5A;          /* requested brand fill */
-      color:#fff;                   /* white text */
-      text-decoration:none;
-      font-weight:800;
-      font-family:'Manrope', sans-serif;
-      border-radius:12px;
-      border:1px solid #FF2F5A;
-      box-shadow: 0 6px 10px rgba(255,47,90,.18); /* softer */
-      transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .06s ease;
-    }
-    .btn-account__icon{
-      width:18px; height:18px; flex:0 0 18px; color: currentColor; /* inherits white */
-      color: white !important;
-    }
-    .btn-account:hover{
-      background:#e92650;
-      border-color:#e92650;
-      box-shadow: 0 8px 14px rgba(255,47,90,.22);
-      transform: translateY(-1px);
-    }
-    .btn-account:active{
-      transform: translateY(0);
-      box-shadow: 0 4px 8px rgba(255,47,90,.18);
-    }
-    .btn-account:focus{
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(255,47,90,.25);
-    }
-/* ===== Mobile header clean-up (≤600px) ===== */
-@media (max-width: 600px){
-  /* Center the whole header and tighten spacing */
-  .header .container{
-    display: grid !important;
-    grid-template-columns: 1fr;        /* single column */
-    align-items: center;
-    justify-items: center;              /* center content (logo) */
-    height: 72px !important;
-    padding-left: max(16px, env(safe-area-inset-left)) !important;
-    padding-right: max(16px, env(safe-area-inset-right)) !important;
-    gap: 0;
-  }
-
-  /* Center logo */
-  .header__logo{
-    justify-self: center;
-  }
-  .header__logo .logo-large{
-    max-width: 180px;                   /* scale down for phones */
-    height: auto !important;
-    display: block;
-  }
-
-  /* Hide middle menu (Browse, Companies, Resources, FAQ, Support, Our Mission) */
-  .header__nav{
-    display: none !important;
-  }
-
-  /* Hide auth cluster on the right */
-  .auth-buttons{                         /* Login + Start Your Journey */
-    display: none !important;
-  }
-  .header__user{                         /* Account button (if logged in) */
-    display: none !important;
-  }
-  /* (If you only want to hide Login/Register and KEEP Account,
-     remove the .header__user rule above.) */
-
-  /* Remove leftover spacing from inline styles */
-  .header .container{
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-  }
-}
-
-/* Base brand colors already defined:
-:root { --brand:#FF2F5A; --brand-700:#e92650; }
-*/
-
-/* ONE button style used by both Account (link) and Logout (button) */
-.btn{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:10px 18px;                       /* identical padding */
-  min-height: 42px;                         /* identical height */
-  box-sizing: border-box;                   /* normalize sizing */
-  font-family:'Manrope', sans-serif;
-  font-weight:800;
-  font-size:14px; line-height:1;            /* identical typography */
-  color:#fff; text-decoration:none;
-  border-radius:12px;
-  border:1px solid transparent;
-  background: var(--brand);
-  box-shadow: 0 6px 10px rgba(255,47,90,.18);
-  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .06s ease;
-  cursor:pointer;
-}
-
-.btn--brand    { background: var(--brand);    border-color: var(--brand); }
-.btn--brand-700{ background: var(--brand-700);border-color: var(--brand-700); }
-
-.btn__icon{
-  width:18px; height:18px; flex:0 0 18px;
-  color: currentColor; /* inherits white */
-}
-
-.btn:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 8px 14px rgba(0,0,0,.22);
-}
-
-.btn--brand:hover     { background:#e92650; border-color:#e92650; }
-.btn--brand-700:hover { background:#d61f46; border-color:#d61f46; }
-
-.btn:active{
-  transform: translateY(0);
-  box-shadow: 0 4px 8px rgba(255,47,90,.18);
-}
-.btn:focus{
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255,47,90,.25);
-}
-
-/* Mobile: hide the cluster (same as before) */
-@media (max-width: 600px){
-  .header__authCluster{ display:none !important; }
-  .logout-form{ display:none !important; }
-}
-
-/* ===== Top Ticker Styles ===== */
-.header__ticker{
-  --ticker-bg: linear-gradient(90deg, #FF2F5A 0%, #FF5400 100%);
-  --ticker-fg: #fff;
-  --ticker-pill-bg: rgba(255,255,255,0.2);
-  --ticker-pill-fg: #fff;
-  --ticker-gap: 32px;
-
-  display:flex; align-items:center; gap:12px;
-  width:100%;
-  height:36px;
-  padding:6px 14px;
-  background: var(--ticker-bg);
-  color: var(--ticker-fg);
-  border-bottom: 1px solid rgba(255,47,90,.18);
-  box-sizing: border-box;
-  overflow:hidden;
-}
-
-.ticker__icon{
-  display:grid; place-items:center;
-  width:22px; height:22px;
-  color: var(--brand);    
-  background: none;             /* uses your brand color */
-  flex:0 0 auto;
-}
-
-.ticker__viewport{ flex:1 1 auto; overflow:hidden; }
-.ticker__track{
-  display:flex; align-items:center;
-  gap: var(--ticker-gap);
-  white-space: nowrap;
-  will-change: transform;
-  animation: ticker-scroll var(--duration, 30s) linear infinite;
-}
-
-.ticker__item{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:6px 10px;
-  background: #FF657E;
-  color: #fff;
-  border: none;
-  border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);
-  font-family:'Manrope',sans-serif;
-  font-weight:600; font-size:13px; line-height:1;
-}
-
-.ticker__item strong{  
-  color: #fff;
-  font-weight: 800;
-}
-
-.ticker__close{
-  appearance:none; border:0; background:transparent; color: #9a2c45;
-  font-size:18px; line-height:1; padding:2px 6px; cursor:pointer;
-  border-radius:6px;
-}
-.ticker__close:hover{ background: rgba(255,47,90,.08); }
-.ticker__close:focus{ outline:none; box-shadow:0 0 0 3px rgba(255,47,90,.25); }
-
-/* Animation: we duplicate content & scroll -50% for a seamless loop */
-@keyframes ticker-scroll { to { transform: translateX(-50%); } }
-
-/* Pause on hover */
-.header__ticker:hover .ticker__track { animation-play-state: paused; }
-
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .ticker__track{ animation: none !important; transform: none !important; }
-}
-
-/* Mobile tuning */
-@media (max-width: 600px){
-  .header__ticker{
-    height: 34px;
-    padding: 6px 10px;
-  }
-  .ticker__item{ font-size:12px; padding:5px 8px; }
-  .ticker__icon{ display:none; }              /* keep it minimal on phones */
-}
-
-.ticker__iconImg{
-  display:block;
-  width:26px; height:26px;          /* fits nicely inside the 22x22 icon box */
-  object-fit:contain;
-}
-
-
-.lang-select {
-    appearance: none;
-    padding: 8px 18px 8px 10px; /* reduced right and left slightly */
-    border: none;
-    background: transparent;
-    font-weight: 600;
-    font-family:'Manrope',sans-serif;
-    cursor:pointer;
-    font-size:14px;
-    color:#111;
-}
-
-
-.lang-select-wrapper::after {
-    content: "";
-    position:absolute;
-    right:2px; /* closer */
-    top:50%;
-    transform: translateY(-62%) rotate(45deg);
-    width: 7px;   /* smaller */
-    height: 7px;  /* smaller */
-    border-right: 2px solid #444;
-    border-bottom: 2px solid #444;
-    pointer-events:none;
-}
-
-.lang-select:not(:focus):not(:active) option:not(:checked) {
-    display: none;
-}
-
-/* this forces the option content to only show the emoji, not text */
-.lang-select:not(:focus):not(:active) option:checked {
-    font-size: 0; /* hide text */
-}
-
-
-.lang-select:not(:focus):not(:active) option:checked::before {
-    content: attr(data-emoji);
-    font-size: 16px; /* size of emoji */
-}
-
-
-/* show only current selection normally */
-.lang-select option:checked {
-    display:block;
-}
-
-/* show all on click */
-.lang-select:focus option,
-.lang-select:active option {
-    display:block;
-}
-
-
-
+    .lang-select{appearance:none; padding:8px 18px 8px 10px; border:none; background:transparent; font-weight:600; font-family:'Manrope',sans-serif; cursor:pointer; font-size:14px; color:#111;}
+    .lang-select-wrapper::after{content:""; position:absolute; right:2px; top:50%; transform:translateY(-62%) rotate(45deg); width:7px; height:7px; border-right:2px solid #444; border-bottom:2px solid #444; pointer-events:none;}
+    .lang-select:not(:focus):not(:active) option:not(:checked){display:none;}
+    .lang-select:not(:focus):not(:active) option:checked{font-size:0;}
+    .lang-select:not(:focus):not(:active) option:checked::before{content:attr(data-emoji); font-size:16px;}
+    .lang-select option:checked{display:block;}
+    .lang-select:focus option,.lang-select:active option{display:block;}
   </style>
+
   <script>
     (function(){
-      // Respect a previous dismissal
-      const bar = document.getElementById('headerTicker');
-      if (!bar) return;
-      if (localStorage.getItem('hideTicker') === '1'){ bar.remove(); return; }
-    
-      const track = document.getElementById('tickerTrack');
-      if (!track) return;
-    
-      // Generate simple, realistic-looking messages
-      const NAMES = ['Anna','Stephan','Noah','Emma','Lucas','Mia','Leon','Ava','Mateo','Sofia','Liam','Olivia'];
-      const ROLES = [
-        'data analyst','machine learning','frontend developer','backend developer',
-        'data engineer','AI research','product manager','UX designer','BI analyst'
-      ];
-      const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
-    
-      const buildMessage = () => {
-        const name = NAMES[rand(0, NAMES.length-1)];
-        const role = ROLES[rand(0, ROLES.length-1)];
-        const counts = [50, 100, 150, 200, 250, 300];
-        const count = counts[Math.floor(Math.random() * counts.length)];
-        return `<span class="ticker__item"><strong>${name}</strong> applied to<strong>${count}</strong>jobs today for<strong>${role}</strong>positions</span>`;
-
-      };
-    
-      // Create a set of items (you can also fetch from Django if you prefer)
-      const items = Array.from({length: 10}, buildMessage).join('');
-      // Duplicate content for seamless loop (animation translates -50%)
-      track.innerHTML = items + items;
-    
-      // Compute duration from content width for consistent speed
-      const PX_PER_SECOND = 60; // lower = slower, higher = faster
-      const oneSetWidth = track.scrollWidth / 2;
-      const duration = Math.max(15, Math.round(oneSetWidth / PX_PER_SECOND));
-      track.style.setProperty('--duration', duration + 's');
-    
-      // Dismiss button
-      const closeBtn = bar.querySelector('.ticker__close');
-      if (closeBtn){
-        closeBtn.addEventListener('click', () => {
-          localStorage.setItem('hideTicker','1');
-          bar.remove();
-        });
-      }
-    
-      // Recompute speed on resize (debounced)
-      let t;
-      window.addEventListener('resize', () => {
-        clearTimeout(t);
-        t = setTimeout(() => {
-          const newWidth = track.scrollWidth / 2;
-          const newDuration = Math.max(15, Math.round(newWidth / PX_PER_SECOND));
-          track.style.setProperty('--duration', newDuration + 's');
-        }, 150);
-      });
+      const bar=document.getElementById('headerTicker'); if(!bar) return;
+      if(localStorage.getItem('hideTicker')==='1'){bar.remove(); return;}
+      const track=document.getElementById('tickerTrack'); if(!track) return;
+      const NAMES=['Anna','Stephan','Noah','Emma','Lucas','Mia','Leon','Ava','Mateo','Sofia','Liam','Olivia'];
+      const ROLES=['data analyst','machine learning','frontend developer','backend developer','data engineer','AI research','product manager','UX designer','BI analyst'];
+      const rand=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+      const buildMessage=()=>{const name=NAMES[rand(0,NAMES.length-1)], role=ROLES[rand(0,ROLES.length-1)], counts=[50,100,150,200,250,300], count=counts[Math.floor(Math.random()*counts.length)]; return `<span class="ticker__item"><strong>${name}</strong> applied to<strong>${count}</strong>jobs today for<strong>${role}</strong>positions</span>`;}
+      const items=Array.from({length:10}, buildMessage).join('');
+      track.innerHTML=items+items;
+      const PX_PER_SECOND=60;
+      const oneSetWidth=track.scrollWidth/2;
+      const duration=Math.max(15, Math.round(oneSetWidth/PX_PER_SECOND));
+      track.style.setProperty('--duration', duration+'s');
+      const closeBtn=bar.querySelector('.ticker__close');
+      if(closeBtn){closeBtn.addEventListener('click',()=>{localStorage.setItem('hideTicker','1'); bar.remove();});}
+      let t; window.addEventListener('resize',()=>{clearTimeout(t); t=setTimeout(()=>{const w=track.scrollWidth/2; const d=Math.max(15, Math.round(w/PX_PER_SECOND)); track.style.setProperty('--duration', d+'s');},150);});
     })();
-    </script>
+  </script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const path = window.location.pathname;
-
-  const select = document.querySelector('.lang-select');
-  if (!select) return;
-
-  if (path.startsWith("/dk") || path.startsWith("/da")) {
-    select.value = "{% url 'landing_page_dk' %}";
-  } else if (path.startsWith("/uk")) {
-    select.value = "{% url 'landing_page_uk' %}";
-  } else {
-    select.value = "{% url 'landing_page' %}";
-  }
-});
-
-</script>
-
-    
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const path = window.location.pathname;
+      const select = document.querySelector('.lang-select');
+      if (!select) return;
+      if (path.startsWith("/dk") || path.startsWith("/da")) {
+        select.value = "{% url 'landing_page_dk' %}";
+      } else if (path.startsWith("/uk")) {
+        select.value = "{% url 'landing_page_uk' %}";
+      } else {
+        select.value = "{% url 'landing_page' %}";
+      }
+    });
+  </script>
 </header>
 {# ==== /RECREATED HEADER ==== #}
 
 <main class="page">
   <header class="catalog-head">
-    <div>
-      <h1 class="catalog-title">Internstart Blog</h1>
-      <p class="catalog-sub">Simple, proof-based guides for internships — cover letters, resumes, timelines & more.</p>
-    </div>
+    <h1 class="catalog-title">Internstart Blog</h1>
+    <p class="catalog-sub">Advice and stories from experienced job hunters — dive into our blog.</p>
   </header>
 
   <section aria-label="Blog posts">
@@ -568,12 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="card">
         <a class="card__link" href="/blog/cover-letter-for-internship/">
           <div class="card__image">
-            <img
-              src="{% static 'images/Cover Letter for Internship.jpg' %}"
-              alt="Cover Letter for Internship"
-              loading="lazy"
-              decoding="async"
-            >
+            <img src="{% static 'images/Cover Letter for Internship.jpg' %}" alt="Cover Letter for Internship" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
             <p class="eyebrow">Internship Cover Letter Guide 2025</p>
@@ -588,12 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="card">
         <a class="card__link" href="/blog/how_to_find_internships_with_no_experience/">
           <div class="card__image">
-            <img
-              src="{% static 'images/How-to-find-internships-with-no-experience.jpg' %}"
-              alt="How to Find Internships with No Experience"
-              loading="lazy"
-              decoding="async"
-            >
+            <img src="{% static 'images/How-to-find-internships-with-no-experience.jpg' %}" alt="How to Find Internships with No Experience" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
             <p class="eyebrow">Internship Search Guide 2025</p>
@@ -608,12 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="card">
         <a class="card__link" href="/blog/how-to-write-resume-for-internship/">
           <div class="card__image">
-            <img
-              src="{% static 'images/how-to-write-resume-for-internship.jpg' %}"
-              alt="How to write resume for internship"
-              loading="lazy"
-              decoding="async"
-            >
+            <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}" alt="How to write resume for internship" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
             <p class="eyebrow">Resume Guide 2025</p>
@@ -628,12 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="card">
         <a class="card__link" href="/blog/skills_for_internship_resume/">
           <div class="card__image">
-            <img
-              src="{% static 'images/skills-for-internship-resume.jpg' %}"
-              alt="Skills for Internship Resume"
-              loading="lazy"
-              decoding="async"
-            >
+            <img src="{% static 'images/skills-for-internship-resume.jpg' %}" alt="Skills for Internship Resume" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
             <p class="eyebrow">Resume Skills Guide 2025</p>
@@ -648,12 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="card">
         <a class="card__link" href="/blog/when-to-apply-for-summer-internships/">
           <div class="card__image">
-            <img
-              src="{% static 'images/When to Apply for Summer Internships.jpg' %}"
-              alt="When to Apply for Summer Internships"
-              loading="lazy"
-              decoding="async"
-            >
+            <img src="{% static 'images/When to Apply for Summer Internships.jpg' %}" alt="When to Apply for Summer Internships" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
             <p class="eyebrow">Summer Internship Guide 2025</p>
@@ -668,12 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="card">
         <a class="card__link" href="/blog/how_to_get_a_remote_internship/">
           <div class="card__image">
-            <img
-              src="{% static 'images/how-to-get-a-remote-internship.JPG' %}"
-              alt="How to Get a Remote Internship"
-              loading="lazy"
-              decoding="async"
-            >
+            <img src="{% static 'images/how-to-get-a-remote-internship.JPG' %}" alt="How to Get a Remote Internship" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
             <p class="eyebrow">Remote Internship Guide 2025</p>
@@ -683,7 +353,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </a>
       </li>
-
     </ul>
   </section>
 </main>
