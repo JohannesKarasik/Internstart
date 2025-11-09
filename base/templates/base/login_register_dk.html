@@ -142,27 +142,27 @@
           <h1 class="auth-title">Tilmeld dig Internstart</h1>
           <p class="auth-sub">    Det tager under et minut — vi guider dig.</p>
 
-          <div class="stepper-wrap"></div>
-
-          <!-- stepper + progress -->
-          <div class="stepper stepper--tight" aria-label="Registreringsfremskridt">
-            <div class="stepper__item is-active" data-step-index="1">
-              <span class="stepper__dot"></span><span class="stepper__label">    Konto
-              </span> 
+          <div class="stepper-wrap">
+            <!-- stepper -->
+            <div class="stepper stepper--tight" aria-label="Registreringsfremskridt">
+              <div class="stepper__item is-active" data-step-index="1">
+                <span class="stepper__dot"></span><span class="stepper__label">Konto</span>
+              </div>
+              <div class="stepper__sep"></div>
+              <div class="stepper__item" data-step-index="2">
+                <span class="stepper__dot"></span><span class="stepper__label">Præferencer</span>
+              </div>
+              <div class="stepper__sep"></div>
+              <div class="stepper__item" data-step-index="3">
+                <span class="stepper__dot"></span><span class="stepper__label">CV</span>
+              </div>
             </div>
-            <div class="stepper__sep"></div>
-            <div class="stepper__item" data-step-index="2">
-              <span class="stepper__dot"></span><span class="stepper__label"> Præferencer</span>
-            </div>
-            <div class="stepper__sep"></div>
-            <div class="stepper__item" data-step-index="3">
-              <span class="stepper__dot"></span><span class="stepper__label"> CV</span>
+          
+            <!-- progressbar -->
+            <div class="progressbar" aria-hidden="true">
+              <span id="regProgress" style="width:33%"></span>
             </div>
           </div>
-          <div class="progressbar" aria-hidden="true">
-            <span id="regProgress" style="width:33%"></span>
-          </div>
-        </div>
 
           <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
             {% csrf_token %}
@@ -680,13 +680,10 @@
 
 
   .stepper-wrap {
-  max-width: 420px;   /* adjust this until the right edge aligns perfectly under CV dot */
-  margin: 0 auto;     /* center it */
+  max-width: 360px;
+  margin: 0 auto;
 }
 
-.progressbar {
-  margin-top: 4px; /* small tighter spacing */
-}
 
   </style>
   
