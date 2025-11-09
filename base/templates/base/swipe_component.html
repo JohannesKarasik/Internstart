@@ -391,9 +391,13 @@
   }
 
   // Attach event listeners (IDs kept the same)
-  document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
-  document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
-  document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
+  document.querySelectorAll('#premiumModal .checkout-btn').forEach(btn => {
+  btn.addEventListener('click', e=>{
+    e.preventDefault();
+    startCheckout(btn.dataset.tier);
+  });
+});
+
 </script>
 
 
