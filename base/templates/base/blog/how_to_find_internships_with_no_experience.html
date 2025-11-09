@@ -202,32 +202,34 @@
 
 <body>
   <!-- Global header -->
+
   <header class="site-header">
     <div class="site-header-inner">
+  
       <!-- Left: Logo + Breadcrumb -->
       <div class="brand-block">
         <a href="/" class="brand-logo-link">
           <img
-            src="{% static 'images/How to Find Internships with No Experience.jpg' %}"
+            src="{% static 'images/Internstartlogo (1).jpg' %}"
             alt="Internstart logo"
             width="160"
             height="auto"
             style="border-radius:6px; display:block;"
           >
         </a>
-
+  
         <div class="breadcrumb">
-          <a href="/blog/">Blog</a> / <a>How to Find Internships with No Experience</a>
+          <a href="/blog/">Blog</a> / <a>Cover Letter for Internship</a>
         </div>
       </div>
-
+  
       <!-- Right: CTA -->
       <a class="cta-header" href="/register/">
         Apply to 1,000+ internships in minutes with AI
       </a>
     </div>
   </header>
-
+  
   <style>
     .site-header {
       border-bottom: 1px solid #e5e7eb;
@@ -289,15 +291,23 @@
     .cta-header:hover {
       background-color: #e92650;
       text-decoration: none;
-      animation: none;
+      animation: none; /* pause pulse on hover for polish */
     }
+  
+    /* Subtle pulse animation */
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255,47,90, 0.55); }
-      70% { box-shadow: 0 0 0 10px rgba(255,47,90, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,47,90, 0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(255,47,90, 0.55);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255,47,90, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255,47,90, 0);
+      }
     }
   </style>
-
+  
   <main class="page-wrapper">
     <!-- Post intro / hero -->
     <header class="post-header">
@@ -314,7 +324,7 @@
       </div>
 
       <div class="hero-image">
-        <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}"
+        <img src="{% static 'images/How-to-find-internships-with-no-experience.jpg' %}"
              alt="How to Find Internships with No Experience — student researching strategies">
       </div>
 
