@@ -2,24 +2,22 @@
 <div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal__backdrop" data-close></div>
   
-    <div class="modal__dialog" role="document" aria-labelledby="upgradeTitle"
-         style="max-width: 980px; width: min(95vw, 980px);">
+    <div class="modal__dialog" role="document" aria-labelledby="upgradeTitle" style="max-width:980px; width:min(95vw,980px);">
       <button class="modal__close" aria-label="Close" data-close>&times;</button>
   
       <div class="modal__content" style="text-align:left;">
         <!-- Hero -->
         <header class="ns-hero" style="text-align:center; max-width:900px; margin:0 auto 22px;">
-          <h1 id="upgradeTitle" style="font-size:clamp(28px,3vw,40px);letter-spacing:-0.02em;margin:0 0 8px;">
+          <h1 id="upgradeTitle" class="ns-title">
             Choose your plan
           </h1>
-          <p class="ns-subtitle" style="color:#4b5563;font-size:clamp(14px,1.6vw,18px);margin:0 auto 6px;">
+          <p class="ns-subtitle">
             Swipe through jobs and instantly send AI-tailored applications to employers.
           </p>
         </header>
   
         <!-- Pricing Grid -->
-        <section class="ns-pricing-grid" aria-label="Plans"
-          style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-width:1100px;margin:0 auto;">
+        <section class="ns-pricing-grid" aria-label="Plans">
           <!-- Starter -->
           <article class="ns-card" data-plan="starter">
             <div class="ns-card-head">
@@ -36,7 +34,7 @@
               <li>Customer support</li>
             </ul>
             <p class="ns-feature-note">Applications are sent directly to the employer when you swipe.</p>
-            <a href="#" class="ns-cta" data-tier="starter">Get Starter</a>
+            <a href="#" class="ns-cta checkout-btn" data-tier="starter">Get Starter</a>
           </article>
   
           <!-- Pro (featured) -->
@@ -56,12 +54,7 @@
               <li>Customer support</li>
             </ul>
             <p class="ns-feature-note">Applications are sent directly to the employer when you swipe.</p>
-            <a href="#" class="ns-cta ns-cta-primary checkout-btn" data-tier="pro"
-               style="background:linear-gradient(135deg,#FF2F5A,#ffffff);
-                      color:#0a0a0a;border:1px solid rgba(255,47,90,0.40);
-                      box-shadow:0 10px 24px rgba(255,47,90,0.20);">
-              Start Pro
-            </a>
+            <a href="#" class="ns-cta ns-cta-primary checkout-btn" data-tier="pro">Start Pro</a>
           </article>
   
           <!-- Elite -->
@@ -85,88 +78,174 @@
         </section>
   
         <!-- Trust + Secondary actions -->
-        <section class="ns-foot-notes" style="text-align:center;color:#6b7280;display:grid;gap:8px;margin-top:16px;">
-          <p class="ns-guarantee" style="margin:0;">14-day money-back guarantee • Cancel anytime</p>
-          <div class="ns-secondary-actions" style="display:inline-flex;gap:10px;">
-            <a class="ns-link-muted" href="{% url 'update-user' %}"
-               style="color:#6b7280;text-decoration:underline;text-underline-offset:3px;">Manage billing</a>
+        <section class="ns-foot-notes">
+          <p class="ns-guarantee">14-day money-back guarantee • Cancel anytime</p>
+          <div class="ns-secondary-actions">
+            <a class="ns-link-muted" href="{% url 'update-user' %}">Manage billing</a>
             <span aria-hidden="true">•</span>
-            <a class="ns-link-muted" href="{% url 'logout' %}"
-               style="color:#6b7280;text-decoration:underline;text-underline-offset:3px;">Log out</a>
+            <a class="ns-link-muted" href="{% url 'logout' %}">Log out</a>
           </div>
         </section>
       </div>
     </div>
   </div>
   
-  <!-- Scoped styles for the modal (namespaced with .ns-) -->
+  <!-- ===== Scoped styles (namespaced under #noSwipesModal) ===== -->
   <style>
+    /* Container matches site’s dark theme */
+    #noSwipesModal .modal__dialog{
+      background:
+        radial-gradient(1100px 560px at 80% -10%, rgba(255,47,90,0.10), transparent 60%),
+        radial-gradient(900px 480px at -10% 20%, rgba(255,255,255,0.04), transparent 60%),
+        #0b0f1a; /* deep navy */
+      color:#e5e7eb;
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:18px;
+      box-shadow:0 40px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.02) inset;
+      padding:28px 22px 22px;
+    }
+    #noSwipesModal .modal__close{
+      position:absolute; top:10px; right:14px;
+      background:transparent; border:0; color:#cbd5e1; font-size:26px; line-height:1; cursor:pointer;
+    }
+    #noSwipesModal .modal__close:hover{ color:#ffffff; }
+  
+    /* Head */
+    #noSwipesModal .ns-title{
+      font-size:clamp(28px,3vw,40px);
+      letter-spacing:-0.02em;
+      margin:0 0 8px;
+      color:#ffffff;
+      text-shadow:0 1px 0 rgba(0,0,0,0.4);
+    }
+    #noSwipesModal .ns-subtitle{
+      color:#9aa3b2;
+      font-size:clamp(14px,1.6vw,18px);
+      margin:0 auto 6px;
+    }
+  
+    /* Grid */
+    #noSwipesModal .ns-pricing-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:18px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+  
+    /* Cards (dark surfaces) */
     #noSwipesModal .ns-card{
-      position:relative;background:#ffffff;border:1px solid rgba(17,17,17,0.08);
-      border-radius:16px;padding:22px;box-shadow:0 8px 30px rgba(0,0,0,0.08);
-      display:flex;flex-direction:column;justify-content:space-between;
-      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+      position:relative;
+      background:linear-gradient(180deg, #111826, #0e1422);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:16px;
+      padding:22px;
+      box-shadow:0 16px 40px rgba(0,0,0,0.35);
+      display:flex; flex-direction:column; justify-content:space-between;
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
     }
     #noSwipesModal .ns-card:hover{
-      transform:translateY(-4px);border-color:rgba(0,0,0,0.18);
-      box-shadow:0 18px 40px rgba(0,0,0,0.10);
+      transform:translateY(-3px);
+      border-color:rgba(255,255,255,0.14);
+      box-shadow:0 24px 60px rgba(0,0,0,0.45);
     }
+  
+    /* Featured card */
     #noSwipesModal .ns-is-featured{
-      border:1.5px solid rgba(255,47,90,0.65);
-      box-shadow:0 22px 60px rgba(255,47,90,0.16);
-      background:linear-gradient(180deg, rgba(255,47,90,0.05), transparent 60%), #ffffff;
+      border:1.5px solid rgba(255,47,90,0.55);
+      box-shadow:
+        0 28px 80px rgba(255,47,90,0.18),
+        0 16px 40px rgba(0,0,0,0.38);
+      background:
+        radial-gradient(600px 220px at 50% -40%, rgba(255,47,90,0.16), transparent 70%),
+        linear-gradient(180deg, #131a2a, #0c1220);
     }
     #noSwipesModal .ns-card-badge{
-      position:absolute;top:-12px;left:18px;background:linear-gradient(135deg,#FF2F5A,#ffffff);
-      color:#0a0a0a;font-weight:800;font-size:12px;padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,47,90,0.35);box-shadow:0 10px 24px rgba(255,47,90,0.20);
+      position:absolute; top:-12px; left:18px;
+      background:linear-gradient(135deg, #FF2F5A, #FF5400);
+      color:#0a0a0a; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,47,90,0.35);
+      box-shadow:0 10px 24px rgba(255,47,90,0.25);
     }
+  
+    /* Head inside cards */
     #noSwipesModal .ns-card-head{ margin-bottom:12px; }
-    #noSwipesModal .ns-plan-name{ margin:0;font-size:22px;letter-spacing:-0.01em;color:#0a0a0a; }
+    #noSwipesModal .ns-plan-name{ margin:0; font-size:22px; letter-spacing:-0.01em; color:#ffffff; }
     #noSwipesModal .ns-plan-tag{
-      margin:4px 0 10px;color:#FF2F5A;font-weight:700;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;
+      margin:4px 0 10px; color:#ff7a95; /* subtle brand tint */
+      font-weight:700; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
     }
-    #noSwipesModal .ns-price{ margin:0 0 8px;font-weight:800;color:#0a0a0a; }
+    #noSwipesModal .ns-price{ margin:0 0 8px; font-weight:800; color:#ffffff; }
     #noSwipesModal .ns-price-amount{ font-size:34px; }
-    #noSwipesModal .ns-price-term{ color:#4b5563;margin-left:4px;font-weight:600; }
+    #noSwipesModal .ns-price-term{ color:#9aa3b2; margin-left:4px; font-weight:600; }
+  
+    /* Features */
     #noSwipesModal .ns-features{
-      list-style:none;margin:12px 0 20px;padding:0;color:#4b5563;display:grid;gap:10px;
+      list-style:none; margin:12px 0 20px; padding:0; color:#cbd5e1; display:grid; gap:10px;
     }
     #noSwipesModal .ns-features li{
-      display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:baseline;
+      display:grid; grid-template-columns:18px 1fr; gap:10px; align-items:baseline;
     }
     #noSwipesModal .ns-features li::before{
-      content:'';width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#0a0a0a,#FF2F5A);
-      display:inline-block;margin-top:3px;box-shadow:0 6px 14px rgba(255,47,90,0.18);
+      content:''; width:14px; height:14px; border-radius:4px;
+      background:linear-gradient(135deg, #FF2F5A, #FF5400);
+      box-shadow:0 6px 14px rgba(255,47,90,0.28);
+      margin-top:3px;
     }
-    #noSwipesModal .ns-feature-note{ color:#4b5563;font-size:0.95em;margin-top:-6px; }
+    #noSwipesModal .ns-feature-note{ color:#9aa3b2; font-size:0.95em; margin-top:-6px; }
+  
+    /* CTAs */
     #noSwipesModal .ns-cta{
-      display:inline-flex;justify-content:center;align-items:center;gap:8px;
-      text-decoration:none;border-radius:12px;padding:12px 16px;border:1px solid rgba(17,17,17,0.08);
-      color:#0a0a0a;font-weight:700;transition:background .2s ease, transform .06s ease, border .2s ease, box-shadow .2s ease, color .2s ease;
+      display:inline-flex; justify-content:center; align-items:center; gap:8px;
+      text-decoration:none; border-radius:12px; padding:12px 16px;
+      border:1px solid rgba(255,255,255,0.10);
+      color:#e5e7eb; font-weight:700;
+      transition:background .18s ease, transform .06s ease, border .18s ease, box-shadow .18s ease, color .18s ease;
+      background:rgba(255,255,255,0.02);
     }
     #noSwipesModal .ns-cta:hover{
-      background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.18);box-shadow:0 6px 16px rgba(0,0,0,0.10);
+      background:rgba(255,255,255,0.06);
+      border-color:rgba(255,255,255,0.18);
+      box-shadow:0 6px 18px rgba(0,0,0,0.35);
     }
     #noSwipesModal .ns-cta:active{ transform:translateY(1px); }
     #noSwipesModal .ns-cta-primary{
-      background:linear-gradient(135deg,#FF2F5A,#ffffff);color:#0a0a0a;border:1px solid rgba(255,47,90,0.40);
-      box-shadow:0 10px 24px rgba(255,47,90,0.20);
+      background:linear-gradient(135deg, #FF2F5A, #FF5400);
+      color:#0a0a0a;
+      border:1px solid rgba(255,47,90,0.45);
+      box-shadow:0 12px 30px rgba(255,47,90,0.28), 0 1px 0 rgba(255,255,255,0.3) inset;
     }
-    @media (max-width: 960px){
-      #noSwipesModal .ns-pricing-grid{ grid-template-columns:1fr !important; max-width:620px; }
+    #noSwipesModal .ns-cta-primary:hover{
+      filter:saturate(1.06);
+      box-shadow:0 16px 36px rgba(255,47,90,0.34);
+    }
+  
+    /* Foot notes */
+    #noSwipesModal .ns-foot-notes{
+      text-align:center; color:#9aa3b2; display:grid; gap:8px; margin-top:16px;
+    }
+    #noSwipesModal .ns-guarantee{ margin:0; }
+    #noSwipesModal .ns-secondary-actions{ display:inline-flex; gap:10px; }
+    #noSwipesModal .ns-link-muted{
+      color:#9aa3b2; text-decoration:underline; text-underline-offset:3px;
+    }
+    #noSwipesModal .ns-link-muted:hover{ color:#e5e7eb; }
+  
+    /* Responsive */
+    @media (max-width:960px){
+      #noSwipesModal .ns-pricing-grid{ grid-template-columns:1fr; max-width:620px; }
       #noSwipesModal .ns-price-amount{ font-size:32px; }
     }
   </style>
   
-  <!-- Stripe + wiring (scoped to this modal) -->
+  <!-- ===== Stripe + wiring (scoped to this modal) ===== -->
   <script src="https://js.stripe.com/v3/"></script>
   <script>
   (function(){
-    // Close behavior
     const modal = document.getElementById('noSwipesModal');
     if (!modal) return;
   
+    // Close behavior
     modal.addEventListener('click', (e)=>{
       if (e.target.matches('[data-close], .modal__backdrop')) {
         modal.classList.remove('show');
