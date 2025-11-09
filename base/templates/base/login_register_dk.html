@@ -851,7 +851,6 @@ document.addEventListener('click', (e) => {
 
 
 
-
 let step2Stage = 1;
 const btnStep2 = document.getElementById("step2-continue");
 
@@ -866,8 +865,8 @@ btnStep2.addEventListener("click", function(){
     step2Stage = 3;
     return;
   }
-  // stage 3 → NOW go to real step 3
-  showStep(3);
+  // stage 3 → go to real step 3
+  document.querySelector('#toStep3').click();
 });
 
 
