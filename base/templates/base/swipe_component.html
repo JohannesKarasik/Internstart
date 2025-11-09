@@ -252,59 +252,77 @@
        style="max-width: 980px; width: min(95vw, 980px);">
     <button class="modal__close" aria-label="Close">&times;</button>
     <div class="modal__content">
-      <h2 id="noSwipesTitle">No more swipes</h2>
-      <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
-
-      <!-- Plans -->
-      <div class="modal__plans"
-           style="
-             display:flex;
-             gap:1rem;
-             align-items:stretch;
-             justify-content:space-between; /* spread evenly */
-             flex-wrap:nowrap;               /* single row */
-             margin:1rem 0;
-           ">
+      <h2 id="noSwipesTitle">Choose your plan</h2>
+      <p class="subtitle">Swipe through jobs and instantly send AI-tailored applications.</p>
+    
+      <section class="pricing-grid" aria-label="Plans">
         <!-- Starter -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Starter</h3>
-          <div style="font-size:1.25rem; font-weight:700;">99 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>10 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <article class="card" data-plan="starter">
+          <div class="card-head">
+            <h2 class="plan-name">Starter</h2>
+            <p class="plan-tag">For exploring</p>
+            <p class="price">
+              <span class="price-amount">$12</span>
+              <span class="price-term">/mo</span>
+            </p>
+          </div>
+          <ul class="features">
+            <li><strong>50 AI-tailored applications / month</strong></li>
+            <li>Unlimited skips</li>
+            <li>Customer support</li>
           </ul>
-          <button class="btn-primary" id="subscribe-starter" aria-label="Subscribe to Starter (99 DKK per month)">Starter — 99 DKK/mo</button>
-        </div>
-
-        <!-- Pro -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Pro</h3>
-          <div style="font-size:1.25rem; font-weight:700;">199 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>25 daily swipes</li>
-            <li>Unlimited Skips</li>
+          <p class="feature-note">Applications are sent directly to the employer when you swipe.</p>
+          
+          <a href="#" class="cta" data-tier="starter">Get Starter</a>
+        </article>
+    
+        <!-- Pro (featured) -->
+        <article class="card is-featured" data-plan="pro" aria-label="Most popular">
+          <div class="card-badge" aria-hidden="true">Most Popular</div>
+          <div class="card-head">
+            <h2 class="plan-name">Pro</h2>
+            <p class="plan-tag">For serious seekers</p>
+            <p class="price">
+              <span class="price-amount">$28</span>
+              <span class="price-term">/mo</span>
+            </p>
+          </div>
+          <ul class="features">
+            <li><strong>200 AI-tailored applications / month</strong></li>
+            <li>Unlimited skips</li>
+            <li>Customer support</li>
           </ul>
-          <button class="btn-primary" id="subscribe-pro" aria-label="Subscribe to Pro (199 DKK per month)">Pro — 199 DKK/mo</button>
-        </div>
-
+          <p class="feature-note">Applications are sent directly to the employer when you swipe.</p>
+          
+          <a href="#" class="cta cta-primary checkout-btn" data-tier="pro">Start Pro</a>
+        </article>
+    
         <!-- Elite -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Elite</h3>
-          <div style="font-size:1.25rem; font-weight:700;">299 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>40 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <article class="card" data-plan="elite">
+          <div class="card-head">
+            <h2 class="plan-name">Elite</h2>
+            <p class="plan-tag">For serious career builders</p>
+            <p class="price">
+              <span class="price-amount">$49</span>
+              <span class="price-term">/mo</span>
+            </p>
+          </div>
+          <ul class="features">
+            <li><strong>400 AI-tailored applications / month</strong></li>
+            <li>Unlimited skips</li>
+            <li>Customer support</li>
           </ul>
-          <button class="btn-primary" id="subscribe-elite" aria-label="Subscribe to Elite (299 DKK per month)">Elite — 299 DKK/mo</button>
-        </div>
-      </div>
+          <p class="feature-note">Applications are sent directly to the employer when you swipe.</p>
+          
+          <a href="#" class="cta checkout-btn" data-tier="elite">Go Elite</a>
+        </article>
+      </section>
+    
+      <p style="text-align:center;margin-top:16px;color:#6b7280">
+        14-day money-back guarantee • Cancel anytime
+      </p>
     </div>
+    
   </div>
 </div>
 
