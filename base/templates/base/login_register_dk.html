@@ -258,45 +258,35 @@
           <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
             <h2 id="step2label" class="sr-only">Præferencer</h2>
           
-            <!-- Desired Job Title (full width on top) -->
-            <div class="form__group{% if student_form.desired_job_title.errors %} form__group--error{% endif %}" style="grid-column: 1 / -1; margin-bottom: 16px;">
-              <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
-                Hvilken jobtitel ønsker du?
-              </label>
-              {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=fx Marketingpraktikant, Softwareudvikler, Analytiker" }}
-              {% if student_form.desired_job_title.errors %}
-                <small class="form__error">{{ student_form.desired_job_title.errors|striptags }}</small>
-              {% endif %}
+            <!-- 1) Job title -->
+            <div class="step2-block" id="step2-jobtitle">
+              <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 16px;">
+                <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
+                  Hvilken jobtitel ønsker du?
+                </label>
+                {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=fx Marketingpraktikant, Softwareudvikler, Analytiker" }}
+              </div>
             </div>
           
-            <!-- Country + Job Type side by side -->
-            <div class="form-grid form-grid--2">
-              <!-- Country -->
-              <div class="form__group{% if student_form.country.errors %} form__group--error{% endif %}">
-                <label class="form__label" for="{{ student_form.country.id_for_label }}">
-                  Land
-                </label>
+            <!-- 2) Country -->
+            <div class="step2-block" id="step2-country" style="display:none;">
+              <div class="form__group" style="margin-bottom:16px;">
+                <label class="form__label" for="{{ student_form.country.id_for_label }}">Land</label>
                 {{ student_form.country }}
-                {% if student_form.country.errors %}
-                  <small class="form__error">{{ student_form.country.errors|striptags }}</small>
-                {% endif %}
               </div>
+            </div>
           
-              <!-- Job Type -->
-              <div class="form__group{% if student_form.job_type.errors %} form__group--error{% endif %}">
-                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
-                  Hvilken type job søger du?
-                </label>
+            <!-- 3) Job type -->
+            <div class="step2-block" id="step2-jobtype" style="display:none;">
+              <div class="form__group" style="margin-bottom:16px;">
+                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">Hvilken type job søger du?</label>
                 {{ student_form.job_type|add_class:"form__control" }}
-                {% if student_form.job_type.errors %}
-                  <small class="form__error">{{ student_form.job_type.errors|striptags }}</small>
-                {% endif %}
               </div>
             </div>
           
             <div class="wizard-actions wizard-actions--split">
               <button type="button" class="btn btn--ghost" id="backToStep1">Tilbage</button>
-              <button type="button" class="btn btn--primary" id="toStep3">Fortsæt</button>    
+              <button type="button" class="btn btn--primary" id="step2-continue">Fortsæt</button>
             </div>
           </div>
           
@@ -856,6 +846,35 @@ document.addEventListener('click', (e) => {
     input.dispatchEvent(new Event('change', {bubbles:true}));
   });
 })();
+
+
+
+
+
+
+let step2Stage = 1;
+const btnStep2 = document.getElementById("step2-continue");
+
+btnStep2.addEventListener("click", function(){
+  if(step2Stage === 1){
+    document.getElementById("step2-country").style.display = "block";
+    step2Stage = 2;
+    return;
+  }
+  if(step2Stage === 2){
+    document.getElementById("step2-jobtype").style.display = "block";
+    step2Stage = 3;
+    return;
+  }
+  // stage 3 → NOW go to real step 3
+  document.getElementById("toStep3").click();
+});
+
+
+
+
 </script>
+
+
 
 {% endblock content %}
