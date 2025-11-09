@@ -166,6 +166,8 @@ urlpatterns = [
 
     ##############################################
 
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+
 
     # Health Check URL
     path('health/', views.health_check, name='health_check'),

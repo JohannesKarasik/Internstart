@@ -3006,3 +3006,7 @@ def skills_for_internship_resume(request):
     Renders the blog page: 'When to Apply for Summer Internships'
     """
     return render(request, 'base/blog/skills_for_internship_resume.html')
+
+
+def robots_txt(request):
+    return render(request, 'robots.txt', content_type='text/plain')
