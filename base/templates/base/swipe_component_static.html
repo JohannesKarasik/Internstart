@@ -245,68 +245,217 @@
   #noSwipesModal .plan-card:hover { z-index: 3; }
 </style>
 
+<!-- ===== New Premium / No Swipes Modal (drop-in replacement) ===== -->
 <div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
-  <div class="modal__backdrop"></div>
-  <!-- Ensure room for 3 cards side-by-side -->
-  <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle"
+  <div class="modal__backdrop" data-close></div>
+
+  <div class="modal__dialog" role="document" aria-labelledby="upgradeTitle"
        style="max-width: 980px; width: min(95vw, 980px);">
-    <button class="modal__close" aria-label="Close">&times;</button>
-    <div class="modal__content">
-      <h2 id="noSwipesTitle">No more swipes</h2>
-      <p>You’ve used all your free swipes today. Upgrade to keep swiping 🚀</p>
+    <button class="modal__close" aria-label="Close" data-close>&times;</button>
 
-      <!-- Plans -->
-      <div class="modal__plans"
-           style="
-             display:flex;
-             gap:1rem;
-             align-items:stretch;
-             justify-content:space-between; /* spread evenly */
-             flex-wrap:nowrap;               /* single row */
-             margin:1rem 0;
-           ">
+    <div class="modal__content" style="text-align:left;">
+      <!-- Hero -->
+      <header class="ns-hero" style="text-align:center; max-width:900px; margin:0 auto 22px;">
+        <h1 id="upgradeTitle" style="font-size:clamp(28px,3vw,40px);letter-spacing:-0.02em;margin:0 0 8px;">
+          Choose your plan
+        </h1>
+        <p class="ns-subtitle" style="color:#4b5563;font-size:clamp(14px,1.6vw,18px);margin:0 auto 6px;">
+          Swipe through jobs and instantly send AI-tailored applications to employers.
+        </p>
+      </header>
+
+      <!-- Pricing Grid -->
+      <section class="ns-pricing-grid" aria-label="Plans"
+        style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-width:1100px;margin:0 auto;">
         <!-- Starter -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Starter</h3>
-          <div style="font-size:1.25rem; font-weight:700;">99 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>10 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <article class="ns-card" data-plan="starter">
+          <div class="ns-card-head">
+            <h2 class="ns-plan-name">Starter</h2>
+            <p class="ns-plan-tag">For exploring</p>
+            <p class="ns-price">
+              <span class="ns-price-amount" data-monthly="$12" data-yearly="$9">$12</span>
+              <span class="ns-price-term">/mo</span>
+            </p>
+          </div>
+          <ul class="ns-features">
+            <li><strong>50 AI-tailored applications / month</strong></li>
+            <li>Unlimited skips</li>
+            <li>Customer support</li>
           </ul>
-          <button class="btn-primary" id="subscribe-starter" aria-label="Subscribe to Starter (99 DKK per month)">Starter — 99 DKK/mo</button>
-        </div>
+          <p class="ns-feature-note">Applications are sent directly to the employer when you swipe.</p>
+          <a href="#" class="ns-cta" data-tier="starter">Get Starter</a>
+        </article>
 
-        <!-- Pro -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Pro</h3>
-          <div style="font-size:1.25rem; font-weight:700;">199 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>25 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <!-- Pro (featured) -->
+        <article class="ns-card ns-is-featured" data-plan="pro" aria-label="Most popular">
+          <div class="ns-card-badge" aria-hidden="true">Most Popular</div>
+          <div class="ns-card-head">
+            <h2 class="ns-plan-name">Pro</h2>
+            <p class="ns-plan-tag">For serious seekers</p>
+            <p class="ns-price">
+              <span class="ns-price-amount" data-monthly="$28" data-yearly="$19">$28</span>
+              <span class="ns-price-term">/mo</span>
+            </p>
+          </div>
+          <ul class="ns-features">
+            <li><strong>200 AI-tailored applications / month</strong></li>
+            <li>Unlimited skips</li>
+            <li>Customer support</li>
           </ul>
-          <button class="btn-primary" id="subscribe-pro" aria-label="Subscribe to Pro (199 DKK per month)">Pro — 199 DKK/mo</button>
-        </div>
+          <p class="ns-feature-note">Applications are sent directly to the employer when you swipe.</p>
+          <a href="#" class="ns-cta ns-cta-primary checkout-btn" data-tier="pro"
+             style="background:linear-gradient(135deg,#FF2F5A,#ffffff);
+                    color:#0a0a0a;border:1px solid rgba(255,47,90,0.40);
+                    box-shadow:0 10px 24px rgba(255,47,90,0.20);">
+            Start Pro
+          </a>
+        </article>
 
         <!-- Elite -->
-        <div class="plan-card"
-             style="border:1px solid var(--border, #2a2f3a); border-radius:12px; padding:1rem;
-                    box-sizing:border-box; flex:1 1 0; min-width:0;">
-          <h3 style="margin:0 0 .25rem 0;">Elite</h3>
-          <div style="font-size:1.25rem; font-weight:700;">299 DKK<span style="font-weight:400; font-size:.95rem;">/mo</span></div>
-          <ul style="margin:.75rem 0 1rem 1rem; padding:0; line-height:1.5;">
-            <li>40 daily swipes</li>
-            <li>Unlimited Skips</li>
+        <article class="ns-card" data-plan="elite">
+          <div class="ns-card-head">
+            <h2 class="ns-plan-name">Elite</h2>
+            <p class="ns-plan-tag">For serious career builders</p>
+            <p class="ns-price">
+              <span class="ns-price-amount" data-monthly="$49" data-yearly="$39">$49</span>
+              <span class="ns-price-term">/mo</span>
+            </p>
+          </div>
+          <ul class="ns-features">
+            <li><strong>400 AI-tailored applications / month</strong></li>
+            <li>Unlimited skips</li>
+            <li>Customer support</li>
           </ul>
-          <button class="btn-primary" id="subscribe-elite" aria-label="Subscribe to Elite (299 DKK per month)">Elite — 299 DKK/mo</button>
+          <p class="ns-feature-note">Applications are sent directly to the employer when you swipe.</p>
+          <a href="#" class="ns-cta checkout-btn" data-tier="elite">Go Elite</a>
+        </article>
+      </section>
+
+      <!-- Trust + Secondary actions -->
+      <section class="ns-foot-notes" style="text-align:center;color:#6b7280;display:grid;gap:8px;margin-top:16px;">
+        <p class="ns-guarantee" style="margin:0;">14-day money-back guarantee • Cancel anytime</p>
+        <div class="ns-secondary-actions" style="display:inline-flex;gap:10px;">
+          <a class="ns-link-muted" href="{% url 'update-user' %}"
+             style="color:#6b7280;text-decoration:underline;text-underline-offset:3px;">Manage billing</a>
+          <span aria-hidden="true">•</span>
+          <a class="ns-link-muted" href="{% url 'logout' %}"
+             style="color:#6b7280;text-decoration:underline;text-underline-offset:3px;">Log out</a>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </div>
+
+<!-- Scoped styles for the modal (namespaced with .ns-) -->
+<style>
+  #noSwipesModal .ns-card{
+    position:relative;background:#ffffff;border:1px solid rgba(17,17,17,0.08);
+    border-radius:16px;padding:22px;box-shadow:0 8px 30px rgba(0,0,0,0.08);
+    display:flex;flex-direction:column;justify-content:space-between;
+    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  }
+  #noSwipesModal .ns-card:hover{
+    transform:translateY(-4px);border-color:rgba(0,0,0,0.18);
+    box-shadow:0 18px 40px rgba(0,0,0,0.10);
+  }
+  #noSwipesModal .ns-is-featured{
+    border:1.5px solid rgba(255,47,90,0.65);
+    box-shadow:0 22px 60px rgba(255,47,90,0.16);
+    background:linear-gradient(180deg, rgba(255,47,90,0.05), transparent 60%), #ffffff;
+  }
+  #noSwipesModal .ns-card-badge{
+    position:absolute;top:-12px;left:18px;background:linear-gradient(135deg,#FF2F5A,#ffffff);
+    color:#0a0a0a;font-weight:800;font-size:12px;padding:6px 10px;border-radius:999px;
+    border:1px solid rgba(255,47,90,0.35);box-shadow:0 10px 24px rgba(255,47,90,0.20);
+  }
+  #noSwipesModal .ns-card-head{ margin-bottom:12px; }
+  #noSwipesModal .ns-plan-name{ margin:0;font-size:22px;letter-spacing:-0.01em;color:#0a0a0a; }
+  #noSwipesModal .ns-plan-tag{
+    margin:4px 0 10px;color:#FF2F5A;font-weight:700;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;
+  }
+  #noSwipesModal .ns-price{ margin:0 0 8px;font-weight:800;color:#0a0a0a; }
+  #noSwipesModal .ns-price-amount{ font-size:34px; }
+  #noSwipesModal .ns-price-term{ color:#4b5563;margin-left:4px;font-weight:600; }
+  #noSwipesModal .ns-features{
+    list-style:none;margin:12px 0 20px;padding:0;color:#4b5563;display:grid;gap:10px;
+  }
+  #noSwipesModal .ns-features li{
+    display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:baseline;
+  }
+  #noSwipesModal .ns-features li::before{
+    content:'';width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#0a0a0a,#FF2F5A);
+    display:inline-block;margin-top:3px;box-shadow:0 6px 14px rgba(255,47,90,0.18);
+  }
+  #noSwipesModal .ns-feature-note{ color:#4b5563;font-size:0.95em;margin-top:-6px; }
+  #noSwipesModal .ns-cta{
+    display:inline-flex;justify-content:center;align-items:center;gap:8px;
+    text-decoration:none;border-radius:12px;padding:12px 16px;border:1px solid rgba(17,17,17,0.08);
+    color:#0a0a0a;font-weight:700;transition:background .2s ease, transform .06s ease, border .2s ease, box-shadow .2s ease, color .2s ease;
+  }
+  #noSwipesModal .ns-cta:hover{
+    background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.18);box-shadow:0 6px 16px rgba(0,0,0,0.10);
+  }
+  #noSwipesModal .ns-cta:active{ transform:translateY(1px); }
+  #noSwipesModal .ns-cta-primary{
+    background:linear-gradient(135deg,#FF2F5A,#ffffff);color:#0a0a0a;border:1px solid rgba(255,47,90,0.40);
+    box-shadow:0 10px 24px rgba(255,47,90,0.20);
+  }
+  @media (max-width: 960px){
+    #noSwipesModal .ns-pricing-grid{ grid-template-columns:1fr !important; max-width:620px; }
+    #noSwipesModal .ns-price-amount{ font-size:32px; }
+  }
+</style>
+
+<!-- Stripe + wiring (scoped to this modal) -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+(function(){
+  // Close behavior
+  const modal = document.getElementById('noSwipesModal');
+  if (!modal) return;
+
+  modal.addEventListener('click', (e)=>{
+    if (e.target.matches('[data-close], .modal__backdrop')) {
+      modal.classList.remove('show');
+      document.documentElement.style.overflow = '';
+    }
+  });
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+      modal.classList.remove('show');
+      document.documentElement.style.overflow = '';
+    }
+  });
+
+  // Stripe checkout wiring
+  const STRIPE_PK = "{{ STRIPE_PUBLIC_KEY|default_if_none:'' }}";
+  let stripe = null;
+  try { stripe = Stripe(STRIPE_PK); } catch(e){ console.error("Stripe init failed:", e); }
+
+  async function startCheckout(tier){
+    try{
+      const r = await fetch(`/billing/checkout/${tier}/`, { credentials:'same-origin' });
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+      if (data.url) { window.location.href = data.url; return; }
+      if (data.id && stripe) { await stripe.redirectToCheckout({ sessionId: data.id }); return; }
+      alert('Could not start checkout.');
+    }catch(err){
+      console.error(err);
+      alert('Checkout error: ' + err.message);
+    }
+  }
+
+  modal.querySelectorAll('.checkout-btn, .ns-cta').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const tier = btn.dataset.tier || btn.closest('[data-plan]')?.dataset.plan || 'pro';
+      startCheckout(tier);
+    });
+  });
+})();
+</script>
+
 
 
 <style>
