@@ -858,27 +858,38 @@ const btnStep2 = document.getElementById("step2-continue");
 btnStep2.addEventListener("click", function(){
 
   if(step2Stage === 1){
-    // hide job title
+    const jobTitle = document.querySelector('[name$="desired_job_title"]');
+    if(!jobTitle.value.trim()){
+      jobTitle.reportValidity();
+      return;
+    }
     document.getElementById("step2-jobtitle").style.display = "none";
-    // show country
     document.getElementById("step2-country").style.display = "block";
     step2Stage = 2;
     return;
   }
 
   if(step2Stage === 2){
-    // hide country
+    const country = document.querySelector('[name$="country"]');
+    if(!country.value.trim()){
+      country.reportValidity();
+      return;
+    }
     document.getElementById("step2-country").style.display = "none";
-    // show job type
     document.getElementById("step2-jobtype").style.display = "block";
     step2Stage = 3;
     return;
   }
 
-  // stage 3 → go to real step 3
-  document.querySelector('#toStep3').click();
+  if(step2Stage === 3){
+    const jobType = document.querySelector('[name$="job_type"]');
+    if(!jobType.value.trim()){
+      jobType.reportValidity();
+      return;
+    }
+    document.querySelector('#toStep3').click();
+  }
 });
-
 
 
 
