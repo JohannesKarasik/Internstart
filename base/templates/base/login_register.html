@@ -143,21 +143,27 @@
           <p class="auth-sub">    It takes under a minute — we’ll guide you.</p>
 
           <!-- stepper + progress -->
-          <div class="stepper stepper--tight" aria-label="Registration progress">
-            <div class="stepper__item is-active" data-step-index="1">
-              <span class="stepper__dot"></span><span class="stepper__label">    Account
-              </span> 
+          <div class="stepper-wrap stepper-wrap--left">
+            <!-- stepper -->
+            <div class="stepper stepper--tight" aria-label="Registreringsfremskridt">
+              <div class="stepper__item is-active" data-step-index="1">
+                <span class="stepper__dot"></span><span class="stepper__label">Konto</span>
+              </div>
+              <div class="stepper__sep"></div>
+              <div class="stepper__item" data-step-index="2">
+                <span class="stepper__dot"></span><span class="stepper__label">Præferencer</span>
+              </div>
+              <div class="stepper__sep"></div>
+              <div class="stepper__item" data-step-index="3">
+                <span class="stepper__dot"></span><span class="stepper__label">CV</span>
+              </div>
             </div>
-            <div class="stepper__sep"></div>
-            <div class="stepper__item" data-step-index="2">
-              <span class="stepper__dot"></span><span class="stepper__label"> Preferences</span>
-            </div>
-            <div class="stepper__sep"></div>
-            <div class="stepper__item" data-step-index="3">
-              <span class="stepper__dot"></span><span class="stepper__label"> Resume</span>
+          
+            <!-- progressbar -->
+            <div class="progressbar" aria-hidden="true">
+              <span id="regProgress" style="width:33%"></span>
             </div>
           </div>
-          <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:33%"></span></div>
 
           <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
             {% csrf_token %}
@@ -671,6 +677,22 @@
     font-size: 15px;     /* was 16px */
   }
   textarea.form__control{ min-height: 116px; }
+
+
+  .stepper-wrap {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+
+.stepper-wrap--left{
+  max-width:360px;
+  margin:10px 0 0 0; /* kills center */
+  margin-left:0;     /* align left */
+}
+
+
+
   </style>
 
 <script>
