@@ -240,12 +240,12 @@
 
 <style>
   /* Keep borders visible on hover & avoid clipping */
-  #noSwipesModal .modal__plans { overflow: visible !important; }
-  #noSwipesModal .plan-card { position: relative; z-index: 1; }
-  #noSwipesModal .plan-card:hover { z-index: 3; }
+  #premiumModal .modal__plans { overflow: visible !important; }
+  #premiumModal .plan-card { position: relative; z-index: 1; }
+  #premiumModal .plan-card:hover { z-index: 3; }
 </style>
 
-<div id="noSwipesModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+<div id="premiumModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="modal__backdrop"></div>
   <!-- Ensure room for 3 cards side-by-side -->
   <div class="modal__dialog" role="document" aria-labelledby="noSwipesTitle"
@@ -340,25 +340,25 @@
 
 <style>
   /* Keep borders visible on hover & avoid clipping */
-  #noSwipesModal .modal__plans { overflow: visible !important; }
-  #noSwipesModal .plan-card { position: relative; z-index: 1; }
-  #noSwipesModal .plan-card:hover { z-index: 3; }
+  #premiumModal .modal__plans { overflow: visible !important; }
+  #premiumModal .plan-card { position: relative; z-index: 1; }
+  #premiumModal .plan-card:hover { z-index: 3; }
 
-  #noSwipesModal,
-  #noSwipesModal h2,
-  #noSwipesModal p,
-  #noSwipesModal button {
+  #premiumModal,
+  #premiumModal h2,
+  #premiumModal p,
+  #premiumModal button {
     font-family: 'Manrope', sans-serif !important;
   }
 
   /* 📱 Mobile only: stack plans vertically */
   @media (max-width: 768px) {
-    #noSwipesModal .modal__plans {
+    #premiumModal .modal__plans {
       flex-direction: column !important;
       justify-content: flex-start !important;
       align-items: stretch !important;
     }
-    #noSwipesModal .plan-card {
+    #premiumModal .plan-card {
       width: 100% !important;
       flex: none !important;
     }
@@ -398,10 +398,10 @@
 
 
 <style>
-  #noSwipesModal,
-  #noSwipesModal h2,
-  #noSwipesModal p,
-  #noSwipesModal button {
+  #premiumModal,
+  #premiumModal h2,
+  #premiumModal p,
+  #premiumModal button {
     font-family: 'Manrope', sans-serif !important;
   }
 </style>
@@ -2001,7 +2001,7 @@ main.layout {
 
 /* 📱 Allow scrolling inside the modal on mobile */
 @media (max-width: 768px) {
-  #noSwipesModal .modal__dialog {
+  #premiumModal .modal__dialog {
     max-height: 90dvh;      /* don’t overflow screen */
     overflow-y: auto;       /* enable scrolling inside modal */
     -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
@@ -2009,7 +2009,7 @@ main.layout {
   }
 
   /* keep plans spaced properly */
-  #noSwipesModal .modal__plans {
+  #premiumModal .modal__plans {
     flex-direction: column !important;
     gap: 1.2rem;
   }
@@ -2624,8 +2624,8 @@ document.getElementById("btnGoPremium")?.addEventListener("click", (e)=>{
   if (direction === 'right' && doFetch) {
     const left = parseInt(swipesLeftEl?.textContent || '0', 10);
     if (left <= 0) {
-      const noSwipesModal = document.getElementById('noSwipesModal');
-      noSwipesModal?.classList.add('show');
+      const premiumModal = document.getElementById('premiumModal');
+      premiumModal?.classList.add('show');
       document.documentElement.style.overflow = 'hidden';
       return;
     }
@@ -2879,21 +2879,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  const noSwipesModal = document.getElementById('noSwipesModal');
-  if (!noSwipesModal) return;
+  const premiumModal = document.getElementById('premiumModal');
+  if (!premiumModal) return;
 
   const closeModal = () => {
-    noSwipesModal.classList.remove('show');
+    premiumModal.classList.remove('show');
     document.documentElement.style.overflow = '';
   };
 
-  noSwipesModal.querySelector('.modal__close')?.addEventListener('click', closeModal);
-  noSwipesModal.querySelector('[data-close]')?.addEventListener('click', closeModal);
-  noSwipesModal.querySelector('.modal__backdrop')?.addEventListener('click', closeModal);
+  premiumModal.querySelector('.modal__close')?.addEventListener('click', closeModal);
+  premiumModal.querySelector('[data-close]')?.addEventListener('click', closeModal);
+  premiumModal.querySelector('.modal__backdrop')?.addEventListener('click', closeModal);
 
   // Bonus: support Escape key
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && noSwipesModal.classList.contains('show')) {
+    if (e.key === 'Escape' && premiumModal.classList.contains('show')) {
       closeModal();
     }
   });
