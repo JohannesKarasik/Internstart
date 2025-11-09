@@ -92,13 +92,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'base.apps.BaseConfig',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     'rest_framework',
     "corsheaders",
     'widget_tweaks',
     'billing',
 
-
 ]
+
+
+
+SITE_ID = 1
 
 DEFAULT_EXPECTED_SALARY_DKK = "35000"
 
