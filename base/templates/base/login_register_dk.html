@@ -142,6 +142,8 @@
           <h1 class="auth-title">Tilmeld dig Internstart</h1>
           <p class="auth-sub">    Det tager under et minut — vi guider dig.</p>
 
+          <div class="stepper-wrap"></div>
+
           <!-- stepper + progress -->
           <div class="stepper stepper--tight" aria-label="Registreringsfremskridt">
             <div class="stepper__item is-active" data-step-index="1">
@@ -157,7 +159,10 @@
               <span class="stepper__dot"></span><span class="stepper__label"> CV</span>
             </div>
           </div>
-          <div class="progressbar" aria-hidden="true"><span id="regProgress" style="width:33%"></span></div>
+          <div class="progressbar" aria-hidden="true">
+            <span id="regProgress" style="width:33%"></span>
+          </div>
+        </div>
 
           <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
             {% csrf_token %}
@@ -670,6 +675,19 @@
     font-size: 15px;     /* was 16px */
   }
   textarea.form__control{ min-height: 116px; }
+
+
+
+
+  .stepper-wrap {
+  max-width: 420px;   /* adjust this until the right edge aligns perfectly under CV dot */
+  margin: 0 auto;     /* center it */
+}
+
+.progressbar {
+  margin-top: 4px; /* small tighter spacing */
+}
+
   </style>
   
 
