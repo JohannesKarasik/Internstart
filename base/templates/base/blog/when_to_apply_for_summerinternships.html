@@ -1,167 +1,546 @@
-{# templates/blog/index.html #}
-{% load static i18n %}
+{% load static %}
 
 <!DOCTYPE html>
+
+
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Blog — Internstart</title>
+  <!-- META SEO -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-  <style>
-    :root{
-      --brand:#FF2F5A;
-      --ink:#111;
-      --muted:#667085;
-      --card:#fff;
-      --bg:#fafafa;
-      --radius:16px;
-      --shadow:0 12px 30px rgba(0,0,0,.08);
-    }
-    body{margin:0; font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:var(--bg);}
-    .page{max-width:1200px; margin:40px auto 80px; padding:0 20px;}
-    .catalog-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:24px;}
-    .catalog-title{font-size:32px; line-height:1.15; margin:0;}
-    .catalog-sub{color:var(--muted); margin:0; font-size:16px;}
-    .grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px;}
-    @media (max-width:980px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-    @media (max-width:640px){ .grid{grid-template-columns:1fr;} .catalog-title{font-size:26px;} }
 
-    .card{background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease, box-shadow .12s ease;}
-    .card:focus-within, .card:hover{transform:translateY(-2px); box-shadow:0 18px 40px rgba(0,0,0,.12);}
-    .card__link{display:block; color:inherit; text-decoration:none; height:100%;}
-    .card__image{position:relative; aspect-ratio:16/9; overflow:hidden; background:linear-gradient(135deg,#f3f4f6,#e5e7eb);}
-    .card__image img{width:100%; height:100%; object-fit:cover; display:block;}
-    .card__body{padding:16px 18px 18px;}
-    .eyebrow{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 8px;}
-    .title{font-size:18px; line-height:1.25; margin:0 0 8px;}
-    .title a{color:inherit; text-decoration:none;}
-    .desc{color:#374151; font-size:14px; line-height:1.55; margin:0 0 14px;}
-    .meta{display:flex; gap:10px; font-size:12px; color:#6b7280;}
-    .meta .dot::before{content:"•"; margin:0 6px; color:#9ca3af;}
-    /* Tiny badge accent */
-    .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:rgba(255,47,90,.08); color:var(--brand); font-size:11px; font-weight:600; margin-left:8px;}
-  </style>
+  <title>When to Apply for Summer Internships (Month-by-Month Timeline + Industry Deadlines)</title>
+  <meta name="description"
+        content="The best time to apply for summer internships is earlier than you think. See month-by-month timelines, industry deadlines, and tips to hit rolling applications—plus a faster way with Internstart’s AI.">
 
-  <!-- Google Font (same one you use elsewhere) -->
+
+  <link rel="canonical" href="https://internstart.com/blog/when-to-apply-for-summer-internships/">
+  <meta property="og:title" content="When to Apply for Summer Internships (Month-by-Month Timeline + Industry Deadlines)">
+  <meta property="og:description" content="Exact months to apply, industry-specific deadlines, and how to beat rolling applications. Apply to 1,000+ internships in minutes with Internstart’s AI.">
+  <meta property="og:type" content="article">
+
+
+  <!-- ✅ FAVICON (copied from main template) -->
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+  <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+  <meta name="theme-color" content="#ff2a55">
+
+
+  <!-- FONT -->
+
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+
+  <style>
+    :root {
+      --text-main:#0f172a;
+      --text-dim:#6b7280;
+      --bg:#ffffff;
+      --border:#e5e7eb;
+      --accent:#FF2F5A;
+      --content-width:760px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+    }
+    img { max-width: 100%; height: auto; border-radius: 12px; }
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+
+    /* highlight spans for keyword phrases */
+    .keyword-highlight {
+      background: rgba(255,47,90,.08);
+      border-radius: 4px;
+      padding: 0 .25em;
+      box-decoration-break: clone;
+    }
+
+    /* Header */
+    .site-header {
+      border-bottom: 1px solid var(--border);
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .site-header-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      row-gap: 8px;
+    }
+    .brand-block { display: flex; flex-direction: column; gap: 4px; }
+    .brand-row {
+      display: flex; align-items: baseline; gap: 8px;
+      font-size: 16px; font-weight: 700; color: var(--text-main); line-height: 1.2;
+    }
+    .brand-badge {
+      background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+      line-height: 1; padding: 3px 6px; border-radius: 4px;
+    }
+    .breadcrumb { font-size: 14px; color: var(--text-dim); line-height: 1.4; }
+    .breadcrumb a { color: var(--text-dim); font-weight: 500; text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent); text-decoration: underline; }
+    .cta-header {
+      display: inline-block; background-color: var(--accent); color: #fff;
+      border-radius: 6px; font-size: 14px; font-weight: 600; padding: 9px 13px;
+      line-height: 1.2; text-decoration: none;
+    }
+    .cta-header:hover { filter: brightness(1.05); text-decoration: none; }
+
+    /* Article layout */
+    .page-wrapper { max-width: var(--content-width); margin: 32px auto 80px; padding: 0 16px 64px; }
+    header.post-header { margin-bottom: 24px; }
+    .post-eyebrow {
+      color: var(--accent); font-size: 15px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: -.02em; margin-bottom: 8px;
+    }
+    h1.post-title {
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
+      line-height: 1.15; font-weight: 800; color: var(--text-main);
+      margin: 0 0 12px; letter-spacing: -.04em;
+    }
+    .post-meta { font-size: 16px; color: var(--text-dim); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-image { margin-top: 24px; margin-bottom: 32px; }
+
+    /* Typography blocks */
+    h2 {
+      font-size: 1.4rem; line-height: 1.3; font-weight: 700;
+      margin: 40px 0 12px; color: var(--text-main); letter-spacing: -.03em;
+    }
+    h3 {
+      font-size: 1.2rem; line-height: 1.4; font-weight: 600;
+      margin: 28px 0 8px; color: var(--text-main); letter-spacing: -.02em;
+    }
+    p { margin: 0 0 16px; font-size: 18px; color: var(--text-main); }
+    .example-note { font-weight: 600; font-size: 18px; }
+
+    /* Utilities */
+    .note {
+      background: #fff;
+      border: 1px dashed var(--border);
+      padding: 14px 16px; border-radius: 10px; color: var(--text-dim);
+      font-size: 15px;
+    }
+    .toc {
+      border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+      background: #fafafa; margin: 24px 0 8px; font-size: 16px;
+    }
+    .toc ul { margin: 0; padding-left: 18px; }
+    .toc a { font-weight: 600; }
+    .inline-cta {
+      background: rgba(255,47,90,.08);
+      border: 1px solid rgba(255,47,90,.25);
+      padding: 16px; border-radius: 12px; margin: 24px 0;
+    }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 16px; }
+    th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
+    th { background: #fbfbfb; font-weight: 700; }
+
+    /* Footer */
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      background-color: #fff;
+      padding: 32px 16px 64px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    .footer-inner { max-width: var(--content-width); margin: 0 auto; }
+    .footer-inner p { margin: 0 0 12px; line-height: 1.5; color: var(--text-dim); font-size: 14px; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: 14px; font-weight: 500; margin-top: 16px; }
+    .footer-nav a { color: var(--text-main); text-decoration: none; }
+    .footer-nav a:hover { color: var(--accent); text-decoration: underline; }
+  </style>
+
+
+  <!-- Article + FAQ structured data -->
+
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":"When to Apply for Summer Internships (Month-by-Month Timeline + Industry Deadlines)",
+    "description":"The best time to apply for summer internships, with month-by-month guidance, industry deadlines, and tips for rolling applications.",
+    "author":{"@type":"Person","name":"Anna Blanchard"},
+    "publisher":{"@type":"Organization","name":"Internstart"},
+    "dateModified":"2025-11-08",
+    "datePublished":"2025-11-08",
+    "mainEntityOfPage":{"@type":"WebPage","@id":"https://internstart.com/blog/when-to-apply-for-summer-internships/"}
+  }
+  </script>
+
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"When should I apply for summer internships?",
+       "acceptedAnswer":{"@type":"Answer","text":"Apply 6–9 months before the start date. Many large companies open in August–October with deadlines in October–January. Smaller companies often hire December–March. Submit early for rolling roles."}},
+      {"@type":"Question","name":"Is it too late to apply in March or April?",
+       "acceptedAnswer":{"@type":"Answer","text":"Not necessarily. You’ll miss some early deadlines, but startups, small businesses, and late-stage teams continue hiring through April and May. Act fast and target rolling postings."}},
+      {"@type":"Question","name":"Do different industries recruit at different times?",
+       "acceptedAnswer":{"@type":"Answer","text":"Yes. Finance/consulting recruit earliest (Aug–Oct). Big tech/engineering open Aug–Oct with deadlines into Dec–Jan. Government/NGO can be earlier due to clearance. Media/marketing and SMBs trend later (Dec–Mar)."}},
+      {"@type":"Question","name":"How do rolling applications work?",
+       "acceptedAnswer":{"@type":"Answer","text":"Teams review candidates as applications come in and may close early once spots fill. Submitting in the first 1–2 weeks significantly improves your chances."}},
+      {"@type":"Question","name":"What if I have no experience yet?",
+       "acceptedAnswer":{"@type":"Answer","text":"Build quick proof: class projects, part-time work, club leadership, or a small portfolio. Tailor your resume to the role’s keywords so you pass ATS."}}
+    ]
+  }
+  </script>
+
+
 </head>
 <body>
 
-<main class="page">
-  <header class="catalog-head">
-    <div>
-      <h1 class="catalog-title">Internstart Blog</h1>
-      <p class="catalog-sub">Simple, proof-based guides for internships — cover letters, resumes, timelines & more.</p>
+
+  <!-- Global header -->
+
+
+  <header class="site-header">
+    <div class="site-header-inner">
+  
+      <!-- Left: Logo + Breadcrumb -->
+      <div class="brand-block">
+        <a href="/" class="brand-logo-link">
+          <img
+            src="{% static 'images/Internstartlogo (1).jpg' %}"
+            alt="Internstart logo"
+            width="160"
+            height="auto"
+            style="border-radius:6px; display:block;"
+          >
+        </a>
+  
+        <div class="breadcrumb">
+          <a href="/blog/">Blog</a> / <a>Cover Letter for Internship</a>
+        </div>
+      </div>
+  
+      <!-- Right: CTA -->
+      <a class="cta-header" href="/register/">
+        Apply to 1,000+ internships in minutes with AI
+      </a>
     </div>
   </header>
+  
+  <style>
+    .site-header {
+      border-bottom: 1px solid #e5e7eb;
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .site-header-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .brand-logo-link img {
+      display: block;
+      max-width: 160px;
+      height: auto;
+    }
+    .breadcrumb {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .breadcrumb a {
+      color: #6b7280;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .breadcrumb a:hover {
+      color: #FF2F5A;
+      text-decoration: underline;
+    }
+    .cta-header {
+      display: inline-block;
+      background-color: #FF2F5A;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      line-height: 1.2;
+      text-decoration: none;
+      transition: background 0.2s ease;
+      white-space: nowrap;
+      box-shadow: 0 0 0 0 rgba(255,47,90, 0.6);
+      animation: pulse 2.5s infinite;
+    }
+    .cta-header:hover {
+      background-color: #e92650;
+      text-decoration: none;
+      animation: none; /* pause pulse on hover for polish */
+    }
+  
+    /* Subtle pulse animation */
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255,47,90, 0.55);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255,47,90, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255,47,90, 0);
+      }
+    }
+  </style>
+  
 
-  <section aria-label="Blog posts">
-    <ul class="grid" role="list">
-      <!-- 1) Cover Letter for Internship -->
-      <li class="card">
-        <a class="card__link" href="/blog/cover-letter-for-internship/">
-          <div class="card__image">
-            <!-- Staging image (replace src later) -->
-            <img alt="Staging image"
-                 loading="lazy"
-                 decoding="async"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Internship Cover Letter Guide 2025</p>
-            <h2 class="title">Cover Letter for Internship <span class="badge">Guide</span></h2>
-            <p class="desc">A short, proof-first structure with examples, templates, and quick email tips.</p>
-            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
 
-      <!-- 2) How to Find Internships with No Experience -->
-      <li class="card">
-        <a class="card__link" href="/blog/how-to-find-internships-with-no-experience/">
-          <div class="card__image">
-            <img alt="Staging image" loading="lazy" decoding="async"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Internship Search Guide 2025</p>
-            <h2 class="title">How to Find Internships with No Experience</h2>
-            <p class="desc">Weekly playbook: tiny proof projects, the right channels, and steady, targeted volume.</p>
-            <div class="meta"><span>Updated: Nov 9, 2025</span><span class="dot"></span><span>By Selma Kursiz</span></div>
-          </div>
-        </a>
-      </li>
+  <main class="page-wrapper">
 
-      <!-- 3) How to Write Resume for Internship -->
-      <li class="card">
-        <a class="card__link" href="/blog/how-to-write-resume-for-internship/">
-          <div class="card__image">
-            <img alt="Staging image" loading="lazy" decoding="async"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Resume Guide 2025</p>
-            <h2 class="title">How to Write a Resume for Internship</h2>
-            <p class="desc">One-page layout that highlights skills, tools, and proof — even with no formal roles.</p>
-            <div class="meta"><span>Updated: Oct 31, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
 
-      <!-- 4) Skills for Internship Resume -->
-      <li class="card">
-        <a class="card__link" href="/blog/skills-for-internship-resume/">
-          <div class="card__image">
-            <img alt="Staging image" loading="lazy" decoding="async"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Resume Skills Guide 2025</p>
-            <h2 class="title">Skills for Internship Resume</h2>
-            <p class="desc">Core skills + role-specific tools. Where to place them and how to prove each one.</p>
-            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
+<!-- Post intro / hero -->
+<header class="post-header">
+  <div class="post-eyebrow">Summer Internship Guide 2025</div>
 
-      <!-- 5) When to Apply for Summer Internships -->
-      <li class="card">
-        <a class="card__link" href="/blog/when-to-apply-for-summer-internships/">
-          <div class="card__image">
-            <img alt="Staging image" loading="lazy" decoding="async"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Summer Internship Guide 2025</p>
-            <h2 class="title">When to Apply for Summer Internships</h2>
-            <p class="desc">Exact months, typical industry windows, and how to beat rolling applications.</p>
-            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
+  <h1 class="post-title">
+    <a>When to Apply for Summer Internships</a>
+    (Exact Months, Industry Deadlines & Rolling Tips)
+  </h1>
 
-      <!-- 6) Placeholder card — replace with your 6th post if different -->
-      <li class="card">
-        <a class="card__link" href="/blog/your-sixth-post/" aria-label="Your sixth post (replace link/title/desc)">
-          <div class="card__image">
-            <img alt="Staging image" loading="lazy" decoding="async"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">New on the blog</p>
-            <h2 class="title">Your Sixth Post Title</h2>
-            <p class="desc">Short description for the sixth post. Replace title, link, and copy when ready.</p>
-            <div class="meta"><span>Updated: Nov 2025</span><span class="dot"></span><span>By Internstart</span></div>
-          </div>
-        </a>
-      </li>
+  <div class="post-meta">
+    <div>Written by <strong>Anna Blanchard</strong></div>
+    <div>Updated: Nov 8, 2025</div>
+  </div>
 
+  <div class="hero-image">
+    <!-- Use the same image as requested; you can replace later -->
+    <figure>
+      <img
+        src="{% static 'images/When to Apply for Summer Internships.jpg' %}"
+        alt="Group of summer interns collaborating and checking their laptops to plan when to apply for internships"
+        title="When to Apply for Summer Internships — Deadlines, Tips & Application Timeline"
+        width="800"
+        height="450"
+        loading="lazy"
+        decoding="async"
+        fetchpriority="low"
+      >
+
+    </figure>
+    
+  </div>
+
+  <div class="note">
+    Short answer: The best time to <span class="keyword-highlight">apply for summer internships</span> is
+    <strong>6–9 months before the start date</strong>. For Northern Hemisphere summers (May–Aug),
+    that means <strong>applications open in August–October</strong> and many deadlines hit
+    <strong>October–January</strong>. Start early because a lot of roles are <strong>rolling</strong>.
+  </div>
+
+  <nav class="toc" aria-label="Table of contents">
+    <strong>Contents</strong>
+    <ul>
+      <li><a href="#quick-timeline">Quick timeline (by month)</a></li>
+      <li><a href="#industry-deadlines">Deadlines by industry</a></li>
+      <li><a href="#region-differences">Region differences (US, Europe & more)</a></li>
+      <li><a href="#rolling">How to beat rolling applications</a></li>
+      <li><a href="#too-late">Is it too late? (March–May)</a></li>
+      <li><a href="#mistakes">Common timing mistakes</a></li>
+      <li><a href="#faq">FAQ: When to apply for summer internships</a></li>
     </ul>
-  </section>
-</main>
+  </nav>
+</header>
+
+<h2 id="quick-timeline">Month-by-month timeline for <span class="keyword-highlight">when to apply for summer internships</span></h2>
+<table>
+  <thead>
+    <tr><th>Month</th><th>What to do</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>August</strong></td><td>Big brands open portals. Refresh resume/LinkedIn. Build a simple portfolio/Notion page.</td></tr>
+    <tr><td><strong>September</strong></td><td>Peak postings for large companies. Apply fast—many roles are rolling.</td></tr>
+    <tr><td><strong>October</strong></td><td>More deadlines hit. Target finance/consulting/tech first.</td></tr>
+    <tr><td><strong>November</strong></td><td>Second wave. Keep a steady cadence (10–20 targeted apps/week).</td></tr>
+    <tr><td><strong>December</strong></td><td>Late-year openings + campus referrals. Smaller companies start ramping.</td></tr>
+    <tr><td><strong>January</strong></td><td>Many final deadlines for big firms. Don’t wait—submit early.</td></tr>
+    <tr><td><strong>February</strong></td><td>Startups/SMBs post more. Great month for marketing/media roles.</td></tr>
+    <tr><td><strong>March</strong></td><td>Late openings, backfills, and rolling roles continue.</td></tr>
+    <tr><td><strong>April–May</strong></td><td>Last-minute hires; local businesses and smaller teams finalize interns.</td></tr>
+  </tbody>
+</table>
+
+<div class="inline-cta">
+  Want to move faster? <a href="/register/">Internstart</a> finds matching internships, tailors your resume content for each role, and <strong>applies for you automatically</strong>. Spend time on interviews, not forms.
+</div>
+
+<h2 id="industry-deadlines">Typical deadlines by industry</h2>
+<p><em>These are general windows—always check each posting:</em></p>
+<table>
+  <thead>
+    <tr><th>Industry</th><th>Opens</th><th>Common Deadlines</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Finance / Consulting</strong></td>
+      <td>Aug–Sep</td>
+      <td>Sep–Nov</td>
+      <td>Earliest timelines; networking helps. Many roles close before winter break.</td>
+    </tr>
+    <tr>
+      <td><strong>Tech / Software / Product</strong></td>
+      <td>Aug–Oct</td>
+      <td>Oct–Jan</td>
+      <td>Large firms open early; many use rolling review. Coding assessments may follow quickly.</td>
+    </tr>
+    <tr>
+      <td><strong>Engineering (Mech/EE/Civil)</strong></td>
+      <td>Sep–Oct</td>
+      <td>Nov–Jan</td>
+      <td>Look at manufacturing, energy, construction cycles; some roles tied to project starts.</td>
+    </tr>
+    <tr>
+      <td><strong>Government / NGO</strong></td>
+      <td>Aug–Oct</td>
+      <td>Oct–Dec</td>
+      <td>Security checks and budget cycles can push timelines earlier—apply as soon as postings open.</td>
+    </tr>
+    <tr>
+      <td><strong>Marketing / Media / Design</strong></td>
+      <td>Nov–Feb</td>
+      <td>Jan–Mar</td>
+      <td>Portfolios matter; many SMBs hire later or on short notice.</td>
+    </tr>
+    <tr>
+      <td><strong>Startups / SMBs</strong></td>
+      <td>Dec–Mar</td>
+      <td>Feb–Apr</td>
+      <td>Flexible and rolling. Outreach + referrals can unlock unlisted roles.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="region-differences">Region differences</h2>
+<p><strong>Northern Hemisphere (US/Canada/Europe):</strong> Summer internships run roughly May–Aug. Apply <strong>Aug–Jan</strong>, earlier for big firms.</p>
+<p><strong>UK & Western Europe:</strong> Similar pattern to the US; some roles use assessment centers. Watch “spring weeks/insight” for first-years.</p>
+<p><strong>Southern Hemisphere (AUS/NZ):</strong> “Summer” is Dec–Feb. Apply <strong>May–Aug</strong>.</p>
+
+<h2 id="rolling">How to beat rolling applications</h2>
+<ul>
+  <li><strong>Submit in the first 1–2 weeks</strong> of a posting going live.</li>
+  <li><strong>Track new roles daily</strong> (alerts, career pages, job boards).</li>
+  <li><strong>Batch your materials</strong>: one clean resume + role-specific tweaks.</li>
+  <li><strong>Automate the busywork</strong> with <a href="/register/">Internstart</a>—we tailor your skills to each role and submit for you.</li>
+</ul>
+
+<h2 id="too-late">Is March or April too late?</h2>
+<p>It’s late for some large programs, but <em>not</em> game over. Startups, agencies, local companies, and teams filling last-minute needs hire through April and May. Act quickly, prioritize <strong>rolling</strong> roles, and leverage referrals.</p>
+
+<h2 id="mistakes">Common timing mistakes that cost offers</h2>
+<ul>
+  <li><strong>Waiting for winter break</strong>—many prime deadlines have already passed.</li>
+  <li><strong>Ignoring “rolling”</strong>—submitting late means fewer interview slots.</li>
+  <li><strong>Applying to only 5–10 roles</strong>—volume matters if you’re early in your career.</li>
+  <li><strong>One-size-fits-all resume</strong>—mirror the role’s keywords so you pass ATS.</li>
+</ul>
+
+<div class="inline-cta">
+  <strong>Save 10+ hours/week:</strong> <a href="/register/">Internstart</a> finds matching internships, adapts your resume language for each role, fills ATS forms, and sends applications for you—so you can focus on interview prep.
+</div>
+
+<h2 id="faq">FAQ: <span class="keyword-highlight">When to apply for summer internships</span></h2>
+
+<h3>What month should I start?</h3>
+<p>Start in <strong>August</strong> for the widest shot at big programs. Keep applying through <strong>January</strong>, then switch focus to startups/SMBs through <strong>April–May</strong>.</p>
+
+<h3>First-years and sophomores?</h3>
+<p>Yes—apply. Target insight/spring weeks, campus programs, and roles that say “no experience required.” Build quick proof via class projects or club work.</p>
+
+<h3>How many applications do I need?</h3>
+<p>Aim for <strong>50–150 targeted applications</strong> across the season. That sounds high—but it’s realistic for landing multiple interviews.</p>
+
+<h3>What should I do if I’m starting late?</h3>
+<p>Prioritize rolling roles, regional companies, and referrals. Use <a href="/register/">Internstart</a> to accelerate volume with quality.</p>
+
+<h2>Next steps</h2>
+<p>
+  Improve your odds by pairing smart timing with sharp materials:
+  read our guide on <a href="/blog/how-to-write-resume-for-internship/">how to write a resume for internship</a> and
+  <a href="/blog/how-to-write-cover-letter-for-internship/">how to write a cover letter for internship</a>.
+</p>
+<p>
+  Or skip the busywork and <a href="/register/">apply to internships with Internstart</a>—upload once, and our AI does the matching and submitting for you.
+</p>
+
+  </main>
+
+
+  <footer class="site-footer">
+    <div class="footer__inner">
+      <h3>Internstart</h3>
+      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+
+
+  <nav class="footer__links" aria-label="Footer">
+    <a href="{% url 'about' %}">About</a>
+    <a href="#">Careers</a>
+    <a href="{% url 'blog_index' %}">Blog</a>
+    <a href="{% url 'contact' %}">Contact</a>
+    <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+  </nav>
+
+  <div class="footer__legal">
+    © 2025 Internship Platform. All rights reserved.
+  </div>
+</div>
+
+  </footer>
+
+
+  <style>
+    /* Footer */
+    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
+    .footer__inner{ max-width:1000px; margin:0 auto; }
+    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
+    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
+    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
+    .footer__links{ margin-bottom:28px; }
+    .footer__legal{ font-size:14px; color:#777; }
+  </style>
+
 
 </body>
 </html>
