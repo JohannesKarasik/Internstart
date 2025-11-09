@@ -3160,6 +3160,43 @@ function showEmailConnectedToast() {
 
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) Any "no swipes" legacy opener should show premium instead.
+  const fallbackToPremium = () => {
+    const pm = document.getElementById('premiumModal');
+    if (pm) { pm.classList.add('show'); document.documentElement.style.overflow = 'hidden'; }
+  };
+  // Replace common legacy globals if they exist
+  window.openNoSwipesModal = fallbackToPremium;
+  window.showNoSwipesModal = fallbackToPremium;
+  window.handleNoSwipes     = fallbackToPremium;
+
+  // 2) Remove or hard-hide ANY other modal nodes except #premiumModal
+  document.querySelectorAll('.modal').forEach(m => {
+    if (m.id !== 'premiumModal') {
+      // If you want to be safe, hide instead of remove:
+      m.classList.remove('show');
+      m.style.setProperty('display','none','important');
+      m.setAttribute('aria-hidden','true');
+      // Or fully remove:
+      // m.remove();
+    }
+  });
+
+  // 3) If some legacy script toggles a modal after this runs, stop it.
+  const mo = new MutationObserver(() => {
+    document.querySelectorAll('.modal.show').forEach(m => {
+      if (m.id !== 'premiumModal') {
+        m.classList.remove('show');
+        m.style.setProperty('display','none','important');
+        m.setAttribute('aria-hidden','true');
+      }
+    });
+  });
+  mo.observe(document.documentElement, {subtree:true, attributes:true, attributeFilter:['class','style']});
+});
+</script>
 
 
 
