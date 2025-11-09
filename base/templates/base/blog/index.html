@@ -357,14 +357,14 @@
   </section>
 
 
-  <footer class="site-footer"></footer>
+  <footer class="site-footer">
     <div class="footer__inner">
       <h3>Internstart</h3>
       <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
       
       <nav class="footer__links" aria-label="Footer">
         <a href="{% url 'about' %}">About</a>
-        <a href="#">Careers</a>
+
         <a href="{% url 'blog_index' %}">Blog</a>
         <a href="{% url 'contact' %}">Contact</a>
         <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
@@ -379,15 +379,56 @@
   
   <style>
   
-    /* Footer */
-    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
-    .footer__inner{ max-width:1000px; margin:0 auto; }
-    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
-    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
-    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
-    .footer__links{ margin-bottom:28px; }
-    .footer__legal{ font-size:14px; color:#777; }
-  
+/* Footer */
+.site-footer{
+  background:#111;
+  color:#ccc;
+  text-align:center;
+  padding:64px 20px;
+  margin-top:120px;
+  font-family:var(--font);
+}
+
+.footer__inner{
+  max-width:900px;
+  margin:0 auto;
+}
+
+.site-footer h3{
+  color:#fff;
+  font-weight:800;
+  font-size:28px;
+  margin:0 0 10px;
+  letter-spacing:-0.02em;
+}
+
+.site-footer p{
+  font-size:17px;
+  line-height:1.6;
+  margin:0 0 26px;
+  color:#d1d1d1;
+}
+
+.footer__links{
+  margin-bottom:30px;
+}
+
+.footer__links a{
+  color:#bbb;
+  text-decoration:none;
+  font-weight:600;
+  margin:0 14px;
+  transition:color .2s ease;
+}
+.footer__links a:hover{
+  color:white;
+}
+
+.footer__legal{
+  font-size:14px;
+  color:#888;
+  margin-top:8px;
+}
   
   </style>
 
