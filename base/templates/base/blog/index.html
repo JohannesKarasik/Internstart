@@ -1,596 +1,167 @@
-{% load static %}
-{% load i18n %}
+{# templates/blog/index.html #}
+{% load static i18n %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- META SEO -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-
-  <title>Internstart Blog — Career & Internship Guides</title>
-  <meta name="description"
-        content="Explore the latest internship and career guides for students and graduates. Learn how to write resumes, cover letters, and apply to internships using AI.">
-
-  <link rel="canonical" href="https://internstart.com/blog/">
-  <meta property="og:title" content="Internstart Blog — Career & Internship Guides">
-  <meta property="og:description" content="Explore the latest internship and career guides for students and graduates. Learn how to write resumes, cover letters, and apply to internships using AI.">
-  <meta property="og:type" content="website">
-
-  <!-- ✅ FAVICON (same as main site) -->
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
-  <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
-  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-  <meta name="theme-color" content="#ff2a55">
-
-  <!-- FONT -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blog — Internstart</title>
 
   <style>
-
-    :root {
-      --text-main:#0f172a;
-      --text-dim:#6b7280;
-      --bg:#ffffff;
-      --border:#e5e7eb;
-      --accent:#FF2F5A;
-      --content-width:900px;
+    :root{
+      --brand:#FF2F5A;
+      --ink:#111;
+      --muted:#667085;
+      --card:#fff;
+      --bg:#fafafa;
+      --radius:16px;
+      --shadow:0 12px 30px rgba(0,0,0,.08);
     }
+    body{margin:0; font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:var(--bg);}
+    .page{max-width:1200px; margin:40px auto 80px; padding:0 20px;}
+    .catalog-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:24px;}
+    .catalog-title{font-size:32px; line-height:1.15; margin:0;}
+    .catalog-sub{color:var(--muted); margin:0; font-size:16px;}
+    .grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px;}
+    @media (max-width:980px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    @media (max-width:640px){ .grid{grid-template-columns:1fr;} .catalog-title{font-size:26px;} }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      line-height: 1.6;
-    }
-
-    a {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-    }
-    a:hover { text-decoration: underline; }
-
-    /* ===== Blog catalog layout ===== */
-    main.blog-list {
-      max-width: var(--content-width);
-      margin: 40px auto 80px;
-      padding: 0 16px;
-    }
-
-    h1.page-title {
-      font-size: clamp(2rem, 1vw + 1rem, 2.4rem);
-      font-weight: 800;
-      margin-bottom: 28px;
-      text-align: center;
-      color: var(--text-main);
-    }
-
-    .blog-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 28px;
-    }
-
-    .blog-card {
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      background-color: #fff;
-      transition: transform .15s ease, box-shadow .15s ease;
-      box-shadow: 0 1px 2px rgba(17,19,24,.06), 0 6px 20px rgba(17,19,24,.06);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .blog-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 2px 10px rgba(17,19,24,.08), 0 10px 30px rgba(17,19,24,.08);
-    }
-
-    .blog-thumb {
-      aspect-ratio: 16 / 9;
-      background: linear-gradient(135deg, #fff 0%, #fff 20%, #ffe6eb 20%, #ffe6eb 100%);
-      display: grid;
-      place-items: center;
-    }
-
-    .blog-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .blog-content {
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .blog-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.3;
-    }
-
-    .blog-excerpt {
-      color: var(--text-dim);
-      font-size: 16px;
-      line-height: 1.5;
-      margin-bottom: 6px;
-    }
-
-    .blog-meta {
-      font-size: 14px;
-      color: var(--text-dim);
-      margin-top: auto;
-    }
-
-    .read-more {
-      color: var(--accent);
-      font-weight: 700;
-      margin-top: 8px;
-      font-size: 15px;
-    }
-
-    /* ===== Footer ===== */
-    footer.site-footer {
-      border-top: 1px solid var(--border);
-      background-color: #fff;
-      padding: 32px 16px 64px;
-      color: var(--text-dim);
-      font-size: 14px;
-    }
-
-    .footer-inner {
-      max-width: var(--content-width);
-      margin: 0 auto;
-    }
-
-    .footer-inner p {
-      margin: 0 0 12px;
-      line-height: 1.5;
-      color: var(--text-dim);
-      font-size: 14px;
-    }
-
-    .footer-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px 20px;
-      font-size: 14px;
-      font-weight: 500;
-      margin-top: 16px;
-    }
-
-    .footer-nav a {
-      color: var(--text-main);
-      text-decoration: none;
-    }
-
-    .footer-nav a:hover {
-      color: var(--accent);
-      text-decoration: underline;
-    }
+    .card{background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease, box-shadow .12s ease;}
+    .card:focus-within, .card:hover{transform:translateY(-2px); box-shadow:0 18px 40px rgba(0,0,0,.12);}
+    .card__link{display:block; color:inherit; text-decoration:none; height:100%;}
+    .card__image{position:relative; aspect-ratio:16/9; overflow:hidden; background:linear-gradient(135deg,#f3f4f6,#e5e7eb);}
+    .card__image img{width:100%; height:100%; object-fit:cover; display:block;}
+    .card__body{padding:16px 18px 18px;}
+    .eyebrow{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 8px;}
+    .title{font-size:18px; line-height:1.25; margin:0 0 8px;}
+    .title a{color:inherit; text-decoration:none;}
+    .desc{color:#374151; font-size:14px; line-height:1.55; margin:0 0 14px;}
+    .meta{display:flex; gap:10px; font-size:12px; color:#6b7280;}
+    .meta .dot::before{content:"•"; margin:0 6px; color:#9ca3af;}
+    /* Tiny badge accent */
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:rgba(255,47,90,.08); color:var(--brand); font-size:11px; font-weight:600; margin-left:8px;}
   </style>
+
+  <!-- Google Font (same one you use elsewhere) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- ====== NAVBAR COPIED IN FULL (inline, no includes) ====== -->
-  <header class="header header--loggedIn" style="margin-bottom:0!important; padding-bottom:0!important; position:sticky; top:0; z-index:9999; background:white; box-shadow:0 4px 10px rgba(0,0,0,0.06);">
-    <!-- ===== Activity Ticker (top of header) ===== -->
-    <div class="header__ticker" id="headerTicker" role="region" aria-label="Recent activity">
-      <div class="ticker__icon" aria-hidden="true">
-        <img
-          src="{% static 'images/transperantsmalllogo.png' %}"
-          alt=""
-          class="ticker__iconImg"
-          width="16" height="16"
-          decoding="async"
-        />
-      </div>
-
-      <div class="ticker__viewport" aria-live="off">
-        <div class="ticker__track" id="tickerTrack"></div>
-      </div>
-
-      <button class="ticker__close" type="button" aria-label="Hide updates">×</button>
+<main class="page">
+  <header class="catalog-head">
+    <div>
+      <h1 class="catalog-title">Internstart Blog</h1>
+      <p class="catalog-sub">Simple, proof-based guides for internships — cover letters, resumes, timelines & more.</p>
     </div>
-    <!-- ===== /Activity Ticker ===== -->
-
-    <div class="container" 
-      style="display: flex; align-items: center; justify-content: space-between; position: relative; height: 100px !important; padding-left: 60px; padding-right: 40px;">      
-      <!-- Logo (left) -->
-      <div class="header__logo" style="display: flex; align-items: center;">
-          <a href="{% url '' %}">
-              <img src="{% static 'images/Internstartlogo (1).jpg' %}" 
-                   alt="Internstart Logo"
-                   class="logo-large" />
-          </a>
-      </div>
-
-      <!-- Middle Menu -->
-      <nav class="header__nav" 
-           style="flex: 1; display: flex; justify-content: center; font-family: 'Manrope', sans-serif; font-weight: 600;">
-          <div style="display: flex; gap: 32px; background: #f5f5f5; padding: 10px 30px; border-radius: 14px; align-items: center; display: none;">
-              <a href="/browse/" style="text-decoration: none; color: #111; transition: color 0.3s;">Browse</a>
-              <a href="/companies/" style="text-decoration: none; color: #111; transition: color 0.3s;">Companies</a>
-              <a href="/resources/" style="text-decoration: none; color: #111; transition: color 0.3s;">Resources</a>
-              <a href="/faq/" style="text-decoration: none; color: #111; transition: color 0.3s;">FAQ</a>
-              <a href="/support/" style="text-decoration: none; color: #111; transition: color 0.3s;">Support</a>
-              <a href="/mission/" style="text-decoration: none; color: #111; transition: color 0.3s;">Our Mission</a>
-          </div>
-      </nav>
-
-      <!-- User / Auth (right) -->
-      <nav class="header__menu" style="display: flex; align-items: center;">
-        {% if request.user.is_authenticated %}
-        <div class="header__authCluster" style="padding-right: 20px; display:flex; align-items:center; gap:12px;">
-          <!-- Logout (left) -->
-          <form action="{% url 'logout' %}" method="post" class="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="btn btn--brand-700" aria-label="Log out">
-              <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" style="color: white !important;">
-                <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M6.2 6.2a8 8 0 1 0 11.6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              <span>Logout</span>
-            </button>
-          </form>
-      
-          <!-- Account (right) -->
-          <a href="{% url 'update-user' %}" class="btn btn--brand" aria-label="Account">
-            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" style="color: white !important;">
-              <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-              <path d="M4 20c1.8-3.4 5-5 8-5s6.2 1.6 8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            <span style="color: white;">Account</span>
-          </a>
-        </div>
-        {% else %}
-        <div class="auth-buttons" style="display: flex; gap: 12px; align-items: center; padding-right: 20px;">
-          <div class="lang-select-wrapper" style="position:relative; margin-right: 10px;">
-            <select onchange="window.location.href=this.value" class="lang-select">
-              <option data-emoji="🇺🇸" value="{% url 'landing_page' %}">🇺🇸 US</option>
-              <option data-emoji="🇩🇰" value="{% url 'landing_page_dk' %}">🇩🇰 DK</option>
-            </select>
-          </div>
-    
-          {% if request.path|slice:":3" == "/da" or request.path|slice:":3" == "/dk" %}
-          <a href="{% url 'app_login_dk' %}" 
-             style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-             Log ind
-          </a>
-          
-          <a href="{% url 'register_dk' %}" 
-             style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-             Begynd at ansøge jobs med AI
-          </a>
-          {% else %}
-          <a href="{% url 'app_login' %}" 
-             style="padding: 10px 20px; background: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 600; color: #111; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-             Login
-          </a>
-          
-          <a href="{% url 'register' %}" 
-             style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #FF2F5A; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
-             Start applying to jobs with AI
-          </a>
-          {% endif %}
-        </div>
-        {% endif %}
-      </nav>
-    </div>
-
-    <style>
-      :root{
-        --brand:#FF2F5A;
-        --brand-700:#e92650;
-      }
-
-      .logo-large {
-          width: 220px !important;
-          height: auto !important;
-      }
-
-      .header__nav a:hover { color: var(--brand); }
-
-      /* Brand-filled Account button (white text, softer shadow) */
-      .btn-account{
-        color: white;
-        display:inline-flex; align-items:center; gap:10px;
-        padding: 10px 18px;
-        background:#FF2F5A; color:#fff;
-        text-decoration:none;
-        font-weight:800;
-        font-family:'Manrope', sans-serif;
-        border-radius:12px;
-        border:1px solid #FF2F5A;
-        box-shadow: 0 6px 10px rgba(255,47,90,.18);
-        transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .06s ease;
-      }
-      .btn-account__icon{
-        width:18px; height:18px; flex:0 0 18px; color: currentColor;
-        color: white !important;
-      }
-      .btn-account:hover{
-        background:#e92650; border-color:#e92650;
-        box-shadow: 0 8px 14px rgba(255,47,90,.22);
-        transform: translateY(-1px);
-      }
-      .btn-account:active{ transform: translateY(0); box-shadow: 0 4px 8px rgba(255,47,90,.18); }
-      .btn-account:focus{ outline: none; box-shadow: 0 0 0 3px rgba(255,47,90,.25); }
-
-      /* ===== Mobile header clean-up (≤600px) ===== */
-      @media (max-width: 600px){
-        .header .container{
-          display: grid !important;
-          grid-template-columns: 1fr;
-          align-items: center;
-          justify-items: center;
-          height: 72px !important;
-          padding-left: max(16px, env(safe-area-inset-left)) !important;
-          padding-right: max(16px, env(safe-area-inset-right)) !important;
-          gap: 0;
-        }
-        .header__logo{ justify-self: center; }
-        .header__logo .logo-large{
-          max-width: 180px; height: auto !important; display: block;
-        }
-        .header__nav{ display: none !important; }
-        .auth-buttons{ display: none !important; }
-        .header__user{ display: none !important; }
-        .header .container{
-          padding-left: 16px !important;
-          padding-right: 16px !important;
-        }
-      }
-
-      /* ONE button style used by both Account (link) and Logout (button) */
-      .btn{
-        display:inline-flex; align-items:center; gap:10px;
-        padding:10px 18px; min-height: 42px; box-sizing: border-box;
-        font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; line-height:1;
-        color:#fff; text-decoration:none; border-radius:12px; border:1px solid transparent;
-        background: var(--brand);
-        box-shadow: 0 6px 10px rgba(255,47,90,.18);
-        transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .06s ease;
-        cursor:pointer;
-      }
-      .btn--brand    { background: var(--brand);     border-color: var(--brand); }
-      .btn--brand-700{ background: var(--brand-700); border-color: var(--brand-700); }
-
-      .btn__icon{ width:18px; height:18px; flex:0 0 18px; color: currentColor; }
-
-      .btn:hover{ transform: translateY(-1px); box-shadow: 0 8px 14px rgba(255,47,90,.22); }
-      .btn--brand:hover     { background:#e92650; border-color:#e92650; }
-      .btn--brand-700:hover { background:#d61f46; border-color:#d61f46; }
-
-      .btn:active{ transform: translateY(0); box-shadow: 0 4px 8px rgba(255,47,90,.18); }
-      .btn:focus{ outline: none; box-shadow: 0 0 0 3px rgba(255,47,90,.25); }
-
-      /* Mobile: hide the cluster (same as before) */
-      @media (max-width: 600px){
-        .header__authCluster{ display:none !important; }
-        .logout-form{ display:none !important; }
-      }
-
-      /* ===== Top Ticker Styles ===== */
-      .header__ticker{
-        --ticker-bg: linear-gradient(90deg, #FF2F5A 0%, #FF5400 100%);
-        --ticker-fg: #fff;
-        --ticker-gap: 32px;
-
-        display:flex; align-items:center; gap:12px;
-        width:100%; height:36px; padding:6px 14px;
-        background: var(--ticker-bg); color: var(--ticker-fg);
-        border-bottom: 1px solid rgba(255,47,90,.18);
-        box-sizing: border-box; overflow:hidden;
-      }
-      .ticker__icon{ display:grid; place-items:center; width:22px; height:22px; background: none; flex:0 0 auto; }
-      .ticker__viewport{ flex:1 1 auto; overflow:hidden; }
-      .ticker__track{
-        display:flex; align-items:center; gap: var(--ticker-gap);
-        white-space: nowrap; will-change: transform;
-        animation: ticker-scroll var(--duration, 30s) linear infinite;
-      }
-      .ticker__item{
-        display:inline-flex; align-items:center; gap:8px;
-        padding:6px 10px; background: #FF657E; color: #fff; border: none;
-        border-radius: 999px; box-shadow: 0 1px 2px rgba(0,0,0,.04);
-        font-family:'Manrope',sans-serif; font-weight:600; font-size:13px; line-height:1;
-      }
-      .ticker__item strong{ color: #fff; font-weight: 800; }
-      .ticker__close{
-        appearance:none; border:0; background:transparent; color: #9a2c45;
-        font-size:18px; line-height:1; padding:2px 6px; cursor:pointer; border-radius:6px;
-      }
-      .ticker__close:hover{ background: rgba(255,47,90,.08); }
-      .ticker__close:focus{ outline:none; box-shadow:0 0 0 3px rgba(255,47,90,.25); }
-
-      @keyframes ticker-scroll { to { transform: translateX(-50%); } }
-      .header__ticker:hover .ticker__track { animation-play-state: paused; }
-      @media (prefers-reduced-motion: reduce){
-        .ticker__track{ animation: none !important; transform: none !important; }
-      }
-      @media (max-width: 600px){
-        .header__ticker{ height: 34px; padding: 6px 10px; }
-        .ticker__item{ font-size:12px; padding:5px 8px; }
-        .ticker__icon{ display:none; }
-      }
-
-      .ticker__iconImg{ display:block; width:26px; height:26px; object-fit:contain; }
-
-      .lang-select {
-        appearance: none;
-        padding: 8px 18px 8px 10px;
-        border: none; background: transparent;
-        font-weight: 600; font-family:'Manrope',sans-serif;
-        cursor:pointer; font-size:14px; color:#111;
-      }
-      .lang-select-wrapper::after {
-        content: "";
-        position:absolute; right:2px; top:50%;
-        transform: translateY(-62%) rotate(45deg);
-        width: 7px; height: 7px; border-right: 2px solid #444; border-bottom: 2px solid #444;
-        pointer-events:none;
-      }
-      .lang-select:not(:focus):not(:active) option:not(:checked) { display: none; }
-      .lang-select:not(:focus):not(:active) option:checked { font-size: 0; }
-      .lang-select:not(:focus):not(:active) option:checked::before { content: attr(data-emoji); font-size: 16px; }
-      .lang-select option:checked { display:block; }
-      .lang-select:focus option, .lang-select:active option { display:block; }
-    </style>
-
-    <script>
-      (function(){
-        // Respect a previous dismissal
-        const bar = document.getElementById('headerTicker');
-        if (!bar) return;
-        if (localStorage.getItem('hideTicker') === '1'){ bar.remove(); return; }
-      
-        const track = document.getElementById('tickerTrack');
-        if (!track) return;
-      
-        // Generate simple, realistic-looking messages
-        const NAMES = ['Anna','Stephan','Noah','Emma','Lucas','Mia','Leon','Ava','Mateo','Sofia','Liam','Olivia'];
-        const ROLES = [
-          'data analyst','machine learning','frontend developer','backend developer',
-          'data engineer','AI research','product manager','UX designer','BI analyst'
-        ];
-        const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
-      
-        const buildMessage = () => {
-          const name = NAMES[rand(0, NAMES.length-1)];
-          const role = ROLES[rand(0, ROLES.length-1)];
-          const counts = [50, 100, 150, 200, 250, 300];
-          const count = counts[Math.floor(Math.random() * counts.length)];
-          return `<span class="ticker__item"><strong>${name}</strong> applied to<strong>${count}</strong>jobs today for<strong>${role}</strong>positions</span>`;
-        };
-      
-        // Create a set of items (you can also fetch from Django if you prefer)
-        const items = Array.from({length: 10}, buildMessage).join('');
-        // Duplicate content for seamless loop (animation translates -50%)
-        track.innerHTML = items + items;
-      
-        // Compute duration from content width for consistent speed
-        const PX_PER_SECOND = 60; // lower = slower, higher = faster
-        const oneSetWidth = track.scrollWidth / 2;
-        const duration = Math.max(15, Math.round(oneSetWidth / PX_PER_SECOND));
-        track.style.setProperty('--duration', duration + 's');
-      
-        // Dismiss button
-        const closeBtn = bar.querySelector('.ticker__close');
-        if (closeBtn){
-          closeBtn.addEventListener('click', () => {
-            localStorage.setItem('hideTicker','1');
-            bar.remove();
-          });
-        }
-      
-        // Recompute speed on resize (debounced)
-        let t;
-        window.addEventListener('resize', () => {
-          clearTimeout(t);
-          t = setTimeout(() => {
-            const newWidth = track.scrollWidth / 2;
-            const newDuration = Math.max(15, Math.round(newWidth / PX_PER_SECOND));
-            track.style.setProperty('--duration', newDuration + 's');
-          }, 150);
-        });
-      })();
-    </script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const path = window.location.pathname;
-        const select = document.querySelector('.lang-select');
-        if (!select) return;
-
-        if (path.startsWith("/dk") || path.startsWith("/da")) {
-          select.value = "{% url 'landing_page_dk' %}";
-        } else if (path.startsWith("/uk")) {
-          select.value = "{% url 'landing_page_uk' %}";
-        } else {
-          select.value = "{% url 'landing_page' %}";
-        }
-      });
-    </script>
   </header>
-  <!-- ====== /NAVBAR ====== -->
 
-  <!-- ====== BLOG LIST ====== -->
-  <main class="blog-list">
-    <h1 class="page-title">Internstart Blog</h1>
-
-    <div class="blog-grid">
-      <!-- Blog Post 1 -->
-      <article class="blog-card">
-        <a href="/blog/how-to-write-resume-for-internship/">
-          <div class="blog-thumb">
-            <img src="{% static 'images/how-to-write-resume-for-internship.jpg' %}" alt="How to Write Resume for Internship">
+  <section aria-label="Blog posts">
+    <ul class="grid" role="list">
+      <!-- 1) Cover Letter for Internship -->
+      <li class="card">
+        <a class="card__link" href="/blog/cover-letter-for-internship/">
+          <div class="card__image">
+            <!-- Staging image (replace src later) -->
+            <img alt="Staging image"
+                 loading="lazy"
+                 decoding="async"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Internship Cover Letter Guide 2025</p>
+            <h2 class="title">Cover Letter for Internship <span class="badge">Guide</span></h2>
+            <p class="desc">A short, proof-first structure with examples, templates, and quick email tips.</p>
+            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
           </div>
         </a>
+      </li>
 
-        <div class="blog-content">
-          <a href="/blog/how-to-write-resume-for-internship/" class="blog-title">
-            How to Write Resume for Internship (Step-by-Step Guide for Students)
-          </a>
-          <p class="blog-excerpt">
-            How to write a resume for an internship with no experience — structure, what to include, and how to stand out so you actually get an interview.
-          </p>
-          <div class="blog-meta">Updated: Oct 31, 2025 · 7 min read</div>
-          <a href="/blog/how-to-write-resume-for-internship/" class="read-more">Read more →</a>
-        </div>
-      </article>
+      <!-- 2) How to Find Internships with No Experience -->
+      <li class="card">
+        <a class="card__link" href="/blog/how-to-find-internships-with-no-experience/">
+          <div class="card__image">
+            <img alt="Staging image" loading="lazy" decoding="async"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Internship Search Guide 2025</p>
+            <h2 class="title">How to Find Internships with No Experience</h2>
+            <p class="desc">Weekly playbook: tiny proof projects, the right channels, and steady, targeted volume.</p>
+            <div class="meta"><span>Updated: Nov 9, 2025</span><span class="dot"></span><span>By Selma Kursiz</span></div>
+          </div>
+        </a>
+      </li>
 
-      <!-- To add more posts later, duplicate the entire <article class="blog-card"> block above -->
-    </div>
-  </main>
+      <!-- 3) How to Write Resume for Internship -->
+      <li class="card">
+        <a class="card__link" href="/blog/how-to-write-resume-for-internship/">
+          <div class="card__image">
+            <img alt="Staging image" loading="lazy" decoding="async"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Resume Guide 2025</p>
+            <h2 class="title">How to Write a Resume for Internship</h2>
+            <p class="desc">One-page layout that highlights skills, tools, and proof — even with no formal roles.</p>
+            <div class="meta"><span>Updated: Oct 31, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
+          </div>
+        </a>
+      </li>
 
-  <!-- ====== FOOTER ====== -->
-  <footer class="site-footer">
-    <div class="footer__inner">
-      <h3>Internstart</h3>
-      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
-      
-      <nav class="footer__links" aria-label="Footer">
-        <a href="{% url 'about' %}">About</a>
-        <a href="#">Careers</a>
-        <a href="{% url 'blog_index' %}">Blog</a>
-        <a href="{% url 'contact' %}">Contact</a>
-        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
-      </nav>
-  
-      <div class="footer__legal">
-        © 2025 Internship Platform. All rights reserved.
-      </div>
-    </div>
-  </footer>
+      <!-- 4) Skills for Internship Resume -->
+      <li class="card">
+        <a class="card__link" href="/blog/skills-for-internship-resume/">
+          <div class="card__image">
+            <img alt="Staging image" loading="lazy" decoding="async"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Resume Skills Guide 2025</p>
+            <h2 class="title">Skills for Internship Resume</h2>
+            <p class="desc">Core skills + role-specific tools. Where to place them and how to prove each one.</p>
+            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
+          </div>
+        </a>
+      </li>
 
-  
-  <style>
-  
-    /* Footer */
-    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
-    .footer__inner{ max-width:1000px; margin:0 auto; }
-    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
-    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
-    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
-    .footer__links{ margin-bottom:28px; }
-    .footer__legal{ font-size:14px; color:#777; }
-  
-  
-  </style>
+      <!-- 5) When to Apply for Summer Internships -->
+      <li class="card">
+        <a class="card__link" href="/blog/when-to-apply-for-summer-internships/">
+          <div class="card__image">
+            <img alt="Staging image" loading="lazy" decoding="async"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Summer Internship Guide 2025</p>
+            <h2 class="title">When to Apply for Summer Internships</h2>
+            <p class="desc">Exact months, typical industry windows, and how to beat rolling applications.</p>
+            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
+          </div>
+        </a>
+      </li>
+
+      <!-- 6) Placeholder card — replace with your 6th post if different -->
+      <li class="card">
+        <a class="card__link" href="/blog/your-sixth-post/" aria-label="Your sixth post (replace link/title/desc)">
+          <div class="card__image">
+            <img alt="Staging image" loading="lazy" decoding="async"
+                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23f3f4f6'/><stop offset='100%' stop-color='%23e5e7eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='20' fill='%23999'>Staging Image</text></svg>">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">New on the blog</p>
+            <h2 class="title">Your Sixth Post Title</h2>
+            <p class="desc">Short description for the sixth post. Replace title, link, and copy when ready.</p>
+            <div class="meta"><span>Updated: Nov 2025</span><span class="dot"></span><span>By Internstart</span></div>
+          </div>
+        </a>
+      </li>
+
+    </ul>
+  </section>
+</main>
 
 </body>
 </html>
