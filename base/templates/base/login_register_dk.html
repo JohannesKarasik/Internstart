@@ -142,6 +142,11 @@
           <h1 class="auth-title">Tilmeld dig Internstart</h1>
           <p class="auth-sub">    Det tager under et minut — vi guider dig.</p>
 
+
+          <div class="progressbar" aria-hidden="true">
+            <span id="regProgress" style="width:33%"></span>
+          </div>
+
           <div class="stepper-wrap">
             <!-- stepper -->
             <div class="stepper stepper--tight" aria-label="Registreringsfremskridt">
@@ -159,9 +164,7 @@
             </div>
           
             <!-- progressbar -->
-            <div class="progressbar" aria-hidden="true">
-              <span id="regProgress" style="width:33%"></span>
-            </div>
+ 
           </div>
 
           <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
