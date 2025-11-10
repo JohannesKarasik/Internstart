@@ -164,9 +164,12 @@ urlpatterns = [
     ),
 
 
-    path('blog/top-25-best-college-student-jobs/', views.college_student_jobs, name='college_student_jobs'),
+        path('blog/top-25-best-college-student-jobs/', views.college_student_jobs, name='college_student_jobs'),
 
         path('blog/top_20_nursing_student_jobs/', views.top_20_nursing_student_jobs, name='top_20_nursing_student_jobs'),
+
+        path('blog/how_to_get_into_finance/', views.how_to_get_into_finance, name='how_to_get_into_finance'),
+
 
 
 

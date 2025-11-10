@@ -3022,6 +3022,9 @@ def college_student_jobs(request):
 def top_20_nursing_student_jobs(request):
     return render(request, 'base/blog/top_20_nursing_student_jobs.html')
 
+def how_to_get_into_finance(request):
+    return render(request, 'base/blog/how_to_get_into_finance.html')
+
 
 
 def robots_txt(request):
