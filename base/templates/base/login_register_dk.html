@@ -689,191 +689,110 @@
 
   </style>
   
-
-<script>
-/* Add classes to Django widgets if the add_class filter isn't installed site-wide */
-(function(){
-  document.querySelectorAll('.form__group :is(input,select,textarea):not(.form__control)')
-    .forEach(el => el.classList.add('form__control'));
-})();
-
-/* Password visibility toggle(s) */
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.togglePwd');
-  if (!btn) return;
-  const input = btn.previousElementSibling;
-  if (!input) return;
-  const isPwd = input.type === 'password';
-  input.type = isPwd ? 'text' : 'password';
-  btn.setAttribute('aria-label', isPwd ? 'Skjul adgangskode' : 'Vis adgangskode');
-  btn.setAttribute('title', isPwd ? 'Skjul adgangskode' : 'Vis adgangskode');
-  btn.dataset.state = isPwd ? 'hide' : 'show';
-});
-
-/* Hide password help until needed */
-(function(){
-  const pwdInputs = document.querySelectorAll('#step-1 input[type="password"]');
-  pwdInputs.forEach((input) => {
-    const help = input.closest('.form__group')?.querySelector('.form__help');
-    if (!help) return;
-    help.classList.add('is-hidden');
-    const validate = () => {
-      const v = input.value || '';
-      const tooShort = v.length > 0 && v.length < 8;
-      const numericOnly = /^\d+$/.test(v) && v.length > 0;
-      help.classList.toggle('is-hidden', !(tooShort || numericOnly));
-    };
-    input.addEventListener('input', validate);
-    input.addEventListener('blur', validate);
-  });
-})();
-
-/* Wizard logic (client-side 2-step) */
-/* Wizard logic (client-side 2-step) */
-/* Wizard logic (client-side 3-step) */
-(function(){
-  const form      = document.getElementById('registerForm');
-
-  const step1     = document.getElementById('step-1'); // Account
-  const step2     = document.getElementById('step-2'); // Preferences (Country/Industry)
-  const step3     = document.getElementById('step-3'); // Resume
-
-  const toStep2Btn     = document.getElementById('toStep2');
-  const toStep3Btn     = document.getElementById('toStep3');
-  const backToStep1Btn = document.getElementById('backToStep1');
-  const backToStep2Btn = document.getElementById('backToStep2');
-
-  const stepper   = document.querySelectorAll('.stepper__item');
-  const progress  = document.getElementById('regProgress');
-  const stepInput = document.getElementById('regStep'); // <input name="step" id="regStep" value="1">
-
-  const setProgress = (step) => {
-    if (!progress) return;
-    const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
-    progress.style.width = pct + '%';
-  };
-
-  const showStep = (step) => {
-    [step1, step2, step3].forEach((el, idx) => {
-      if (!el) return;
-      el.classList.toggle('is-active', idx + 1 === step);
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+    
+      /* add classes */
+      document.querySelectorAll('.form__group :is(input,select,textarea):not(.form__control)')
+        .forEach(el => el.classList.add('form__control'));
+    
+      /* password eye */
+      document.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.togglePwd');
+        if(!btn) return;
+        const input = btn.previousElementSibling;
+        if(!input) return;
+        const isPwd = input.type==='password';
+        input.type = isPwd?'text':'password';
+        btn.dataset.state = isPwd?'hide':'show';
+      });
+    
+      /* register wizard */
+      const form = document.getElementById('registerForm');
+      if(!form) return;
+    
+      const step1 = document.getElementById('step-1');
+      const step2 = document.getElementById('step-2');
+      const step3 = document.getElementById('step-3');
+    
+      const toStep2Btn     = document.getElementById('toStep2');
+      const backToStep1Btn = document.getElementById('backToStep1');
+      const backToStep2Btn = document.getElementById('backToStep2');
+      const progressBar    = document.getElementById('regProgress');
+      const stepInput      = document.getElementById('regStep');
+    
+      const stepperItems = document.querySelectorAll('.stepper__item');
+    
+      const setProgress = (s)=>{
+        progressBar.style.width = (s===1?33:s===2?66:100)+'%';
+      }
+    
+      const showStep = (s)=>{
+        [step1,step2,step3].forEach((el,i)=> el.classList.toggle('is-active',i+1===s));
+        stepperItems.forEach(el => el.classList.toggle('is-active',Number(el.dataset.stepIndex)===s));
+        if(stepInput) stepInput.value = s;
+        setProgress(s);
+      }
+    
+      const step1Valid = ()=>{
+        const p1 = step1.querySelector('input[name$="password1"]');
+        const p2 = step1.querySelector('input[name$="password2"]');
+        if(p1&&p2&&p1.value!==p2.value){
+          p2.setCustomValidity("Adgangskoderne er ikke ens");
+          p2.reportValidity();
+          p2.addEventListener('input',()=>p2.setCustomValidity(''),{once:true});
+          return false;
+        }
+        const ctrls = step1.querySelectorAll('input');
+        for(const el of ctrls){ if(!el.checkValidity()){ el.reportValidity(); return false; } }
+        return true;
+      }
+    
+      toStep2Btn?.addEventListener('click',(e)=>{e.preventDefault(); if(step1Valid()) showStep(2);});
+      backToStep1Btn?.addEventListener('click',(e)=>{e.preventDefault(); showStep(1);});
+      backToStep2Btn?.addEventListener('click',(e)=>{e.preventDefault(); showStep(2);});
+    
+      /* === STEP2 STAGES (NO COUNTRY) === */
+      let step2Stage = 1;
+      document.getElementById('step2-continue')?.addEventListener('click',()=>{
+    
+        if(step2Stage===1){
+          const jobTitle = document.querySelector('[name$="desired_job_title"]');
+          if(!jobTitle.value.trim()){jobTitle.reportValidity();return;}
+          document.getElementById('step2-jobtitle').style.display='none';
+          document.getElementById('step2-jobtype').style.display='block';
+          step2Stage=2;
+          return;
+        }
+    
+        if(step2Stage===2){
+          const jobType = document.querySelector('[name$="job_type"]');
+          if(!jobType.value.trim()){jobType.reportValidity();return;}
+          stepInput.value='3';
+          showStep(3);
+        }
+      });
+    
+      /* force step=3 on submit */
+      form.addEventListener('submit',()=>{ stepInput.value='3'; });
+    
+      /* resume dropzone */
+      const dz = document.getElementById('resumeDrop');
+      if(dz){
+        const input = dz.querySelector('input[type="file"]');
+        const label = document.getElementById('resumeFileName');
+        input.addEventListener('change',()=>{
+          const f=input.files&&input.files[0];
+          label.textContent = f?`Valgt: ${f.name}`:'Ingen fil valgt';
+        });
+      }
+    
+      /* init */
+      showStep(1);
+    
     });
-
-    stepper.forEach(el => {
-      el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
-    });
-
-    setProgress(step);
-    if (stepInput) stepInput.value = String(step);
-
-    const active = step === 1 ? step1 : step === 2 ? step2 : step3;
-    const first = active?.querySelector('input,select,textarea,button');
-    if (first) setTimeout(() => first.focus({preventScroll:true}), 50);
-  };
-
-  // ---- Validators ----
-  const step1Valid = () => {
-    const controls = step1.querySelectorAll('input,select,textarea');
-    for (const el of controls) {
-      if (!el.checkValidity()) { el.reportValidity(); return false; }
-    }
-    const p1 = step1.querySelector('input[name$="password1"]');
-    const p2 = step1.querySelector('input[name$="password2"]');
-    if (p1 && p2 && p1.value !== p2.value) {
-      p2.setCustomValidity("Adgangskoderne er ikke ens");
-      p2.reportValidity();
-      p2.addEventListener('input', () => p2.setCustomValidity(''), { once:true });
-      return false;
-    }
-    return true;
-  };
-
-
-  const step2Valid = () => {
-    const country  = step2.querySelector('[name$="country"]');
-    const jobTitle = step2.querySelector('[name$="desired_job_title"]');
-
-    if (!country?.value)  { country?.reportValidity?.();  return false; }
-    if (!jobTitle?.value) { jobTitle?.reportValidity?.(); return false; }
-
-    return true;
-  };
-
-  // ---- Next / Back ----
-  toStep2Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (step1Valid()) showStep(2);
-  });
-
-  toStep3Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (step2Valid()) showStep(3);
-  });
-
-  backToStep1Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showStep(1);
-  });
-
-  backToStep2Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showStep(2);
-  });
-
-  // Enter to advance on steps 1 & 2
-  form?.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return;
-    if (step1.classList.contains('is-active')) {
-      e.preventDefault(); toStep2Btn?.click();
-    } else if (step2.classList.contains('is-active')) {
-      e.preventDefault(); toStep3Btn?.click();
-    }
-  });
-
-  // Initialize (optionally from server)
-  const serverStep = Number('{{ show_step|default:"1" }}');
-  const initial = [1,2,3].includes(serverStep) ? serverStep : 1;
-  showStep(initial);
-})();
-
-/* Resume dropzone filename preview + drag hover */
-(function(){
-  const dz = document.getElementById('resumeDrop');
-  if (!dz) return;
-  const input = dz.querySelector('input[type="file"]');
-  const label = document.getElementById('resumeFileName');
-
-  input.addEventListener('change', () => {
-    const f = input.files && input.files[0];
-    label.textContent = f ? `Valgt: ${f.name}` : 'Ingen fil valgt';
-  });
-
-  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
-    e.preventDefault(); e.stopPropagation();
-    dz.style.borderColor = '#9aa7b7';
-    dz.style.background = 'linear-gradient(180deg, #fff, #f6f9ff)';
-  }));
-  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
-    e.preventDefault(); e.stopPropagation();
-    dz.style.borderColor = '#d7dbe2';
-    dz.style.background = 'linear-gradient(180deg, #fff, #fbfcff)';
-  }));
-  dz.addEventListener('drop', (e) => {
-    if (!e.dataTransfer?.files?.length) return;
-    input.files = e.dataTransfer.files;
-    input.dispatchEvent(new Event('change', {bubbles:true}));
-  });
-})();
-
-
-
-
-
-
-
-
-
-</script>
+    </script>
+    
 
 
 
