@@ -170,6 +170,9 @@ urlpatterns = [
 
         path('blog/how_to_get_into_finance/', views.how_to_get_into_finance, name='how_to_get_into_finance'),
 
+        path('blog/how_to_get_into_finance_with_no_degree/', views.how_to_get_into_finance_with_no_degree, name='how_to_get_into_finance_with_no_degree'),
+
+
 
 
 

@@ -3025,6 +3025,11 @@ def top_20_nursing_student_jobs(request):
 def how_to_get_into_finance(request):
     return render(request, 'base/blog/how_to_get_into_finance.html')
 
+def how_to_get_into_finance_with_no_degree(request):
+    return render(request, 'base/blog/how_to_get_into_finance_with_no_degree.html')
+
+
+
 
 
 def robots_txt(request):
