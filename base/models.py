@@ -19,6 +19,12 @@ class SwipedJob(models.Model):
 
 
 
+class RoomAttribute(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class ListingType(models.Model):
     name = models.CharField(max_length=100)
 
@@ -55,7 +61,7 @@ class User(AbstractUser):
     linkedin_url = models.URLField(blank=True, null=True)
     onboarding_shown = models.BooleanField(default=False)
     ready = models.BooleanField(default=False)
-    user_attribute = models.CharField(max_length=200, null=True, blank=True)
+    user_attribute = models.ForeignKey(RoomAttribute, on_delete=models.SET_NULL, null=True, blank=True)
 
 
 
@@ -229,7 +235,7 @@ class Room(models.Model):
     job_title = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    attribute = models.CharField(max_length=200, null=True, blank=True)
+    attribute = models.ForeignKey(RoomAttribute, on_delete=models.SET_NULL, null=True, blank=True)
 
 
     # Company logo
@@ -359,3 +365,4 @@ class ATSRoom(models.Model):
 
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
+
