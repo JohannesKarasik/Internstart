@@ -897,4 +897,11 @@ if(step2Stage === 2){
 
 </script>
 
+<script>
+  document.querySelector('#registerForm').addEventListener('submit', function(e){
+      console.log("SUBMIT FIRED");
+      console.log("STEP VALUE:", document.getElementById('regStep').value);
+  });
+  </script>
+
 {% endblock content %}
