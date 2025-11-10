@@ -851,8 +851,6 @@ backToStep2Btn?.addEventListener('click', (e) => {
     input.files = e.dataTransfer.files;
     input.dispatchEvent(new Event('change', {bubbles:true}));
   });
-})();
-
 
 
 // STEP-2 staged questions (only job title → job type)
@@ -887,6 +885,12 @@ btnStep2?.addEventListener("click", function(){
   showStep(3);
 }
 });
+
+
+
+})();
+
+
 
 
 
