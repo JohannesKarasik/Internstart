@@ -3018,5 +3018,12 @@ def college_student_jobs(request):
     return render(request, 'base/blog/college_student_jobs.html')
 
 
+
+def top_20_nursing_student_jobs(request):
+    return render(request, 'base/blog/top_20_nursing_student_jobs.html')
+
+
+
 def robots_txt(request):
     return render(request, 'robots.txt', content_type='text/plain')
+
