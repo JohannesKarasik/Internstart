@@ -174,6 +174,9 @@ urlpatterns = [
 
         path('blog/how-to-get-a-job-fast/', views.how_to_get_a_job_fast, name='how-to-get-a-job-fast'),
 
+        path('blog/remote-accounting-jobs/', views.remote_accounting_jobs, name='remote_accounting_jobs'),
+
+
 
 
 
