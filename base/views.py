@@ -957,6 +957,7 @@ def registerPage(request, template='base/login_register.html'):
         # === STEP 3 POST (final submit) ===
         if step == '3':
             print("✅ Final step detected, validating form...")
+
             if form.is_valid():
                 user = form.save(commit=False)
                 user.role = 'student'
@@ -976,7 +977,7 @@ def registerPage(request, template='base/login_register.html'):
                 return redirect('swipe_static_view')
 
             # If form invalid
-            print("❌ FORM ERRORS:", form.errors)
+            print("❌ FORM ERRORS:", form.errors.as_json())   # <--- ADD THIS
             messages.error(request, 'Please correct the errors below.')
             context = {'student_form': form, 'page': page, 'show_step': '3'}
             return render(request, template, context)
