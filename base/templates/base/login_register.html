@@ -732,6 +732,9 @@ document.addEventListener('click', (e) => {
 /* Wizard logic (client-side 3-step) */
 (function(){
 
+// STOP if the register wizard is not present (example: login page, employer page, etc)
+if (!document.getElementById('step2-jobtitle')) return;
+
 const form      = document.getElementById('registerForm');
 
 const step1     = document.getElementById('step-1'); // Account
