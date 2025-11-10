@@ -164,6 +164,9 @@ urlpatterns = [
     ),
 
 
+        path('top-25-best-college-student-jobs/', views.college_student_jobs, name='college_student_jobs'),
+
+
     ##############################################
 
     path("robots.txt", views.robots_txt, name="robots_txt"),
