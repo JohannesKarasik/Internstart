@@ -3028,6 +3028,15 @@ def how_to_get_into_finance(request):
 def how_to_get_into_finance_with_no_degree(request):
     return render(request, 'base/blog/how_to_get_into_finance_with_no_degree.html')
 
+def how_to_get_into_finance_with_no_degree(request):
+    return render(request, 'base/blog/how_to_get_into_finance_with_no_degree.html')
+
+def how_to_get_a_job_fast(request):
+    return render(request, 'base/blog/how-to-get-a-job-fast.html')
+
+
+
+
 
 
 
