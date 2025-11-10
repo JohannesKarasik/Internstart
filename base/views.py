@@ -3017,7 +3017,7 @@ def skills_for_internship_resume(request):
 
 
 def college_student_jobs(request):
-    return render(request, 'blog/college_student_jobs.html')
+    return render(request, 'base/blog/college_student_jobs.html')
 
 
 def robots_txt(request):
