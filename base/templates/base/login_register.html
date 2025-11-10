@@ -866,7 +866,7 @@ document.addEventListener('click', (e) => {
 
 
 
-// STEP-2 staged questions (US version)
+// STEP-2 staged questions (only job title → job type)
 let step2Stage = 1;
 const btnStep2 = document.getElementById("step2-continue");
 
@@ -879,22 +879,12 @@ btnStep2?.addEventListener("click", function(){
       return;
     }
     document.getElementById("step2-jobtitle").style.display = "none";
+    document.getElementById("step2-jobtype").style.display = "block";
     step2Stage = 2;
     return;
   }
 
   if(step2Stage === 2){
-    const country = document.querySelector('[name$="country"]');
-    if(!country.value.trim()){
-      country.reportValidity();
-      return;
-    }
-    document.getElementById("step2-jobtype").style.display = "block";
-    step2Stage = 3;
-    return;
-  }
-
-  if(step2Stage === 3){
     const jobType = document.querySelector('[name$="job_type"]');
     if(!jobType.value.trim()){
       jobType.reportValidity();
@@ -903,6 +893,7 @@ btnStep2?.addEventListener("click", function(){
     document.querySelector('#toStep3').click();
   }
 });
+
 
 
 </script>
