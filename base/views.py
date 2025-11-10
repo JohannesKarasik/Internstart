@@ -1072,12 +1072,14 @@ def swipe_view(request):
 
     # ✅ Filter listings by student's profile preferences
     user = request.user
+
     if getattr(user, 'role', None) == 'student':
         rooms_qs = rooms_qs.filter(
-            industry=user.student_industry,
+            industry=user.desired_job_title,
             country=user.country,
             job_type=user.job_type
         )
+
 
     paginator = Paginator(rooms_qs, 5)
     rooms = paginator.get_page(page)
