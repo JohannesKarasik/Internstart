@@ -858,32 +858,35 @@ const btnStep2 = document.getElementById("step2-continue");
 btnStep2?.addEventListener("click", function(){
 
   if(step2Stage === 1){
-    const jobTitle = document.querySelector('[name$="desired_job_title"]');
-    if(!jobTitle.value.trim()){
-      jobTitle.reportValidity();
-      return;
-    }
-    document.getElementById("step2-jobtitle").style.display = "none";
-    document.getElementById("step2-jobtype").style.display = "block";
-    if(jt) jt.style.display = "none";
-    if(jtp) jtp.style.display = "block";
-    step2Stage = 2;
+  const jobTitle = document.querySelector('[name$="desired_job_title"]');
+  if(!jobTitle.value.trim()){
+    jobTitle.reportValidity();
     return;
   }
 
-  if(step2Stage === 2){
-    const jobType = document.querySelector('[name$="job_type"]');
-    if(!jobType.value.trim()){
-      jobType.reportValidity();
-      return;
-    }
+  const jt  = document.getElementById("step2-jobtitle");
+  const jtp = document.getElementById("step2-jobtype");
 
-    // set step for server POST
-    document.getElementById('regStep').value = "3";
+  if (jt) jt.style.display = "none";
+  if (jtp) jtp.style.display = "block";
 
-    // go to step 3
-    if (typeof showStep === "function") showStep(3);
+  step2Stage = 2;
+  return;
+}
+
+if(step2Stage === 2){
+  const jobType = document.querySelector('[name$="job_type"]');
+  if(!jobType.value.trim()){
+    jobType.reportValidity();
+    return;
   }
+
+  // set step for server POST
+  document.getElementById('regStep').value = "3";
+
+  if (typeof showStep === "function") showStep(3);
+}
+
 });
 
 
