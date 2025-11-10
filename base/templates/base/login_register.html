@@ -879,7 +879,6 @@ btnStep2?.addEventListener("click", function(){
       return;
     }
     document.getElementById("step2-jobtitle").style.display = "none";
-    document.getElementById("step2-country").style.display = "block";
     step2Stage = 2;
     return;
   }
@@ -890,7 +889,6 @@ btnStep2?.addEventListener("click", function(){
       country.reportValidity();
       return;
     }
-    document.getElementById("step2-country").style.display = "none";
     document.getElementById("step2-jobtype").style.display = "block";
     step2Stage = 3;
     return;
