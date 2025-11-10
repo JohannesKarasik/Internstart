@@ -76,8 +76,6 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
-
-
     # Desired job title field (replaces industry)
     desired_job_title = forms.CharField(
         max_length=150,
@@ -89,7 +87,6 @@ class StudentCreationForm(UserCreationForm):
         })
     )
 
-
     # Job type dropdown
     job_type = forms.ChoiceField(
         choices=[('', _('Select job type'))] + User.JOB_TYPE_CHOICES,  # ✅ translated
@@ -100,18 +97,15 @@ class StudentCreationForm(UserCreationForm):
         })
     )
 
-
     class Meta:
         model = User   # ✅ CORRECT
         fields = [
             'full_name',
             'email',
             'resume',
-            'country',
             'desired_job_title',
             'job_type',
-        ]
-
+        ]   # ✅ removed country
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -142,11 +136,8 @@ class StudentCreationForm(UserCreationForm):
         self.fields['full_name'].required = True
         self.fields['email'].required = True
         self.fields['resume'].required = True
-        self.fields['country'].required = True
         self.fields['desired_job_title'].required = True
         self.fields['job_type'].required = True
-
-
 
     def clean_resume(self):
         f = self.cleaned_data.get('resume')
@@ -166,7 +157,7 @@ class StudentCreationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'student'
-        user.country = self.cleaned_data['country']
+        # ❌ removed country assignment. done in view
         user.desired_job_title = self.cleaned_data['desired_job_title']
         user.job_type = self.cleaned_data['job_type']
         if commit:
