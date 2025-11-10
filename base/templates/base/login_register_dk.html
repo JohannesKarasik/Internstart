@@ -273,13 +273,7 @@
               </div>
             </div>
           
-            <!-- 2) Country -->
-            <div class="step2-block" id="step2-country" style="display:none;">
-              <div class="form__group" style="margin-bottom:16px;">
-                <label class="form__label" for="{{ student_form.country.id_for_label }}">Land</label>
-                {{ student_form.country }}
-              </div>
-            </div>
+
           
             <!-- 3) Job type -->
             <div class="step2-block" id="step2-jobtype" style="display:none;">
@@ -875,44 +869,7 @@ document.addEventListener('click', (e) => {
 
 
 
-let step2Stage = 1;
-const btnStep2 = document.getElementById("step2-continue");
 
-btnStep2.addEventListener("click", function(){
-
-  if(step2Stage === 1){
-    const jobTitle = document.querySelector('[name$="desired_job_title"]');
-    if(!jobTitle.value.trim()){
-      jobTitle.reportValidity();
-      return;
-    }
-    document.getElementById("step2-jobtitle").style.display = "none";
-    document.getElementById("step2-country").style.display = "block";
-    step2Stage = 2;
-    return;
-  }
-
-  if(step2Stage === 2){
-    const country = document.querySelector('[name$="country"]');
-    if(!country.value.trim()){
-      country.reportValidity();
-      return;
-    }
-    document.getElementById("step2-country").style.display = "none";
-    document.getElementById("step2-jobtype").style.display = "block";
-    step2Stage = 3;
-    return;
-  }
-
-  if(step2Stage === 3){
-    const jobType = document.querySelector('[name$="job_type"]');
-    if(!jobType.value.trim()){
-      jobType.reportValidity();
-      return;
-    }
-    document.querySelector('#toStep3').click();
-  }
-});
 
 
 
