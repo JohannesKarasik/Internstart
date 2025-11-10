@@ -55,6 +55,8 @@ class User(AbstractUser):
     linkedin_url = models.URLField(blank=True, null=True)
     onboarding_shown = models.BooleanField(default=False)
     ready = models.BooleanField(default=False)
+    user_attribute = models.CharField(max_length=200, null=True, blank=True)
+
 
 
     # Resume upload
@@ -227,6 +229,8 @@ class Room(models.Model):
     job_title = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    attribute = models.CharField(max_length=200, null=True, blank=True)
+
 
     # Company logo
     logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
