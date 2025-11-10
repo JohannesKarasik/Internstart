@@ -961,6 +961,13 @@ def registerPage(request, template='base/login_register.html'):
                 user = form.save(commit=False)
                 user.role = 'student'
                 user.is_active = True         # ✅ activate immediately
+
+                # 🔥 auto assign country
+                if request.path.startswith("/da/"):
+                    user.country = "DK"
+                else:
+                    user.country = "US"
+
                 user.save()
 
                 login(request, user)          # ✅ log them in right away
