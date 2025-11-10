@@ -731,61 +731,62 @@ document.addEventListener('click', (e) => {
 /* Wizard logic (client-side 2-step) */
 /* Wizard logic (client-side 3-step) */
 (function(){
-  const form      = document.getElementById('registerForm');
 
-  const step1     = document.getElementById('step-1'); // Account
-  const step2     = document.getElementById('step-2'); // Preferences (Country/Industry)
-  const step3     = document.getElementById('step-3'); // Resume
+const form      = document.getElementById('registerForm');
 
-  const toStep2Btn     = document.getElementById('toStep2');
-  const toStep3Btn     = document.getElementById('toStep3');
-  const backToStep1Btn = document.getElementById('backToStep1');
-  const backToStep2Btn = document.getElementById('backToStep2');
+const step1     = document.getElementById('step-1'); // Account
+const step2     = document.getElementById('step-2'); // Preferences (Country/Industry)
+const step3     = document.getElementById('step-3'); // Resume
 
-  const stepper   = document.querySelectorAll('.stepper__item');
-  const progress  = document.getElementById('regProgress');
-  const stepInput = document.getElementById('regStep'); // <input name="step" id="regStep" value="1">
+const toStep2Btn     = document.getElementById('toStep2');
+const toStep3Btn     = document.getElementById('toStep3');
+const backToStep1Btn = document.getElementById('backToStep1');
+const backToStep2Btn = document.getElementById('backToStep2');
 
-  const setProgress = (step) => {
-    if (!progress) return;
-    const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
-    progress.style.width = pct + '%';
-  };
+const stepper   = document.querySelectorAll('.stepper__item');
+const progress  = document.getElementById('regProgress');
+const stepInput = document.getElementById('regStep'); // <input name="step" id="regStep" value="1">
 
-  const showStep = (step) => {
-    [step1, step2, step3].forEach((el, idx) => {
-      if (!el) return;
-      el.classList.toggle('is-active', idx + 1 === step);
-    });
+const setProgress = (step) => {
+  if (!progress) return;
+  const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
+  progress.style.width = pct + '%';
+};
 
-    stepper.forEach(el => {
-      el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
-    });
+const showStep = (step) => {
+  [step1, step2, step3].forEach((el, idx) => {
+    if (!el) return;
+    el.classList.toggle('is-active', idx + 1 === step);
+  });
 
-    setProgress(step);
-    if (stepInput) stepInput.value = String(step);
+  stepper.forEach(el => {
+    el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
+  });
 
-    const active = step === 1 ? step1 : step === 2 ? step2 : step3;
-    const first = active?.querySelector('input,select,textarea,button');
-    if (first) setTimeout(() => first.focus({preventScroll:true}), 50);
-  };
+  setProgress(step);
+  if (stepInput) stepInput.value = String(step);
 
-  // ---- Validators ----
-  const step1Valid = () => {
-    const controls = step1.querySelectorAll('input,select,textarea');
-    for (const el of controls) {
-      if (!el.checkValidity()) { el.reportValidity(); return false; }
-    }
-    const p1 = step1.querySelector('input[name$="password1"]');
-    const p2 = step1.querySelector('input[name$="password2"]');
-    if (p1 && p2 && p1.value !== p2.value) {
-      p2.setCustomValidity("Passwords don't match");
-      p2.reportValidity();
-      p2.addEventListener('input', () => p2.setCustomValidity(''), { once:true });
-      return false;
-    }
-    return true;
-  };
+  const active = step === 1 ? step1 : step === 2 ? step2 : step3;
+  const first = active?.querySelector('input,select,textarea,button');
+  if (first) setTimeout(() => first.focus({preventScroll:true}), 50);
+};
+
+// ---- Validators ----
+const step1Valid = () => {
+  const controls = step1.querySelectorAll('input,select,textarea');
+  for (const el of controls) {
+    if (!el.checkValidity()) { el.reportValidity(); return false; }
+  }
+  const p1 = step1.querySelector('input[name$="password1"]');
+  const p2 = step1.querySelector('input[name$="password2"]');
+  if (p1 && p2 && p1.value !== p2.value) {
+    p2.setCustomValidity("Passwords don't match");
+    p2.reportValidity();
+    p2.addEventListener('input', () => p2.setCustomValidity(''), { once:true });
+    return false;
+  }
+  return true;
+};
 
 
 // ---- Next / Back ----
@@ -793,9 +794,6 @@ toStep2Btn?.addEventListener('click', (e) => {
   e.preventDefault();
   if (step1Valid()) showStep(2);
 });
-
-// IMPORTANT: we do NOT validate the old country logic anymore
-// the staged logic at bottom handles going from job title → job type → step3
 
 backToStep1Btn?.addEventListener('click', (e) => {
   e.preventDefault();
@@ -808,26 +806,25 @@ backToStep2Btn?.addEventListener('click', (e) => {
 });
 
 
-  // Enter to advance on steps 1 & 2
-  form?.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return;
-    if (step1.classList.contains('is-active')) {
-      e.preventDefault(); toStep2Btn?.click();
-    } else if (step2.classList.contains('is-active')) {
-      e.preventDefault(); toStep3Btn?.click();
-    }
-  });
+// Enter to advance on steps 1 & 2
+form?.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  if (step1.classList.contains('is-active')) {
+    e.preventDefault(); toStep2Btn?.click();
+  } else if (step2.classList.contains('is-active')) {
+    e.preventDefault(); toStep3Btn?.click();
+  }
+});
 
-  // Initialize (optionally from server)
-  const serverStep = Number('{{ show_step|default:"1" }}');
-  const initial = [1,2,3].includes(serverStep) ? serverStep : 1;
-  showStep(initial);
-})();
+// Initialize (optionally from server)
+const serverStep = Number('{{ show_step|default:"1" }}');
+const initial = [1,2,3].includes(serverStep) ? serverStep : 1;
+showStep(initial);
+
 
 /* Resume dropzone filename preview + drag hover */
-(function(){
-  const dz = document.getElementById('resumeDrop');
-  if (!dz) return;
+const dz = document.getElementById('resumeDrop');
+if (dz){
   const input = dz.querySelector('input[type="file"]');
   const label = document.getElementById('resumeFileName');
 
@@ -851,6 +848,7 @@ backToStep2Btn?.addEventListener('click', (e) => {
     input.files = e.dataTransfer.files;
     input.dispatchEvent(new Event('change', {bubbles:true}));
   });
+}
 
 
 // STEP-2 staged questions (only job title → job type)
@@ -872,25 +870,22 @@ btnStep2?.addEventListener("click", function(){
   }
 
   if(step2Stage === 2){
-  const jobType = document.querySelector('[name$="job_type"]');
-  if(!jobType.value.trim()){
-    jobType.reportValidity();
-    return;
+    const jobType = document.querySelector('[name$="job_type"]');
+    if(!jobType.value.trim()){
+      jobType.reportValidity();
+      return;
+    }
+
+    // set step for server POST
+    document.getElementById('regStep').value = "3";
+
+    // go to step 3
+    showStep(3);
   }
-
-  // set step for server POST
-  document.getElementById('regStep').value = "3";
-
-  // trigger the hidden button → it will run the showStep logic inside the closure
-  showStep(3);
-}
 });
 
 
-
 })();
-
-
 
 
 
