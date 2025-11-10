@@ -788,36 +788,25 @@ document.addEventListener('click', (e) => {
   };
 
 
-  const step2Valid = () => {
-    const country  = step2.querySelector('[name$="country"]');
-    const jobTitle = step2.querySelector('[name$="desired_job_title"]');
+// ---- Next / Back ----
+toStep2Btn?.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (step1Valid()) showStep(2);
+});
 
-    if (!country?.value)  { country?.reportValidity?.();  return false; }
-    if (!jobTitle?.value) { jobTitle?.reportValidity?.(); return false; }
+// IMPORTANT: we do NOT validate the old country logic anymore
+// the staged logic at bottom handles going from job title → job type → step3
 
-    return true;
-  };
+backToStep1Btn?.addEventListener('click', (e) => {
+  e.preventDefault();
+  showStep(1);
+});
 
-  // ---- Next / Back ----
-  toStep2Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (step1Valid()) showStep(2);
-  });
+backToStep2Btn?.addEventListener('click', (e) => {
+  e.preventDefault();
+  showStep(2);
+});
 
-  toStep3Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (step2Valid()) showStep(3);
-  });
-
-  backToStep1Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showStep(1);
-  });
-
-  backToStep2Btn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showStep(2);
-  });
 
   // Enter to advance on steps 1 & 2
   form?.addEventListener('keydown', (e) => {
