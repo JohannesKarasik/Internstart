@@ -164,7 +164,7 @@ urlpatterns = [
     ),
 
 
-        path('top-25-best-college-student-jobs/', views.college_student_jobs, name='college_student_jobs'),
+    path('blog/top-25-best-college-student-jobs/', views.college_student_jobs, name='college_student_jobs'),
 
 
     ##############################################
