@@ -76,14 +76,7 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
 
-    country = forms.ChoiceField(
-        choices=[('', _('Select country'))] + User.COUNTRY_CHOICES,  # ✅ translated placeholder
-        required=True,
-        label=_("Country"),  # ✅ translated label
-        widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;'
-        })
-    )
+
 
     # Desired job title field (replaces industry)
     desired_job_title = forms.CharField(
