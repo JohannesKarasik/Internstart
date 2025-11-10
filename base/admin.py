@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import Connection
 from .models import Message  # Import the Message model
 from .models import ATSRoom
+from .models import RoomAttribute
 
 
 
@@ -13,6 +14,8 @@ admin.site.register(User)
 admin.site.register(Room)
 admin.site.register(Topic)
 admin.site.register(Connection)
+admin.site.register(RoomAttribute)
+
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('sender', 'recipient', 'content', 'timestamp')  # Customize fields to display
