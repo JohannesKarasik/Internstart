@@ -1075,7 +1075,7 @@ def swipe_view(request):
 
     if getattr(user, 'role', None) == 'student':
         rooms_qs = rooms_qs.filter(
-            industry=user.desired_job_title,
+            job_title__icontains=user.desired_job_title,
             country=user.country,
             job_type=user.job_type
         )
