@@ -690,221 +690,224 @@
   </style>
 
 <script>
-/* Add classes to Django widgets if the add_class filter isn't installed site-wide */
-(function(){
-  document.querySelectorAll('.form__group :is(input,select,textarea):not(.form__control)')
-    .forEach(el => el.classList.add('form__control'));
-})();
-
-/* Password visibility toggle(s) */
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.togglePwd');
-  if (!btn) return;
-  const input = btn.previousElementSibling;
-  if (!input) return;
-  const isPwd = input.type === 'password';
-  input.type = isPwd ? 'text' : 'password';
-  btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
-  btn.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
-  btn.dataset.state = isPwd ? 'hide' : 'show';
-});
-
-/* Hide password help until needed */
-(function(){
-  const pwdInputs = document.querySelectorAll('#step-1 input[type="password"]');
-  pwdInputs.forEach((input) => {
-    const help = input.closest('.form__group')?.querySelector('.form__help');
-    if (!help) return;
-    help.classList.add('is-hidden');
-    const validate = () => {
-      const v = input.value || '';
-      const tooShort = v.length > 0 && v.length < 8;
-      const numericOnly = /^\d+$/.test(v) && v.length > 0;
-      help.classList.toggle('is-hidden', !(tooShort || numericOnly));
+  document.addEventListener('DOMContentLoaded', function () {
+    /* ===== Helper: add .form__control to raw widgets ===== */
+    document.querySelectorAll('.form__group :is(input,select,textarea):not(.form__control)')
+      .forEach(el => el.classList.add('form__control'));
+  
+    /* ===== Password visibility toggle(s) ===== */
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.togglePwd');
+      if (!btn) return;
+      const input = btn.previousElementSibling;
+      if (!input) return;
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+      btn.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
+      btn.dataset.state = isPwd ? 'hide' : 'show';
+    });
+  
+    /* ===== Hide password help until needed (only if step-1 exists) ===== */
+    if (document.getElementById('step-1')) {
+      const pwdInputs = document.querySelectorAll('#step-1 input[type="password"]');
+      pwdInputs.forEach((input) => {
+        const help = input.closest('.form__group')?.querySelector('.form__help');
+        if (!help) return;
+        help.classList.add('is-hidden');
+        const validate = () => {
+          const v = input.value || '';
+          const tooShort   = v.length > 0 && v.length < 8;
+          const numericOnly = /^\d+$/.test(v) && v.length > 0;
+          help.classList.toggle('is-hidden', !(tooShort || numericOnly));
+        };
+        input.addEventListener('input', validate);
+        input.addEventListener('blur', validate);
+      });
+    }
+  
+    /* ===== Register wizard (guard if this is the login page) ===== */
+    const form = document.getElementById('registerForm');
+    if (!form) return; // not on the register page
+  
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+  
+    const toStep2Btn     = document.getElementById('toStep2');
+    const toStep3Btn     = document.getElementById('toStep3');  // hidden helper (optional)
+    const backToStep1Btn = document.getElementById('backToStep1');
+    const backToStep2Btn = document.getElementById('backToStep2');
+  
+    const stepperItems = document.querySelectorAll('.stepper__item');
+    const progressBar  = document.getElementById('regProgress');
+    const stepInput    = document.getElementById('regStep'); // hidden input
+  
+    const setProgress = (step) => {
+      if (!progressBar) return;
+      const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
+      progressBar.style.width = pct + '%';
     };
-    input.addEventListener('input', validate);
-    input.addEventListener('blur', validate);
-  });
-})();
-
-/* Wizard logic (client-side 2-step) */
-/* Wizard logic (client-side 2-step) */
-/* Wizard logic (client-side 3-step) */
-(function(){
-
-// STOP if the register wizard is not present (example: login page, employer page, etc)
-if (!document.getElementById('registerForm')) return;
-
-const form      = document.getElementById('registerForm');
-
-const step1     = document.getElementById('step-1'); // Account
-const step2     = document.getElementById('step-2'); // Preferences (Country/Industry)
-const step3     = document.getElementById('step-3'); // Resume
-
-const toStep2Btn     = document.getElementById('toStep2');
-const toStep3Btn     = document.getElementById('toStep3');
-const backToStep1Btn = document.getElementById('backToStep1');
-const backToStep2Btn = document.getElementById('backToStep2');
-
-const stepper   = document.querySelectorAll('.stepper__item');
-const progress  = document.getElementById('regProgress');
-const stepInput = document.getElementById('regStep'); // <input name="step" id="regStep" value="1">
-
-const setProgress = (step) => {
-  if (!progress) return;
-  const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
-  progress.style.width = pct + '%';
-};
-
-const showStep = (step) => {
-  [step1, step2, step3].forEach((el, idx) => {
-    if (!el) return;
-    el.classList.toggle('is-active', idx + 1 === step);
-  });
-
-  stepper.forEach(el => {
-    el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
-  });
-
-  setProgress(step);
-  if (stepInput) stepInput.value = String(step);
-
-  const active = step === 1 ? step1 : step === 2 ? step2 : step3;
-  const first = active?.querySelector('input,select,textarea,button');
-  if (first) setTimeout(() => first.focus({preventScroll:true}), 50);
-};
-
-// ---- Validators ----
-const step1Valid = () => {
-  const controls = step1.querySelectorAll('input,select,textarea');
-  for (const el of controls) {
-    if (!el.checkValidity()) { el.reportValidity(); return false; }
-  }
-  const p1 = step1.querySelector('input[name$="password1"]');
-  const p2 = step1.querySelector('input[name$="password2"]');
-  if (p1 && p2 && p1.value !== p2.value) {
-    p2.setCustomValidity("Passwords don't match");
-    p2.reportValidity();
-    p2.addEventListener('input', () => p2.setCustomValidity(''), { once:true });
-    return false;
-  }
-  return true;
-};
-
-
-// ---- Next / Back ----
-toStep2Btn?.addEventListener('click', (e) => {
-  e.preventDefault();
-  if (step1Valid()) showStep(2);
-});
-
-backToStep1Btn?.addEventListener('click', (e) => {
-  e.preventDefault();
-  showStep(1);
-});
-
-backToStep2Btn?.addEventListener('click', (e) => {
-  e.preventDefault();
-  showStep(2);
-});
-
-
-// Enter to advance on steps 1 & 2
-form?.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter') return;
-  if (step1.classList.contains('is-active')) {
-    e.preventDefault(); toStep2Btn?.click();
-  } else if (step2.classList.contains('is-active')) {
-    e.preventDefault(); toStep3Btn?.click();
-  }
-});
-
-// Initialize (optionally from server)
-const serverStep = Number('{{ show_step|default:"1" }}');
-const initial = [1,2,3].includes(serverStep) ? serverStep : 1;
-showStep(initial);
-
-
-/* Resume dropzone filename preview + drag hover */
-const dz = document.getElementById('resumeDrop');
-if (dz){
-  const input = dz.querySelector('input[type="file"]');
-  const label = document.getElementById('resumeFileName');
-
-  input.addEventListener('change', () => {
-    const f = input.files && input.files[0];
-    label.textContent = f ? `Selected: ${f.name}` : 'No file chosen';
-  });
-
-  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
-    e.preventDefault(); e.stopPropagation();
-    dz.style.borderColor = '#9aa7b7';
-    dz.style.background = 'linear-gradient(180deg, #fff, #f6f9ff)';
-  }));
-  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
-    e.preventDefault(); e.stopPropagation();
-    dz.style.borderColor = '#d7dbe2';
-    dz.style.background = 'linear-gradient(180deg, #fff, #fbfcff)';
-  }));
-  dz.addEventListener('drop', (e) => {
-    if (!e.dataTransfer?.files?.length) return;
-    input.files = e.dataTransfer.files;
-    input.dispatchEvent(new Event('change', {bubbles:true}));
-  });
-}
-
-
-// STEP-2 staged questions (only job title → job type)
-let step2Stage = 1;
-const btnStep2 = document.getElementById("step2-continue");
-
-btnStep2?.addEventListener("click", function(){
-
-  if(step2Stage === 1){
-  const jobTitle = document.querySelector('[name$="desired_job_title"]');
-  if(!jobTitle.value.trim()){
-    jobTitle.reportValidity();
-    return;
-  }
-
-  const jt  = document.getElementById("step2-jobtitle");
-  const jtp = document.getElementById("step2-jobtype");
-
-  if (jt) jt.style.display = "none";
-  if (jtp) jtp.style.display = "block";
-
-  step2Stage = 2;
-  return;
-}
-
-if(step2Stage === 2){
-  const jobType = document.querySelector('[name$="job_type"]');
-  if(!jobType.value.trim()){
-    jobType.reportValidity();
-    return;
-  }
-
-  // set step for server POST
-  document.getElementById('regStep').value = "3";
-
-  if (typeof showStep === "function") showStep(3);
-}
-
-});
-
-
-})();
-
-
-
-
-</script>
-
-<script>
-  document.querySelector('#registerForm').addEventListener('submit', function(e){
-      console.log("SUBMIT FIRED");
-      console.log("STEP VALUE:", document.getElementById('regStep').value);
+  
+    const showStep = (step) => {
+      [step1, step2, step3].forEach((el, idx) => {
+        if (!el) return;
+        el.classList.toggle('is-active', idx + 1 === step);
+      });
+  
+      stepperItems.forEach(el => {
+        el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
+      });
+  
+      setProgress(step);
+      if (stepInput) stepInput.value = String(step);
+  
+      const active = step === 1 ? step1 : step === 2 ? step2 : step3;
+      const first  = active?.querySelector('input,select,textarea,button');
+      if (first) setTimeout(() => first.focus({ preventScroll: true }), 30);
+    };
+  
+    // ---- Step 1 validator ----
+    const step1Valid = () => {
+      if (!step1) return true;
+      const controls = step1.querySelectorAll('input,select,textarea');
+      for (const el of controls) {
+        if (!el.checkValidity()) { el.reportValidity(); return false; }
+      }
+      const p1 = step1.querySelector('input[name$="password1"]');
+      const p2 = step1.querySelector('input[name$="password2"]');
+      if (p1 && p2 && p1.value !== p2.value) {
+        p2.setCustomValidity("Passwords don't match");
+        p2.reportValidity();
+        p2.addEventListener('input', () => p2.setCustomValidity(''), { once: true });
+        return false;
+      }
+      return true;
+    };
+  
+    // ---- Next / Back handlers (all null-safe) ----
+    toStep2Btn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (step1Valid()) showStep(2);
+    });
+  
+    backToStep1Btn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showStep(1);
+    });
+  
+    backToStep2Btn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showStep(2);
+    });
+  
+    // ---- Enter to advance on steps 1 & 2 (but not submit early) ----
+    form.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      if (step1?.classList.contains('is-active')) {
+        e.preventDefault();
+        toStep2Btn?.click();
+      } else if (step2?.classList.contains('is-active')) {
+        e.preventDefault();
+        // mirror clicking the “Continue” button on step 2
+        document.getElementById('step2-continue')?.click();
+      }
+    });
+  
+    // ---- Initialize from server-provided step (defaults to 1) ----
+    const serverStepNumber = Number('{{ show_step|default:"1" }}');
+    const initial = [1, 2, 3].includes(serverStepNumber) ? serverStepNumber : 1;
+    showStep(initial);
+  
+    /* ===== Resume dropzone filename preview + drag hover ===== */
+    const dz = document.getElementById('resumeDrop');
+    if (dz) {
+      const input = dz.querySelector('input[type="file"]');
+      const label = document.getElementById('resumeFileName');
+      input?.addEventListener('change', () => {
+        const f = input.files && input.files[0];
+        if (label) label.textContent = f ? `Selected: ${f.name}` : 'No file chosen';
+      });
+  
+      ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        dz.style.borderColor = '#9aa7b7';
+        dz.style.background = 'linear-gradient(180deg, #fff, #f6f9ff)';
+      }));
+      ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        dz.style.borderColor = '#d7dbe2';
+        dz.style.background = 'linear-gradient(180deg, #fff, #fbfcff)';
+      }));
+      dz.addEventListener('drop', (e) => {
+        if (!e.dataTransfer?.files?.length) return;
+        if (input) {
+          input.files = e.dataTransfer.files;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    }
+  
+    /* ===== STEP-2 staged questions (job title → job type) ===== */
+    let step2Stage = 1;
+    const btnStep2 = document.getElementById('step2-continue');
+  
+    btnStep2?.addEventListener('click', function () {
+      // Stage 1 → validate desired_job_title then show job_type
+      if (step2Stage === 1) {
+        const jobTitle = document.querySelector('[name$="desired_job_title"]');
+        if (!jobTitle || !jobTitle.value.trim()) {
+          jobTitle?.reportValidity();
+          return;
+        }
+        const jt  = document.getElementById('step2-jobtitle');
+        const jtp = document.getElementById('step2-jobtype');
+        if (jt)  jt.style.display  = 'none';
+        if (jtp) jtp.style.display = 'block';
+        step2Stage = 2;
+        return;
+      }
+  
+      // Stage 2 → validate job_type then go to step 3
+      if (step2Stage === 2) {
+        const jobType = document.querySelector('[name$="job_type"]');
+        if (!jobType || !jobType.value.trim()) {
+          jobType?.reportValidity();
+          return;
+        }
+        if (stepInput) stepInput.value = '3';
+        showStep(3);
+      }
+    });
+  
+    /* ===== Final submit safety: ensure step=3 and resume exists ===== */
+    form.addEventListener('submit', (e) => {
+      // force step=3 on submit so the view hits the final branch
+      if (stepInput) stepInput.value = '3';
+  
+      // optional: client-side resume presence check to give instant feedback
+      const resumeInput = form.querySelector('input[type="file"][name$="resume"]');
+      if (resumeInput && resumeInput.required && (!resumeInput.files || !resumeInput.files.length)) {
+        e.preventDefault();
+        resumeInput.reportValidity();
+        // also make sure the user is viewing step 3 if they somehow submit earlier
+        showStep(3);
+      }
+    });
   });
   </script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const regForm = document.querySelector('#registerForm');
+    if (!regForm) return; // login page or other views
+    regForm.addEventListener('submit', function () {
+      const stepVal = document.getElementById('regStep')?.value;
+      console.log('SUBMIT FIRED');
+      console.log('STEP VALUE:', stepVal);
+    });
+  });
+  </script>
+  
 
 {% endblock content %}
