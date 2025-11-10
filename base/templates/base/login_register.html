@@ -865,6 +865,8 @@ btnStep2?.addEventListener("click", function(){
     }
     document.getElementById("step2-jobtitle").style.display = "none";
     document.getElementById("step2-jobtype").style.display = "block";
+    if(jt) jt.style.display = "none";
+    if(jtp) jtp.style.display = "block";
     step2Stage = 2;
     return;
   }
@@ -880,7 +882,7 @@ btnStep2?.addEventListener("click", function(){
     document.getElementById('regStep').value = "3";
 
     // go to step 3
-    showStep(3);
+    if (typeof showStep === "function") showStep(3);
   }
 });
 
