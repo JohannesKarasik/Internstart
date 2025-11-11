@@ -263,7 +263,7 @@
         <a class="card__link" href="{% url 'blog_detail' slug=post.slug %}">
           <div class="card__image">
             {% if post.image %}
-              <img src="{{ post.image|static }}" alt="{{ post.title }}" loading="lazy" decoding="async">
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" loading="lazy" decoding="async">
             {% else %}
               <img src="{% static 'images/x.jpg' %}" alt="{{ post.title }}" loading="lazy" decoding="async">
             {% endif %}
