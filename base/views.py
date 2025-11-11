@@ -3173,15 +3173,9 @@ def blog_detail(request, slug: str):
 
 
 from django.http import JsonResponse
-from .skyvern_client import run_skyvern_task
-
-def test_skyvern(request):
-    prompt = "Go to https://news.ycombinator.com and list the titles of the top 3 posts."
-    result = run_skyvern_task(prompt)
-    return JsonResponse(result)
-
-from django.http import JsonResponse
 from .skyvern_client import fill_job_application
+
+
 
 def apply_with_ai(request):
     # Dummy user data for testing (replace later with request.user)
