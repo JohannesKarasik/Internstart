@@ -189,6 +189,11 @@ ROOT_URLCONF = 'studybud.urls'
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+SKYVERN_API_KEY = os.getenv("SKYVERN_API_KEY")
+
+if not SKYVERN_API_KEY:
+    print("⚠️ Warning: SKYVERN_API_KEY not found in environment!")
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
