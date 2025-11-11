@@ -2423,7 +2423,6 @@ JSON:
             description=description,
             country=data.get("country"),
             job_type=data.get("job_type"),
-            industry=data.get("industry"),
         )
         # Only include email if we have one (prevents placeholder/unique collisions)
         if email:
@@ -2756,7 +2755,6 @@ def process_manual_job(request):
             description=description,
             country=country,
             job_type=job_type,
-            industry=industry,
             email=re.search(r"[\w\.-]+@[\w\.-]+\.\w+", snippet).group(0)
                 if "@" in snippet else "unknown@unknown.com",
         )
