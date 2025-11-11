@@ -1052,31 +1052,36 @@ from django.core.paginator import Paginator
 def swipe_view(request):
     user = request.user
 
-    # 🚫 If user doesn't have an active subscription, show upgrade template
+    # 🚫 Subscription check
     if user.subscription_status != "active":
         return render(request, "base/no_subscription.html")
     
     if not user.ready:
         return render(request, "base/overlay_waiting.html")
 
-    print("🧭 swipe_view", request.user.is_authenticated)
-
     q = request.GET.get('q') or ''
     page = int(request.GET.get('page', 1))
     swiped_ids = SwipedJob.objects.filter(user=request.user).values_list('room_id', flat=True)
 
+    # ✅ Base queryset
     rooms_qs = Room.objects.exclude(id__in=swiped_ids).filter(
         Q(topic__name__icontains=q) |
         Q(description__icontains=q)
     ).order_by('id')
 
-    # ✅ Filter listings by student's profile preferences
-    user = request.user
+    # ✅ Filter by matching RoomAttribute
+    if getattr(user, 'role', None) == 'student':
+        user_attrs = getattr(user, 'user_attribute', None)
 
-    if getattr(user, 'role', None) == 'student' and user.user_attribute:
-        rooms_qs = rooms_qs.filter(attribute=user.user_attribute)
+        # If it's a single attribute (FK)
+        if isinstance(user_attrs, str) or hasattr(user_attrs, 'id'):
+            rooms_qs = rooms_qs.filter(attribute=user.user_attribute)
+        # If it's a many-to-many relationship
+        elif hasattr(user, 'userattribute_set'):
+            user_attr_ids = user.userattribute_set.values_list('attribute', flat=True)
+            rooms_qs = rooms_qs.filter(attribute__in=user_attr_ids)
 
-
+    # ✅ Pagination (5 per page)
     paginator = Paginator(rooms_qs, 5)
     rooms = paginator.get_page(page)
 
@@ -1085,7 +1090,6 @@ def swipe_view(request):
     topics = Topic.objects.all()[:5]
     room_count = rooms_qs.count()
 
-    # ✅ New total-swipe system (no daily quotas)
     SWIPE_TOTALS = {"starter": 50, "pro": 200, "elite": 400}
     tier = (getattr(user, "subscription_tier", "free") or "free").lower()
     limit = SWIPE_TOTALS.get(tier, 10)
@@ -1111,13 +1115,13 @@ def swipe_view(request):
         "partial": partial,
     }
 
-    # ✅ Return only card HTML when loading more (AJAX)
+    # ✅ Return only new cards when loading via AJAX
     if partial:
-        context["rooms"] = rooms.object_list  # ✅ Only the 5 new items
+        context["rooms"] = rooms.object_list
         html = render_to_string("base/swipe_cards.html", context, request=request)
         return HttpResponse(html)
 
-    # ✅ Otherwise return full template
+    # ✅ Full page
     return render(request, "base/swipe_component.html", context)
 
 
