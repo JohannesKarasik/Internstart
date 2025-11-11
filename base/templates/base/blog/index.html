@@ -13,6 +13,12 @@
 
   gtag('config', 'G-BR9N9VEYNF');
   </script>
+  {% if page_obj.has_previous %}
+  <link rel="prev" href="?page={{ page_obj.previous_page_number }}">
+{% endif %}
+{% if page_obj.has_next %}
+  <link rel="next" href="?page={{ page_obj.next_page_number }}">
+{% endif %}
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Blog — Internstart</title>
@@ -279,161 +285,34 @@
 
   <section aria-label="Blog posts">
     <ul class="grid" role="list">
-      <!-- 1) Cover Letter for Internship -->
-      <li class="card">
-        <a class="card__link" href="/blog/cover-letter-for-internship/">
-          <div class="card__image">
-            <img src="{% static 'images/Cover Letter for Internship.jpg' %}" alt="Cover Letter for Internship" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Internship Cover Letter Guide 2025</p>
-            <h2 class="title">Cover Letter for Internship <span class="badge">Guide</span></h2>
-            <p class="desc">A short, proof-first structure with examples, templates, and quick email tips.</p>
-            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
-
-      <!-- 2) How to Find Internships with No Experience -->
-      <li class="card">
-        <a class="card__link" href="/blog/how_to_find_internships_with_no_experience/">
-          <div class="card__image">
-            <img src="{% static 'images/how-to-find-internships-with-no-experience (1).jpg' %}" alt="How to Find Internships with No Experience" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Internship Search Guide 2025</p>
-            <h2 class="title">How to Find Internships with No Experience</h2>
-            <p class="desc">Weekly playbook: tiny proof projects, the right channels, and steady, targeted volume.</p>
-            <div class="meta"><span>Updated: Nov 9, 2025</span><span class="dot"></span><span>By Selma Kursiz</span></div>
-          </div>
-        </a>
-      </li>
-
-      <!-- 3) How to Write Resume for Internship -->
-      <li class="card">
-        <a class="card__link" href="/blog/how-to-write-resume-for-internship/">
-          <div class="card__image">
-            <img src="{% static 'images/how-to-write-resume-for-internship (1).jpg' %}" alt="How to write resume for internship" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Resume Guide 2025</p>
-            <h2 class="title">How to Write a Resume for Internship</h2>
-            <p class="desc">One-page layout that highlights skills, tools, and proof — even with no formal roles.</p>
-            <div class="meta"><span>Updated: Oct 31, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
-
-      <!-- 4) Skills for Internship Resume -->
-      <li class="card">
-        <a class="card__link" href="/blog/skills_for_internship_resume/">
-          <div class="card__image">
-            <img src="{% static 'images/skills-for-internship-resume (1).jpg' %}" alt="Skills for Internship Resume" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Resume Skills Guide 2025</p>
-            <h2 class="title">Skills for Internship Resume</h2>
-            <p class="desc">Core skills + role-specific tools. Where to place them and how to prove each one.</p>
-            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
-
-      <!-- 5) When to Apply for Summer Internships -->
-      <li class="card">
-        <a class="card__link" href="/blog/when-to-apply-for-summer-internships/">
-          <div class="card__image">
-            <img src="{% static 'images/When to Apply for Summer Internships (1).jpg' %}" alt="When to Apply for Summer Internships" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Summer Internship Guide 2025</p>
-            <h2 class="title">When to Apply for Summer Internships</h2>
-            <p class="desc">Exact months, typical industry windows, and how to beat rolling applications.</p>
-            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
-          </div>
-        </a>
-      </li>
-
-      <!-- 6) How to Get a Remote Internship -->
-      <li class="card">
-        <a class="card__link" href="/blog/how_to_get_a_remote_internship/">
-          <div class="card__image">
-            <img src="{% static 'images/how-to-get-a-remote-internship (1).jpg' %}" alt="How to Get a Remote Internship" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Remote Internship Guide 2025</p>
-            <h2 class="title">How to Get a Remote Internship</h2>
-            <p class="desc">A practical, paragraph-first plan: proof projects, early applications, async habits, time-zone tactics, and tools.</p>
-            <div class="meta"><span>Updated: Nov 9, 2025</span><span class="dot"></span><span>By Justin</span></div>
-          </div>
-        </a>
-      </li>
-
-
-
-      <!-- 7) Remote Accounting Jobs (new post) -->
-      <li class="card">
-        <a class="card__link" href="/blog/remote-accounting-jobs/">
-          <div class="card__image">
-            <img src="{% static 'images/Remote Accounting Jobs.jpg' %}" alt="Remote Accounting Jobs" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Remote Accounting Guide 2025</p>
-            <h2 class="title">Remote Accounting Jobs (2025 Guide)</h2>
-            <p class="desc">Which roles pay the best, how to get hired fast, and where to find remote openings.</p>
-            <div class="meta"><span>Updated: Nov 11, 2025</span><span class="dot"></span><span>By Internstart Editorial</span></div>
-          </div>
-        </a>
-      </li>
-
-
-      <!-- 8) Nursing Student Jobs (new post) -->
-      <li class="card">
-        <a class="card__link" href="/blog/nursing-student-jobs/">
-          <div class="card__image">
-            <img src="{% static 'images/Nursing Student Jobs.jpg' %}" alt="Nursing Student Jobs" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Healthcare Careers 2025</p>
-            <h2 class="title">Nursing Student Jobs (2025 Guide)</h2>
-            <p class="desc">The best paid roles for nursing students to gain clinical experience while in school.</p>
-            <div class="meta"><span>Updated: Nov 10, 2025</span><span class="dot"></span><span>By Ava Mansu</span></div>
-          </div>
-        </a>
-      </li>
-
-      <!-- 9) How to Get Into Finance (new post) -->
-      <li class="card">
-        <a class="card__link" href="/blog/how-to-get-into-finance/">
-          <div class="card__image">
-            <img src="{% static 'images/How to Get Into Finance.jpg' %}" alt="How to Get Into Finance" loading="lazy" decoding="async">
-          </div>
-          <div class="card__body">
-            <p class="eyebrow">Finance Career Guide 2025</p>
-            <h2 class="title">How to Get Into Finance (2025 Guide)</h2>
-            <p class="desc">Break into finance without experience: skills, certifications, internships, and a practical entry roadmap.</p>
-            <div class="meta"><span>Updated: Nov 10, 2025</span><span class="dot"></span><span>By Internstart Editorial</span></div>
-          </div>
-        </a>
-      </li>
-
-            <!-- 10) How to Get Into Finance with No Degree (new post) -->
-            <li class="card">
-              <a class="card__link" href="/blog/how-to-get-into-finance-with-no-degree/">
-                <div class="card__image">
-                  <img src="{% static 'images/How to Get Into Finance with No Degree.jpg' %}" alt="How to Get Into Finance with No Degree" loading="lazy" decoding="async">
-                </div>
-                <div class="card__body">
-                  <p class="eyebrow">Finance Career Guide 2025</p>
-                  <h2 class="title">How to Get Into Finance with No Degree (2025 Guide)</h2>
-                  <p class="desc">Break into finance without a diploma: skills, certifications, projects, and a 6–12 month path.</p>
-                  <div class="meta"><span>Updated: Nov 11, 2025</span><span class="dot"></span><span>By Internstart Editorial</span></div>
-                </div>
-              </a>
-            </li>
-      
-
-
+      {# ==== DYNAMIC: render only the 9 items on this page ==== #}
+      {% for post in posts %}
+        <li class="card">
+          <a class="card__link" href="{% firstof post.get_absolute_url '' %}{% if not post.get_absolute_url %}/blog/{{ post.slug }}/{% endif %}">
+            <div class="card__image">
+              {% if post.image %}
+                {# supports ImageField (.url) or plain URL string #}
+                <img src="{% firstof post.image.url post.image %}" alt="{{ post.title }}" loading="lazy" decoding="async">
+              {% else %}
+                <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="{{ post.title }}" loading="lazy" decoding="async">
+              {% endif %}
+            </div>
+            <div class="card__body">
+              <p class="eyebrow">Guide {% firstof post.published_at|date:"Y" "2025" %}</p>
+              <h2 class="title">{{ post.title }}</h2>
+              <p class="desc">
+                {% if post.description %}{{ post.description|truncatechars:140 }}
+                {% elif post.desc %}{{ post.desc|truncatechars:140 }}
+                {% else %}Read the full guide.{% endif %}
+              </p>
+              <div class="meta">
+                <span>Updated: {% firstof post.published_at|date:"M j, Y" "Recently" %}</span>
+              </div>
+            </div>
+          </a>
+        </li>
+      {% endfor %}
+      {# ==== /DYNAMIC ==== #}
     </ul>
     {% if page_obj.has_other_pages %}
   <nav class="pager" aria-label="Pagination" style="display:flex;justify-content:center;gap:10px;margin-top:50px;">
