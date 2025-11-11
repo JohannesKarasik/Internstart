@@ -2962,7 +2962,13 @@ def landing_page_dk(request):
 
 
 def blog_index(request):
-    return render(request, 'base/blog/index.html')
+    posts = BlogPost.objects.all().order_by('-updated_at')  # or whatever ordering you use
+
+    paginator = Paginator(posts, 9)  # 9 per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'blog/index.html', {'page_obj': page_obj})
 
 def blog_resume_internship(request):
     return render(request, 'base/blog/how_to_write_resume_for_internship.html')
@@ -3042,6 +3048,106 @@ def entry_level_accounting_jobs(request):
 
 
 
+# base/views.py
+import re
+from pathlib import Path
+from django.conf import settings
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import render, redirect
+from django.http import Http404
+
+BLOG_DIR = Path(settings.BASE_DIR) / "base" / "templates" / "base" / "blog"
+
+TITLE_RE = re.compile(r"<title>\s*(.*?)\s*</title>", re.IGNORECASE | re.DOTALL)
+DESC_RE = re.compile(
+    r'<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']',
+    re.IGNORECASE | re.DOTALL,
+)
+# grab the FIRST <img ... src="...">
+IMG_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
+
+# {% static 'images/foo.jpg' %} → images/foo.jpg
+STATIC_IN_TAG_RE = re.compile(
+    r"\{\%\s*static\s*'([^']+)'\s*\%\}", re.IGNORECASE
+)
+
+def _extract_first_image_path(html: str) -> str | None:
+    m = IMG_RE.search(html)
+    if not m:
+        return None
+    src = m.group(1).strip()
+    # convert {% static '...' %} to plain "images/..."
+    m2 = STATIC_IN_TAG_RE.search(src)
+    if m2:
+        return m2.group(1)
+    # if it's already a plain path like /static/images/... return as-is (template will handle)
+    if src.startswith("/static/"):
+        return src.replace("/static/", "", 1)  # we will re-add via {{ path|static }}
+    # absolute http(s) – return None to avoid mixed handling
+    if src.startswith("http://") or src.startswith("https://"):
+        return None
+    # fallback: treat as relative under /static/
+    return src
+
+def _extract_meta(html: str) -> tuple[str, str | None, str | None]:
+    title = (TITLE_RE.search(html).group(1).strip()
+             if TITLE_RE.search(html) else "Untitled")
+    desc = (DESC_RE.search(html).group(1).strip()
+            if DESC_RE.search(html) else None)
+    img_path = _extract_first_image_path(html)
+    return title, desc, img_path
+
+def _filename_to_slug(filename: str) -> str:
+    # example: "how_to_get_into_finance.html" → "how-to-get-into-finance"
+    stem = Path(filename).stem
+    return stem.replace("_", "-").lower()
+
+def blog_index(request):
+    # scan templates folder
+    files = sorted(BLOG_DIR.glob("*.html"))
+    posts = []
+    for f in files:
+        try:
+            html = f.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            continue
+        title, desc, img_path = _extract_meta(html)
+        slug = _filename_to_slug(f.name)
+        posts.append({
+            "slug": slug,
+            "title": title,
+            "desc": desc or "",
+            "image": img_path,  # may be None
+            "updated": f.stat().st_mtime,  # for potential sorting later
+            "author": "",  # optional
+        })
+
+    # newest first by file modified time
+    posts.sort(key=lambda x: x["updated"], reverse=True)
+
+    paginator = Paginator(posts, 9)
+    page = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    return render(request, "base/blog/index.html", {
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "is_paginated": paginator.num_pages > 1,
+    })
+
+def blog_detail(request, slug: str):
+    # map hyphen slug back to underscore filename
+    filename = slug.replace("-", "_") + ".html"
+    template_path = f"base/blog/{filename}"
+    # ensure the file actually exists to avoid template errors
+    if not (BLOG_DIR / filename).exists():
+        raise Http404("Post not found")
+    return render(request, template_path)
 
 
 

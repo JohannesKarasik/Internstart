@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser 
 from django.db import models
 from django.conf import settings
-
+from django.utils.text import slugify
 
 
 
@@ -366,3 +366,20 @@ class ATSRoom(models.Model):
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
 
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    excerpt = models.CharField(max_length=300)
+    body = models.TextField()  # you can later switch to rich text if needed
+    cover_image = models.ImageField(upload_to='blog/')
+    updated_at = models.DateTimeField(auto_now=True)
+    author = models.CharField(max_length=50, default="Internstart Editorial")
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title

@@ -178,6 +178,9 @@ urlpatterns = [
 
         path('blog/entry-level-accounting-jobs/', views.entry_level_accounting_jobs, name='entry_level_accounting_jobs'),
 
+        path("blog/", views.blog_index, name="blog_index"),
+        path("blog/<slug:slug>/", views.blog_detail, name="blog_detail"),
+
 
 
 
