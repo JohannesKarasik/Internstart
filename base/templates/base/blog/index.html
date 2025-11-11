@@ -258,17 +258,16 @@
   <section aria-label="Blog posts">
     <ul class="grid" role="list">
       {# === Dynamic cards (9 per page) === #}
-      {% for post in page_obj.object_list %}
+      {% for post in posts %}
       <li class="card">
-        <a class="card__link" href="{% url 'blog_detail' slug=post.slug %}">
+        <a class="card__link" href="/blog/{{ post.slug }}/"        >
           <div class="card__image">
-            {% with img=post.get_first_image %}
-            {% if img %}
-              <img src="{{ img }}" alt="{{ post.title }}" loading="lazy" decoding="async">
-            {% else %}
-              <img src="{% static 'images/x.jpg' %}" alt="{{ post.title }}" loading="lazy" decoding="async">
-            {% endif %}
-          {% endwith %}
+            {% if post.image %}
+            <img src="{{ post.image }}" alt="{{ post.title }}" loading="lazy" decoding="async">
+          {% else %}
+            <img src="{% static 'images/x.jpg' %}" alt="{{ post.title }}" loading="lazy" decoding="async">
+          {% endif %}
+          
           </div>
           <div class="card__body">
             <p class="eyebrow">Guide 2025</p>

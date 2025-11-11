@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from django.shortcuts import redirect
 from django.contrib.sitemaps.views import sitemap
 from base.sitemaps import StaticViewSitemap, BlogSitemap
-
+from base import views as base_views
 
 
 def root_redirect(request):
@@ -36,6 +36,9 @@ urlpatterns = [
         
     ),
 
+
+    path("blog/", base_views.blog_index, name="blog_index"),
+    path("blog/<slug:slug>/", base_views.blog_detail, name="blog_detail"),
 
 
 

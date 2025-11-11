@@ -2962,13 +2962,33 @@ def landing_page_dk(request):
 
 
 def blog_index(request):
-    posts = BlogPost.objects.all().order_by('-updated_at')  # or whatever ordering you use
+    posts_dir = os.path.join(settings.BASE_DIR, "base", "templates", "base", "blog", "posts")
+    posts = []
 
-    paginator = Paginator(posts, 9)  # 9 per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    for filename in os.listdir(posts_dir):
+        if filename.endswith(".html"):
+            filepath = os.path.join(posts_dir, filename)
+            with open(filepath, "r") as f:
+                content = f.read()
 
-    return render(request, 'blog/index.html', {'page_obj': page_obj})
+            title_match = re.search(r'<title>([^<]+)</title>', content)
+            image_match = re.search(r'<img[^>]+src="([^"]+)"', content)
+
+            slug = filename.replace(".html", "")
+
+            posts.append({
+                "slug": slug,
+                "title": title_match.group(1) if title_match else slug.replace("-", " ").title(),
+                "image": image_match.group(1) if image_match else None
+            })
+
+    return render(request, "base/blog/index.html", {"posts": posts})
+
+def blog_detail(request, slug):
+    filepath = os.path.join(settings.BASE_DIR, "base", "templates", "base", "blog", "posts", slug + ".html")
+    with open(filepath, "r") as f:
+        html = f.read()
+    return HttpResponse(html)
 
 def blog_resume_internship(request):
     return render(request, 'base/blog/how_to_write_resume_for_internship.html')
