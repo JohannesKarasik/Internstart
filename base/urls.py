@@ -77,6 +77,8 @@ urlpatterns = [
     # urls.py
     path("swipe/next/", views.next_card_json, name="next_card_json"),
     path("test-skyvern/", views.test_skyvern, name="test_skyvern"),
+    path("apply-with-ai/", views.apply_with_ai, name="apply_with_ai"),
+
 
     
 

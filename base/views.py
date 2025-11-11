@@ -3180,6 +3180,30 @@ def test_skyvern(request):
     result = run_skyvern_task(prompt)
     return JsonResponse(result)
 
+from django.http import JsonResponse
+from .skyvern_client import fill_job_application
+
+def apply_with_ai(request):
+    # Dummy user data for testing (replace later with request.user)
+    class DummyUser:
+        full_name = "Alex Doe"
+        email = "alex@example.com"
+        phone = "+1 555 123 4567"
+        linkedin_url = "https://linkedin.com/in/alexdoe"
+        address = "123 Main Street, London, UK"
+        resume_url = "https://internstart.com/static/uploads/sample_resume.pdf"
+
+    job_url = request.GET.get("url")
+
+    if not job_url:
+        return JsonResponse({"error": "Missing ?url= parameter"}, status=400)
+
+    try:
+        result = fill_job_application(DummyUser, job_url)
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 
 def robots_txt(request):
