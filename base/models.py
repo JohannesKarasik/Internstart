@@ -367,19 +367,26 @@ class ATSRoom(models.Model):
         return f"{self.job_title} at {self.company_name}"
 
 
+# blog/models.py
+
+import re
+from django.db import models
+from django.urls import reverse
+
 class BlogPost(models.Model):
-    title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
-    excerpt = models.CharField(max_length=300)
-    body = models.TextField()  # you can later switch to rich text if needed
-    cover_image = models.ImageField(upload_to='blog/')
-    updated_at = models.DateTimeField(auto_now=True)
-    author = models.CharField(max_length=50, default="Internstart Editorial")
+    title = models.CharField(max_length=250)
+    body = models.TextField(blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
+    def get_absolute_url(self):
+        return reverse("blog_detail", kwargs={"slug": self.slug})
 
-    def __str__(self):
-        return self.title
+    def get_first_image(self):
+        match = re.search(r'<img[^>]+src="([^">]+)"', self.body or "")
+        if match:
+            url = match.group(1)
+            if url.startswith("/"):
+                return f"https://internstart.com{url}"
+            return url
+        return None
+

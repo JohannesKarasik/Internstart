@@ -262,11 +262,13 @@
       <li class="card">
         <a class="card__link" href="{% url 'blog_detail' slug=post.slug %}">
           <div class="card__image">
-            {% if post.image %}
-            <img src="{{ post.image.url }}" alt="{{ post.title }}" loading="lazy" decoding="async">
+            {% with img=post.get_first_image %}
+            {% if img %}
+              <img src="{{ img }}" alt="{{ post.title }}" loading="lazy" decoding="async">
             {% else %}
               <img src="{% static 'images/x.jpg' %}" alt="{{ post.title }}" loading="lazy" decoding="async">
             {% endif %}
+          {% endwith %}
           </div>
           <div class="card__body">
             <p class="eyebrow">Guide 2025</p>
