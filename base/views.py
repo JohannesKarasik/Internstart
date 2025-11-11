@@ -3037,6 +3037,8 @@ def how_to_get_a_job_fast(request):
 def remote_accounting_jobs(request):
     return render(request, 'base/blog/remote_accounting_jobs.html')
 
+def entry_level_accounting_jobs(request):
+    return render(request, '/base/blog/entry_level_accounting_jobs.html')
 
 
 

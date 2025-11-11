@@ -176,6 +176,9 @@ urlpatterns = [
 
         path('blog/remote-accounting-jobs/', views.remote_accounting_jobs, name='remote_accounting_jobs'),
 
+        path('blog/entry-level-accounting-jobs/', views.entry_level_accounting_jobs, name='entry_level_accounting_jobs'),
+
+
 
 
 
