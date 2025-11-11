@@ -435,6 +435,45 @@
 
 
     </ul>
+    {% if page_obj.has_other_pages %}
+  <nav class="pager" aria-label="Pagination" style="display:flex;justify-content:center;gap:10px;margin-top:50px;">
+
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="pager-btn">‹ Previous</a>
+    {% endif %}
+
+    <span class="pager-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="pager-btn">Next ›</a>
+    {% endif %}
+  </nav>
+
+  <style>
+    .pager-btn {
+      display:inline-block;
+      padding:10px 16px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:600;
+      color:#111;
+      background:#fff;
+      transition:all .2s ease;
+    }
+    .pager-btn:hover {
+      background:#FF2F5A;
+      border-color:#FF2F5A;
+      color:#fff;
+    }
+    .pager-page {
+      align-self:center;
+      font-weight:600;
+      color:#444;
+    }
+  </style>
+{% endif %}
+
   </section>
 
   <footer class="site-footer">
