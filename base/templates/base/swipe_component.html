@@ -3196,6 +3196,45 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   mo.observe(document.documentElement, {subtree:true, attributes:true, attributeFilter:['class','style']});
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  let currentPage = 1;
+  const swipeContainer = document.querySelector('.swipe-container');
+
+  async function loadMoreCards() {
+    currentPage++;
+    try {
+      const res = await fetch(`/swipe/?page=${currentPage}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      if (!res.ok) return;
+      const html = await res.text();
+      if (html.trim().length === 0) return; // no more pages
+      swipeContainer.insertAdjacentHTML('afterbegin', html);
+      styleStack(); // reuse your existing function to re-layer the new cards
+    } catch (err) {
+      console.error('Error loading more cards:', err);
+    }
+  }
+
+  // Watch for last card being swiped away
+  const observer = new MutationObserver(() => {
+    if (!swipeContainer.querySelector('.swipe-card')) {
+      loadMoreCards();
+    }
+  });
+  observer.observe(swipeContainer, { childList: true });
+
+  // Optionally also load more when last 2 remain (smoother)
+  function checkIfNearEnd() {
+    if (swipeContainer.querySelectorAll('.swipe-card').length <= 2) {
+      loadMoreCards();
+    }
+  }
+  swipeContainer.addEventListener('transitionend', checkIfNearEnd);
+});
+
 </script>
 
 
