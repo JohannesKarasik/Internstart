@@ -1,5 +1,5 @@
 {% load static %}
-{# templates/base/blog/index.html #}
+{# templates/blog/index.html #}
 {% load static i18n %}
 
 <!DOCTYPE html>
@@ -24,26 +24,50 @@
     .page{max-width:1200px; margin:40px auto 80px; padding:0 20px;}
 
     /* ===== Catalog header (styled + aligned) ===== */
-    .catalog-head{ display:block; margin:8px 0 28px; padding-left:0; }
+    .catalog-head{
+      display:block;
+      margin: 8px 0 28px;
+      padding-left: 0;      /* aligns to same container as cards */
+    }
     .catalog-title{
-      margin:0; font-weight:800; line-height:1.1; letter-spacing:-.04em;
-      font-size:clamp(28px,4.2vw,42px); display:inline-block; position:relative;
+      margin:0;
+      font-weight:800;
+      line-height:1.1;
+      letter-spacing:-.04em;
+      font-size: clamp(28px, 4.2vw, 42px);
+      display:inline-block;
+      position:relative;
     }
     .catalog-title::after{
-      content:""; display:block; width:82px; height:6px; margin-top:10px;
-      border-radius:999px; background:linear-gradient(90deg,var(--brand) 0%, var(--brand2) 100%);
+      content:"";
+      display:block;
+      width:82px;
+      height:6px;
+      margin-top:10px;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--brand) 0%, var(--brand2) 100%);
     }
-    .catalog-sub{ margin:12px 0 0; font-size:18px; color:#4b5563; max-width:820px; }
+    .catalog-sub{
+      margin:12px 0 0;
+      font-size:18px;
+      color:#4b5563;
+      max-width: 820px;
+    }
 
     /* ===== Grid / cards ===== */
     .grid{
-      display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:24px; list-style:none; margin:0; padding:0;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:24px;
+      list-style:none;      /* remove default UL padding */
+      margin:0;             /* keep grid flush with header container */
+      padding:0;
     }
     @media (max-width:980px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
     @media (max-width:640px){
       .grid{grid-template-columns:1fr;}
-      .catalog-title{font-size:32px;} .catalog-title::after{height:5px; width:72px;}
+      .catalog-title{font-size:32px;}
+      .catalog-title::after{height:5px; width:72px;}
       .catalog-sub{font-size:16px;}
     }
 
@@ -60,24 +84,14 @@
     .meta{display:flex; gap:10px; font-size:12px; color:#6b7280;}
     .meta .dot::before{content:"•"; margin:0 6px; color:#9ca3af;}
     .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:rgba(255,47,90,.08); color:var(--brand); font-size:11px; font-weight:600; margin-left:8px;}
-
-    /* ===== Pagination ===== */
-    .pager{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:36px;}
-    .pager a, .pager span{
-      display:inline-block; min-width:36px; padding:8px 12px; text-decoration:none;
-      border:1px solid #e5e7eb; border-radius:10px; background:#fff; color:#111; font-weight:700; font-size:14px;
-    }
-    .pager a:hover{border-color:var(--brand); color:var(--brand);}
-    .pager .is-current{background:var(--brand); border-color:var(--brand); color:#fff;}
-    .pager .disabled{opacity:.45; pointer-events:none;}
   </style>
 
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
-  <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
-  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-  <meta name="theme-color" content="#ff2a55">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+<link rel="manifest" href="{% static 'images/site.webmanifest' %}">
+<link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+<meta name="theme-color" content="#ff2a55">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -257,59 +271,234 @@
 
   <section aria-label="Blog posts">
     <ul class="grid" role="list">
-      {# === Dynamic cards (9 per page) === #}
-      {% for post in posts %}
+      <!-- 1) Cover Letter for Internship -->
       <li class="card">
-        <a class="card__link" href="/blog/{{ post.slug }}/"        >
+        <a class="card__link" href="/blog/cover-letter-for-internship/">
           <div class="card__image">
-            {% if post.image %}
-            <img src="{{ post.image }}" alt="{{ post.title }}" loading="lazy" decoding="async">
-          {% else %}
-            <img src="{% static 'images/x.jpg' %}" alt="{{ post.title }}" loading="lazy" decoding="async">
-          {% endif %}
-          
+            <img src="{% static 'images/Cover Letter for Internship.jpg' %}" alt="Cover Letter for Internship" loading="lazy" decoding="async">
           </div>
           <div class="card__body">
-            <p class="eyebrow">Guide 2025</p>
-            <h2 class="title">{{ post.title }}</h2>
-            <p class="desc">
-              {% if post.desc %}{{ post.desc }}{% else %}Read the full guide.{% endif %}
-            </p>
-            <div class="meta">
-              <span>Updated recently</span>
-            </div>
+            <p class="eyebrow">Internship Cover Letter Guide 2025</p>
+            <h2 class="title">Cover Letter for Internship <span class="badge">Guide</span></h2>
+            <p class="desc">A short, proof-first structure with examples, templates, and quick email tips.</p>
+            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
           </div>
         </a>
       </li>
-      {% endfor %}
-    </ul>
 
+      <!-- 2) How to Find Internships with No Experience -->
+      <li class="card">
+        <a class="card__link" href="/blog/how_to_find_internships_with_no_experience/">
+          <div class="card__image">
+            <img src="{% static 'images/How-to-find-internships-with-no-experience.jpg' %}" alt="How to Find Internships with No Experience" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Internship Search Guide 2025</p>
+            <h2 class="title">How to Find Internships with No Experience</h2>
+            <p class="desc">Weekly playbook: tiny proof projects, the right channels, and steady, targeted volume.</p>
+            <div class="meta"><span>Updated: Nov 9, 2025</span><span class="dot"></span><span>By Selma Kursiz</span></div>
+          </div>
+        </a>
+      </li>
+
+      <!-- 3) How to Write Resume for Internship -->
+      <li class="card">
+        <a class="card__link" href="/blog/how-to-write-resume-for-internship/">
+          <div class="card__image">
+            <img src="{% static 'images/How_to_write_resume_for_internship.JPG' %}" alt="How to write resume for internship" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Resume Guide 2025</p>
+            <h2 class="title">How to Write a Resume for Internship</h2>
+            <p class="desc">One-page layout that highlights skills, tools, and proof — even with no formal roles.</p>
+            <div class="meta"><span>Updated: Oct 31, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
+          </div>
+        </a>
+      </li>
+
+      <!-- 4) Skills for Internship Resume -->
+      <li class="card">
+        <a class="card__link" href="/blog/skills_for_internship_resume/">
+          <div class="card__image">
+            <img src="{% static 'images/skills-for-internship-resume.jpg' %}" alt="Skills for Internship Resume" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Resume Skills Guide 2025</p>
+            <h2 class="title">Skills for Internship Resume</h2>
+            <p class="desc">Core skills + role-specific tools. Where to place them and how to prove each one.</p>
+            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
+          </div>
+        </a>
+      </li>
+
+      <!-- 5) When to Apply for Summer Internships -->
+      <li class="card">
+        <a class="card__link" href="/blog/when-to-apply-for-summer-internships/">
+          <div class="card__image">
+            <img src="{% static 'images/When to Apply for Summer Internships.jpg' %}" alt="When to Apply for Summer Internships" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Summer Internship Guide 2025</p>
+            <h2 class="title">When to Apply for Summer Internships</h2>
+            <p class="desc">Exact months, typical industry windows, and how to beat rolling applications.</p>
+            <div class="meta"><span>Updated: Nov 8, 2025</span><span class="dot"></span><span>By Anna Blanchard</span></div>
+          </div>
+        </a>
+      </li>
+
+      <!-- 6) How to Get a Remote Internship -->
+      <li class="card">
+        <a class="card__link" href="/blog/how_to_get_a_remote_internship/">
+          <div class="card__image">
+            <img src="{% static 'images/how-to-get-a-remote-internship.JPG' %}" alt="How to Get a Remote Internship" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Remote Internship Guide 2025</p>
+            <h2 class="title">How to Get a Remote Internship</h2>
+            <p class="desc">A practical, paragraph-first plan: proof projects, early applications, async habits, time-zone tactics, and tools.</p>
+            <div class="meta"><span>Updated: Nov 9, 2025</span><span class="dot"></span><span>By Justin</span></div>
+          </div>
+        </a>
+      </li>
+
+
+
+      <!-- 7) Remote Accounting Jobs (new post) -->
+      <li class="card">
+        <a class="card__link" href="/blog/remote-accounting-jobs/">
+          <div class="card__image">
+            <img src="{% static 'images/blog/remote-accounting-hero.jpg' %}" alt="Remote Accounting Jobs" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Remote Accounting Guide 2025</p>
+            <h2 class="title">Remote Accounting Jobs (2025 Guide)</h2>
+            <p class="desc">Which roles pay the best, how to get hired fast, and where to find remote openings.</p>
+            <div class="meta"><span>Updated: Nov 11, 2025</span><span class="dot"></span><span>By Internstart Editorial</span></div>
+          </div>
+        </a>
+      </li>
+
+
+      <!-- 8) Nursing Student Jobs (new post) -->
+      <li class="card">
+        <a class="card__link" href="/blog/nursing-student-jobs/">
+          <div class="card__image">
+            <img src="{% static 'images/Nursing Student Jobs.jpg' %}" alt="Nursing Student Jobs" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Healthcare Careers 2025</p>
+            <h2 class="title">Nursing Student Jobs (2025 Guide)</h2>
+            <p class="desc">The best paid roles for nursing students to gain clinical experience while in school.</p>
+            <div class="meta"><span>Updated: Nov 10, 2025</span><span class="dot"></span><span>By Ava Mansu</span></div>
+          </div>
+        </a>
+      </li>
+
+      <!-- 9) How to Get Into Finance (new post) -->
+      <li class="card">
+        <a class="card__link" href="/blog/how-to-get-into-finance/">
+          <div class="card__image">
+            <img src="{% static 'images/How to Get Into Finance.jpg' %}" alt="How to Get Into Finance" loading="lazy" decoding="async">
+          </div>
+          <div class="card__body">
+            <p class="eyebrow">Finance Career Guide 2025</p>
+            <h2 class="title">How to Get Into Finance (2025 Guide)</h2>
+            <p class="desc">Break into finance without experience: skills, certifications, internships, and a practical entry roadmap.</p>
+            <div class="meta"><span>Updated: Nov 10, 2025</span><span class="dot"></span><span>By Internstart Editorial</span></div>
+          </div>
+        </a>
+      </li>
+
+            <!-- 10) How to Get Into Finance with No Degree (new post) -->
+            <li class="card">
+              <a class="card__link" href="/blog/how-to-get-into-finance-with-no-degree/">
+                <div class="card__image">
+                  <img src="{% static 'images/How to Get Into Finance with No Degree.jpg' %}" alt="How to Get Into Finance with No Degree" loading="lazy" decoding="async">
+                </div>
+                <div class="card__body">
+                  <p class="eyebrow">Finance Career Guide 2025</p>
+                  <h2 class="title">How to Get Into Finance with No Degree (2025 Guide)</h2>
+                  <p class="desc">Break into finance without a diploma: skills, certifications, projects, and a 6–12 month path.</p>
+                  <div class="meta"><span>Updated: Nov 11, 2025</span><span class="dot"></span><span>By Internstart Editorial</span></div>
+                </div>
+              </a>
+            </li>
+      
+
+
+    </ul>
   </section>
 
   <footer class="site-footer">
     <div class="footer__inner">
       <img src="{% static 'images/Internstartlogo (1).jpg' %}" alt="Internstart" class="footer__logo">
+      
       <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+  
       <nav class="footer__links" aria-label="Footer">
         <a href="{% url 'about' %}">About</a>
         <a href="{% url 'blog_index' %}">Blog</a>
         <a href="{% url 'contact' %}">Contact</a>
         <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
       </nav>
-      <div class="footer__legal">© 2025 Internship Platform. All rights reserved.</div>
+  
+      <div class="footer__legal">
+        © 2025 Internship Platform. All rights reserved.
+      </div>
     </div>
   </footer>
-
+  
+  
   <style>
-    .site-footer{ background:none; color:#111; text-align:center; padding:64px 20px; margin-top:120px; font-family:var(--font); }
-    .footer__inner{ max-width:900px; margin:0 auto; }
-    .footer__logo{ width:120px; height:auto; margin-bottom:14px; }
-    .site-footer p{ font-size:17px; line-height:1.6; margin:0 0 26px; color:#444; }
-    .footer__links{ margin-bottom:30px; }
-    .footer__links a{ color:#222; text-decoration:none; font-weight:600; margin:0 14px; transition:opacity .2s ease; }
-    .footer__links a:hover{ opacity:.6; }
-    .footer__legal{ font-size:14px; color:#666; margin-top:8px; }
+  .site-footer{
+    background:none;
+    color:#111;
+    text-align:center;
+    padding:64px 20px;
+    margin-top:120px;
+    font-family:var(--font);
+  }
+  
+  .footer__inner{
+    max-width:900px;
+    margin:0 auto;
+  }
+  
+  .footer__logo{
+    width:120px;
+    height:auto;
+    margin-bottom:14px;
+  }
+  
+  .site-footer p{
+    font-size:17px;
+    line-height:1.6;
+    margin:0 0 26px;
+    color:#444;
+  }
+  
+  .footer__links{
+    margin-bottom:30px;
+  }
+  
+  .footer__links a{
+    color:#222;
+    text-decoration:none;
+    font-weight:600;
+    margin:0 14px;
+    transition:opacity .2s ease;
+  }
+  .footer__links a:hover{
+    opacity:.6;
+  }
+  
+  .footer__legal{
+    font-size:14px;
+    color:#666;
+    margin-top:8px;
+  }
   </style>
+  
 </main>
 
 </body>
