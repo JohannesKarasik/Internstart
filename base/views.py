@@ -3177,6 +3177,10 @@ from .skyvern_client import fill_job_application
 
 
 
+from django.http import JsonResponse
+from .skyvern_client import fill_job_application
+
+
 def apply_with_ai(request):
     # Dummy user data for testing (replace later with request.user)
     class DummyUser:
@@ -3186,6 +3190,13 @@ def apply_with_ai(request):
         linkedin_url = "https://linkedin.com/in/alexdoe"
         address = "123 Main Street, London, UK"
         resume_url = "https://internstart.com/static/uploads/sample_resume.pdf"
+        total_experience_years = "3 years"
+        expected_salary = "$65,000 per year"
+        education = "Bachelor’s degree in Business Administration"
+        work_authorization = "Yes, authorized to work in the EU"
+        portfolio_url = "https://alexdoe.dev/portfolio"
+        available_from = "December 2025"
+        preferred_location = "London or remote"
 
     job_url = request.GET.get("url")
 
@@ -3197,7 +3208,6 @@ def apply_with_ai(request):
         return JsonResponse(result)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
 
 
 def robots_txt(request):

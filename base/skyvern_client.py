@@ -16,6 +16,14 @@ def fill_job_application(user, job_url, resume_url=None):
     Phone: {user.phone}
     LinkedIn: {user.linkedin_url}
     Address: {user.address}
+    Total Years of Experience: {user.total_experience_years}
+    Expected Salary: {user.expected_salary}
+    Education: {user.education}
+    Work Authorization: {user.work_authorization}
+    Portfolio or Website: {user.portfolio_url}
+    Availability: {user.available_from}
+    Preferred Location: {user.preferred_location}
+
 
     If there's a question about work authorization, select 'Yes'.
     If asked for a cover letter, write a short and professional paragraph about
