@@ -357,11 +357,16 @@
     const firstCard = document.querySelector('.hero__phone .sp__card');
     const firstVideo = firstCard?.querySelector('video');
     if (firstCard && firstVideo) {
-      firstCard.classList.add('is-active');
-      firstVideo.loop = true;
-      firstVideo.currentTime = 0;
-      firstVideo.play().catch(() => {});
-    }
+  firstCard.classList.add('is-active');
+  firstVideo.currentTime = 0;
+  firstVideo.play().catch(() => {});
+
+  // Force instant loop without pause
+  firstVideo.addEventListener('ended', () => {
+    firstVideo.currentTime = 0;
+    firstVideo.play().catch(() => {});
+  });
+}
 
     // Pause all other videos just in case
     document.querySelectorAll('.hero__phone .sp__card:not(:first-child) video').forEach(v => v.pause());
