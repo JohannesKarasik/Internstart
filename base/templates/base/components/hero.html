@@ -353,25 +353,19 @@
 
   ready(() => {
     // A) TikTok-style rotation inside the hero phone
-    const cards = [...document.querySelectorAll('.hero__phone .sp__card')];
-    const DURATION = 5000; // ms per clip
-    if (cards.length) {
-      let index = 0;
-      const showCard = (i) => {
-        cards.forEach((c, j) => {
-          const v = c.querySelector('video');
-          if (j === i) {
-            c.classList.add('is-active');
-            if (v) { v.currentTime = 0; v.play().catch(() => {}); }
-          } else {
-            c.classList.remove('is-active');
-            if (v) v.pause();
-          }
-        });
-      };
-      showCard(index);
-      setInterval(() => { index = (index + 1) % cards.length; showCard(index); }, DURATION);
+// A) Only play and loop the first video
+    const firstCard = document.querySelector('.hero__phone .sp__card');
+    const firstVideo = firstCard?.querySelector('video');
+    if (firstCard && firstVideo) {
+      firstCard.classList.add('is-active');
+      firstVideo.loop = true;
+      firstVideo.currentTime = 0;
+      firstVideo.play().catch(() => {});
     }
+
+    // Pause all other videos just in case
+    document.querySelectorAll('.hero__phone .sp__card:not(:first-child) video').forEach(v => v.pause());
+
 
     // B) Tap to toggle mute (per card)
     document.querySelectorAll('.hero__phone .sp__mute').forEach((btn) => {
