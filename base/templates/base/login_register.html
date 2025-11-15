@@ -837,30 +837,19 @@
   
       // Stage 2 → validate job_type then go to step 3
       if (step2Stage === 2) {
-        const jobType = document.querySelector('[name$="job_type"]');
-        if (!jobType || !jobType.value.trim()) {
-          jobType?.reportValidity();
-          return;
-        }
-        if (stepInput) stepInput.value = '3';
-        showStep(3);
-      }
+    const jobType = document.querySelector('[name$="job_type"]');
+    if (!jobType || !jobType.value.trim()) {
+      jobType?.reportValidity();
+      return;
+    }
+
+    // DIRECTLY SUBMIT FORM – no step 3
+    form.submit();
+}
+
     });
   
-    /* ===== Final submit safety: ensure step=3 and resume exists ===== */
-    form.addEventListener('submit', (e) => {
-      // force step=3 on submit so the view hits the final branch
-      if (stepInput) stepInput.value = '3';
-  
-      // optional: client-side resume presence check to give instant feedback
-      const resumeInput = form.querySelector('input[type="file"][name$="resume"]');
-      if (resumeInput && resumeInput.required && (!resumeInput.files || !resumeInput.files.length)) {
-        e.preventDefault();
-        resumeInput.reportValidity();
-        // also make sure the user is viewing step 3 if they somehow submit earlier
-        showStep(3);
-      }
-    });
+
   });
   </script>
   
