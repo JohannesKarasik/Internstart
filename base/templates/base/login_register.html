@@ -809,16 +809,15 @@
     };
 
     /* ===== Step navigation ===== */
-    toStep2Btn?.addEventListener('click', (e) => {
-      e.preventDefault();
-      console.log('[REG] toStep2Btn clicked');
-      if (step1Valid()) {
-        console.log('[REG] step1Valid OK → showing step 2');
-        showStep(2);
-      } else {
-        console.log('[REG] step1Valid FAILED → staying on step 1');
+    toStep2Btn.addEventListener('click', (e) => {
+      if (!step1Valid()) {
+          e.preventDefault();
+          return;
       }
-    });
+      document.getElementById("regStep").value = "1";
+      form.submit();
+  });
+
 
     backToStep1Btn?.addEventListener('click', (e) => {
       e.preventDefault();
