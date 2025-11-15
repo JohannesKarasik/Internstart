@@ -375,6 +375,30 @@
   }
 }
 
+@media (max-width: 600px) {
+
+/* Center CTA container on mobile */
+.hero__ctas {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100%;
+}
+
+/* Primary CTA button text improvements */
+.cta-pulse {
+  font-size: 19px !important;      /* bigger text */
+  font-weight: 800 !important;     /* more bold */
+  text-align: center !important;   /* center text */
+  width: 100%;                     /* make full width */
+  max-width: 360px;                /* prevent too wide */
+  padding: 14px 22px !important;   /* taller button */
+  display: flex;
+  justify-content: center;
+}
+}
 
 </style>
 
