@@ -9,9 +9,12 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      Apply to <span class="accent">200+ jobs</span> in<br>
-      minutes powered by <span class="accent">AI</span>
+      <span class="mobile-line">Apply to</span><br class="mobile-br">
+      <span class="accent mobile-line">200+ jobs</span><br class="mobile-br">
+      <span class="mobile-line">in minutes</span><br class="mobile-br">
+      <span class="accent mobile-line">powered by AI</span>
     </h1>
+    
 
     <p class="hero__subhead">
       Internstart finds the right opportunities, fills out applications, and sends them for you. Land interviews faster without the endless forms.
@@ -338,6 +341,25 @@
   }
 }
 
+/* Desktop/laptop: hide forced mobile formatting */
+.mobile-br,
+.mobile-line {
+  display: none;
+}
+
+/* Mobile: show forced lines and hide the original text flow */
+@media (max-width: 600px) {
+  .mobile-br,
+  .mobile-line {
+    display: inline !important;
+  }
+
+  /* Fully replace the original H1 layout */
+  .hero__title {
+    text-align: center !important;
+    line-height: 1.15 !important;
+  }
+}
 
 
 </style>
