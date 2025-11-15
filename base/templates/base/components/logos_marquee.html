@@ -181,23 +181,29 @@
       const tracks = document.querySelectorAll(".logos__track");
   
       tracks.forEach((track) => {
+        // SPEED TWEAK (px per frame)
         const speed =
-          track.classList.contains("logos__track--a") ? 0.8 :
-          track.classList.contains("logos__track--b") ? 1.0 :
-          1.2; // tune these values (higher = faster)
+          track.classList.contains("logos__track--a") ? 0.5 :
+          track.classList.contains("logos__track--b") ? 0.7 :
+          0.9;
   
-        // Duplicate content for seamless infinite scroll
+        // 1️⃣ BEFORE cloning → get REAL natural width of track
+        const originalWidth = track.scrollWidth;
+  
+        // 2️⃣ Duplicate once for infinite loop
         const children = Array.from(track.children);
         children.forEach((node) => track.appendChild(node.cloneNode(true)));
   
+        // 3️⃣ Smooth continuous scroll
         let x = 0;
   
         function tick() {
           x -= speed;
-          const width = track.scrollWidth / 2;
   
-          // Wrap back seamlessly
-          if (Math.abs(x) >= width) x = 0;
+          // 4️⃣ Wrap ONLY when fully past ORIGINAL WIDTH
+          if (Math.abs(x) >= originalWidth) {
+            x = 0;
+          }
   
           track.style.transform = `translateX(${x}px)`;
           requestAnimationFrame(tick);
