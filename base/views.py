@@ -958,15 +958,12 @@ def registerPage(request, template='base/login_register.html'):
                 )
 
             # Errors → stay on step 1
-            return render(
-                request,
-                template,
-                {
-                    'student_form': form,
-                    'page': page,
-                    'show_step': '1',
-                }
-            )
+            return render(request, template, {
+                'student_form': form,
+                'page': page,
+                'show_step': '1',
+            })
+
 
         # ---------- STEP 2 ----------
         if step == '2':
