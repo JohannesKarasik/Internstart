@@ -29,14 +29,16 @@
 style="display:flex; align-items:center; justify-content:space-between; position:relative; height:100px; padding-left:60px; padding-right:40px;">
 
    
-      <!-- Logo (left) -->
-      <div class="header__logo" style="display: flex; align-items: center;">
-          <a href="{% url '' %}">
-              <img src="{% static 'images/Internstartlogo (1).jpg' %}" 
-                   alt="Internstart Logo"
-                   class="logo-large" />
-          </a>
-      </div>
+<div class="header__logo" style="display: flex; align-items: center;">
+  <a href="{% url '' %}">
+      <img src="{% static 'images/Internstartlogo (1).jpg' %}" 
+           alt="Internstart Logo"
+           class="logo-large" />
+  </a>
+
+  <!-- CTA shown on scroll (mobile only) -->
+  <a href="{% url 'register' %}" class="mobile-logo-cta">Start applying with AI</a>
+</div>
 
       <!-- Middle Menu -->
       <nav class="header__nav" 
@@ -436,6 +438,44 @@ style="display:flex; align-items:center; justify-content:space-between; position
   }
 }
 
+/* CTA is hidden on desktop */
+.mobile-logo-cta {
+    display: none;
+}
+
+/* Mobile transforms */
+@media (max-width: 600px) {
+
+  .mobile-logo-cta {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #FF2F5A;
+      color: white;
+      font-weight: 700;
+      font-family: 'Manrope', sans-serif;
+      border-radius: 12px;
+      text-decoration: none;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-5px);
+      transition: all 0.25s ease;
+  }
+
+  /* When active */
+  .mobile-logo-cta.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+  }
+
+  /* Hide the normal logo when CTA is active */
+  .logo-large.hide-logo {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+  }
+}
 
   </style>
   <script>
@@ -514,7 +554,33 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+
 </script>
 
-    
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.innerWidth > 600) return; // mobile only
+  
+    const logo = document.querySelector(".logo-large");
+    const cta = document.querySelector(".mobile-logo-cta");
+  
+    if (!logo || !cta) return;
+  
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 80) {
+        // Hide logo
+        logo.classList.add("hide-logo");
+        // Show CTA
+        cta.classList.add("show");
+      } else {
+        // Show logo
+        logo.classList.remove("hide-logo");
+        // Hide CTA
+        cta.classList.remove("show");
+      }
+    });
+  });
+  </script>
+  
 </header>
