@@ -18,9 +18,9 @@
     
       <!-- MOBILE VERSION (forced 4 lines) -->
       <span class="mobile-title">
-        Apply to <span class="accent">200+ jobs</span><br>
-        in minutes<br>
-        <span class="accent">powered by AI</span>
+        <span class="ml">Apply to <span class="accent">200+ jobs</span></span>
+        <span class="ml">in minutes</span>
+        <span class="ml accent">powered by AI</span>
       </span>
       
     
@@ -340,33 +340,28 @@
   }
 }
 
-/* Default: show desktop, hide mobile */
-.desktop-title {
-  display: inline;
-}
+/* Desktop default: show desktop title */
+.desktop-title { display: inline; }
+.mobile-title { display: none; }
 
-.mobile-title {
-  display: none;
-}
-
-/* Mobile: hide desktop, show mobile */
+/* Mobile forced layout */
 @media (max-width: 600px) {
-  .desktop-title {
-    display: none !important;
+  .desktop-title { display: none !important; }
+  .mobile-title { 
+    display: flex !important;
+    flex-direction: column;
+    gap: 4px;           /* spacing between lines */
+    text-align: center;
   }
 
-  .mobile-title {
-    display: inline-block !important;
-    text-align: center;
-    width: 100%;
+  .mobile-title .ml {
+    display: block;     /* forces each line */
+    white-space: nowrap; /* prevents wrapping 200+ jobs */
+    font-size: clamp(30px, 9vw, 40px);
     line-height: 1.15;
   }
-
-  .hero__copy,
-  .hero__title {
-    text-align: center !important;
-  }
 }
+
 
 
 
