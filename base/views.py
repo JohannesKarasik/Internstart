@@ -1040,13 +1040,24 @@ def registerPage(request, template='base/login_register.html'):
             print("!"*70 + "\n")
 
             messages.error(request, "Please correct the errors below.")
+            cleaned = form.cleaned_data
+
+            # Keep only step1 fields
+            step1_data = {
+                "full_name": cleaned.get("full_name"),
+                "email": cleaned.get("email"),
+                "password1": request.POST.get("password1"),
+                "password2": request.POST.get("password2"),
+            }
+
             return render(
                 request,
                 template,
                 {
-                    'student_form': form,
+                    'student_form': StudentCreationForm(initial=step1_data),
                     'page': page,
                     'show_step': '2',
+                    'step1_data': step1_data,   # optional debugging
                 }
             )
 
