@@ -9,11 +9,23 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      <span class="mobile-line">Apply to</span><br class="mobile-br">
-      <span class="accent mobile-line">200+ jobs</span><br class="mobile-br">
-      <span class="mobile-line">in minutes</span><br class="mobile-br">
-      <span class="accent mobile-line">powered by AI</span>
+  
+      <!-- DESKTOP VERSION -->
+      <span class="desktop-title">
+        Apply to <span class="accent">200+ jobs</span> in<br>
+        minutes powered by <span class="accent">AI</span>
+      </span>
+    
+      <!-- MOBILE VERSION (forced 4 lines) -->
+      <span class="mobile-title">
+        Apply to<br>
+        <span class="accent">200+ jobs</span><br>
+        in minutes<br>
+        <span class="accent">powered by AI</span>
+      </span>
+    
     </h1>
+    
     
 
     <p class="hero__subhead">
@@ -328,38 +340,34 @@
   }
 }
 
-@media (max-width: 600px) {
-  .hero__title {
-    text-align: center !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-
-  .hero__copy {
-    align-items: center !important;
-    text-align: center !important;
-  }
+/* Default: show desktop, hide mobile */
+.desktop-title {
+  display: inline;
 }
 
-/* Desktop/laptop: hide forced mobile formatting */
-.mobile-br,
-.mobile-line {
+.mobile-title {
   display: none;
 }
 
-/* Mobile: show forced lines and hide the original text flow */
+/* Mobile: hide desktop, show mobile */
 @media (max-width: 600px) {
-  .mobile-br,
-  .mobile-line {
-    display: inline !important;
+  .desktop-title {
+    display: none !important;
   }
 
-  /* Fully replace the original H1 layout */
+  .mobile-title {
+    display: inline-block !important;
+    text-align: center;
+    width: 100%;
+    line-height: 1.15;
+  }
+
+  .hero__copy,
   .hero__title {
     text-align: center !important;
-    line-height: 1.15 !important;
   }
 }
+
 
 
 </style>
