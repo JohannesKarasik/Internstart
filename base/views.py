@@ -984,7 +984,10 @@ def registerPage(request, template='base/login_register.html'):
                 return redirect('swipe_static_view')
 
             # Step 2 errors → stay on step 2
-            print("❌ FORM ERRORS:", form.errors)
+            print("🚨 FORM IS INVALID")
+            print("POST DATA:", dict(request.POST))
+            print("ERRORS:", form.errors.as_json())
+            print("CLEANED DATA:", form.cleaned_data if hasattr(form, 'cleaned_data') else 'NO CLEANED DATA')
             messages.error(request, "Please correct the errors below.")
             return render(
                 request,
