@@ -173,9 +173,10 @@
       tracks.forEach((track) => {
         // SPEED TWEAK (px per frame)
         const speed =
-          track.classList.contains("logos__track--a") ? 0.5 :
-          track.classList.contains("logos__track--b") ? 0.7 :
-          0.9;
+        track.classList.contains("logos__track--a") ? 1.0 :   // top = fastest
+        track.classList.contains("logos__track--b") ? 0.75 :  // middle = medium
+        0.55;                                                 // bottom = slowest
+
   
         // 1️⃣ BEFORE cloning → get REAL natural width of track
         const originalWidth = track.scrollWidth;
