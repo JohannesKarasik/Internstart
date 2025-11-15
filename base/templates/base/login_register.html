@@ -787,39 +787,7 @@
     const initial = [1, 2].includes(serverStepNumber) ? serverStepNumber : 1;
     showStep(initial);
   
-    /* ===== STEP-2 staged flow (job title → job type) ===== */
-    let step2Stage = 1;
-const btnStep2 = document.getElementById('step2-continue'); 
-if (btnStep2) {
-    btnStep2.addEventListener('click', function () {
-  
-        // Stage 1 → validate desired job title
-        if (step2Stage === 1) {
-          const jobTitle = document.querySelector('[name$="desired_job_title"]');
-          if (!jobTitle || !jobTitle.value.trim()) {
-            jobTitle?.reportValidity();
-            return;
-          }
-          // Show job type
-          document.getElementById('step2-jobtitle').style.display = 'none';
-          document.getElementById('step2-jobtype').style.display  = 'block';
-          step2Stage = 2;
-          return;
-        }
-  
-        // Stage 2 → validate job type & submit
-        if (step2Stage === 2) {
-          const jobType = document.querySelector('[name$="job_type"]');
-          if (!jobType || !jobType.value.trim()) {
-            jobType?.reportValidity();
-            return;
-          }
-  
-          // final submit
-          form.submit();
-        }
-      });
-    }
+
   
     /* ===== On final submit → mark step=2 ===== */
     form.addEventListener('submit', () => {
