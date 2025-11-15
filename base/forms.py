@@ -69,14 +69,10 @@ def save(self, commit=True, company_data=None):
 User = get_user_model()
 
 class StudentCreationForm(UserCreationForm):
-    # Resume upload
-    resume = forms.FileField(
-        required=True,
-        help_text=_("Upload your resume as PDF or DOCX."),  # ✅ translated
-        widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
-    )
 
-    # Desired job title field (replaces industry)
+    # ❌ REMOVE resume upload from registration
+    # resume = forms.FileField(required=True, ...)
+
     desired_job_title = forms.CharField(
         max_length=150,
         required=True,
@@ -87,9 +83,8 @@ class StudentCreationForm(UserCreationForm):
         })
     )
 
-    # Job type dropdown
     job_type = forms.ChoiceField(
-        choices=[('', _('Select job type'))] + User.JOB_TYPE_CHOICES,  # ✅ translated
+        choices=[('', _('Select job type'))] + User.JOB_TYPE_CHOICES,
         required=True,
         label=_("What type of job are you looking for?"),
         widget=forms.Select(attrs={
@@ -98,19 +93,19 @@ class StudentCreationForm(UserCreationForm):
     )
 
     class Meta:
-        model = User   # ✅ CORRECT
+        model = User
         fields = [
             'full_name',
             'email',
-            'resume',
+            'password1',
+            'password2',
             'desired_job_title',
             'job_type',
-        ]   # ✅ removed country
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ✅ Translated placeholders
         self.fields['full_name'].widget.attrs.update({
             'placeholder': _("Your full name"),
             'autocomplete': 'name',
@@ -132,37 +127,23 @@ class StudentCreationForm(UserCreationForm):
             'class': 'form__control',
         })
 
-        # keep your required logic
+        # REQUIRED FIELDS
         self.fields['full_name'].required = True
         self.fields['email'].required = True
-        self.fields['resume'].required = True
+        self.fields['password1'].required = True
+        self.fields['password2'].required = True
         self.fields['desired_job_title'].required = True
         self.fields['job_type'].required = True
-
-    def clean_resume(self):
-        f = self.cleaned_data.get('resume')
-        if not f:
-            raise forms.ValidationError("You must upload a resume to continue.")
-
-        import os
-        ext = os.path.splitext(f.name)[1].lower()
-        if ext not in {'.pdf', '.doc', '.docx'}:
-            raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
-
-        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10 MB
-            raise forms.ValidationError("Resume file is too large (max 10MB).")
-
-        return f
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'student'
-        # ❌ removed country assignment. done in view
         user.desired_job_title = self.cleaned_data['desired_job_title']
         user.job_type = self.cleaned_data['job_type']
         if commit:
             user.save()
         return user
+
 
 
 from django import forms
