@@ -475,10 +475,11 @@ style="display:flex; align-items:center; justify-content:space-between; position
 
   /* When active */
   .mobile-logo-cta.show {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-  }
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);   /* keep center position */
+}
+
 
   /* Hide the normal logo when CTA is active */
   .logo-large.hide-logo {
