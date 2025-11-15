@@ -663,14 +663,17 @@
 
 
   </style>
-
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-  
+    console.log('[REG] DOMContentLoaded fired');
+
     /* ===== Add .form__control to raw widgets ===== */
     document.querySelectorAll('.form__group :is(input,select,textarea):not(.form__control)')
-      .forEach(el => el.classList.add('form__control'));
-  
+      .forEach(el => {
+        el.classList.add('form__control');
+      });
+    console.log('[REG] Added .form__control to inputs');
+
     /* ===== Password visibility toggle ===== */
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.togglePwd');
@@ -682,121 +685,205 @@
       btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
       btn.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
       btn.dataset.state = isPwd ? 'hide' : 'show';
+      console.log('[REG] Toggled password visibility. Now type =', input.type);
     });
-  
+
     /* ===== Hide password help until needed ===== */
     if (document.getElementById('step-1')) {
       const pwdInputs = document.querySelectorAll('#step-1 input[type="password"]');
+      console.log('[REG] Found password inputs on step 1:', pwdInputs.length);
       pwdInputs.forEach((input) => {
         const help = input.closest('.form__group')?.querySelector('.form__help');
         if (!help) return;
         help.classList.add('is-hidden');
-  
+
         const validate = () => {
           const v = input.value || '';
           const tooShort   = v.length > 0 && v.length < 8;
           const numericOnly = /^\d+$/.test(v) && v.length > 0;
-          help.classList.toggle('is-hidden', !(tooShort || numericOnly));
+          const show = tooShort || numericOnly;
+          help.classList.toggle('is-hidden', !show);
+          console.log('[REG] Password help visibility changed:', { valueLength: v.length, tooShort, numericOnly, show });
         };
-  
+
         input.addEventListener('input', validate);
         input.addEventListener('blur', validate);
       });
     }
-  
+
     /* ===== Register wizard ===== */
-    const form = document.getElementById('registerForm');
-    if (!form) return; // login page
-  
+    const form  = document.getElementById('registerForm');
+    if (!form) {
+      console.log('[REG] No #registerForm found → probably login page. Exiting wizard script.');
+      return; // login page, nothing else to do
+    }
+
+    console.log('[REG] Register form found:', form);
+
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
-  
+
     const toStep2Btn     = document.getElementById('toStep2');
     const backToStep1Btn = document.getElementById('backToStep1');
-  
+
     const stepperItems = document.querySelectorAll('.stepper__item');
     const progressBar  = document.getElementById('regProgress');
     const stepInput    = document.getElementById('regStep');
-  
+
+    console.log('[REG] step1:', step1);
+    console.log('[REG] step2:', step2);
+    console.log('[REG] toStep2Btn:', toStep2Btn);
+    console.log('[REG] backToStep1Btn:', backToStep1Btn);
+    console.log('[REG] stepperItems count:', stepperItems.length);
+    console.log('[REG] progressBar:', progressBar);
+    console.log('[REG] stepInput (hidden field):', stepInput);
+
     /* ===== Progress bar ===== */
     const setProgress = (step) => {
-      if (!progressBar) return;
+      if (!progressBar) {
+        console.log('[REG] setProgress called but no #regProgress element');
+        return;
+      }
       const pct = step === 1 ? 33 : 66;
       progressBar.style.width = pct + '%';
+      console.log('[REG] Progress bar set to', pct + '%', 'for step', step);
     };
-  
+
     /* ===== Show step ===== */
     const showStep = (step) => {
+      console.log('[REG] showStep called with step =', step);
       [step1, step2].forEach((el, idx) => {
         if (!el) return;
-        el.classList.toggle('is-active', idx + 1 === step);
+        const isActive = (idx + 1 === step);
+        el.classList.toggle('is-active', isActive);
+        console.log('[REG]   Step DOM element index', idx + 1, 'active?', isActive);
       });
-  
-      stepperItems.forEach(el =>
-        el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step)
-      );
-  
+
+      stepperItems.forEach(el => {
+        const active = Number(el.dataset.stepIndex) === step;
+        el.classList.toggle('is-active', active);
+        console.log('[REG]   Stepper item data-step-index=', el.dataset.stepIndex, 'active?', active);
+      });
+
       setProgress(step);
-      if (stepInput) stepInput.value = String(step);
-  
+      if (stepInput) {
+        stepInput.value = String(step);
+        console.log('[REG]   stepInput.value now =', stepInput.value);
+      }
+
       const active = step === 1 ? step1 : step2;
       const first  = active?.querySelector('input,select,textarea,button');
-      if (first) setTimeout(() => first.focus({ preventScroll: true }), 30);
+      if (first) {
+        setTimeout(() => {
+          try {
+            first.focus({ preventScroll: true });
+          } catch (err) {
+            console.warn('[REG] Could not focus first field:', err);
+          }
+        }, 30);
+      }
     };
-  
+
     /* ===== Step 1 validation ===== */
     const step1Valid = () => {
-      if (!step1) return true;
+      if (!step1) {
+        console.log('[REG] step1Valid called but no step1 element; treating as valid.');
+        return true;
+      }
+      console.log('[REG] Running step1Valid check…');
       const controls = step1.querySelectorAll('input,select,textarea');
       for (const el of controls) {
-        if (!el.checkValidity()) { el.reportValidity(); return false; }
+        if (!el.checkValidity()) {
+          console.warn('[REG] Step 1 invalid control:', {
+            name: el.name,
+            id: el.id,
+            value: el.value,
+            validationMessage: el.validationMessage
+          });
+          el.reportValidity();
+          return false;
+        }
       }
       const p1 = step1.querySelector('input[name$="password1"]');
       const p2 = step1.querySelector('input[name$="password2"]');
       if (p1 && p2 && p1.value !== p2.value) {
+        console.warn('[REG] Passwords do not match:', { p1: p1.value, p2: p2.value });
         p2.setCustomValidity("Passwords don't match");
         p2.reportValidity();
         p2.addEventListener('input', () => p2.setCustomValidity(''), { once: true });
         return false;
       }
+      console.log('[REG] step1Valid → true');
       return true;
     };
-  
+
     /* ===== Step navigation ===== */
     toStep2Btn?.addEventListener('click', (e) => {
       e.preventDefault();
-      if (step1Valid()) showStep(2);
+      console.log('[REG] toStep2Btn clicked');
+      if (step1Valid()) {
+        console.log('[REG] step1Valid OK → showing step 2');
+        showStep(2);
+      } else {
+        console.log('[REG] step1Valid FAILED → staying on step 1');
+      }
     });
-  
+
     backToStep1Btn?.addEventListener('click', (e) => {
       e.preventDefault();
+      console.log('[REG] backToStep1Btn clicked → showing step 1');
       showStep(1);
     });
-  
+
     /* ===== Enter key forwarding ===== */
     form.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
+      console.log('[REG] keydown on form, key=Enter');
       if (step1?.classList.contains('is-active')) {
+        console.log('[REG] Enter pressed on active step1 → forwarding to toStep2Btn');
         e.preventDefault();
         toStep2Btn?.click();
       }
     });
-  
+
     /* ===== Initialize from server step ===== */
     const serverStepNumber = Number('{{ show_step|default:"1" }}');
     const initial = [1, 2].includes(serverStepNumber) ? serverStepNumber : 1;
+    console.log('[REG] serverStepNumber =', serverStepNumber, '→ initial step =', initial);
     showStep(initial);
-  
 
-  
-    /* ===== On final submit → mark step=2 ===== */
-    form.addEventListener('submit', () => {
-      if (stepInput) stepInput.value = '2';
+    /* ===== On final submit → mark correct step in hidden input ===== */
+    form.addEventListener('submit', (e) => {
+      const submitter = e.submitter || null;
+
+      console.group('[REG] form submit event');
+      console.log('[REG]   submitter:', submitter);
+      console.log('[REG]   submitter.id:', submitter && submitter.id);
+      console.log('[REG]   submitter.name:', submitter && submitter.name);
+      console.log('[REG]   submitter.text:', submitter && submitter.textContent && submitter.textContent.trim());
+      console.log('[REG]   stepInput before:', stepInput ? stepInput.value : '(no stepInput)');
+      console.log('[REG]   step1 is-active?', !!(step1 && step1.classList.contains('is-active')));
+      console.log('[REG]   step2 is-active?', !!(step2 && step2.classList.contains('is-active')));
+
+      if (!stepInput) {
+        console.warn('[REG] No hidden #regStep field found – cannot set step.');
+        console.groupEnd();
+        return;
+      }
+
+      // Decide which step value to send based on which step is currently active
+      let stepToSend = '1';
+      if (step2 && step2.classList.contains('is-active')) {
+        stepToSend = '2';
+      }
+
+      stepInput.value = stepToSend;
+      console.log('[REG]   stepInput set to:', stepToSend);
+      console.groupEnd();
     });
-  
+
   });
-  </script>
-  
-  
+</script>
+
 
 {% endblock content %}
