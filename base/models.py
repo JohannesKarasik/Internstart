@@ -193,10 +193,7 @@ class User(AbstractUser):
         help_text="List any extra skills, certifications, or tools you're proficient in."
     )
 
-def save(self, *args, **kwargs):
-    # Skip full_clean() on create to avoid resume requirement
-    kwargs['force_insert'] = True if self.pk is None else False
-    super().save(*args, **kwargs)
+
 
 class UserGoogleCredential(models.Model):
     user = models.OneToOneField(
