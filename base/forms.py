@@ -103,37 +103,42 @@ class StudentCreationForm(UserCreationForm):
             'job_type',
         ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+def __init__(self, *args, **kwargs):
+    step = kwargs.pop("step", None)  # read step if passed manually
+    super().__init__(*args, **kwargs)
 
-        self.fields['full_name'].widget.attrs.update({
-            'placeholder': _("Your full name"),
-            'autocomplete': 'name',
-            'class': 'form__control',
-        })
-        self.fields['email'].widget.attrs.update({
-            'placeholder': _("you@mail.com"),
-            'autocomplete': 'email',
-            'class': 'form__control',
-        })
-        self.fields['password1'].widget.attrs.update({
-            'placeholder': _("Create a password"),
-            'autocomplete': 'new-password',
-            'class': 'form__control',
-        })
-        self.fields['password2'].widget.attrs.update({
-            'placeholder': _("Confirm password"),
-            'autocomplete': 'new-password',
-            'class': 'form__control',
-        })
+    # UI styling (unchanged)
+    self.fields['full_name'].widget.attrs.update({
+        'placeholder': _("Your full name"),
+        'autocomplete': 'name',
+        'class': 'form__control',
+    })
+    self.fields['email'].widget.attrs.update({
+        'placeholder': _("you@mail.com"),
+        'autocomplete': 'email',
+        'class': 'form__control',
+    })
+    self.fields['password1'].widget.attrs.update({
+        'placeholder': _("Create a password"),
+        'autocomplete': 'new-password',
+        'class': 'form__control',
+    })
+    self.fields['password2'].widget.attrs.update({
+        'placeholder': _("Confirm password"),
+        'autocomplete': 'new-password',
+        'class': 'form__control',
+    })
 
-        # REQUIRED FIELDS
-        self.fields['full_name'].required = True
-        self.fields['email'].required = True
-        self.fields['password1'].required = True
-        self.fields['password2'].required = True
-        self.fields['desired_job_title'].required = True
-        self.fields['job_type'].required = True
+    # Step 1 required fields
+    self.fields['full_name'].required = True
+    self.fields['email'].required = True
+    self.fields['password1'].required = True
+    self.fields['password2'].required = True
+
+    # Step 2 fields default to NOT required (must validate manually)
+    self.fields['desired_job_title'].required = False
+    self.fields['job_type'].required = False
+
 
     def save(self, commit=True):
         user = super().save(commit=False)
