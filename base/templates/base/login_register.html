@@ -685,6 +685,44 @@
   margin-left:0;     /* align left */
 }
 
+/* =========================================
+   MOBILE — Remove ALL padding on auth form
+   ========================================= */
+   @media (max-width: 600px) {
+  .auth-form {
+    padding: 0 !important;
+  }
+
+  /* Remove padding added by split-card override */
+  .auth-card--split .auth-form {
+    padding: 0 !important;
+  }
+
+  /* Header still looks good without padding */
+  .auth-form__header,
+  .auth-form__header--card {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Remove any side padding from the form body */
+  .auth-form-body {
+    padding: 0 !important;
+  }
+
+  /* Remove side padding from wizard actions + footer */
+  .wizard-actions,
+  .auth-legal,
+  .auth-alt {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Full-width on mobile */
+  .auth-shell {
+    padding-inline: 0 !important;
+  }
+}
 
 
   </style>
