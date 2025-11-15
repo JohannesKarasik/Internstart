@@ -936,29 +936,28 @@ def registerPage(request, template='base/login_register.html'):
         print("STEP:", step)
         print("POST DATA:", dict(request.POST))
 
-        # We pass POST only to validate REQUIRED fields for that step
+        # ---------- STEP 1 ----------
         if step == '1':
-            # Validate ONLY name/email/password here
             form = StudentCreationForm(request.POST)
 
-            # Temporarily remove step-2 fields so they don't trigger errors
-            for field in ['desired_job_title', 'job_type']:
-                if field in form.fields:
-                    form.fields[field].required = False
+            # Completely REMOVE step 2 fields so Django cannot validate them
+            for f in ["desired_job_title", "job_type"]:
+                if f in form.fields:
+                    del form.fields[f]
 
             if form.is_valid():
-                # Step 1 OK → move to step 2
+                # Keep the cleaned POST when rendering Step 2
                 return render(
                     request,
                     template,
                     {
-                        'student_form': form,
+                        'student_form': StudentCreationForm(request.POST),
                         'page': page,
                         'show_step': '2',
                     }
                 )
 
-            # Step 1 errors → stay on step 1
+            # Errors → stay on step 1
             return render(
                 request,
                 template,
@@ -969,9 +968,7 @@ def registerPage(request, template='base/login_register.html'):
                 }
             )
 
-        # ----------------------------
-        # STEP 2 — FINAL SUBMIT
-        # ----------------------------
+        # ---------- STEP 2 ----------
         if step == '2':
             form = StudentCreationForm(request.POST)
 
@@ -980,18 +977,16 @@ def registerPage(request, template='base/login_register.html'):
                 user.role = "student"
                 user.is_active = True
 
-                if request.path.startswith("/da/"):
-                    user.country = "DK"
-                else:
-                    user.country = "US"
-
+                user.country = "DK" if request.path.startswith("/da/") else "US"
                 user.save()
+
                 login(request, user)
                 messages.success(request, "Welcome to Internstart!")
-                
                 print("🎉 User created:", user.email)
+
                 return redirect('swipe_static_view')
 
+            # Step 2 errors → stay on step 2
             print("❌ FORM ERRORS:", form.errors)
             messages.error(request, "Please correct the errors below.")
             return render(
@@ -1004,18 +999,16 @@ def registerPage(request, template='base/login_register.html'):
                 }
             )
 
-    # GET → Always start at step 1
+    # ---------- GET → Step 1 ----------
     form = StudentCreationForm()
-    return render(request, template, {
-        'student_form': form,
-        'page': page,
-        'show_step': '1',
-    })
-
-    # GET request
-    form = StudentCreationForm()
-    return render(request, template, {'student_form': form, 'page': page})
-
+    return render(
+        request, template,
+        {
+            'student_form': form,
+            'page': page,
+            'show_step': '1'
+        }
+    )
 
 
 @login_required(login_url='login')
