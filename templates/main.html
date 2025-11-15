@@ -62,183 +62,176 @@ if(f=!1,v=d.querySelector('#vwoCode'),cc={},-1<d.URL.indexOf('__vwo_disable__')|
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+    
+      const banner = document.getElementById("cookie-banner");
+      const accept = document.getElementById("accept-cookies");
+      const decline = document.getElementById("decline-cookies");
+    
+      // If the cookie banner is NOT on this page → stop (fixes register errors)
+      if (!banner) return;
+    
       if (!localStorage.getItem("cookieConsent")) {
-        document.getElementById("cookie-banner").style.display = "block";
+        banner.style.display = "block";
       }
     
-      document.getElementById("accept-cookies").addEventListener("click", function () {
+      accept?.addEventListener("click", function () {
         localStorage.setItem("cookieConsent", "accepted");
-        document.getElementById("cookie-banner").style.display = "none";
+        banner.style.display = "none";
       });
     
-      document.getElementById("decline-cookies").addEventListener("click", function () {
+      decline?.addEventListener("click", function () {
         localStorage.setItem("cookieConsent", "declined");
-        document.getElementById("cookie-banner").style.display = "none";
+        banner.style.display = "none";
       });
+    
     });
     </script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-// FIX: If messaging UI elements aren't on this page → STOP
-if (!document.getElementById('message-component')) return;
-        const messageComponent = document.getElementById('message-component');
-        const messageContent = document.getElementById('message-content');
-        const messagesContainer = document.getElementById('messages');
-        const toggleButton = document.getElementById('toggle-message-button');
-        const links = document.querySelectorAll('.connection-link');
-        const messageForm = document.getElementById('message-form');
-        const sendMessageButton = document.getElementById('send-message');
-        const messageContentInput = document.getElementById('content');
-        const connectionsSidebar = document.querySelector('.sidebar');
-        const messagingArea = document.querySelector('.messaging-area');
-        const activeConnectionName = document.getElementById('active-connection-name');
-        let selectedUserId = null;
-
-        // Function to get CSRF token from cookies
-        function getCSRFToken() {
-            let csrfToken = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.startsWith('csrftoken=')) {
-                        csrfToken = decodeURIComponent(cookie.split('=')[1]);
-                        break;
-                    }
-                }
+    
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    
+      // FIX: Messaging UI does NOT exist on register page → stop safely
+      const messageComponent = document.getElementById('message-component');
+      if (!messageComponent) return;
+    
+      const messageContent = document.getElementById('message-content');
+      const messagesContainer = document.getElementById('messages');
+      const toggleButton = document.getElementById('toggle-message-button');
+      const links = document.querySelectorAll('.connection-link');
+      const messageForm = document.getElementById('message-form');
+      const sendMessageButton = document.getElementById('send-message');
+      const messageContentInput = document.getElementById('content');
+      const connectionsSidebar = document.querySelector('.sidebar');
+      const messagingArea = document.querySelector('.messaging-area');
+      const activeConnectionName = document.getElementById('active-connection-name');
+      let selectedUserId = null;
+    
+      function getCSRFToken() {
+        let csrfToken = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith('csrftoken=')) {
+              csrfToken = decodeURIComponent(cookie.split('=')[1]);
+              break;
             }
-            return csrfToken;
+          }
         }
-
-        // Function to scroll to the bottom of the messages container
-        function scrollToBottom() {
+        return csrfToken;
+      }
+    
+      function scrollToBottom() {
+        if (messagesContainer) {
+          setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }, 100);
+        }
+      }
+    
+      function clearMessages() {
+        if (messagesContainer) {
+          messagesContainer.innerHTML = '';
+        }
+      }
+    
+      function loadMessages() {
+        if (!selectedUserId) return;
+        fetch(`/load_messages_fragment/${selectedUserId}/`)
+          .then(response => response.json())
+          .then(data => {
             if (messagesContainer) {
-                // Adding a slight delay to ensure the messages have fully loaded
-                setTimeout(() => {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 100);
+              messagesContainer.innerHTML = data.html;
+              setTimeout(scrollToBottom, 100);
             }
-        }
-
-        // Function to clear the previous messages
-        function clearMessages() {
-            if (messagesContainer) {
-                messagesContainer.innerHTML = '';
+            if (messageForm) {
+              messageForm.style.display = 'block';
             }
+          })
+          .catch(error => console.error('Error loading messages:', error));
+      }
+    
+      function sendMessage() {
+        const message = messageContentInput ? messageContentInput.value.trim() : '';
+        if (!message || !selectedUserId) return;
+    
+        const csrfToken = getCSRFToken();
+        if (!csrfToken) {
+          alert("CSRF Token not found. Please refresh the page.");
+          return;
         }
-
-        // Function to load messages for the selected user
-        function loadMessages() {
-            if (!selectedUserId) return;
-            fetch(`/load_messages_fragment/${selectedUserId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (messagesContainer) {
-                        messagesContainer.innerHTML = data.html;
-                        setTimeout(scrollToBottom, 100); // Ensure scrolling after loading
-                    }
-                    if (messageForm) {
-                        messageForm.style.display = 'block';
-                    }
-                })
-                .catch(error => console.error('Error loading messages:', error));
-        }
-
-        // Function to send a message
-        function sendMessage() {
-            const message = messageContentInput ? messageContentInput.value.trim() : '';
-            if (!message || !selectedUserId) {
-                console.log("Message or User ID missing");
-                return;
-            }
-
-            const csrfToken = getCSRFToken();
-            if (!csrfToken) {
-                console.error("CSRF Token is missing");
-                alert("CSRF Token not found. Please refresh the page.");
-                return;
-            }
-
-            fetch(`/send_message/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                },
-                body: JSON.stringify({
-                    recipient: selectedUserId,
-                    content: message
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    messageContentInput.value = '';
-                    loadMessages(); // Reload messages after sending
-                    setTimeout(scrollToBottom, 100); // Ensure scrolling after sending
-                } else {
-                    console.error("Failed to send message:", data);
-                }
-            })
-            .catch(error => console.error('Error sending message:', error));
-        }
-
-        // Attach event listeners to the send button and the input field
-        if (sendMessageButton) {
-            sendMessageButton.addEventListener('click', function(event) {
-                event.preventDefault();
-                sendMessage();
-            });
-        }
-
-        if (messageContentInput) {
-            messageContentInput.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    sendMessage();
-                }
-            });
-        }
-
-        // Handle toggling the message component
-        toggleButton.addEventListener('click', function() {
-            if (messageContent.style.display === 'none' || messageContent.style.display === '') {
-                messageContent.style.display = 'block';
-                messageComponent.classList.remove('minimized');
-                toggleButton.textContent = 'Close';
-                setTimeout(scrollToBottom, 100); // Scroll to bottom when opening
-            } else {
-                messageContent.style.display = 'none';
-                messageComponent.classList.add('minimized');
-                toggleButton.textContent = 'Open';
-                activeConnectionName.textContent = '';
-                messagingArea.style.display = 'none';
-                connectionsSidebar.style.display = 'block';
-            }
+    
+        fetch(`/send_message/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+          body: JSON.stringify({
+            recipient: selectedUserId,
+            content: message
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            messageContentInput.value = '';
+            loadMessages();
+            setTimeout(scrollToBottom, 100);
+          }
         });
-
-        // Handle clicking on a connection
-        links.forEach(function(link) {
-            link.addEventListener('click', function(event) {
-                event.preventDefault();
-                selectedUserId = this.getAttribute('data-user-id');
-
-                const fullNameElement = this.querySelector('strong');
-                if (fullNameElement) {
-                    activeConnectionName.textContent = ` - ${fullNameElement.textContent}`;
-                }
-
-                clearMessages();
-                loadMessages();
-                messagingArea.style.display = 'flex';
-                connectionsSidebar.style.display = 'none';
-                setTimeout(scrollToBottom, 100); // Scroll to bottom when opening a conversation
-            });
+      }
+    
+      sendMessageButton?.addEventListener('click', function(event) {
+        event.preventDefault();
+        sendMessage();
+      });
+    
+      messageContentInput?.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+    
+      toggleButton?.addEventListener('click', function() {
+        if (!messageContent) return;
+    
+        if (messageContent.style.display === 'none' || messageContent.style.display === '') {
+          messageContent.style.display = 'block';
+          messageComponent.classList.remove('minimized');
+          toggleButton.textContent = 'Close';
+          setTimeout(scrollToBottom, 100);
+        } else {
+          messageContent.style.display = 'none';
+          messageComponent.classList.add('minimized');
+          toggleButton.textContent = 'Open';
+          if (activeConnectionName) activeConnectionName.textContent = '';
+          if (messagingArea) messagingArea.style.display = 'none';
+          if (connectionsSidebar) connectionsSidebar.style.display = 'block';
+        }
+      });
+    
+      links.forEach(function(link) {
+        link.addEventListener('click', function(event) {
+          event.preventDefault();
+          selectedUserId = this.getAttribute('data-user-id');
+    
+          const fullNameElement = this.querySelector('strong');
+          if (fullNameElement) {
+            activeConnectionName.textContent = ` - ${fullNameElement.textContent}`;
+          }
+    
+          clearMessages();
+          loadMessages();
+          messagingArea.style.display = 'flex';
+          connectionsSidebar.style.display = 'none';
+          setTimeout(scrollToBottom, 100);
         });
+      });
+    
     });
-</script>
-
+    </script>
+    
 </html>
