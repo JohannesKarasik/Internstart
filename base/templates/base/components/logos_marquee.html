@@ -112,22 +112,12 @@
             mask-image: linear-gradient(to right, transparent 0%, #000 0.6%, #000 99.4%, transparent 100%);
   }
 
-  .logos__track{
-    display: flex;
-    align-items: center;
-    gap: var(--logos-gap);
-    animation: marquee linear infinite;
-  }
-
-  .logos__track--a{ animation-duration: 2s; }
-.logos__track--b{ animation-duration: 4s; opacity:.97; }
-.logos__track--c{ animation-duration: 6s; opacity:.95; }
-
-
-  @keyframes marquee{
-    from{ transform: translateX(0); }
-    to  { transform: translateX(-50%); }
-  }
+  .logos__track {
+  display: flex;
+  align-items: center;
+  gap: var(--logos-gap);
+  will-change: transform; /* IMPORTANT for smoothness */
+}
 
   /* Subtle, light outline using #FF2F5A for cards */
   .logo{
