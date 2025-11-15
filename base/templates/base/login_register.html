@@ -810,13 +810,21 @@
 
     /* ===== Step navigation ===== */
     toStep2Btn.addEventListener('click', (e) => {
-      if (!step1Valid()) {
-          e.preventDefault();
-          return;
-      }
-      document.getElementById("regStep").value = "1";
-      form.submit();
-  });
+    e.preventDefault();
+    console.log("[REG] Save Step 1 → submit to server");
+
+    if (!step1Valid()) {
+        console.log("[REG] Step 1 invalid → stop");
+        return;
+    }
+
+    // Tell the server this is STEP 1
+    stepInput.value = "1";
+
+    // Submit Step 1 normally
+    form.submit();
+});
+
 
 
     backToStep1Btn?.addEventListener('click', (e) => {
