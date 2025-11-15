@@ -172,23 +172,38 @@
 
 <script>
   (() => {
-    const onReady = (fn) =>
-      document.readyState === 'loading'
-        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+    const ready = (fn) =>
+      document.readyState === "loading"
+        ? document.addEventListener("DOMContentLoaded", fn, { once: true })
         : fn();
   
-    onReady(() => {
-      const tracks = document.querySelectorAll('.logos__track');
-      tracks.forEach(track => {
+    ready(() => {
+      const tracks = document.querySelectorAll(".logos__track");
+  
+      tracks.forEach((track) => {
+        const speed =
+          track.classList.contains("logos__track--a") ? 0.8 :
+          track.classList.contains("logos__track--b") ? 1.0 :
+          1.2; // tune these values (higher = faster)
+  
+        // Duplicate content for seamless infinite scroll
         const children = Array.from(track.children);
-        children.forEach(node => track.appendChild(node.cloneNode(true)));
+        children.forEach((node) => track.appendChild(node.cloneNode(true)));
   
-        // FORCE FAST SPEED (ignores data-speed)
-        const fastSpeed = track.classList.contains("logos__track--a") ? 2 :
-                          track.classList.contains("logos__track--b") ? 4 :
-                          6;
+        let x = 0;
   
-        track.style.animationDuration = `${fastSpeed}s`;
+        function tick() {
+          x -= speed;
+          const width = track.scrollWidth / 2;
+  
+          // Wrap back seamlessly
+          if (Math.abs(x) >= width) x = 0;
+  
+          track.style.transform = `translateX(${x}px)`;
+          requestAnimationFrame(tick);
+        }
+  
+        tick();
       });
     });
   })();
