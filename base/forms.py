@@ -138,7 +138,7 @@ class StudentCreationForm(UserCreationForm):
         self.fields['email'].required = True
         self.fields['desired_job_title'].required = True
         self.fields['job_type'].required = True
-        
+
 
 def clean_resume(self):
     f = self.cleaned_data.get('resume')
@@ -156,7 +156,7 @@ def clean_resume(self):
     return f
 
 
-    def save(self, commit=True):
+def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'student'
         # ❌ removed country assignment. done in view
