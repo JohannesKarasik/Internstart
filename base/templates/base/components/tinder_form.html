@@ -925,6 +925,29 @@ html, body {
 }
 }
 
+
+@media (max-width: 600px) {
+
+/* Restore horizontal centering */
+.tinder-section {
+  position: relative !important;
+  top: auto !important;
+  transform: none !important; /* remove vertical centering */
+  margin-top: 16px !important;
+
+  /* Horizontal centering fix */
+  left: 50% !important;
+  transform: translateX(-50%) !important;  /* ONLY horizontal */
+  width: 100%;
+}
+
+/* Also ensure the inner deck stays centered */
+.tinder-deck {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+}
+
 </style>
 
 <script>
