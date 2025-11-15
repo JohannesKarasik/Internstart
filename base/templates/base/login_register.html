@@ -287,44 +287,11 @@
           
             <div class="wizard-actions wizard-actions--split">
               <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
-              <button type="button" class="btn btn--primary" id="step2-continue">Continue</button>
+              <button type="submit" class="btn btn--primary">Create account</button>
               <button type="button" id="toStep3" style="display:none"></button>
             </div>
           </div>
           
-
-          <!-- ========== STEP 2: Resume ========== -->
-          <div class="form-step" id="step-3" data-step="3" role="group" aria-labelledby="step3label">
-            <h2 id="step3label" class="sr-only">Upload resume</h2>
-            <!-- Drag-drop styled wrapper -->
-            <div class="form-grid">
-              {% if student_form.resume %}
-                <div class="form__group{% if student_form.resume.errors %} form__group--error{% endif %}">
-                  <label class="form__label" for="{{ student_form.resume.id_for_label }}">{{ student_form.resume.label }}</label>
-
-                  <div class="dropzone" id="resumeDrop">
-                    <div class="dz-icon">📄</div>
-                    <div class="dz-copy">
-                      <strong>Drag & drop</strong> your resume here<br>
-                      <span class="dz-sub">or click to browse (PDF/DOCX)</span>
-                    </div>
-                    <!-- Use the actual Django field; we visually style the container -->
-                    {{ student_form.resume|add_class:"form__control dz-input"|attr:"accept=.pdf,.doc,.docx" }}
-                  </div>
-
-                  <small class="form__help" id="resumeFileName">No file chosen</small>
-
-                  {% if student_form.resume.help_text %}
-                    <small class="form__help">{{ student_form.resume.help_text }}</small>
-                  {% endif %}
-                  {% if student_form.resume.errors %}
-                    <small class="form__error">{{ student_form.resume.errors|striptags }}</small>
-                  {% endif %}
-                </div>
-              {% else %}
-                <p class="form__help">Resume field missing from form — add it to your Django form to enable uploads.</p>
-              {% endif %}
-            </div>
 
 
             <div class="wizard-actions wizard-actions--split">
