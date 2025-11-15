@@ -454,7 +454,7 @@ style="display:flex; align-items:center; justify-content:space-between; position
 @media (max-width: 600px) {
 
   .mobile-logo-cta {
-    position: absolute;        /* <-- this fixes your centering issue */
+    position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -467,10 +467,12 @@ style="display:flex; align-items:center; justify-content:space-between; position
     border-radius: 12px;
     text-decoration: none;
     font-size: 14px;
+    white-space: nowrap;          /* ✅ FIX SHAPE */
     opacity: 0;
     pointer-events: none;
     transition: all 0.25s ease;
 }
+
 
 
   /* When active */
@@ -487,6 +489,12 @@ style="display:flex; align-items:center; justify-content:space-between; position
       pointer-events: none;
       transition: opacity 0.25s ease;
   }
+}
+
+
+/* Expand header container when CTA is active */
+.header.mobile-cta-active .container {
+    height: 90px !important;
 }
 
   </style>
@@ -580,17 +588,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!logo || !cta) return;
   
     window.addEventListener("scroll", () => {
-      if (window.scrollY > 80) {
-        // Hide logo
+      const header = document.querySelector("header");
+
+    if (window.scrollY > 80) {
         logo.classList.add("hide-logo");
-        // Show CTA
         cta.classList.add("show");
-      } else {
-        // Show logo
+        header.classList.add("mobile-cta-active");    /* ✅ Add */
+    } else {
         logo.classList.remove("hide-logo");
-        // Hide CTA
         cta.classList.remove("show");
-      }
+        header.classList.remove("mobile-cta-active"); /* ✅ Remove */
+    }
+
     });
   });
   </script>
