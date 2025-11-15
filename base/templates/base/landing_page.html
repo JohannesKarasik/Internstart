@@ -281,6 +281,22 @@
     @media (prefers-reduced-motion: reduce){
       .reviews__track{ transform: none !important; transition: none !important; }
     }
+
+
+    /* 🚫 Disable ALL horizontal scrolling */
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative;
+}
+
+/* Ensure internal containers never grow wider than the viewport */
+* {
+  max-width: 100vw !important;
+  box-sizing: border-box;
+}
+
   </style>
   
   
