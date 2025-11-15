@@ -925,167 +925,67 @@ def logoutUser(request):
     return redirect('landing_page')
 
 
+
 def registerPage(request, template='base/login_register.html'):
     page = 'register'
 
-    print("\n" + "="*80)
-    print("📥 VIEW ENTERED: registerPage")
-    print("REQUEST METHOD:", request.method)
-    print("="*80 + "\n")
-
     if request.method == 'POST':
+        # Read which step we're on (default to '1' if missing)
         step = request.POST.get('step', '1')
 
-        print("\n" + "-"*70)
-        print("🔹 REGISTER POST RECEIVED")
-        print("STEP SENT BY CLIENT:", step)
-        print("RAW POST DATA:", dict(request.POST))
-        print("-"*70 + "\n")
+        # Debug info
+        print("🔹 REGISTER POST DETECTED")
+        print("STEP:", step)
+        print("POST DATA:", dict(request.POST))
+        print("FILES:", request.FILES)
 
-        # =====================================================================
-        # STEP 1
-        # =====================================================================
-        if step == '1':
-            print("➡️ Handling STEP 1")
+        # Bind the full form so entered values stick on re-render
+        form = StudentCreationForm(request.POST, request.FILES)
 
-            form = StudentCreationForm(request.POST)
-
-            print("📌 Step 1 form initial fields:", list(form.fields.keys()))
-            print("📌 Removing step2 fields so Django doesn't validate them")
-
-            # Remove Step 2 fields (do NOT validate them in step 1)
-            for f in ["desired_job_title", "job_type"]:
-                if f in form.fields:
-                    del form.fields[f]
-                    print(f"   ❌ Removed field: {f}")
-
-            print("\n📌 AFTER REMOVAL, fields now:", list(form.fields.keys()))
-            print("📌 Step 1 form is_valid():", form.is_valid())
-            print("📌 Step 1 errors:", form.errors.as_json())
-
-            if form.is_valid():
-                print("✅ STEP 1 VALID — preparing Step 2")
-
-                # ⭐ The correct FIX — preserve clean Step1 values
-                step1_data = {
-                    "full_name": form.cleaned_data.get("full_name"),
-                    "email": form.cleaned_data.get("email"),
-                    "password1": request.POST.get("password1"),
-                    "password2": request.POST.get("password2"),
-                }
-
-                print("➡️ Passing data to Step 2 (initial):", step1_data)
-
-                form_step2 = StudentCreationForm(initial=step1_data)
-
-                return render(
-                    request,
-                    template,
-                    {
-                        'student_form': form_step2,  # ⭐ DO NOT pass POST here
-                        'page': page,
-                        'show_step': '2',
-                        'step1_data': step1_data,
-                    }
-                )
-
-            print("❌ STEP 1 INVALID — staying on step 1")
-            return render(request, template, {
+        # === STEP 1 or STEP 2 POST (not final yet) ===
+        # Move user to the next step without creating the account
+        if step in ['1', '2']:
+            next_step = '2' if step == '1' else '3'
+            print(f"➡️ Moving from step {step} to {next_step}")
+            context = {
                 'student_form': form,
                 'page': page,
-                'show_step': '1',
-            })
+                'show_step': next_step,
+            }
+            return render(request, template, context)
 
-
-        # =====================================================================
-        # STEP 2
-        # =====================================================================
-        if step == '2':
-            print("➡️ Handling STEP 2")
-            print("📌 Incoming POST data at step2:", dict(request.POST))
-
-            form = StudentCreationForm(request.POST)
-
-            print("\n📌 Step 2 form fields:", list(form.fields.keys()))
-            print("📌 Step 2 form.is_valid() BEFORE:", form.is_valid())
-            print("📌 Step 2 form errors:", form.errors.as_json())
-
-            if hasattr(form, "cleaned_data"):
-                print("📌 Step 2 cleaned data:", form.cleaned_data)
-            else:
-                print("📌 NO CLEANED DATA AVAILABLE")
+        # === STEP 3 POST (final submit) ===
+        if step == '3':
+            print("✅ Final step detected, validating form...")
 
             if form.is_valid():
-                print("✅ STEP 2 VALID — creating user")
-
                 user = form.save(commit=False)
-                user.role = "student"
-                user.is_active = True
-                user.country = "DK" if request.path.startswith("/da/") else "US"
+                user.role = 'student'
+                user.is_active = True         # ✅ activate immediately
 
-                print("📌 Saving user:", {
-                    "email": user.email,
-                    "full_name": user.full_name,
-                    "job_title": user.desired_job_title,
-                    "job_type": user.job_type,
-                    "country": user.country,
-                })
+                # 🔥 auto assign country
+                if request.path.startswith("/da/"):
+                    user.country = "DK"
+                else:
+                    user.country = "US"
 
                 user.save()
-                print("🎉 USER CREATED SUCCESSFULLY:", user.id, user.email)
 
-                login(request, user)
-                print("🔐 USER LOGGED IN")
-
+                login(request, user)          # ✅ log them in right away
+                messages.success(request, "Welcome to Internstart! Your account is ready.")
+                print("🎉 User created successfully:", user.email)
                 return redirect('swipe_static_view')
 
-            # ❌ INVALID => LOG EVERYTHING
-            print("\n" + "!"*70)
-            print("🚨 STEP 2 — FORM INVALID")
-            print("POST DATA:", dict(request.POST))
-            print("ERRORS:", form.errors.as_json())
-            if hasattr(form, 'cleaned_data'):
-                print("CLEANED DATA:", form.cleaned_data)
-            else:
-                print("CLEANED DATA: <none>")
-            print("!"*70 + "\n")
+            # If form invalid
+            print("❌ FORM ERRORS:", form.errors.as_json())   # <--- ADD THIS
+            messages.error(request, 'Please correct the errors below.')
+            context = {'student_form': form, 'page': page, 'show_step': '3'}
+            return render(request, template, context)
 
-            messages.error(request, "Please correct the errors below.")
-            cleaned = getattr(form, "cleaned_data", {})
-
-            # Rebuild step 1 values to keep them on screen
-            step1_data = {
-                "full_name": cleaned.get("full_name"),
-                "email": cleaned.get("email"),
-                "password1": request.POST.get("password1"),
-                "password2": request.POST.get("password2"),
-            }
-
-            return render(
-                request,
-                template,
-                {
-                    'student_form': StudentCreationForm(initial=step1_data),
-                    'page': page,
-                    'show_step': '2',
-                    'step1_data': step1_data,
-                }
-            )
-
-    # =====================================================================
-    # GET REQUEST
-    # =====================================================================
-    print("➡️ GET request — rendering Step 1")
+    # GET
     form = StudentCreationForm()
-
-    return render(
-        request, template,
-        {
-            'student_form': form,
-            'page': page,
-            'show_step': '1'
-        }
-    )
+    # ✅ FIX: use template arg, not hardcoded english one
+    return render(request, template, {'student_form': form, 'page': 'register'})
 
 
 @login_required(login_url='login')
