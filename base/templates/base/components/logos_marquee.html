@@ -13,7 +13,7 @@
 
     <div class="logos__viewport" aria-hidden="true">
       <!-- Row A -->
-      <div class="logos__track logos__track--a" data-speed="32">
+      <div class="logos__track logos__track--a">
         <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt="Netflix"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/airbnb.png' %}" alt="Airbnb"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/anthropic.png' %}" alt="Anthropic"></div>
@@ -171,20 +171,26 @@
 </style>
 
 <script>
-(() => {
-  const onReady = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
-
-  onReady(() => {
-    const tracks = document.querySelectorAll('.logos__track');
-    tracks.forEach(track => {
-      const speed = Number(track.dataset.speed || 32);
-      const children = Array.from(track.children);
-      children.forEach(node => track.appendChild(node.cloneNode(true)));
-      track.style.animationDuration = `${speed}s`;
+  (() => {
+    const onReady = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    onReady(() => {
+      const tracks = document.querySelectorAll('.logos__track');
+      tracks.forEach(track => {
+        const children = Array.from(track.children);
+        children.forEach(node => track.appendChild(node.cloneNode(true)));
+  
+        // FORCE FAST SPEED (ignores data-speed)
+        const fastSpeed = track.classList.contains("logos__track--a") ? 2 :
+                          track.classList.contains("logos__track--b") ? 4 :
+                          6;
+  
+        track.style.animationDuration = `${fastSpeed}s`;
+      });
     });
-  });
-})();
-</script>
+  })();
+  </script>
+  
