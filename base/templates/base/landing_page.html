@@ -9,6 +9,7 @@
   {# Hero / phone carousel #}
   {% include "base/components/hero.html" %}
 
+  <div class="home-layout">
   <section class="reviews" aria-label="User reviews">
     <div class="reviews__inner">
       <div class="reviews__viewport">
@@ -117,6 +118,8 @@
       </div>
     </div>
   </section>
+</div>
+
   
   <style>
     :root{
@@ -445,6 +448,23 @@
     .kpi__inner{ grid-template-columns: 1fr; }
     .kpi__item::after{ width: 28%; }
   }
+
+
+  .home-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Default desktop order */
+.reviews { order: 1; }
+.logos-sec { order: 2; }
+
+/* Mobile: swap them */
+@media (max-width: 600px) {
+  .reviews { order: 2; }
+  .logos-sec { order: 1; }
+}
+
 </style>
 
 <script>
