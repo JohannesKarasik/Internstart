@@ -71,10 +71,11 @@ User = get_user_model()
 class StudentCreationForm(UserCreationForm):
     # Resume upload
     resume = forms.FileField(
-        required=True,
-        help_text=_("Upload your resume as PDF or DOCX."),  # ✅ translated
+        required=False,
+        help_text=_("Upload your resume as PDF or DOCX (optional)."),
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.doc,.docx"})
     )
+
 
     # Desired job title field (replaces industry)
     desired_job_title = forms.CharField(
@@ -135,24 +136,25 @@ class StudentCreationForm(UserCreationForm):
         # keep your required logic
         self.fields['full_name'].required = True
         self.fields['email'].required = True
-        self.fields['resume'].required = True
         self.fields['desired_job_title'].required = True
         self.fields['job_type'].required = True
+        
 
-    def clean_resume(self):
-        f = self.cleaned_data.get('resume')
-        if not f:
-            raise forms.ValidationError("You must upload a resume to continue.")
+def clean_resume(self):
+    f = self.cleaned_data.get('resume')
+    if not f:
+        return None  # no resume uploaded — totally fine
 
-        import os
-        ext = os.path.splitext(f.name)[1].lower()
-        if ext not in {'.pdf', '.doc', '.docx'}:
-            raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
+    import os
+    ext = os.path.splitext(f.name)[1].lower()
+    if ext not in {'.pdf', '.doc', '.docx'}:
+        raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
 
-        if getattr(f, 'size', 0) > 10 * 1024 * 1024:  # 10 MB
-            raise forms.ValidationError("Resume file is too large (max 10MB).")
+    if getattr(f, 'size', 0) > 10 * 1024 * 1024:
+        raise forms.ValidationError("Resume file is too large (max 10MB).")
 
-        return f
+    return f
+
 
     def save(self, commit=True):
         user = super().save(commit=False)
