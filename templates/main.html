@@ -80,7 +80,10 @@ if(f=!1,v=d.querySelector('#vwoCode'),cc={},-1<d.URL.indexOf('__vwo_disable__')|
 
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
+
+// FIX: If messaging UI elements aren't on this page → STOP
+if (!document.getElementById('message-component')) return;
         const messageComponent = document.getElementById('message-component');
         const messageContent = document.getElementById('message-content');
         const messagesContainer = document.getElementById('messages');
