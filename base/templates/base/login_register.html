@@ -129,7 +129,7 @@
 
         <header class="auth-form__header auth-form__header--card">
           {% if messages %}
-            <div class="form__messages" style="margin:10px 0;">
+            <div class="form__messages" style="margin:10px 0%;">
               {% for message in messages %}
                 <p class="form__error">{{ message }}</p>
               {% endfor %}
@@ -160,7 +160,7 @@
           </div>
         </header>
 
-        <!-- ********** FIXED: FORM STARTS HERE ********** -->
+        <!-- ********** FORM STARTS HERE ********** -->
         <form method="POST" enctype="multipart/form-data"
               class="auth-form-body" id="registerForm" novalidate>
 
@@ -232,7 +232,6 @@
             <input type="hidden" name="password1" value="{{ step1_data.password1 }}">
             <input type="hidden" name="password2" value="{{ step1_data.password2 }}">
             
-
             <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 16px;">
               <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
                 What's your desired job title?
@@ -254,7 +253,7 @@
           </div>
 
         </form>
-        <!-- ********** FIXED: FORM ENDS HERE ********** -->
+        <!-- ********** FORM ENDS HERE ********** -->
 
         <p class="auth-legal">
           By continuing you agree to our
@@ -297,9 +296,8 @@
   
     /* AI gradient accents */
     --ai-1:#df657f;  /* deep red/pink */
---ai-2:#f55575;  /* your main pink */
---ai-3:#fdb16a;  /* bright orange */
-
+    --ai-2:#f55575;  /* your main pink */
+    --ai-3:#fdb16a;  /* bright orange */
   }
   *{box-sizing:border-box}
   body{font-family:var(--font); color:var(--ink)}
@@ -598,62 +596,61 @@
 
 
   .stepper-wrap {
-  max-width: 360px;
-  margin: 0 auto;
-}
+    max-width: 360px;
+    margin: 0 auto;
+  }
 
+  .stepper-wrap--left{
+    max-width:360px;
+    margin:10px 0 0 0; /* kills center */
+    margin-left:0;     /* align left */
+  }
 
-.stepper-wrap--left{
-  max-width:360px;
-  margin:10px 0 0 0; /* kills center */
-  margin-left:0;     /* align left */
-}
+  /* =========================================
+     MOBILE — Remove ALL padding on auth form
+     ========================================= */
+  @media (max-width: 600px) {
 
-/* =========================================
-   MOBILE — Remove ALL padding on auth form
-   ========================================= */
-   @media (max-width: 600px) {
+    /* Tight mobile padding */
+    .auth-form {
+      padding: 16px !important;     /* small clean padding */
+      padding-top: 20px !important; /* keeps header breathable */
+    }
 
-/* Tight mobile padding */
-.auth-form {
-  padding: 16px !important;     /* small clean padding */
-  padding-top: 20px !important; /* keeps header breathable */
-}
+    .auth-card--split .auth-form {
+      padding: 16px !important;
+      padding-top: 20px !important;
+    }
 
-.auth-card--split .auth-form {
-  padding: 16px !important;
-  padding-top: 20px !important;
-}
+    /* Header spacing */
+    .auth-form__header,
+    .auth-form__header--card {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
 
-/* Header spacing */
-.auth-form__header,
-.auth-form__header--card {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
+    /* Form body closer to edges */
+    .auth-form-body {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
 
-/* Form body closer to edges */
-.auth-form-body {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
+    /* Buttons + footer minimal padding */
+    .wizard-actions,
+    .auth-legal,
+    .auth-alt {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
 
-/* Buttons + footer minimal padding */
-.wizard-actions,
-.auth-legal,
-.auth-alt {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
+    /* Outer shell padding */
+    .auth-shell {
+      padding-inline: 14px !important; /* tight but comfortable */
+    }
+  }
 
-/* Outer shell padding */
-.auth-shell {
-  padding-inline: 14px !important; /* tight but comfortable */
-}
-}
+</style>
 
-
-  </style>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     console.log('[REG] DOMContentLoaded fired');
@@ -775,57 +772,82 @@
       }
     };
 
-    /* ===== Step 1 validation ===== */
+    /* ===== Step 1 validation (simplified & robust) ===== */
     const step1Valid = () => {
       if (!step1) {
         console.log('[REG] step1Valid called but no step1 element; treating as valid.');
         return true;
       }
-      console.log('[REG] Running step1Valid check…');
-      const controls = step1.querySelectorAll('input,select,textarea');
-      for (const el of controls) {
-        if (!el.checkValidity()) {
-          console.warn('[REG] Step 1 invalid control:', {
-            name: el.name,
-            id: el.id,
-            value: el.value,
-            validationMessage: el.validationMessage
-          });
-          el.reportValidity();
-          return false;
+      console.log('[REG] Running simplified step1Valid check…');
+
+      const fullName = step1.querySelector('input[name="full_name"]');
+      const email    = step1.querySelector('input[name="email"]');
+      const p1       = step1.querySelector('input[name$="password1"]');
+      const p2       = step1.querySelector('input[name$="password2"]');
+
+      const focusAndReport = (el) => {
+        if (!el) return false;
+        try {
+          el.focus();
+          if (el.reportValidity) {
+            el.reportValidity();
+          }
+        } catch (err) {
+          console.warn('[REG] Could not focus/reportValidity:', err);
         }
+        return false;
+      };
+
+      if (fullName && !fullName.value.trim()) {
+        console.warn('[REG] full_name empty');
+        return focusAndReport(fullName);
       }
-      const p1 = step1.querySelector('input[name$="password1"]');
-      const p2 = step1.querySelector('input[name$="password2"]');
+
+      if (email && !email.value.trim()) {
+        console.warn('[REG] email empty');
+        return focusAndReport(email);
+      }
+
+      if (p1 && !p1.value) {
+        console.warn('[REG] password1 empty');
+        return focusAndReport(p1);
+      }
+
+      if (p2 && !p2.value) {
+        console.warn('[REG] password2 empty');
+        return focusAndReport(p2);
+      }
+
       if (p1 && p2 && p1.value !== p2.value) {
         console.warn('[REG] Passwords do not match:', { p1: p1.value, p2: p2.value });
-        p2.setCustomValidity("Passwords don't match");
-        p2.reportValidity();
-        p2.addEventListener('input', () => p2.setCustomValidity(''), { once: true });
+        if (p2.setCustomValidity) {
+          p2.setCustomValidity("Passwords don't match");
+          p2.reportValidity();
+          p2.addEventListener('input', () => p2.setCustomValidity(''), { once: true });
+        }
         return false;
       }
+
       console.log('[REG] step1Valid → true');
       return true;
     };
 
     /* ===== Step navigation ===== */
     toStep2Btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    console.log("[REG] Save Step 1 → submit to server");
+      e.preventDefault();
+      console.log("[REG] Save Step 1 → submit to server");
 
-    if (!step1Valid()) {
-        console.log("[REG] Step 1 invalid → stop");
-        return;
-    }
+      if (!step1Valid()) {
+          console.log("[REG] Step 1 invalid → stop");
+          return;
+      }
 
-    // Tell the server this is STEP 1
-    stepInput.value = "1";
+      // Tell the server this is STEP 1
+      stepInput.value = "1";
 
-    // Submit Step 1 normally
-    form.submit();
-});
-
-
+      // Submit Step 1 normally
+      form.submit();
+    });
 
     backToStep1Btn?.addEventListener('click', (e) => {
       e.preventDefault();
@@ -882,6 +904,5 @@
 
   });
 </script>
-
 
 {% endblock content %}
