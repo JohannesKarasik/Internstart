@@ -898,6 +898,33 @@ html, body {
 @media (max-width:600px){
   .demo-overlay{ display:none; }
 }
+
+
+@media (max-width: 600px) {
+
+/* Remove forced full-height on mobile */
+.social-proof {
+  min-height: auto !important;
+  padding-top: 28px !important;
+}
+
+/* Make animation start immediately under the headline */
+.ai-demo {
+  top: auto !important;
+  transform: none !important;
+  position: relative !important;
+  margin-top: 0 !important;
+}
+
+/* Also fix tinder deck */
+.tinder-section {
+  top: auto !important;
+  transform: none !important;
+  position: relative !important;
+  margin-top: 16px !important;
+}
+}
+
 </style>
 
 <script>
