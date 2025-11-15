@@ -360,6 +360,13 @@ style="display:flex; align-items:center; justify-content:space-between; position
   .ticker__icon{ display:none; }              /* keep it minimal on phones */
 }
 
+@media (max-width: 600px) {
+  .header__logo {
+    position: relative;
+  }
+}
+
+
 .ticker__iconImg{
   display:block;
   width:26px; height:26px;          /* fits nicely inside the 22x22 icon box */
@@ -447,20 +454,24 @@ style="display:flex; align-items:center; justify-content:space-between; position
 @media (max-width: 600px) {
 
   .mobile-logo-cta {
-      display: inline-block;
-      padding: 8px 16px;
-      background: #FF2F5A;
-      color: white;
-      font-weight: 700;
-      font-family: 'Manrope', sans-serif;
-      border-radius: 12px;
-      text-decoration: none;
-      font-size: 14px;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-5px);
-      transition: all 0.25s ease;
-  }
+    position: absolute;        /* <-- this fixes your centering issue */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+    padding: 8px 16px;
+    background: #FF2F5A;
+    color: white;
+    font-weight: 700;
+    font-family: 'Manrope', sans-serif;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+}
+
 
   /* When active */
   .mobile-logo-cta.show {
