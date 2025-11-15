@@ -925,7 +925,6 @@ def logoutUser(request):
     return redirect('landing_page')
 
 
-
 def registerPage(request, template='base/login_register.html'):
     page = 'register'
 
@@ -954,7 +953,7 @@ def registerPage(request, template='base/login_register.html'):
             print("📌 Step 1 form initial fields:", list(form.fields.keys()))
             print("📌 Removing step2 fields so Django doesn't validate them")
 
-            # Remove step2 fields
+            # Remove Step 2 fields (do NOT validate them in step 1)
             for f in ["desired_job_title", "job_type"]:
                 if f in form.fields:
                     del form.fields[f]
@@ -965,16 +964,28 @@ def registerPage(request, template='base/login_register.html'):
             print("📌 Step 1 errors:", form.errors.as_json())
 
             if form.is_valid():
-                print("✅ STEP 1 VALID — rendering Step 2")
-                print("➡️ Passing data to Step 2:", {k: request.POST.get(k) for k in ['full_name', 'email']})
+                print("✅ STEP 1 VALID — preparing Step 2")
+
+                # ⭐ The correct FIX — preserve clean Step1 values
+                step1_data = {
+                    "full_name": form.cleaned_data.get("full_name"),
+                    "email": form.cleaned_data.get("email"),
+                    "password1": request.POST.get("password1"),
+                    "password2": request.POST.get("password2"),
+                }
+
+                print("➡️ Passing data to Step 2 (initial):", step1_data)
+
+                form_step2 = StudentCreationForm(initial=step1_data)
 
                 return render(
                     request,
                     template,
                     {
-                        'student_form': StudentCreationForm(request.POST),
+                        'student_form': form_step2,  # ⭐ DO NOT pass POST here
                         'page': page,
                         'show_step': '2',
+                        'step1_data': step1_data,
                     }
                 )
 
@@ -1028,7 +1039,7 @@ def registerPage(request, template='base/login_register.html'):
 
                 return redirect('swipe_static_view')
 
-            # ❌ INVALID => log everything
+            # ❌ INVALID => LOG EVERYTHING
             print("\n" + "!"*70)
             print("🚨 STEP 2 — FORM INVALID")
             print("POST DATA:", dict(request.POST))
@@ -1040,9 +1051,9 @@ def registerPage(request, template='base/login_register.html'):
             print("!"*70 + "\n")
 
             messages.error(request, "Please correct the errors below.")
-            cleaned = form.cleaned_data
+            cleaned = getattr(form, "cleaned_data", {})
 
-            # Keep only step1 fields
+            # Rebuild step 1 values to keep them on screen
             step1_data = {
                 "full_name": cleaned.get("full_name"),
                 "email": cleaned.get("email"),
@@ -1057,7 +1068,7 @@ def registerPage(request, template='base/login_register.html'):
                     'student_form': StudentCreationForm(initial=step1_data),
                     'page': page,
                     'show_step': '2',
-                    'step1_data': step1_data,   # optional debugging
+                    'step1_data': step1_data,
                 }
             )
 
