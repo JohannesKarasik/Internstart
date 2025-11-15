@@ -929,24 +929,45 @@ def logoutUser(request):
 def registerPage(request, template='base/login_register.html'):
     page = 'register'
 
+    print("\n" + "="*80)
+    print("📥 VIEW ENTERED: registerPage")
+    print("REQUEST METHOD:", request.method)
+    print("="*80 + "\n")
+
     if request.method == 'POST':
         step = request.POST.get('step', '1')
 
-        print("🔹 REGISTER POST")
-        print("STEP:", step)
-        print("POST DATA:", dict(request.POST))
+        print("\n" + "-"*70)
+        print("🔹 REGISTER POST RECEIVED")
+        print("STEP SENT BY CLIENT:", step)
+        print("RAW POST DATA:", dict(request.POST))
+        print("-"*70 + "\n")
 
-        # ---------- STEP 1 ----------
+        # =====================================================================
+        # STEP 1
+        # =====================================================================
         if step == '1':
+            print("➡️ Handling STEP 1")
+
             form = StudentCreationForm(request.POST)
 
-            # Completely REMOVE step 2 fields so Django cannot validate them
+            print("📌 Step 1 form initial fields:", list(form.fields.keys()))
+            print("📌 Removing step2 fields so Django doesn't validate them")
+
+            # Remove step2 fields
             for f in ["desired_job_title", "job_type"]:
                 if f in form.fields:
                     del form.fields[f]
+                    print(f"   ❌ Removed field: {f}")
+
+            print("\n📌 AFTER REMOVAL, fields now:", list(form.fields.keys()))
+            print("📌 Step 1 form is_valid():", form.is_valid())
+            print("📌 Step 1 errors:", form.errors.as_json())
 
             if form.is_valid():
-                # Keep the cleaned POST when rendering Step 2
+                print("✅ STEP 1 VALID — rendering Step 2")
+                print("➡️ Passing data to Step 2:", {k: request.POST.get(k) for k in ['full_name', 'email']})
+
                 return render(
                     request,
                     template,
@@ -957,7 +978,7 @@ def registerPage(request, template='base/login_register.html'):
                     }
                 )
 
-            # Errors → stay on step 1
+            print("❌ STEP 1 INVALID — staying on step 1")
             return render(request, template, {
                 'student_form': form,
                 'page': page,
@@ -965,29 +986,59 @@ def registerPage(request, template='base/login_register.html'):
             })
 
 
-        # ---------- STEP 2 ----------
+        # =====================================================================
+        # STEP 2
+        # =====================================================================
         if step == '2':
+            print("➡️ Handling STEP 2")
+            print("📌 Incoming POST data at step2:", dict(request.POST))
+
             form = StudentCreationForm(request.POST)
 
+            print("\n📌 Step 2 form fields:", list(form.fields.keys()))
+            print("📌 Step 2 form.is_valid() BEFORE:", form.is_valid())
+            print("📌 Step 2 form errors:", form.errors.as_json())
+
+            if hasattr(form, "cleaned_data"):
+                print("📌 Step 2 cleaned data:", form.cleaned_data)
+            else:
+                print("📌 NO CLEANED DATA AVAILABLE")
+
             if form.is_valid():
+                print("✅ STEP 2 VALID — creating user")
+
                 user = form.save(commit=False)
                 user.role = "student"
                 user.is_active = True
-
                 user.country = "DK" if request.path.startswith("/da/") else "US"
+
+                print("📌 Saving user:", {
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "job_title": user.desired_job_title,
+                    "job_type": user.job_type,
+                    "country": user.country,
+                })
+
                 user.save()
+                print("🎉 USER CREATED SUCCESSFULLY:", user.id, user.email)
 
                 login(request, user)
-                messages.success(request, "Welcome to Internstart!")
-                print("🎉 User created:", user.email)
+                print("🔐 USER LOGGED IN")
 
                 return redirect('swipe_static_view')
 
-            # Step 2 errors → stay on step 2
-            print("🚨 FORM IS INVALID")
+            # ❌ INVALID => log everything
+            print("\n" + "!"*70)
+            print("🚨 STEP 2 — FORM INVALID")
             print("POST DATA:", dict(request.POST))
             print("ERRORS:", form.errors.as_json())
-            print("CLEANED DATA:", form.cleaned_data if hasattr(form, 'cleaned_data') else 'NO CLEANED DATA')
+            if hasattr(form, 'cleaned_data'):
+                print("CLEANED DATA:", form.cleaned_data)
+            else:
+                print("CLEANED DATA: <none>")
+            print("!"*70 + "\n")
+
             messages.error(request, "Please correct the errors below.")
             return render(
                 request,
@@ -999,8 +1050,12 @@ def registerPage(request, template='base/login_register.html'):
                 }
             )
 
-    # ---------- GET → Step 1 ----------
+    # =====================================================================
+    # GET REQUEST
+    # =====================================================================
+    print("➡️ GET request — rendering Step 1")
     form = StudentCreationForm()
+
     return render(
         request, template,
         {
