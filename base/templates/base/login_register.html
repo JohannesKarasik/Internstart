@@ -227,10 +227,11 @@
           <!-- STEP 2 -->
           <div class="form-step" id="step-2" data-step="2">
 
-            <input type="hidden" name="full_name" value="{{ student_form.full_name.value|default_if_none:'' }}">
-            <input type="hidden" name="email" value="{{ student_form.email.value|default_if_none:'' }}">
-            <input type="hidden" name="password1" value="{{ student_form.password1.value|default_if_none:'' }}">
-            <input type="hidden" name="password2" value="{{ student_form.password2.value|default_if_none:'' }}">
+            <input type="hidden" name="full_name" value="{{ step1_data.full_name }}">
+            <input type="hidden" name="email" value="{{ step1_data.email }}">
+            <input type="hidden" name="password1" value="{{ step1_data.password1 }}">
+            <input type="hidden" name="password2" value="{{ step1_data.password2 }}">
+            
 
             <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 16px;">
               <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
