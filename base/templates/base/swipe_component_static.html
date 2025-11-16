@@ -2317,9 +2317,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = await r.json();
     setCardData(card);
 
+    // ✅ reveal card
     const deck = document.getElementById("swipeDeck");
     deck.style.opacity = "1";
     deck.style.pointerEvents = "auto";
+
   } catch (err) {
     console.error('Failed to load next AI card', err);
     setCardData({
@@ -2332,15 +2334,12 @@ document.addEventListener('DOMContentLoaded', () => {
       desc: 'AI generated example. Try again.'
     });
 
+    // reveal anyway
     const deck = document.getElementById("swipeDeck");
     deck.style.opacity = "1";
     deck.style.pointerEvents = "auto";
   }
-
-  // 🔥 NEW: notify onboarding system that card is ready
-  document.dispatchEvent(new Event("card:ready"));
 }
-
 
 
 
@@ -2638,16 +2637,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.addEventListener("card:ready", () => {
-  wireButtons(window.ifOnbOpen);
-});
-
-document.addEventListener('onboarding:finished', () => {
-  document.addEventListener("card:ready", () => {
-    afterEmail();
-  }, { once: true });
-});
-
   whenReady(
     ['ifOnb','ifOnbSpot','ifOnbTip','ifOnbTipTitle','ifOnbTipText','ifOnbDemo','ifOnbDemoStamp'],
     () => {
@@ -2743,6 +2732,7 @@ document.addEventListener('onboarding:finished', () => {
         if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
         if (e.target.id === 'ifOnbNext2') {
           if (i < steps.length - 1) { i++; render(); }
+          else { close(); localStorage.setItem('if_full_onboarding_done', '1'); }
         }
       });
 
@@ -2758,23 +2748,23 @@ document.addEventListener('onboarding:finished', () => {
       }
 
       function afterEmail() {
-    showEmailConnectedToast();
-    open();            // opens tooltip onboarding
-    wireButtons(open); // enables "show onboarding" buttons
-}
+        showEmailConnectedToast();
+        open();
+        wireButtons(open);
+      }
+      document.addEventListener('onboarding:finished', afterEmail, { once:true });
 
-
-
-const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
-const main = document.querySelector('main.layout');
-const firstLogin = main?.dataset.firstLogin === 'true';
-
-if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
-    setTimeout(() => {
-        document.dispatchEvent(new Event('onboarding:email'));
-    }, 800);
-}
-
+      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+      const main = document.querySelector('main.layout');
+      const firstLogin = main?.dataset.firstLogin === 'true';
+      if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
+        setTimeout(() => {
+          document.dispatchEvent(new Event('onboarding:email'));
+        }, 800);
+      }
+    }
+  );
+});
 </script>
 
 
