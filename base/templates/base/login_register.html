@@ -651,6 +651,36 @@
   }
 }
 
+/* 🔥 Make the RIGHT SIDE narrower on desktop */
+@media (min-width: 981px) {
+
+/* Reduce total card width */
+.auth-shell {
+  max-width: 900px; /* was 1100px — adjust as you want */
+}
+
+/* Adjust left/right split */
+.auth-card--split {
+  grid-template-columns: 40% 60%; /* tighter right side */
+}
+
+/* Limit width of the form content */
+.auth-form {
+  max-width: 480px; /* make form narrower */
+  margin: 0 auto;
+}
+
+.auth-form__header,
+.auth-form .auth-form-body,
+.auth-form .wizard-actions,
+.auth-form .auth-legal,
+.auth-form .auth-alt {
+  max-width: 420px; /* controls field width — tweak to 400–460px */
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+}
 
 
 
