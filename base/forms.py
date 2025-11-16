@@ -232,7 +232,6 @@ class RoomForm(forms.ModelForm):
         fields = [
             'full_name',
             'email',
-            'password1',
             'resume',
             'desired_job_title',
             'job_type',
