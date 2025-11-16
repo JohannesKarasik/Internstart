@@ -249,13 +249,18 @@
           <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
             <h2 id="step2label" class="sr-only">Preferences</h2>
           
-            <!-- NEW: Willing to relocate? -->
-            <div class="form__group" style="grid-column: 1 / -1; margin-bottom:16px;">
-              <label class="form__label" for="{{ student_form.willing_to_relocate.id_for_label }}">
-                Are you willing to relocate for work?
-              </label>
-              {{ student_form.willing_to_relocate|add_class:"form__control" }}
+
+            <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 20px;">
+              <label class="form__label">Are you willing to relocate for work?</label>
+            
+              {{ student_form.willing_to_relocate }}  <!-- hidden input -->
+            
+              <div class="relocate-buttons">
+                <button type="button" class="relocate-btn yes" data-value="yes">Yes</button>
+                <button type="button" class="relocate-btn no" data-value="no">No</button>
+              </div>
             </div>
+            
           
 
             
@@ -740,6 +745,39 @@
 }
 
 
+.relocate-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.relocate-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.relocate-btn.yes {
+  background: #10B981; /* green */
+  color: white;
+}
+
+.relocate-btn.no {
+  background: #EF4444; /* red */
+  color: white;
+}
+
+.relocate-btn.selected {
+  box-shadow: 0 0 0 3px rgba(0,0,0,.15);
+  transform: translateY(-1px);
+}
+
+
   </style>
 
 <script>
@@ -960,6 +998,27 @@
       console.log('STEP VALUE:', stepVal);
     });
   });
+
+
+  // Willing to relocate buttons
+document.addEventListener('DOMContentLoaded', () => {
+  const hiddenField = document.querySelector('[name$="willing_to_relocate"]');
+  const buttons = document.querySelectorAll('.relocate-btn');
+
+  if (!hiddenField || !buttons.length) return;
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const value = btn.dataset.value;
+      hiddenField.value = value;
+
+      // Highlight selected button
+      buttons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+});
+
   </script>
   
 

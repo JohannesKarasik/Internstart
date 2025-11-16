@@ -211,20 +211,11 @@ class RoomForm(forms.ModelForm):
     )
 
 
-        # Willing to relocate?
-    willing_to_relocate = forms.ChoiceField(
-        choices=[
-            ('', 'Select an option'),
-            ('yes', 'Yes'),
-            ('no', 'No'),
-            ('maybe', 'Maybe'),
-        ],
+    willing_to_relocate = forms.CharField(
         required=True,
-        label=_("Are you willing to relocate for work?"),
-        widget=forms.Select(attrs={
-            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
-        })
+        widget=forms.HiddenInput()   # <-- value will be filled by JS buttons
     )
+
 
 
     class Meta:
