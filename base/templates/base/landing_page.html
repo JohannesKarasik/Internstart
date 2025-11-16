@@ -326,16 +326,24 @@ html, body {
         const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
         gapPx = rawGap;
         step = rect.width + gapPx;
+
+                // 📱 Mobile centering (only when screen < 768px)
+        let mobileOffset = 0;
+        if (window.innerWidth < 768) {
+          const viewportWidth = viewport.getBoundingClientRect().width;
+          mobileOffset = (viewportWidth - rect.width) / 2;
+        }
+
     
         track.style.transition = 'none';
-        track.style.transform = `translateX(${-index * step}px)`;
+        track.style.transform = `translateX(${mobileOffset - index * step}px)`;
         requestAnimationFrame(() => track.style.transition = '');
       };
     
       const advance = () => {
         index += 1;
         track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
-        track.style.transform = `translateX(${-index * step}px)`;
+        track.style.transform = `translateX(${mobileOffset - index * step}px)`;
     
         if (index >= originals.length) {
           setTimeout(() => {
