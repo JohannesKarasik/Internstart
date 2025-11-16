@@ -160,7 +160,7 @@
 
 
 <a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+  <svg xmlns="http://.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
     <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
       d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
   </svg>
@@ -351,6 +351,11 @@
   </div>
 </div>
 
+<!-- 🔹 New explainer: shows every time page loads -->
+<div id="swipeHint" class="swipe-hint">
+  <span class="swipe-hint__icon">✓</span>
+  <span class="swipe-hint__text">Swipe right to apply</span>
+</div>
 
   <div id="loadMoreSentinel" style="height:1px;"></div>
 </div>
@@ -1997,9 +2002,43 @@ main.layout {
   letter-spacing: 0.02em;
 }
 
+/* 🔹 Swipe explainer pill */
+.swipe-hint {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.92);
+  color: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  z-index: 9999;
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.theme-light .swipe-hint {
+  background: #0e162a;
+  color: #ffffff;
+}
+
+.swipe-hint__icon {
+  font-size: 14px;
+}
+
+.swipe-hint.hide {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+}
 
 
-</style>
+  </style>
 
 {% include "base/email_flow_showcase.html" %}
 <script src="{% static 'js/email_flow_showcase.js' %}"></script>
@@ -2065,6 +2104,14 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Demo only: skipped');
     }
   });
+
+  // 🔹 Hide "swipe right to apply" explainer after a few seconds
+  const swipeHint = document.getElementById('swipeHint');
+  if (swipeHint) {
+    setTimeout(() => {
+      swipeHint.classList.add('hide');
+    }, 3500);
+  }
 
   // Open premium modal visually only
   const openPremium = document.getElementById('openPremium');
