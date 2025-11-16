@@ -925,7 +925,6 @@ def logoutUser(request):
     return redirect('landing_page')
 
 
-
 def registerPage(request, template='base/login_register.html'):
     page = 'register'
 
@@ -933,7 +932,6 @@ def registerPage(request, template='base/login_register.html'):
         # Read which step we're on (default to '1' if missing)
         step = request.POST.get('step', '1')
 
-        # Debug info
         print("🔹 REGISTER POST DETECTED")
         print("STEP:", step)
         print("POST DATA:", dict(request.POST))
@@ -942,51 +940,59 @@ def registerPage(request, template='base/login_register.html'):
         # Bind the full form so entered values stick on re-render
         form = StudentCreationForm(request.POST, request.FILES)
 
-        # === STEP 1 or STEP 2 POST (not final yet) ===
-        # Move user to the next step without creating the account
-        if step in ['1', '2']:
-            next_step = '2' if step == '1' else '3'
-            print(f"➡️ Moving from step {step} to {next_step}")
-            context = {
+        # ============================
+        # STEP 1 → Move to Step 2
+        # ============================
+        if step == '1':
+            print("➡️ Moving to step 2")
+            return render(request, template, {
                 'student_form': form,
                 'page': page,
-                'show_step': next_step,
-            }
-            return render(request, template, context)
+                'show_step': '2',
+            })
 
-        # === STEP 3 POST (final submit) ===
-        if step == '3':
-            print("✅ Final step detected, validating form...")
+        # =====================================
+        # STEP 2 → FINAL SUBMIT (Create account)
+        # =====================================
+        if step == '2':
+            print("➡️ Final submit from step 2")
 
             if form.is_valid():
+                print("✅ Form valid — creating user")
                 user = form.save(commit=False)
                 user.role = 'student'
-                user.is_active = True         # ✅ activate immediately
+                user.is_active = True
 
-                # 🔥 auto assign country
+                # Auto-assign country
                 if request.path.startswith("/da/"):
                     user.country = "DK"
                 else:
                     user.country = "US"
 
                 user.save()
+                login(request, user)
 
-                login(request, user)          # ✅ log them in right away
                 messages.success(request, "Welcome to Internstart! Your account is ready.")
                 print("🎉 User created successfully:", user.email)
+
                 return redirect('swipe_static_view')
 
-            # If form invalid
-            print("❌ FORM ERRORS:", form.errors.as_json())   # <--- ADD THIS
-            messages.error(request, 'Please correct the errors below.')
-            context = {'student_form': form, 'page': page, 'show_step': '3'}
-            return render(request, template, context)
+            # If errors → stay on step 2
+            print("❌ FORM ERRORS:", form.errors.as_json())
+            messages.error(request, 'Please fix errors below.')
+            return render(request, template, {
+                'student_form': form,
+                'page': page,
+                'show_step': '2',
+            })
 
-    # GET
+    # GET request
+    print("🔹 REGISTER GET")
     form = StudentCreationForm()
-    # ✅ FIX: use template arg, not hardcoded english one
-    return render(request, template, {'student_form': form, 'page': 'register'})
-
+    return render(request, template, {
+        'student_form': form,
+        'page': 'register'
+    })
 
 @login_required(login_url='login')
 def home(request):
