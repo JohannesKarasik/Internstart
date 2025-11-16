@@ -430,7 +430,34 @@
     justify-content: center !important;
     text-align: center !important;
     display: flex !important;
+    width: 80% !important;              /* match CTA width */
+    max-width: 260px !important;        /* same compact size as button */
+    padding: 6px 10px !important;       /* smaller pill */
+    transform: translateX(0);           /* ensure perfect centering */
+    justify-content: center !important;
+    gap: 6px !important;
   }
+
+
+  .rating__stars {
+    --size: 14px !important;            /* smaller stars */
+    --spacing: 1px !important;
+  }
+
+  .rating__text {
+    font-size: 12px !important;         /* smaller text */
+  }
+
+  .rating__more {
+    font-size: 12px !important;
+  }
+
+  .hero__face {
+    width: 28px !important;             /* smaller avatars */
+    height: 28px !important;
+    margin-left: -8px !important;
+  }
+}
 
   .hero__faces {
     margin-left: 0 !important;
