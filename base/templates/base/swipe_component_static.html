@@ -2343,8 +2343,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-
   /* ===============================
      Undo stack
   =============================== */
@@ -2620,6 +2618,7 @@ document.addEventListener('DOMContentLoaded', () => {
    Button coachmarks onboarding
 =============================== */
 document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('if_full_onboarding_done') === '1') return;
 
   const $ = s => document.querySelector(s);
   const whenReady = (ids, cb) => {
@@ -2770,23 +2769,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-<div id="simple-tooltip" 
-     style="
-       position: fixed;
-       max-width: 240px;
-       padding: 10px 14px;
-       background: #0e162a;
-       border-radius: 10px;
-       border: 1px solid rgba(148,163,184,.25);
-       color: #fff;
-       font-size: 14px;
-       line-height: 1.45;
-       box-shadow: 0 10px 22px rgba(0,0,0,.35);
-       z-index: 99999;
-       display: none;
-     ">
-   <div id="simple-tooltip-text" style="font-weight:600;"></div>
-</div>
 
 
 
