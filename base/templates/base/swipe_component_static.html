@@ -1826,7 +1826,7 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
 
     /* Hide or show elements based on screen size */
     .desktop-only {
-      display: inli
+      display: inline-flex;
     }
 
     .mobile-only {
@@ -2136,6 +2136,56 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
       color: #1f2b3b;
     }
 
+
+    /* ===== FINAL MOBILE LAYOUT OVERRIDES ===== */
+    @media (max-width: 768px) {
+      /* Hide sidebar + backdrop completely */
+      #sidebar,
+      #sidebarBackdrop {
+        display: none !important;
+      }
+
+      /* Hide both HUD variants on mobile to avoid clutter */
+      .hud,
+      .hud-mobile {
+        display: none !important;
+      }
+
+      /* Simplify header: keep only account icon */
+      .header-left {
+        display: none !important; /* hides theme toggle + mobile premium */
+      }
+
+      .custom-header {
+        width: 100%;
+        max-width: none;
+        left: 0;
+        transform: none;
+        padding: 8px 12px;
+      }
+
+      .header__account {
+        position: fixed;
+        top: calc(8px + env(safe-area-inset-top));
+        right: 12px;
+        z-index: 40;
+      }
+
+      /* Center the main card nicely */
+      main.layout {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .swipe-container {
+        width: 92vw;
+        max-width: 440px;
+        height: auto;
+        max-height: calc(100dvh - 80px);
+      }
+    }
 
   </style>
 
