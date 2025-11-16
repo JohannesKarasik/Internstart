@@ -300,7 +300,6 @@ html, body {
   </style>
   
   
-
   <script>
     (() => {
       const viewport = document.querySelector('.reviews__viewport');
@@ -318,30 +317,36 @@ html, body {
       let index = 0;
       let gapPx = 0;
     
+      // ⭐ MUST be global so advance() can use the value
+      let mobileOffset = 0;
+    
       const computeStep = () => {
         const first = track.querySelector('.review-card');
         if (!first) return;
+    
         const rect = first.getBoundingClientRect();
         const styles = getComputedStyle(track);
         const rawGap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+    
         gapPx = rawGap;
         step = rect.width + gapPx;
-
-                // 📱 Mobile centering (only when screen < 768px)
-        let mobileOffset = 0;
+    
+        // 📱 MOBILE CENTERING
         if (window.innerWidth < 768) {
           const viewportWidth = viewport.getBoundingClientRect().width;
           mobileOffset = (viewportWidth - rect.width) / 2;
+        } else {
+          mobileOffset = 0;
         }
-
     
         track.style.transition = 'none';
         track.style.transform = `translateX(${mobileOffset - index * step}px)`;
-        requestAnimationFrame(() => track.style.transition = '');
+        requestAnimationFrame(() => (track.style.transition = ''));
       };
     
       const advance = () => {
         index += 1;
+    
         track.style.transition = 'transform .6s cubic-bezier(.22,.61,.36,1)';
         track.style.transform = `translateX(${mobileOffset - index * step}px)`;
     
@@ -349,28 +354,32 @@ html, body {
           setTimeout(() => {
             track.style.transition = 'none';
             index = 0;
-            track.style.transform = 'translateX(0)';
-            requestAnimationFrame(() => track.style.transition = '');
+            track.style.transform = `translateX(${mobileOffset - index * step}px)`;
+            requestAnimationFrame(() => (track.style.transition = ''));
           }, 620);
         }
       };
     
       const ro = new ResizeObserver(computeStep);
       ro.observe(viewport);
-      window.addEventListener('load', computeStep, { once:true });
+    
+      window.addEventListener('load', computeStep, { once: true });
       computeStep();
     
       // Move one card every 3 seconds
       setInterval(advance, 3000);
     
-      // Pause transition when scrolled out (optional)
-      const io = new IntersectionObserver((entries) => {
-        const visible = entries[0].isIntersecting;
-        if (!visible) { track.style.transition = 'none'; }
+      // Pause when out of view
+      const io = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) {
+          track.style.transition = 'none';
+        }
       }, { threshold: 0.05 });
+    
       io.observe(viewport);
     })();
     </script>
+    
 
 
 
