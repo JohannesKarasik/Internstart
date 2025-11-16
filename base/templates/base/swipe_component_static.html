@@ -2283,6 +2283,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (elR)     elR.textContent = role;
     if (elLoc)   elLoc.textContent = loc;
 
+    // FIX: update the badge
+    const elBadges = $('#cBadges');
+    if (elBadges) {
+        elBadges.innerHTML = `
+            <div class="badge">
+                <span class="dot"></span>
+                ${loc || "{{ request.user.city|default:'Your city' }}"}
+            </div>
+        `;
+}
+
     if (elBC)    elBC.textContent = company;
     if (elBR)    elBR.textContent = role;
     if (elBLoc)  elBLoc.textContent = loc;
