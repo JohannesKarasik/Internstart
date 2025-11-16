@@ -2705,35 +2705,48 @@ document.addEventListener('DOMContentLoaded', () => {
         stopDemo();
       }
       function place(targetEl) {
-        if (!targetEl) { clearUI(); return; }
-        tip.style.display = "block";
-        tip.style.visibility = "hidden";
-        const r = targetEl.getBoundingClientRect();
+      if (!targetEl) { clearUI(); return; }
 
+      // Make sure parent isn't hidden
+      onb.hidden = false;
 
-        const size = Math.max(r.width, r.height) + 28;
-        spot.style.width = spot.style.height = size + 'px';
-        spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
-        spot.style.top   = (r.top + r.height/2 - size/2) + 'px';
-        spot.classList.add('show');
+      // TEMPORARILY reveal tooltip so it has real dimensions
+      tip.style.visibility = "hidden";
+      tip.style.display = "block";
+      tip.classList.add("show");
 
-        const PAD = 12, GAP = 10;
-        const prevVis = tip.style.visibility;
-        tip.style.visibility = 'hidden';
-        tip.style.left = '-9999px'; tip.style.top = '-9999px';
-        tip.classList.remove('is-above','is-below');
-        const tb = tip.getBoundingClientRect();
-        tip.style.visibility = prevVis || '';
+      const r = targetEl.getBoundingClientRect();
 
-        const centerX = r.left + r.width/2;
-        const preferAboveY = r.top - GAP - tb.height;
-        const needBelow = (preferAboveY < PAD);
-        const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
-        const clampedLeft = Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
-        tip.style.left = `${clampedLeft}px`;
-        tip.style.top  = `${Math.max(PAD, Math.min(topY, innerHeight - tb.height - PAD))}px`;
-        tip.classList.add(needBelow ? 'is-below' : 'is-above','show');
-      }
+      // spotlight
+      const size = Math.max(r.width, r.height) + 28;
+      spot.style.width = spot.style.height = size + "px";
+      spot.style.left  = (r.left + r.width/2 - size/2) + "px";
+      spot.style.top   = (r.top + r.height/2 - size/2) + "px";
+      spot.classList.add("show");
+
+      // Now measure tooltip
+      const tb = tip.getBoundingClientRect();
+
+      // calculate position
+      const centerX = r.left + r.width/2;
+      const PAD = 12, GAP = 10;
+
+      const preferAbove = r.top - GAP - tb.height;
+      const showBelow = (preferAbove < PAD);
+
+      const topY = showBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
+      const leftX = Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
+
+      // apply final positioning
+      tip.style.left = `${leftX}px`;
+      tip.style.top = `${topY}px`;
+      tip.classList.toggle("is-below", showBelow);
+      tip.classList.toggle("is-above", !showBelow);
+
+      // make visible now that it's placed
+      tip.style.visibility = "visible";
+    }
+
       function stopDemo() { demo.style.display='none'; demoStamp.classList.remove('show'); }
       function playDemo(kind) {
         demo.style.display='flex';
