@@ -262,41 +262,50 @@
             </div>
           </div>
 
+<!-- ========== STEP 2: Preferences ========== -->
           <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
             <h2 id="step2label" class="sr-only">Preferences</h2>
-          
-            <!-- 1) Desired job title -->
+
+            <!-- Stage 1: Desired job title -->
             <div id="step2-jobtitle">
-              <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 16px;">
+              <div class="form__group" style="grid-column:1/-1;margin-bottom:16px;">
                 <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
                   What's your desired job title?
                 </label>
-                {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=e.g. Marketing intern, Software developer, Analyst" }}
+                {{ student_form.desired_job_title
+                    |add_class:"form__control"
+                    |attr:"placeholder=e.g. Marketing intern, Software developer, Analyst" }}
+              </div>
+
+              <!-- Stage 1 buttons -->
+              <div class="wizard-actions wizard-actions--split">
+                <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
+
+                <!-- THIS IS THE IMPORTANT MISSING BUTTON -->
+                <button type="button" class="btn btn--primary" id="step2-continue">
+                  Continue
+                </button>
               </div>
             </div>
-          
 
-          
-            <!-- 3) Job Type -->
+            <!-- Stage 2: Job type (hidden initially) -->
             <div id="step2-jobtype" style="display:none;">
               <div class="form__group" style="margin-bottom:16px;">
-                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">What type of job are you looking for?</label>
+                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
+                  What type of job are you looking for?
+                </label>
                 {{ student_form.job_type|add_class:"form__control" }}
               </div>
-            </div>
-          
-            <div class="wizard-actions wizard-actions--split">
-              <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
-              <button type="submit" class="btn btn--primary">Create account</button>
-              <button type="button" id="toStep3" style="display:none"></button>
-            </div>
-          </div>
-          
 
+              <!-- Stage 2 buttons -->
+              <div class="wizard-actions wizard-actions--split">
+                <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
 
-            <div class="wizard-actions wizard-actions--split">
-              <button type="button" class="btn btn--ghost" id="backToStep2">  Back</button>
-              <button type="submit" class="btn btn--primary">Create account</button>
+                <!-- Final submit (only shown in Stage 2) -->
+                <button type="submit" class="btn btn--primary">
+                  Create account
+                </button>
+              </div>
             </div>
           </div>
 
