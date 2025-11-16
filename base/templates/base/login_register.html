@@ -250,10 +250,10 @@
             <h2 id="step2label" class="sr-only">Preferences</h2>
           
 
-            <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 20px;">
+            <div id="step2-relocate" class="form__group" style="grid-column: 1 / -1; margin-bottom: 20px;">
               <label class="form__label">Are you willing to relocate for work?</label>
             
-              {{ student_form.willing_to_relocate }}  <!-- hidden input -->
+              {{ student_form.willing_to_relocate }}
             
               <div class="relocate-buttons">
                 <button type="button" class="relocate-btn yes" data-value="yes">Yes</button>
