@@ -99,15 +99,16 @@ class StudentCreationForm(UserCreationForm):
     )
 
     class Meta:
-        model = User   # ✅ CORRECT
+        model = User
         fields = [
             'full_name',
             'email',
-            'password1',   # added
             'resume',
             'desired_job_title',
             'job_type',
+            'willing_to_relocate',
         ]
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
