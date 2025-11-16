@@ -234,6 +234,25 @@
     gap: 12px;
   }
 }
+/* MOBILE: make logo cards smaller & tighter */
+@media (max-width: 640px) {
+
+.logo {
+  padding: 6px 10px !important;    /* smaller padding */
+  min-width: 90px !important;      /* narrower cards */
+  height: 38px !important;         /* lower height */
+  border-radius: 10px !important;  /* slightly smaller radius */
+}
+
+.logo__img {
+  max-height: 20px !important;     /* shrink logos slightly */
+  max-width: 100px !important;
+}
+
+.logos__track {
+  gap: 12px !important;            /* slightly smaller gap between cards */
+}
+}
 
 
 
