@@ -1137,77 +1137,124 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 
 from openai import OpenAI
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+import json
+
 client = OpenAI()
+
 @login_required
 def next_card_json(request):
     user = request.user
 
     dt = (user.desired_job_title or "").strip()
     lang = "english"
-    if user.country == "DK":
+    if getattr(user, "country", "") == "DK":
         lang = "danish"
+
+    # --- infer job type from user profile ---
+    raw_job_type = (getattr(user, "job_type", "") or "").strip().lower()
+
+    if raw_job_type in ["internship", "intern", "internship_role"]:
+        job_type_label = "internship"
+        job_type_prompt = "an internship role (for students or recent graduates)"
+        default_role = "Internship"
+    elif raw_job_type in ["student_job", "student job", "student", "part_time_student"]:
+        job_type_label = "student job"
+        job_type_prompt = "a student job (part-time alongside studies)"
+        default_role = "Student job"
+    elif raw_job_type in ["full_time", "full-time", "full time", "fulltime"]:
+        job_type_label = "full-time"
+        job_type_prompt = "a full-time position"
+        default_role = "Full-time"
+    else:
+        # Fallback if nothing is set / unknown
+        job_type_label = "unspecified"
+        job_type_prompt = "a role that makes sense for this title"
+        default_role = ""
 
     try:
         prompt = f"""
         Pick exactly 1 REAL company in {user.country} that is MID-SIZE 
         (not a famous big tech company like Google, Meta, Apple, Tesla, Amazon).
 
-        Match desired job title '{dt}' but make the job title short + very specific.
-        (Example: instead of "Marketing Intern", write "Performance Marketing Intern (Paid Social)")
+        The user selected job type: {job_type_label}.
+        You must generate {job_type_prompt}.
 
-        Write in {lang}.
+        Match desired job title "{dt}" and make the job title short + very specific.
+        - Example: instead of "Marketing Intern", write "Performance Marketing Intern (Paid Social)".
+        - If job type is "internship", the title must clearly be an internship.
+        - If job type is "student job", the title must clearly be a student job / student assistant role.
+        - If job type is "full-time", the title must clearly be a full-time position.
 
-        Return ONLY JSON like:
+        Write everything in {lang}.
+
+        Return ONLY valid JSON like:
         {{
-          "company":"...",
-          "domain":"company website domain ONLY (example: revolut.com, airbnb.com)",
-          "title":"...",
-          "role":"...",
-          "description":"compact 1 sentence on daily work"
+          "company": "Company name",
+          "domain": "company website domain ONLY (example: revolut.com, airbnb.com, company.dk)",
+          "title": "Specific job title that matches the employment type",
+          "role": "Short label for the employment type (e.g. 'Internship', 'Student job', 'Full-time')",
+          "description": "Compact 1 sentence on daily work"
         }}
 
-        IMPORTANT: domain must include .com or correct TLD (.dk / .se / .co.uk etc)
+        IMPORTANT:
+        - "domain" must include .com or the correct local TLD (e.g. .dk, .se, .co.uk, .de).
+        - JSON ONLY, no backticks, no explanations.
         """
 
         completion = client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=[
-                {"role":"system","content":"You generate realistic job postings with REAL existing companies."},
-                {"role":"user","content": prompt}
+                {
+                    "role": "system",
+                    "content": "You generate realistic, employment-type-correct job postings with REAL existing companies."
+                },
+                {"role": "user", "content": prompt}
             ],
         )
 
-        import json
         obj = json.loads(completion.choices[0].message.content)
 
         # --- normalize domain ---
-        domain = (obj.get("domain","") or "").lower().strip()
+        domain = (obj.get("domain", "") or "").lower().strip()
         if domain and "." not in domain:
             domain = domain + ".com"
 
         return JsonResponse({
             "id": "ai",
-            "company": obj.get("company",""),
-            "title": obj.get("title",""),
-            "role": obj.get("role",""),
-            "location": user.country,
+            "company": obj.get("company", ""),
+            "title": obj.get("title", "") or dt or default_role or "Job",
+            "role": obj.get("role", "") or default_role,
+            "location": getattr(user, "country", "") or "",
             "logo_domain": domain,
-            "desc": obj.get("description",""),
-            "badges": []
+            "desc": obj.get("description", ""),
+            "badges": [],
+            "job_type": job_type_label,   # extra field if you want it in JS/template
         })
 
     except Exception as e:
+        # Fallback title based on job type so it still "feels" right
+        if job_type_label == "internship":
+            fb_title = dt or "Internship"
+        elif job_type_label == "student job":
+            fb_title = dt or "Student job"
+        elif job_type_label == "full-time":
+            fb_title = dt or "Full-time role"
+        else:
+            fb_title = dt or "Job"
+
         return JsonResponse({
             "id": "fallback",
             "company": "Internstart",
-            "title": "Internship",
-            "role": "",
-            "location": user.country,
+            "title": fb_title,
+            "role": default_role,
+            "location": getattr(user, "country", "") or "",
             "logo_domain": "",
             "desc": "",
-            "badges": []
+            "badges": [],
+            "job_type": job_type_label,
         })
-
 
 from openai import OpenAI
 client = OpenAI()
