@@ -2133,6 +2133,26 @@ main.layout {
 
   <script>
 
+
+// ===== 5-second page loading overlay =====
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+
+  // Keep overlay for 5 seconds, then fade out
+  setTimeout(() => {
+    loader.classList.add('hidden');
+
+    // After the fade-out transition, remove it from layout
+    const removeAfter = () => {
+      loader.style.display = 'none';
+      loader.removeEventListener('transitionend', removeAfter);
+    };
+    loader.addEventListener('transitionend', removeAfter);
+  }, 5000); // 5000ms = 5 seconds
+});
+
+
     console.log("🔥 AI card loader script running...");
 
 
@@ -2443,24 +2463,6 @@ document.getElementById("swipe-right-btn")
 // -------------------------------
 loadNextCard();
 
-
-// ===== 5-second page loading overlay =====
-document.addEventListener('DOMContentLoaded', () => {
-  const loader = document.getElementById('page-loader');
-  if (!loader) return;
-
-  // Keep overlay for 5 seconds, then fade out
-  setTimeout(() => {
-    loader.classList.add('hidden');
-
-    // After the fade-out transition, remove it from layout
-    const removeAfter = () => {
-      loader.style.display = 'none';
-      loader.removeEventListener('transitionend', removeAfter);
-    };
-    loader.addEventListener('transitionend', removeAfter);
-  }, 5000); // 5000ms = 5 seconds
-});
 
 
 </script>
