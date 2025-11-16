@@ -2127,13 +2127,27 @@ main.layout {
 
 {% include "base/email_flow_showcase.html" %}
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('showEFSNow');
+    if (!btn) {
+      console.log('❌ showEFSNow not found in DOM');
+      return;
+    }
+    console.log('✅ showEFSNow found, forcing visible');
+    btn.style.display = 'flex';
+  });
+</script>
+
+<script>
+  
+  // (checkout + quota logic removed for staging)
+  
+</script>
+
 <script src="{% static 'js/email_flow_showcase.js' %}"></script>
 
-  <!-- ===== Core JS (staging: visual only) ===== -->
-
-  <script>
-
-
+<script>
 // ===== 5-second page loading overlay =====
 document.addEventListener('DOMContentLoaded', () => {
   const loader = document.getElementById('page-loader');
@@ -2153,9 +2167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-    console.log("🔥 AI card loader script running...");
-
-
+console.log("🔥 AI card loader script running...");
 
 document.addEventListener('DOMContentLoaded', () => {
   const deck = document.getElementById('swipeDeck');
@@ -2330,32 +2342,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 👉 LOAD AI-GENERATED FIRST CARD
-// 👉 LOAD AI-GENERATED FIRST CARD
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("/swipe/next/", { credentials: "include" })
-        .then(r => r.json())
-        .then(job => {
-            console.log("AI job loaded:", job);
+  fetch("/swipe/next/", { credentials: "include" })
+    .then(r => r.json())
+    .then(job => {
+      console.log("AI job loaded:", job);
 
-            // FRONT
-            document.getElementById("cCompany").textContent = job.company || "Company";
-            document.getElementById("cTitle").textContent   = job.title || "Title";
-            document.getElementById("cRole").textContent    = job.role || "Role";
-            document.getElementById("cLoc").textContent     = job.location || "Location";
+      // FRONT
+      document.getElementById("cCompany").textContent = job.company || "Company";
+      document.getElementById("cTitle").textContent   = job.title || "Title";
+      document.getElementById("cRole").textContent    = job.role || "Role";
+      document.getElementById("cLoc").textContent     = job.location || "Location";
 
-            // LOGO
-            const logoURL = job.logo_domain 
-                ? `https://logo.clearbit.com/${job.logo_domain}`
-                : "https://logo.clearbit.com/openai.com";
-            document.getElementById("cLogo").src = logoURL;
+      // LOGO
+      const logoURL = job.logo_domain 
+        ? `https://logo.clearbit.com/${job.logo_domain}`
+        : "https://logo.clearbit.com/openai.com";
+      document.getElementById("cLogo").src = logoURL;
 
-            // BACK OF CARD
-            document.getElementById("bCompany").textContent = job.company || "Company";
-            document.getElementById("bRole").textContent    = job.role || "Role";
-            document.getElementById("bLoc").textContent     = job.location || "Location";
-            document.getElementById("bDesc").textContent    = job.desc || "";
-        })
-        .catch(err => console.error("AI job fetch failed:", err));
+      // BACK OF CARD
+      document.getElementById("bCompany").textContent = job.company || "Company";
+      document.getElementById("bRole").textContent    = job.role || "Role";
+      document.getElementById("bLoc").textContent     = job.location || "Location";
+      document.getElementById("bDesc").textContent    = job.desc || "";
+    })
+    .catch(err => console.error("AI job fetch failed:", err));
 });
 
 
@@ -2376,96 +2387,94 @@ const NEXT_URL = "/swipe/next/";
 
 // Load a new card from backend
 async function loadNextCard() {
-    try {
-        const r = await fetch(NEXT_URL, {credentials:"include"});
-        if (!r.ok) throw new Error("Bad response");
-        const data = await r.json();
+  try {
+    const r = await fetch(NEXT_URL, {credentials:"include"});
+    if (!r.ok) throw new Error("Bad response");
+    const data = await r.json();
 
-        // Fill UI fields
-        elCompany.textContent = data.company || "Unknown Company";
-        elTitle.textContent   = data.title   || "Job Title";
-        elRole.textContent    = data.role    || "";
+    // Fill UI fields
+    elCompany.textContent = data.company || "Unknown Company";
+    elTitle.textContent   = data.title   || "Job Title";
+    elRole.textContent    = data.role    || "";
 
-        elLoc.textContent     = data.location || "";
-        elDesc.textContent    = data.desc || "";
+    elLoc.textContent     = data.location || "";
+    elDesc.textContent    = data.desc || "";
 
-        // logo: only if domain exists
-        if (data.logo_domain) {
-            elLogo.src = `https://logo.clearbit.com/${data.logo_domain}`;
-        } else {
-            elLogo.src = "/static/images/default_logo.png";
-        }
-
-        return true;
-
-    } catch (err) {
-        console.error("next card fetch error:", err);
-        return false;
+    // logo: only if domain exists
+    if (data.logo_domain) {
+      elLogo.src = `https://logo.clearbit.com/${data.logo_domain}`;
+    } else {
+      elLogo.src = "/static/images/default_logo.png";
     }
+
+    return true;
+
+  } catch (err) {
+    console.error("next card fetch error:", err);
+    return false;
+  }
 }
 
 // -------------------------------
 // SWIPE ANIMATION HELPERS
 // -------------------------------
 function animateSwipe(card, direction = "left") {
-    return new Promise(resolve => {
-        card.classList.add("leaving");
-        card.style.transition = "transform 0.35s ease, opacity 0.35s ease";
+  return new Promise(resolve => {
+    card.classList.add("leaving");
+    card.style.transition = "transform 0.35s ease, opacity 0.35s ease";
 
-        if (direction === "left") {
-            card.style.transform = "translateX(-300px) rotate(-12deg)";
-        } else {
-            card.style.transform = "translateX(300px) rotate(12deg)";
-        }
-        card.style.opacity = "0";
+    if (direction === "left") {
+      card.style.transform = "translateX(-300px) rotate(-12deg)";
+    } else {
+      card.style.transform = "translateX(300px) rotate(12deg)";
+    }
+    card.style.opacity = "0";
 
-        setTimeout(resolve, 350);
-    });
+    setTimeout(resolve, 350);
+  });
 }
 
 function resetCard(card) {
-    card.classList.remove("leaving");
-    card.style.transform = "translateX(0) rotate(0deg)";
-    card.style.opacity = "1";
-    card.style.transition = "none";
+  card.classList.remove("leaving");
+  card.style.transform = "translateX(0) rotate(0deg)";
+  card.style.opacity = "1";
+  card.style.transition = "none";
 }
 
 // -------------------------------
 // MAIN SWIPE HANDLER
 // -------------------------------
 async function handleSwipe(direction) {
-    const topCard = document.querySelector(".swipe-card.is-top");
-    if (!topCard) return;
+  const topCard = document.querySelector(".swipe-card.is-top");
+  if (!topCard) return;
 
-    // 1. Load next card BEFORE animating
-    const ok = await loadNextCard();
-    if (!ok) return;
+  // 1. Load next card BEFORE animating
+  const ok = await loadNextCard();
+  if (!ok) return;
 
-    // 2. Animate current card out
-    await animateSwipe(topCard, direction);
+  // 2. Animate current card out
+  await animateSwipe(topCard, direction);
 
-    // 3. Reset + reinsert at bottom of stack
-    resetCard(topCard);
-    topCard.parentNode.appendChild(topCard); // move to back
+  // 3. Reset + reinsert at bottom of stack
+  resetCard(topCard);
+  topCard.parentNode.appendChild(topCard); // move to back
 }
 
 // -------------------------------
 // BUTTONS
 // -------------------------------
 document.getElementById("swipe-left-btn")
-        .addEventListener("click", () => handleSwipe("left"));
+  .addEventListener("click", () => handleSwipe("left"));
 
 document.getElementById("swipe-right-btn")
-        .addEventListener("click", () => handleSwipe("right"));
+  .addEventListener("click", () => handleSwipe("right"));
 
 // -------------------------------
 // INITIAL LOAD
 // -------------------------------
 loadNextCard();
-
-
-
 </script>
+
 
 </main>
 
