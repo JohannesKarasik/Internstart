@@ -2732,7 +2732,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
         if (e.target.id === 'ifOnbNext2') {
           if (i < steps.length - 1) { i++; render(); }
-          else { close(); localStorage.setItem('if_full_onboarding_done', '1'); }
         }
       });
 
@@ -2748,23 +2747,27 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       function afterEmail() {
-        showEmailConnectedToast();
-        open();
-        wireButtons(open);
-      }
-      document.addEventListener('onboarding:finished', afterEmail, { once:true });
+    showEmailConnectedToast();
+    open();            // opens tooltip onboarding
+    wireButtons(open); // enables "show onboarding" buttons
+}
 
-      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
-      const main = document.querySelector('main.layout');
-      const firstLogin = main?.dataset.firstLogin === 'true';
-      if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
-        setTimeout(() => {
-          document.dispatchEvent(new Event('onboarding:email'));
-        }, 800);
-      }
-    }
-  );
-});
+// 🔥 IMPORTANT CHANGE: remove `{ once: true }` AND still listen for the event
+document.addEventListener('onboarding:finished', afterEmail);
+
+// 🔥 NEW: Always wire tooltip onboarding even if email onboarding never runs
+wireButtons(open);
+
+const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
+const main = document.querySelector('main.layout');
+const firstLogin = main?.dataset.firstLogin === 'true';
+
+if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
+    setTimeout(() => {
+        document.dispatchEvent(new Event('onboarding:email'));
+    }, 800);
+}
+
 </script>
 
 
