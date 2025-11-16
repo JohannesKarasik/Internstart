@@ -2067,7 +2067,9 @@ main.layout {
   letter-spacing: 0.02em;
 }
 
-
+#ifOnbTip {
+  display: block !important;
+}
 
 
 </style>
@@ -2685,7 +2687,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       function place(targetEl) {
         if (!targetEl) { clearUI(); return; }
+        tip.style.display = "block";
+        tip.style.visibility = "hidden";
         const r = targetEl.getBoundingClientRect();
+
+
         const size = Math.max(r.width, r.height) + 28;
         spot.style.width = spot.style.height = size + 'px';
         spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
