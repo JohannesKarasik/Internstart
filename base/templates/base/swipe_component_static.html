@@ -3,8 +3,7 @@
 {% block content %}
 {% if not partial %}
 
-<main>
-
+<main
 <!-- 🔥 FULL PAGE LOADER -->
 <div id="pageLoader" 
      style="
@@ -2299,7 +2298,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // 👉 LOAD AI-GENERATED FIRST CARD
 // 👉 LOAD AI-GENERATED FIRST CARD
 document.addEventListener("DOMContentLoaded", () => {
-  fetch("/swipe/next/", { credentials: "include" })
+fetch("/swipe/next/", { credentials: "include" })
     .then(r => r.json())
     .then(job => {
         console.log("AI job loaded:", job);
@@ -2435,23 +2434,6 @@ document.getElementById("swipe-right-btn")
 // -------------------------------
 loadNextCard();
 
-// 🔥 AUTO-HIDE LOADER AFTER 5 SECONDS
-document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        const loader = document.getElementById("pageLoader");
-        if (loader) {
-            loader.style.opacity = "0";
-            loader.style.transition = "opacity 0.6s ease";
-            setTimeout(() => { loader.style.display = "none"; }, 600);
-        }
-
-        const deck = document.getElementById("swipeDeck");
-        if (deck) {
-            deck.style.opacity = "1";
-            deck.style.pointerEvents = "auto";
-        }
-    }, 5000); // 5 seconds
-});
 
 </script>
 
