@@ -355,6 +355,7 @@
 <div id="swipeHint" class="swipe-hint">
   <span class="swipe-hint__icon">✓</span>
   <span class="swipe-hint__text">Swipe right to apply</span>
+  <button type="button" class="swipe-hint__next">Next</button>
 </div>
 
   <div id="loadMoreSentinel" style="height:1px;"></div>
@@ -1337,7 +1338,7 @@
   white-space: nowrap;
   padding: 4px 8px;
   border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
@@ -2036,6 +2037,21 @@ main.layout {
   transform: translate(-50%, calc(-100% + 8px)); /* slide down slightly when hiding */
 }
 
+/* 🔹 Next button inside swipe hint */
+.swipe-hint__next {
+  border: none;
+  background: #FF2F5A;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.swipe-hint__next:hover {
+  background: #e92650;
+}
 
 
   </style>
@@ -2066,9 +2082,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const swipeHint = document.getElementById('swipeHint');
   const swipeRightBtn = document.querySelector('.swipe-btn.swipe-right');
+  const swipeLeftBtn = document.querySelector('.swipe-btn.swipe-left');
+  const swipeHintText = swipeHint ? swipeHint.querySelector('.swipe-hint__text') : null;
+  const swipeHintIcon = swipeHint ? swipeHint.querySelector('.swipe-hint__icon') : null;
+  const swipeHintNext = swipeHint ? swipeHint.querySelector('.swipe-hint__next') : null;
 
   let applied = 0;
   let swipesLeft = parseInt(swipesLeftEl?.textContent || '0', 10) || 10;
+  let hintStage = 1; // 1 = "Swipe right to apply", 2 = "Swipe left to dismiss"
 
   function showToast(msg) {
     if (!toastEl) return;
@@ -2080,21 +2101,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
   }
 
-  // 🔹 Position hint directly above the swipe-right button
+  // 🔹 Position hint directly above the current anchor swipe button
   function positionSwipeHint() {
-    if (!swipeHint || !swipeRightBtn) return;
+    if (!swipeHint) return;
+    const anchorBtn = hintStage === 1 ? swipeRightBtn : swipeLeftBtn;
+    if (!anchorBtn) return;
 
-    const rect = swipeRightBtn.getBoundingClientRect();
+    const rect = anchorBtn.getBoundingClientRect();
     swipeHint.style.position = 'fixed';
-    swipeHint.style.bottom = 'auto';
     swipeHint.style.left = `${rect.left + rect.width / 2}px`;
     swipeHint.style.top = `${rect.top - 8}px`;   // a bit above the button
     swipeHint.style.transform = 'translate(-50%, -100%)';
   }
 
-  if (swipeHint && swipeRightBtn) {
+  if (swipeHint && (swipeRightBtn || swipeLeftBtn)) {
     positionSwipeHint();
     window.addEventListener('resize', positionSwipeHint);
+  }
+
+  // 🔹 "Next" inside hint → switch to left-swipe hint
+  if (swipeHintNext) {
+    swipeHintNext.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hintStage = 2;
+      if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
+      if (swipeHintIcon) swipeHintIcon.textContent = '✕';
+      positionSwipeHint();
+    });
   }
 
   // Simple card flip: click anywhere on card (except buttons)
