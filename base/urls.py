@@ -7,6 +7,8 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from .views import swipe_static_view
 
+from base import views as base_views
+
 
 
 
@@ -75,8 +77,10 @@ urlpatterns = [
 # urls.py
     path("swipe/preview/", swipe_static_view, name="swipe_static_view"),
     # urls.py
-    path("swipe/next/", views.next_card_json, name="next_card_json"),
+
     path("apply-with-ai/", views.apply_with_ai, name="apply_with_ai"),
+    path("swipe/next/", views.next_card_json, name="next_card_json"),
+
 
 
     
