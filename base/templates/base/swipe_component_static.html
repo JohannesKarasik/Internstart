@@ -57,101 +57,93 @@
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="url(#sbG)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
 
-```
-    <button id="showEFSNow" class="btn-secondary"
-    style="position:fixed;bottom:14px;left:14px;z-index:9999;
-           display:flex;align-items:center;justify-content:center;">
-```
+        <button id="showEFSNow" class="btn-secondary"
+        style="position:fixed;bottom:14px;left:14px;z-index:9999;
+               display:flex;align-items:center;justify-content:center;">
+          Show demo
+        </button>
 
-Show demo </button>
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('showEFSNow');
+            if (!btn) {
+              console.log('❌ showEFSNow not found in DOM');
+              return;
+            }
+            console.log('✅ showEFSNow found, forcing visible');
+            btn.style.display = 'flex';
+          });
+        </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('showEFSNow');
-    if (!btn) {
-      console.log('❌ showEFSNow not found in DOM');
-      return;
-    }
-    console.log('✅ showEFSNow found, forcing visible');
-    btn.style.display = 'flex';
-  });
-</script>
+        <span class="logo-chip">
+          <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
+        </span>
+      </div>
 
-```
-    <span class="logo-chip">
-      <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
-    </span>
-  </div>
+      <button id="sidebarToggle" class="sidebar__toggle" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
 
-  <button id="sidebarToggle" class="sidebar__toggle" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
-    <svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-</div>
+    <nav class="sidebar__nav" role="navigation">
+      <a class="sbi is-active" href="#" title="Discover">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-3v-7H8v7H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Discover</span>
+      </a>
 
-<nav class="sidebar__nav" role="navigation">
-  <a class="sbi is-active" href="#" title="Discover">
-    <span class="sbi__icon" aria-hidden="true">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-3v-7H8v7H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-    <span class="sbi__label">Discover</span>
-  </a>
+      <a class="sbi" href="#" id="openSaved" title="Saved">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Saved</span>
+        <span class="sbi__badge" id="savedBadge">{{ request.user.savedjob_set.count|default:0 }}</span>
+      </a>
 
-  <a class="sbi" href="#" id="openSaved" title="Saved">
-    <span class="sbi__icon" aria-hidden="true">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-    <span class="sbi__label">Saved</span>
-```
+      <a class="sbi" href="#" title="Applied" style="display: none;">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Applied</span>
+      </a>
 
-<span class="sbi__badge" id="savedBadge">{{ request.user.savedjob_set.count|default:0 }}</span> </a>
+      <a class="sbi" href="#" title="Messages" style="display: none;">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="sbi__label">Messages</span>
+        <span class="sbi__dot" aria-hidden="true"></span>
+      </a>
 
-```
-  <a class="sbi" href="#" title="Applied" style="display: none;">
-    <span class="sbi__icon" aria-hidden="true">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-    <span class="sbi__label">Applied</span>
-  </a>
+      <div class="sidebar__sep" role="separator" aria-hidden="true"></div>
 
-  <a class="sbi" href="#" title="Messages" style="display: none;">
-    <span class="sbi__icon" aria-hidden="true">
-      <svg width="18" height="18" viewBox="0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-    <span class="sbi__label">Messages</span>
-    <span class="sbi__dot" aria-hidden="true"></span>
-  </a>
-
-  <div class="sidebar__sep" role="separator" aria-hidden="true"></div>
-```
-
-<a class="sbi" href="{% url 'update-user' %}" title="Settings">
+      <a class="sbi" href="{% url 'update-user' %}" title="Settings">
         <span class="sbi__icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.94-3a6.94 6.94 0 0 0-.12-1l2.12-1.65-2-3.46-2.56 1a7.1 7.1 0 0 0-1.7-1L13 2h-2l-.68 2.24a7.1 7.1 0 0 0-1.7 1l-2.56-1-2 3.46L5.5 11a6.94 6.94 0 0 0 0 2l-2.12 1.65 2 3.46 2.56-1a7.1 7.1 0 0 0 1.7 1L11 22h2l.68-2.24a7.1 7.1 0 0 0 1.7-1l2.56 1 2-3.46L19.82 13a6.94 6.94 0 0 0 .12-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <span class="sbi__label">Settings</span>
       </a>
 
-```
-  <a class="sbi" href="{% url 'app_logout' %}" title="Logout">
-    <span class="sbi__icon" aria-hidden="true">
-      <svg width="18" height="18" viewBox="0 0 24 24">
-        <path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-7" 
-              fill="none" stroke="currentColor" stroke-width="2" 
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </span>
-    <span class="sbi__label">Logout</span>
-  </a>
-</nav>
+      <a class="sbi" href="{% url 'app_logout' %}" title="Logout">
+        <span class="sbi__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-7" 
+                  fill="none" stroke="currentColor" stroke-width="2" 
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="sbi__label">Logout</span>
+      </a>
+    </nav>
 
-<div class="sidebar__footer">
-  <div class="sidebar__plan">
-    <span class="plan-dot" aria-hidden="true"></span>
-    <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
-  </div>
-  <button class="sidebar__upgrade" type="button" id="openPremium">Get more swipes</button>
-</div>
-```
+    <div class="sidebar__footer">
+      <div class="sidebar__plan">
+        <span class="plan-dot" aria-hidden="true"></span>
+        <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
+      </div>
+      <button class="sidebar__upgrade" type="button" id="openPremium">Get more swipes</button>
+    </div>
 
   </aside>
   <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
@@ -168,21 +160,18 @@ Show demo </button>
         <svg class="tt-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
       </button>
 
-```
-  <!-- Mobile: Get more swipes -->
-  <button class="mobile-premium-btn mobile-only" id="openPremiumMobile">
-    Get more swipes
-  </button>
-</div>
+      <!-- Mobile: Get more swipes -->
+      <button class="mobile-premium-btn mobile-only" id="openPremiumMobile">
+        Get more swipes
+      </button>
+    </div>
 
-```
-
-<a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
-  <svg xmlns="http://.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-    <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-      d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
-  </svg>
-</a>
+    <a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
+      <svg xmlns="http://.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+      </svg>
+    </a>
 
   </header>
 
@@ -208,14 +197,14 @@ Show demo </button>
 
   <!-- new compact mobile HUD -->
 
-<div class="hud-mobile">
-  <div class="hud-mobile__swipes">
-    <span id="swipesLeftMobile">{{ swipes_left }}</span> left
+  <div class="hud-mobile">
+    <div class="hud-mobile__swipes">
+      <span id="swipesLeftMobile">{{ swipes_left }}</span> left
+    </div>
+    <div class="hud-mobile__applied">
+      <span id="appliedCountMobile">0</span> applied
+    </div>
   </div>
-  <div class="hud-mobile__applied">
-    <span id="appliedCountMobile">0</span> applied
-  </div>
-</div>
 
   <div class="hud__right" title="Cards remaining / applied">
     <!-- Swipes left -->
@@ -231,29 +220,27 @@ Show demo </button>
       </div>
     </div>
 
-```
-<!-- Applied -->
-<div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
-  <div class="applied-widget__icon" aria-hidden="true">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-  <div class="applied-widget__text">
-    <span id="appliedCount">0</span>
-    <small>Applied</small>
-  </div>
-</div>
+    <!-- Applied -->
+    <div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
+      <div class="applied-widget__icon" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="applied-widget__text">
+        <span id="appliedCount">0</span>
+        <small>Applied</small>
+      </div>
+    </div>
 
-<!-- Deck progress -->
-<div class="ring" role="img" style="display: none;" aria-label="Deck progress">
-  <svg viewBox="0 0 36 36">
-    <path class="ring-track" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
-    <path class="ring-bar" id="ringBar" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
-  </svg>
-  <div class="ring__label" style="display: none;"><span id="cardsLeft">0</span></div>
-</div>
-```
+    <!-- Deck progress -->
+    <div class="ring" role="img" style="display: none;" aria-label="Deck progress">
+      <svg viewBox="0 0 36 36">
+        <path class="ring-track" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
+        <path class="ring-bar" id="ringBar" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
+      </svg>
+      <div class="ring__label" style="display: none;"><span id="cardsLeft">0</span></div>
+    </div>
 
   </div>
 </div>
@@ -279,55 +266,55 @@ Show demo </button>
   html, body { margin:0; padding:0; height:100%; overflow:hidden; overscroll-behavior:none; background:#0b0f1a; }
 
   /* ===== Simple full-page loading overlay (5s) ===== */
-#page-loader {
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(237,0,60,0.22), transparent 60%),
-    #020617;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-  transition: opacity 0.4s ease;
-}
+  #page-loader {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(237,0,60,0.22), transparent 60%),
+      #020617;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    transition: opacity 0.4s ease;
+  }
 
-#page-loader.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+  #page-loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.page-loader__inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 24px;
-  border-radius: 16px;
-  background: rgba(15,23,42,0.92);
-  border: 1px solid rgba(148,163,184,0.4);
-  box-shadow: 0 18px 42px rgba(0,0,0,0.7);
-  font-family: 'Manrope', sans-serif;
-  color: #e5e7eb;
-}
+  .page-loader__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    background: rgba(15,23,42,0.92);
+    border: 1px solid rgba(148,163,184,0.4);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.7);
+    font-family: 'Manrope', sans-serif;
+    color: #e5e7eb;
+  }
 
-.page-loader__spinner {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  border: 3px solid rgba(148,163,184,0.5);
-  border-top-color: #FF2F5A;
-  animation: loaderSpin 0.8s linear infinite;
-}
+  .page-loader__spinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 3px solid rgba(148,163,184,0.5);
+    border-top-color: #FF2F5A;
+    animation: loaderSpin 0.8s linear infinite;
+  }
 
-.page-loader__text {
-  font-size: 14px;
-  font-weight: 600;
-}
+  .page-loader__text {
+    font-size: 14px;
+    font-weight: 600;
+  }
 
-@keyframes loaderSpin {
-  to { transform: rotate(360deg); }
-}
+  @keyframes loaderSpin {
+    to { transform: rotate(360deg); }
+  }
 
   /* Keep borders visible on hover & avoid clipping */
   #noSwipesModal .modal__plans { overflow: visible !important; }
@@ -393,36 +380,33 @@ Show demo </button>
           <img class="company-logo" id="cLogo" src="https://logo.clearbit.com/{{ first_room.logo_domain|default:'openai.com' }}" alt="" loading="lazy">
         </div>
 
-```
-    <div class="title-block">
-      <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
-      <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
-      <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
-      <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:"Your city" }}</span></p>
+        <div class="title-block">
+          <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
+          <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
+          <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
+          <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:"Your city" }}</span></p>
+        </div>
+
+        <div class="info-badges" id="cBadges"></div>
+
+        <div class="card-cta">
+          <button class="swipe-btn swipe-left"  aria-label="Skip"><span class="btn-ripple"></span>✕</button>
+          <button class="swipe-btn swipe-right" aria-label="Apply"><span class="btn-ripple"></span>✓</button>
+        </div>
+
+        <div class="stamp stamp--apply">APPLY</div>
+        <div class="stamp stamp--dismiss">SKIP</div>
+      </div>
+
+      <!-- BACK -->
+      <div class="card-back">
+        <h3 id="bCompany">{{ first_room.company|default:'OpenAI' }}</h3>
+        <h4 id="bRole">{{ first_room.role|default:'Intern' }}</h4>
+        <p class="location">📍 <span id="bLoc">{{ first_room.location|default:'Copenhagen, DK' }}</span></p>
+        <div class="divider"></div>
+        <p class="desc" id="bDesc">{{ first_room.desc|default:'AI generated example job. Upgrade to unlock real listings.' }}</p>
+      </div>
     </div>
-
-    <div class="info-badges" id="cBadges"></div>
-
-    <div class="card-cta">
-      <button class="swipe-btn swipe-left"  aria-label="Skip"><span class="btn-ripple"></span>✕</button>
-      <button class="swipe-btn swipe-right" aria-label="Apply"><span class="btn-ripple"></span>✓</button>
-    </div>
-
-    <div class="stamp stamp--apply">APPLY</div>
-    <div class="stamp stamp--dismiss">SKIP</div>
-  </div>
-
-  <!-- BACK -->
-  <div class="card-back">
-    <h3 id="bCompany">{{ first_room.company|default:'OpenAI' }}</h3>
-    <h4 id="bRole">{{ first_room.role|default:'Intern' }}</h4>
-    <p class="location">📍 <span id="bLoc">{{ first_room.location|default:'Copenhagen, DK' }}</span></p>
-    <div class="divider"></div>
-    <p class="desc" id="bDesc">{{ first_room.desc|default:'AI generated example job. Upgrade to unlock real listings.' }}</p>
-  </div>
-</div>
-```
-
   </div>
 </div>
 
@@ -434,15 +418,12 @@ Show demo </button>
   <button type="button" class="swipe-hint__next">Next</button>
 </div>
 
-  <div id="loadMoreSentinel" style="height:1px;"></div>
-</div>
+<div id="loadMoreSentinel" style="height:1px;"></div>
 
-```
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div id="onboarding-overlay" 
 style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:10000; font-family:'Manrope', sans-serif !important;">
-```
 
  <div id="onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="onb-title" aria-describedby="onb-desc" 
       style="position:relative; margin:auto; max-width:380px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:20px; border:1px solid rgba(148,163,184,.15); color:#e6eef8; font-family:'Manrope', sans-serif !important; left:0; right:0;">
@@ -507,9 +488,9 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     <div class="ifOnb__tipText"  id="ifOnbTipText">Swipe left or tap the X to skip and keep browsing.</div>
   </div>
 
-<!-- add -->
+  <!-- add -->
 
-<div class="ifOnb__leader" id="ifOnbLeader" aria-hidden="true"></div>
+  <div class="ifOnb__leader" id="ifOnbLeader" aria-hidden="true"></div>
 
   <!-- Mini demo card (we animate this so we don’t touch real data) -->
 
@@ -1040,8 +1021,8 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     .theme-light .swipe-card.card-color-blue{ --accent-soft:rgba(46,167,255,.07); --accent-glow:rgba(46,167,255,.09); }
     .theme-light .swipe-card.card-color-yellow{ --accent-soft:rgba(255,178,30,.07); --accent-glow:rgba(255,178,30,.09); }
     .swipe-card {
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
   
     .card-inner{ width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .35s ease; border-radius:22px; }
     .card-front,.card-back{
@@ -1110,13 +1091,13 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
           rgba(237,0,60,.26) 360deg) border-box;
       border:1px solid transparent;
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.05),
+        inset 0 1px 0 rgba(255,255,255,.05),
         0 8px 22px rgba(2,6,23,.32),
         0 0 20px var(--accent-glow);
       transition: box-shadow .25s ease, transform .25s ease, background .25s ease;
       animation: aiBorderSpin 36s linear infinite;
     }
-    .swipe-card.is-top .logo-frame{ animation-duration: 22s; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 26px rgba(2,6,23,.4), 0 0 24px var(--accent-glow); }
+    .swipe-card.is-top .logo-frame{ animation-duration: 22s; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 26px rgba(2,6,23,.4), 0 0 24px var(--accent-glow); }
     .logo-frame:hover{ transform: translateY(-1px); }
     .theme-light .logo-frame{
       background:
@@ -1245,22 +1226,22 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
   
     /* Toast */
     .toast {
-  position: fixed;
-  /* move it up and further right */
-  top: 8px;         /* was 20px */
-  right: 30px;      /* was 20px */
-  z-index: 10000;   /* keep it above cards */
-  background: linear-gradient(180deg, #0b1220, #0e1729);
-  color: #fff;
-  border: 1px solid var(--border);
-  padding: 10px 14px;
-  border-radius: 12px;
-  box-shadow: 0 14px 36px rgba(2,6,23,.36);
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: .2s ease;
-  font-weight: 700;
-}
+      position: fixed;
+      /* move it up and further right */
+      top: 8px;         /* was 20px */
+      right: 30px;      /* was 20px */
+      z-index: 10000;   /* keep it above cards */
+      background: linear-gradient(180deg, #0b1220, #0e1729);
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 14px 36px rgba(2,6,23,.36);
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: .2s ease;
+      font-weight: 700;
+    }
 
     .theme-light .toast{
       background: linear-gradient(180deg, #f4f6fa, #e9edf3);
@@ -1286,841 +1267,842 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     }
 
 
-/* Dark theme */
-.card-front{
-  /* solid base + radial highlight that fades into the same base color */
-  background-color:#0f1527;
-  background-image:
-    radial-gradient(120% 90% at 16% 0%, rgba(237,0,60,.16), #0f1527 58%),
-    linear-gradient(180deg, #0f1527 0%, #0c1426 100%);
-  border-color:#243049; /* no alpha */
-}
-.card-front::before{
-  /* keep the inner glow but remove any holes */
-  box-shadow: inset 0 0 28px rgba(237,0,60,.16);
-}
-.card-back{
-  /* already opaque, just ensure border is solid */
-  background: linear-gradient(180deg, #10192b 0%, #0c1324 100%);
-  border-color:#243049;
-}
-
-/* Light theme */
-.theme-light .card-front{
-  background-color:#f6f8fc;
-  background-image:
-    radial-gradient(120% 90% at 16% 0%, rgba(237,0,60,.07), #f6f8fc 58%),
-    linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
-  border-color:#d5dbe6;
-}
-.theme-light .card-back{
-  background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
-  border-color:#d5dbe6;
-}
-
-/* (Optional) Don’t dim stacked cards */
-.swipe-card.is-next,
-.swipe-card.is-third{
-  opacity:1;
-}
-
-
-/* Hide night/day toggle and streak chip when sidebar is open */
-.sb-open .theme-toggle,
-.sb-open .hud__streak{
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-  transform: translateY(-6px);
-  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
-}
-
-/* Nice entrance when closing sidebar */
-.theme-toggle,
-.hud__streak{
-  transition: opacity .18s ease, transform .18s ease;
-}
-
-.saved-card{
-  display:flex; align-items:center; gap:10px;
-  padding:12px; border-bottom:1px solid rgba(148,163,184,.22);
-  color:var(--ink); background:rgba(255,255,255,.04);
-}
-.saved-logo{ width:40px; height:40px; object-fit:contain; border-radius:6px; }
-
-
-/* Saved jobs panel styled to match AI SaaS look */
-#savedList {
-  display:none;
-  margin-top:20px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:16px;
-  box-shadow: var(--elev-1);
-  max-height:calc(100dvh - 180px);
-  overflow-y:auto;
-  color:var(--ink);
-}
-
-.theme-light #savedList{
-  background:#f6f8fb;
-  border-color:rgba(15,23,42,.12);
-  box-shadow: var(--elev-1);
-}
-
-.saved-card{
-  display:flex;align-items:center;gap:14px;
-  padding:12px 10px;
-  border-radius:12px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border-subtle);
-  margin-bottom:10px;
-  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
-}
-.saved-card:hover{
-  background:rgba(255,255,255,.07);
-  transform:translateY(-1px);
-  box-shadow:0 6px 18px rgba(2,6,23,.2);
-}
-.theme-light .saved-card{
-  background:rgba(2,6,23,.04);
-  border-color:rgba(15,23,42,.08);
-}
-.saved-logo{
-  width:48px;height:48px;
-  object-fit:contain;border-radius:8px;
-  background:#fff;
-  box-shadow:0 1px 4px rgba(0,0,0,.08);
-}
-
-/* Pill tooltip for Saved link */
-#openSaved::after {
-  content: "Coming soon";
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%) translateX(8px);
-  background: var(--brand);
-  color: #fff;
-  font: 700 12px/1 Inter;
-  white-space: nowrap;
-  padding: 5px 10px;
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s ease, transform .15s ease;
-  z-index: 10;
-}
-#openSaved:hover::after {
-  opacity: 1;
-  transform: translateY(-50%) translateX(12px);
-}
-
-/* Light theme version */
-.theme-light #openSaved::after {
-  background: #0e1320;
-  color: #fff;
-}
-
-
-/* make anchor the containing block */
-#openSaved {
-  position: relative;
-}
-
-/* pill text */
-#openSaved::after {
-  content: "Coming soon";
-  position: absolute;
-  top: 50%;
-  left: 100%;                /* start just to the right */
-  transform: translateY(-50%) translateX(6px);
-  background: var(--brand);
-  color: #fff;
-  font: 700 12px/1 Inter;
-  padding: 5px 10px;
-  border-radius: 999px;
-  white-space: nowrap;
-  box-shadow: 0 4px 10px rgba(0,0,0,.25);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s ease, transform .15s ease;
-  z-index: 100;
-}
-
-/* on hover show it */
-#openSaved:hover::after {
-  opacity: 1;
-  transform: translateY(-50%) translateX(10px);
-}
-
-/* light theme variant */
-.theme-light #openSaved::after {
-  background: #0e1320;
-  color: #fff;
-}
-
-
-/* --- Phones & small tablets ------------------------------------------------ */
-/* --- Phones & small tablets ------------------------------------------------ */
-/* --- Phones & small tablets ------------------------------------------------ */
-@media (max-width: 600px) {
-
-.swipe-container {
-  width: 98vw;
-  height: calc(100dvh - 130px);
-  max-height: 88vh;
-}
-
-.card-front,
-.card-back {
-  padding: 22px 18px 18px;
-}
-
-.company-logo {
-  max-height: clamp(180px, 42vh, 280px);
-}
-
-.title-block h3 { font-size: 30px; line-height: 1.2; }
-.title-block h2 { font-size: 18px; line-height: 1.35; }
-.title-block h4 { font-size: 13px; letter-spacing: .15em; }
-.card-back .desc { font-size: 16px; line-height: 1.7; }
-
-.card-cta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  padding-top: 14px;
-}
-
-.card-cta .swipe-btn {
-  flex: 0 1 auto;
-  width: clamp(46px, 20vw, 60px);
-  aspect-ratio: 1/1;
-  height: auto;
-  border-radius: 14px;
-}
-
-.card-cta .swipe-btn svg {
-  width: 20px !important;
-  height: 20px !important;
-}
-
-.badge { font-size: 14px; padding: 7px 11px; }
-.meta  { font-size: 14px; padding: 7px 11px; }
-
-.toast { top: calc(8px + env(safe-area-inset-top)); right: 12px; }
-#savedList { width: 98vw !important; max-height: calc(100dvh - 140px); }
-
-/* ---- HUD chips top-left at same level as account icon ---- */
-.hud {
-  position: fixed;
-  top: calc(8px + env(safe-area-inset-top)); /* same height as account icon */
-  left: 8px;
-  display: flex;
-  flex-direction: row;           /* chips side-by-side */
-  align-items: center;           /* vertically center */
-  gap: 8px;
-  padding: 0;
-  margin: 0;
-  z-index: 30;
-}
-
-.hud__streak,
-.hud__swipes,
-.hud__applied,
-.swipes-widget,
-.applied-widget {
-  display: flex;
-  align-items: center;
-  margin: 0;                    /* reset any default margin */
-  min-height: 34px;
-  width: auto;
-  flex-shrink: 1;
-}
-
-/* account icon top-right */
-.account-button,
-.account-icon,
-.header__account {
-  position: fixed;
-  top: calc(8px + env(safe-area-inset-top));
-  right: 14px;
-  z-index: 40;
-  transform: scale(1.1);
-  background: transparent;
-}
-}
-
-/* Very small phones */
-@media (max-width: 420px) {
-.hud .ring { display:none; }
-
-.swipe-container {
-  height: calc(100dvh - 140px);
-  max-height: 90vh;
-  width: 98vw;
-}
-
-.company-logo { max-height: clamp(160px, 46vh, 260px); }
-.title-block h3 { font-size: 28px; }
-.title-block h2 { font-size: 17px; }
-.title-block h4 { font-size: 12.5px; }
-
-.card-cta .swipe-btn {
-  width: clamp(44px, 19vw, 56px);
-  border-radius: 12px;
-}
-.card-cta .swipe-btn svg {
-  width: 18px !important;
-  height: 18px !important;
-}
-}
-
-/* Ultra small */
-@media (max-width: 380px) {
-.title-block h3 { font-size: 26px; }
-.title-block h2 { font-size: 16px; }
-.title-block h4 { font-size: 12px; letter-spacing: .13em; }
-
-.company-logo { max-height: clamp(140px, 48vh, 240px); }
-
-.badge { font-size: 13px; padding: 6px 10px; }
-.meta  { font-size: 13px; padding: 6px 10px; }
-
-.card-cta { gap: 8px; }
-.card-cta .swipe-btn {
-  width: clamp(40px, 18vw, 52px);
-}
-.card-cta .swipe-btn svg {
-  width: 16px !important;
-  height: 16px !important;
-}
-}
-
-/* Hide sidebar on mobile */
-@media (max-width: 900px){
-#sidebar,
-#sidebarBackdrop,
-.sidebar__toggle{ display:none !important; }
-.layout{ padding-left:0 !important; }
-}
-
-
-/* Default: desktop — show original HUD, hide mobile */
-.hud-mobile { display:none; }
-
-@media (max-width: 600px){
-  /* hide full HUD on mobile */
-  .hud { display:none !important; }
-
-  /* show our new simpler mobile HUD */
-  .hud-mobile {
-    position:fixed;
-    top:calc(8px + env(safe-area-inset-top));
-    left:50%;
-    transform:translateX(-50%);
-    width:98vw;
-    display:flex;
-    justify-content:space-between;
-    gap:14px;
-    padding:8px 12px;
-    background:rgba(255,255,255,.06);
-    border:1px solid var(--border);
-    border-radius:12px;
-    color:var(--ink);
-    backdrop-filter:blur(6px);
-    z-index:30;
-    font-weight:700;
-    font-size:14px;
-  }
-  .theme-light .hud-mobile{
-    background:rgba(2,6,23,.045);
-    border-color:rgba(15,23,42,.12);
-  }
-}
-
-main.layout {
-  padding-top: 12px;               /* pushes your cards etc. down */
-}
-
-
-/* ===== Modal Base ===== */
-.modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  font-family: 'Manrope', sans-serif !important;
-}
-
-.modal.show { display: flex; }
-
-/* Backdrop */
-.modal__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(3px);
-}
-
-/* Dialog box */
-.modal__dialog {
-  position: relative;
-  background: #0e162a;   /* dark background matching theme */
-  border-radius: 16px;
-  padding: 28px 24px;
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 18px 36px rgba(0,0,0,0.5);
-  animation: fadeUp .25s ease;
-  z-index: 2;
-  text-align: center;
-  color: #f5f5f5;
-}
-
-/* Close button */
-.modal__close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  border: none;
-  background: none;
-  font-size: 22px;
-  color: #aaa;
-  cursor: pointer;
-  transition: color .2s ease;
-}
-.modal__close:hover { color: #fff; }
-
-/* Content */
-.modal__content h2 {
-  margin: 0 0 12px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-}
-.modal__content p {
-  font-size: 16px;
-  line-height: 1.5;
-  color: #d1d5db;
-  margin: 0 0 20px;
-}
-
-/* Actions */
-.modal__actions {
-  display: flex;
-  justify-content: center;
-}
-.btn-secondary {
-  padding: 10px 22px;
-  border-radius: 10px;
-  background: #FF2F5A; /* brand red */
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: background .2s ease, transform .15s ease;
-}
-.btn-secondary:hover {
-  background: #e92650;
-  transform: translateY(-1px);
-}
-
-/* Animation */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px) scale(.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-
-/* --- Mobile-only "Get more swipes" button --- */
-.mobile-premium-btn {
-  display: none; /* hidden by default (desktop) */
-  background: linear-gradient(135deg, #ed003c, #ff4f7a);
-  color: #fff;
-  font-weight: 700;
-  font-size: 14px;
-  border: none;
-  border-radius: 10px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.mobile-premium-btn:hover {
-  background: linear-gradient(135deg, #d80038, #ff3b6b);
-  transform: translateY(-1px);
-}
-
-/* Show only on mobile */
-@media (max-width: 768px) {
-  .bgFX,
-  .bgFX__beam,
-  .bgFX__orb,
-  .bgFX__grid {
-    display: none !important;
-  }
-  main.layout {
-    background: linear-gradient(135deg, #0b0f1a 0%, #16203b 100%) !important;
-  }
-}
-
-
-@media (max-width: 768px) {
-  /* Disable only heavy visual effects (NOT layout/visibility) */
-  .bgFX,
-  .bgFX__beam,
-  .bgFX__orb,
-  .bgFX__grid {
-    display: none !important;
-  }
-
-  .swipe-container {
-    perspective: none !important;
-  }
-
-  .card-inner {
-    transform: none !important;
-  }
-
-  /* Ensure logo container still behaves as intended */
-  .logo-frame {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    padding: 8px;
-    margin-bottom: 12px;
-    border-radius: 16px;
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  .company-logo {
-    display: block !important;
-    max-width: 80%;
-    max-height: 160px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-  }
-}
-
-
-@media (max-width: 768px) {
-  .mobile-premium-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto;         /* centers horizontally */
-    position: relative;     /* ensures it stays within header flow */
-    left: 50%;
-    transform: translateX(-50%);
-  }
-}
-
-/* Hide or show elements based on screen size */
-.desktop-only {
-  display: inli
-}
-
-.mobile-only {
-  display: none !important;
-}
-
-@media (max-width: 768px) {
-  .desktop-only {
-    display: none !important;
-  }
-  .mobile-only {
-    display: inline-flex !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .logo-frame {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    padding: 8px;
-    margin-bottom: 12px;
-    border-radius: 16px;
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  .company-logo {
-    display: block !important;
-    max-width: 80%;
-    max-height: 160px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-  }
-}
-
-
-
-
-/* 📱 Allow scrolling inside the modal on mobile */
-@media (max-width: 768px) {
-  #noSwipesModal .modal__dialog {
-    max-height: 90dvh;      /* don’t overflow screen */
-    overflow-y: auto;       /* enable scrolling inside modal */
-    -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
-    padding-bottom: 20px;   /* breathing room for bottom content */
-  }
-
-  /* keep plans spaced properly */
-  #noSwipesModal .modal__plans {
-    flex-direction: column !important;
-    gap: 1.2rem;
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ===== Onboarding base ===== */
-#ifOnb[hidden]{ display:none !important; }
-#ifOnb{
-  position:fixed; inset:0; z-index:10050; font-family:'Manrope',sans-serif !important;
-}
-.ifOnb__backdrop{
-  position:absolute; inset:0; background: rgba(2,6,23,0.72);
-  animation: if-fade .25s ease both;
-}
-.ifOnb__card{
-  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  width:min(520px, calc(100vw - 32px));
-  background:var(--panel); color:var(--ink);
-  border:1px solid var(--border); border-radius:18px; padding:22px;
-  box-shadow:0 30px 80px rgba(0,0,0,.55);
-  animation: if-pop .25s ease both;
-}
-.theme-light .ifOnb__card{ background:#f6f8fb; }
-
-.ifOnb__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-.ifOnb__chip{
-  font:800 11px/1 Inter; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand-400));
-  padding:6px 10px; border-radius:999px; box-shadow:0 10px 22px rgba(237,0,60,.25);
-}
-.theme-light .ifOnb__chip{ color:#fff; }
-.ifOnb__close{ background:none; border:0; color:var(--ink); opacity:.6; font-size:22px; cursor:pointer; }
-.ifOnb__title{ margin:6px 0 6px; font:800 20px/1.3 Inter; color:var(--ink); }
-.ifOnb__desc{ margin:0 0 10px; color:var(--ink-500); }
-.ifOnb__progress{ margin:8px 0 14px; color:var(--ink-500); font-weight:700; }
-
-.ifOnb__actions{ display:flex; gap:10px; justify-content:flex-end; }
-.ifOnb__stage{ border:1px dashed var(--border-subtle); border-radius:12px; padding:12px; background:rgba(255,255,255,.04); }
-.theme-light .ifOnb__stage{ background:rgba(2,6,23,.035); }
-
-/* Spotlight ring that positions over real targets */
-.ifOnb__spot{
-  position:fixed; width:96px; height:96px; border-radius:999px; pointer-events:none;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.55), 0 0 0 2px var(--brand);
-  transform:scale(.9); opacity:0; transition: .25s ease;
-}
-.ifOnb__spot.show{ transform:scale(1); opacity:1; }
-
-/* Tooltip arrow (auto flips) */
-.ifOnb__tooltip{
-  position:fixed;
-  max-width:340px;
-  background:linear-gradient(180deg,#020617,#020617);
-  color:#fff; border:1px solid var(--border);
-  border-radius:16px; padding:16px 18px;
-  box-shadow:0 18px 44px rgba(2,6,23,.6);
-  opacity:0; transform:translateY(6px);
-  transition:.18s ease;
-}
-
-.theme-light .ifOnb__tooltip{ background:#020617; color:#fff; }
-.ifOnb__tooltip.show{ opacity:1; transform:translateY(0); }
-.ifOnb__tipTitle{ font-weight:800; margin:0 0 6px; font-size:16px; }
-.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; font-size:14px; line-height:1.6; }
-
-
-.ifOnb__tooltip::after{
-  content:"";
-  position:absolute;
-  width:10px; height:10px; transform:rotate(45deg);
-  background:inherit; border:inherit; border-left:none; border-top:none;
-  box-shadow:inherit;
-}
-
-/* when tooltip is above the target */
-.ifOnb__tooltip.is-above::after{
-  bottom:-5px; left:calc(50% - 5px);
-}
-/* when tooltip is below the target */
-.ifOnb__tooltip.is-below::after{
-  top:-5px; left:calc(50% - 5px);
-}
-
-/* leader line from target → tooltip arrow */
-.ifOnb__leader{
-  position:fixed; height:2px; width:0;
-  background: linear-gradient(90deg, var(--brand), rgba(237,0,60,.0));
-  box-shadow: 0 0 8px rgba(237,0,60,.45);
-  border-radius:2px;
-  transform-origin: 0 50%;
-  pointer-events:none; opacity:.95;
-}
-
-/* little polish on the title spacing */
-.ifOnb__tipTitle{ font-weight:800; margin:0 0 6px; font-size:16px; }
-.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; font-size:14px; line-height:1.6; }
-
-
-
-/* Demo card used for fake animations (does not alter data) */
-.ifOnb__demoCard{
-  position:fixed; left:50%; top:56%; width:min(360px, 88vw); height:220px;
-  border-radius:18px; border:1px solid rgba(148,163,184,.16);
-  background:linear-gradient(180deg,#0f1527,#0c1426);
-  box-shadow:var(--elev-2);
-  display:none; align-items:center; justify-content:center;
-}
-.theme-light .ifOnb__demoCard{ background:linear-gradient(180deg,#f6f8fc,#eef2f7); }
-.ifOnb__demoStamp{
-  position:absolute; top:12px; left:12px;
-  padding:6px 10px; border-radius:8px; font-weight:900; letter-spacing:.12em; font-size:10px;
-  color:#fecaca; background:#7f1d1d40; border:1px solid #fecaca33; opacity:0; transform:translateY(-6px) scale(.9);
-  transition:.25s ease;
-}
-.ifOnb__demoStamp.show{ opacity:1; transform:translateY(0) scale(1); }
-
-/* Brand buttons (reuse your tokens) */
-.btn-primary{ background:var(--brand); color:#fff; border:0; padding:10px 16px; border-radius:12px; font-weight:800; }
-.btn-secondary{ background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--ink); padding:10px 16px; border-radius:12px; font-weight:800; }
-
-@keyframes if-pop{ from{opacity:0; transform:translate(-50%,-44%) scale(.98)} to{opacity:1; transform:translate(-50%,-50%) scale(1)}}
-@keyframes if-fade{ from{opacity:0} to{opacity:1}}
-
-/* Small screens */
-@media (max-width:600px){
-  .ifOnb__card{ width:calc(100vw - 20px); padding:18px; }
-  .ifOnb__demoCard{ top:60%; height:200px; }
-}
-
-/* Make whole card clickable except buttons */
-.swipe-card .card-front,
-.swipe-card .card-back {
-  cursor: pointer;
-}
-
-/* Buttons stay buttons */
-.swipe-card .swipe-btn {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-/* --- Fix: prevent onboarding tooltip flash --- */
-.ifOnb__tooltip,
-.ifOnb__spot,
-.ifOnb__demoCard,
-.ifOnb__demoStamp {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-
-.ifOnb__tooltip.show,
-.ifOnb__spot.show,
-.ifOnb__demoCard.show,
-.ifOnb__demoStamp.show {
-  visibility: visible;
-  opacity: 1;
-  transform: translateY(0);  /* important */
-}
-
-
-
-/* --- Fix: enforce Manrope font on onboarding buttons --- */
-#ifOnb,
-#ifOnb * {
-  font-family: 'Manrope', sans-serif !important;
-}
-
-#ifOnb .ifOnb__actions button {
-  font-family: 'Manrope', sans-serif !important;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-/* 🔹 Swipe explainer pill */
-/* 🔹 Swipe explainer pill (attached to swipe-right button) */
-.swipe-hint {
-  position: fixed;              /* we’ll position it via JS over the button/card */
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: rgba(2,6,23,0.96);
-  color: #f9fafb;
-  font-size: 15px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.6);
-  z-index: 9999;
-  transition: opacity .25s ease, transform .25s ease;
-  transform: translate(-50%, -100%);  /* centered above anchor point */
-}
-
-.theme-light .swipe-hint {
-  background: #020617;
-  color: #ffffff;
-}
-
-.swipe-hint__icon {
-  font-size: 16px;
-}
-
-.swipe-hint.hide {
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, calc(-100% + 8px)); /* slide down slightly when hiding */
-}
-
-/* 🔹 Next button inside swipe hint */
-.swipe-hint__next {
-  border: none;
-  background: #FF2F5A;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.swipe-hint__next:hover {
-  background: #e92650;
-}
+    /* Dark theme */
+    .card-front{
+      /* solid base + radial highlight that fades into the same base color */
+      background-color:#0f1527;
+      background-image:
+        radial-gradient(120% 90% at 16% 0%, rgba(237,0,60,.16), #0f1527 58%),
+        linear-gradient(180deg, #0f1527 0%, #0c1426 100%);
+      border-color:#243049; /* no alpha */
+    }
+    .card-front::before{
+      /* keep the inner glow but remove any holes */
+      box-shadow: inset 0 0 28px rgba(237,0,60,.16);
+    }
+    .card-back{
+      /* already opaque, just ensure border is solid */
+      background: linear-gradient(180deg, #10192b 0%, #0c1324 100%);
+      border-color:#243049;
+    }
+
+    /* Light theme */
+    .theme-light .card-front{
+      background-color:#f6f8fc;
+      background-image:
+        radial-gradient(120% 90% at 16% 0%, rgba(237,0,60,.07), #f6f8fc 58%),
+        linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+      border-color:#d5dbe6;
+    }
+    .theme-light .card-back{
+      background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+      border-color:#d5dbe6;
+    }
+
+    /* (Optional) Don’t dim stacked cards */
+    .swipe-card.is-next,
+    .swipe-card.is-third{
+      opacity:1;
+    }
+
+
+    /* Hide night/day toggle and streak chip when sidebar is open */
+    .sb-open .theme-toggle,
+    .sb-open .hud__streak{
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transform: translateY(-6px);
+      transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
+    }
+
+    /* Nice entrance when closing sidebar */
+    .theme-toggle,
+    .hud__streak{
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .saved-card{
+      display:flex; align-items:center; gap:10px;
+      padding:12px; border-bottom:1px solid rgba(148,163,184,.22);
+      color:var(--ink); background:rgba(255,255,255,.04);
+    }
+    .saved-logo{ width:40px; height:40px; object-fit:contain; border-radius:6px; }
+
+
+    /* Saved jobs panel styled to match AI SaaS look */
+    #savedList {
+      display:none;
+      margin-top:20px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:16px;
+      box-shadow: var(--elev-1);
+      max-height:calc(100dvh - 180px);
+      overflow-y:auto;
+      color:var(--ink);
+    }
+
+    .theme-light #savedList{
+      background:#f6f8fb;
+      border-color:rgba(15,23,42,.12);
+      box-shadow: var(--elev-1);
+    }
+
+    .saved-card{
+      display:flex;align-items:center;gap:14px;
+      padding:12px 10px;
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border-subtle);
+      margin-bottom:10px;
+      transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+    }
+    .saved-card:hover{
+      background:rgba(255,255,255,.07);
+      transform:translateY(-1px);
+      box-shadow:0 6px 18px rgba(2,6,23,.2);
+    }
+    .theme-light .saved-card{
+      background:rgba(2,6,23,.04);
+      border-color:rgba(15,23,42,.08);
+    }
+    .saved-logo{
+      width:48px;height:48px;
+      object-fit:contain;border-radius:8px;
+      background:#fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.08);
+    }
+
+    /* Pill tooltip for Saved link */
+    #openSaved::after {
+      content: "Coming soon";
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%) translateX(8px);
+      background: var(--brand);
+      color: #fff;
+      font: 700 12px/1 Inter;
+      white-space: nowrap;
+      padding: 5px 10px;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease, transform .15s ease;
+      z-index: 10;
+    }
+    #openSaved:hover::after {
+      opacity: 1;
+      transform: translateY(-50%) translateX(12px);
+    }
+
+    /* Light theme version */
+    .theme-light #openSaved::after {
+      background: #0e1320;
+      color: #fff;
+    }
+
+
+    /* make anchor the containing block */
+    #openSaved {
+      position: relative;
+    }
+
+    /* pill text */
+    #openSaved::after {
+      content: "Coming soon";
+      position: absolute;
+      top: 50%;
+      left: 100%;                /* start just to the right */
+      transform: translateY(-50%) translateX(6px);
+      background: var(--brand);
+      color: #fff;
+      font: 700 12px/1 Inter;
+      padding: 5px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0,0,0,.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease, transform .15s ease;
+      z-index: 100;
+    }
+
+    /* on hover show it */
+    #openSaved:hover::after {
+      opacity: 1;
+      transform: translateY(-50%) translateX(10px);
+    }
+
+    /* light theme variant */
+    .theme-light #openSaved::after {
+      background: #0e1320;
+      color: #fff;
+    }
+
+
+    /* --- Phones & small tablets ------------------------------------------------ */
+    /* --- Phones & small tablets ------------------------------------------------ */
+    /* --- Phones & small tablets ------------------------------------------------ */
+    @media (max-width: 600px) {
+
+      .swipe-container {
+        width: 98vw;
+        height: calc(100dvh - 130px);
+        max-height: 88vh;
+      }
+
+      .card-front,
+      .card-back {
+        padding: 22px 18px 18px;
+      }
+
+      .company-logo {
+        max-height: clamp(180px, 42vh, 280px);
+      }
+
+      .title-block h3 { font-size: 30px; line-height: 1.2; }
+      .title-block h2 { font-size: 18px; line-height: 1.35; }
+      .title-block h4 { font-size: 13px; letter-spacing: .15em; }
+      .card-back .desc { font-size: 16px; line-height: 1.7; }
+
+      .card-cta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        padding-top: 14px;
+      }
+
+      .card-cta .swipe-btn {
+        flex: 0 1 auto;
+        width: clamp(46px, 20vw, 60px);
+        aspect-ratio: 1/1;
+        height: auto;
+        border-radius: 14px;
+      }
+
+      .card-cta .swipe-btn svg {
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      .badge { font-size: 14px; padding: 7px 11px; }
+      .meta  { font-size: 14px; padding: 7px 11px; }
+
+      .toast { top: calc(8px + env(safe-area-inset-top)); right: 12px; }
+      #savedList { width: 98vw !important; max-height: calc(100dvh - 140px); }
+
+      /* ---- HUD chips top-left at same level as account icon ---- */
+      .hud {
+        position: fixed;
+        top: calc(8px + env(safe-area-inset-top)); /* same height as account icon */
+        left: 8px;
+        display: flex;
+        flex-direction: row;           /* chips side-by-side */
+        align-items: center;           /* vertically center */
+        gap: 8px;
+        padding: 0;
+        margin: 0;
+        z-index: 30;
+      }
+
+      .hud__streak,
+      .hud__swipes,
+      .hud__applied,
+      .swipes-widget,
+      .applied-widget {
+        display: flex;
+        align-items: center;
+        margin: 0;                    /* reset any default margin */
+        min-height: 34px;
+        width: auto;
+        flex-shrink: 1;
+      }
+
+      /* account icon top-right */
+      .account-button,
+      .account-icon,
+      .header__account {
+        position: fixed;
+        top: calc(8px + env(safe-area-inset-top));
+        right: 14px;
+        z-index: 40;
+        transform: scale(1.1);
+        background: transparent;
+      }
+    }
+
+    /* Very small phones */
+    @media (max-width: 420px) {
+      .hud .ring { display:none; }
+
+      .swipe-container {
+        height: calc(100dvh - 140px);
+        max-height: 90vh;
+        width: 98vw;
+      }
+
+      .company-logo { max-height: clamp(160px, 46vh, 260px); }
+      .title-block h3 { font-size: 28px; }
+      .title-block h2 { font-size: 17px; }
+      .title-block h4 { font-size: 12.5px; }
+
+      .card-cta .swipe-btn {
+        width: clamp(44px, 19vw, 56px);
+        border-radius: 12px;
+      }
+      .card-cta .swipe-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+      }
+    }
+
+    /* Ultra small */
+    @media (max-width: 380px) {
+      .title-block h3 { font-size: 26px; }
+      .title-block h2 { font-size: 16px; }
+      .title-block h4 { font-size: 12px; letter-spacing: .13em; }
+
+      .company-logo { max-height: clamp(140px, 48vh, 240px); }
+
+      .badge { font-size: 13px; padding: 6px 10px; }
+      .meta  { font-size: 13px; padding: 6px 10px; }
+
+      .card-cta { gap: 8px; }
+      .card-cta .swipe-btn {
+        width: clamp(40px, 18vw, 52px);
+      }
+      .card-cta .swipe-btn svg {
+        width: 16px !important;
+        height: 16px !important;
+      }
+    }
+
+    /* Hide sidebar on mobile */
+    @media (max-width: 900px){
+      #sidebar,
+      #sidebarBackdrop,
+      .sidebar__toggle{ display:none !important; }
+      .layout{ padding-left:0 !important; }
+    }
+
+
+    /* Default: desktop — show original HUD, hide mobile */
+    .hud-mobile { display:none; }
+
+    @media (max-width: 600px){
+      /* hide full HUD on mobile */
+      .hud { display:none !important; }
+
+      /* show our new simpler mobile HUD */
+      .hud-mobile {
+        position:fixed;
+        top:calc(8px + env(safe-area-inset-top));
+        left:50%;
+        transform:translateX(-50%);
+        width:98vw;
+        display:flex;
+        justify-content:space-between;
+        gap:14px;
+        padding:8px 12px;
+        background:rgba(255,255,255,.06);
+        border:1px solid var(--border);
+        border-radius:12px;
+        color:var(--ink);
+        backdrop-filter:blur(6px);
+        z-index:30;
+        font-weight:700;
+        font-size:14px;
+      }
+      .theme-light .hud-mobile{
+        background:rgba(2,6,23,.045);
+        border-color:rgba(15,23,42,.12);
+      }
+    }
+
+    main.layout {
+      padding-top: 12px;               /* pushes your cards etc. down */
+    }
+
+
+    /* ===== Modal Base ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: 'Manrope', sans-serif !important;
+    }
+
+    .modal.show { display: flex; }
+
+    /* Backdrop */
+    .modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(3px);
+    }
+
+    /* Dialog box */
+    .modal__dialog {
+      position: relative;
+      background: #0e162a;   /* dark background matching theme */
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.5);
+      animation: fadeUp .25s ease;
+      z-index: 2;
+      text-align: center;
+      color: #f5f5f5;
+    }
+
+    /* Close button */
+    .modal__close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      border: none;
+      background: none;
+      font-size: 22px;
+      color: #aaa;
+      cursor: pointer;
+      transition: color .2s ease;
+    }
+    .modal__close:hover { color: #fff; }
+
+    /* Content */
+    .modal__content h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .modal__content p {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #d1d5db;
+      margin: 0 0 20px;
+    }
+
+    /* Actions */
+    .modal__actions {
+      display: flex;
+      justify-content: center;
+    }
+    .btn-secondary {
+      padding: 10px 22px;
+      border-radius: 10px;
+      background: #FF2F5A; /* brand red */
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: background .2s ease, transform .15s ease;
+    }
+    .btn-secondary:hover {
+      background: #e92650;
+      transform: translateY(-1px);
+    }
+
+    /* Animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+
+    /* --- Mobile-only "Get more swipes" button --- */
+    .mobile-premium-btn {
+      display: none; /* hidden by default (desktop) */
+      background: linear-gradient(135deg, #ed003c, #ff4f7a);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    .mobile-premium-btn:hover {
+      background: linear-gradient(135deg, #d80038, #ff3b6b);
+      transform: translateY(-1px);
+    }
+
+    /* Show only on mobile */
+    @media (max-width: 768px) {
+      .bgFX,
+      .bgFX__beam,
+      .bgFX__orb,
+      .bgFX__grid {
+        display: none !important;
+      }
+      main.layout {
+        background: linear-gradient(135deg, #0b0f1a 0%, #16203b 100%) !important;
+      }
+    }
+
+
+    @media (max-width: 768px) {
+      /* Disable only heavy visual effects (NOT layout/visibility) */
+      .bgFX,
+      .bgFX__beam,
+      .bgFX__orb,
+      .bgFX__grid {
+        display: none !important;
+      }
+
+      .swipe-container {
+        perspective: none !important;
+      }
+
+      .card-inner {
+        transform: none !important;
+      }
+
+      /* Ensure logo container still behaves as intended */
+      .logo-frame {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 8px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      .company-logo {
+        display: block !important;
+        max-width: 80%;
+        max-height: 160px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
+    }
+
+
+    @media (max-width: 768px) {
+      .mobile-premium-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;         /* centers horizontally */
+        position: relative;     /* ensures it stays within header flow */
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+
+    /* Hide or show elements based on screen size */
+    .desktop-only {
+      display: inli
+    }
+
+    .mobile-only {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .desktop-only {
+        display: none !important;
+      }
+      .mobile-only {
+        display: inline-flex !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .logo-frame {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 8px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      .company-logo {
+        display: block !important;
+        max-width: 80%;
+        max-height: 160px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
+    }
+
+
+
+
+    /* 📱 Allow scrolling inside the modal on mobile */
+    @media (max-width: 768px) {
+      #noSwipesModal .modal__dialog {
+        max-height: 90dvh;      /* don’t overflow screen */
+        overflow-y: auto;       /* enable scrolling inside modal */
+        -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+        padding-bottom: 20px;   /* breathing room for bottom content */
+      }
+
+      /* keep plans spaced properly */
+      #noSwipesModal .modal__plans {
+        flex-direction: column !important;
+        gap: 1.2rem;
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ===== Onboarding base ===== */
+    #ifOnb[hidden]{ display:none !important; }
+    #ifOnb{
+      position:fixed; inset:0; z-index:10050; font-family:'Manrope',sans-serif !important;
+    }
+    .ifOnb__backdrop{
+      position:absolute; inset:0; background: rgba(2,6,23,0.72);
+      animation: if-fade .25s ease both;
+    }
+    .ifOnb__card{
+      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+      width:min(520px, calc(100vw - 32px));
+      background:var(--panel); color:var(--ink);
+      border:1px solid var(--border); border-radius:18px; padding:22px;
+      box-shadow:0 30px 80px rgba(0,0,0,.55);
+      animation: if-pop .25s ease both;
+    }
+    .theme-light .ifOnb__card{ background:#f6f8fb; }
+
+    .ifOnb__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .ifOnb__chip{
+      font:800 11px/1 Inter; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand-400));
+      padding:6px 10px; border-radius:999px; box-shadow:0 10px 22px rgba(237,0,60,.25);
+    }
+    .theme-light .ifOnb__chip{ color:#fff; }
+    .ifOnb__close{ background:none; border:0; color:var(--ink); opacity:.6; font-size:22px; cursor:pointer; }
+    .ifOnb__title{ margin:6px 0 6px; font:800 20px/1.3 Inter; color:var(--ink); }
+    .ifOnb__desc{ margin:0 0 10px; color:var(--ink-500); }
+    .ifOnb__progress{ margin:8px 0 14px; color:var(--ink-500); font-weight:700; }
+
+    .ifOnb__actions{ display:flex; gap:10px; justify-content:flex-end; }
+    .ifOnb__stage{ border:1px dashed var(--border-subtle); border-radius:12px; padding:12px; background:rgba(255,255,255,.04); }
+    .theme-light .ifOnb__stage{ background:rgba(2,6,23,.035); }
+
+    /* Spotlight ring that positions over real targets */
+    .ifOnb__spot{
+      position:fixed; width:96px; height:96px; border-radius:999px; pointer-events:none;
+      box-shadow:0 0 0 9999px rgba(0,0,0,.55), 0 0 0 2px var(--brand);
+      transform:scale(.9); opacity:0; transition: .25s ease;
+    }
+    .ifOnb__spot.show{ transform:scale(1); opacity:1; }
+
+    /* Tooltip arrow (auto flips) */
+    .ifOnb__tooltip{
+      position:fixed;
+      max-width:340px;
+      background:linear-gradient(180deg,#020617,#020617);
+      color:#fff; border:1px solid var(--border);
+      border-radius:16px; padding:16px 18px;
+      box-shadow:0 18px 44px rgba(2,6,23,.6);
+      opacity:0; transform:translateY(6px);
+      transition:.18s ease;
+    }
+
+    .theme-light .ifOnb__tooltip{ background:#020617; color:#fff; }
+    .ifOnb__tooltip.show{ opacity:1; transform:translateY(0); }
+    .ifOnb__tipTitle{ font-weight:800; margin:0 0 6px; font-size:16px; }
+    .ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; font-size:14px; line-height:1.6; }
+
+
+    .ifOnb__tooltip::after{
+      content:"";
+      position:absolute;
+      width:10px; height:10px; transform:rotate(45deg);
+      background:inherit; border:inherit; border-left:none; border-top:none;
+      box-shadow:inherit;
+    }
+
+    /* when tooltip is above the target */
+    .ifOnb__tooltip.is-above::after{
+      bottom:-5px; left:calc(50% - 5px);
+    }
+    /* when tooltip is below the target */
+    .ifOnb__tooltip.is-below::after{
+      top:-5px; left:calc(50% - 5px);
+    }
+
+    /* leader line from target → tooltip arrow */
+    .ifOnb__leader{
+      position:fixed; height:2px; width:0;
+      background: linear-gradient(90deg, var(--brand), rgba(237,0,60,.0));
+      box-shadow: 0 0 8px rgba(237,0,60,.45);
+      border-radius:2px;
+      transform-origin: 0 50%;
+      pointer-events:none; opacity:.95;
+    }
+
+    /* little polish on the title spacing */
+    .ifOnb__tipTitle{ font-weight:800; margin:0 0 6px; font-size:16px; }
+    .ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; font-size:14px; line-height:1.6; }
+
+
+
+    /* Demo card used for fake animations (does not alter data) */
+    .ifOnb__demoCard{
+      position:fixed; left:50%; top:56%; width:min(360px, 88vw); height:220px;
+      border-radius:18px; border:1px solid rgba(148,163,184,.16);
+      background:linear-gradient(180deg,#0f1527,#0c1426);
+      box-shadow:var(--elev-2);
+      display:none; align-items:center; justify-content:center;
+    }
+    .theme-light .ifOnb__demoCard{ background:linear-gradient(180deg,#f6f8fc,#eef2f7); }
+    .ifOnb__demoStamp{
+      position:absolute; top:12px; left:12px;
+      padding:6px 10px; border-radius:8px; font-weight:900; letter-spacing:.12em; font-size:10px;
+      color:#fecaca; background:#7f1d1d40; border:1px solid #fecaca33; opacity:0; transform:translateY(-6px) scale(.9);
+      transition:.25s ease;
+    }
+    .ifOnb__demoStamp.show{ opacity:1; transform:translateY(0) scale(1); }
+
+    /* Brand buttons (reuse your tokens) */
+    .btn-primary{ background:var(--brand); color:#fff; border:0; padding:10px 16px; border-radius:12px; font-weight:800; }
+    .btn-secondary{ background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--ink); padding:10px 16px; border-radius:12px; font-weight:800; }
+
+    @keyframes if-pop{ from{opacity:0; transform:translate(-50%,-44%) scale(.98)} to{opacity:1; transform:translate(-50%,-50%) scale(1)}}
+    @keyframes if-fade{ from{opacity:0} to{opacity:1}}
+
+    /* Small screens */
+    @media (max-width:600px){
+      .ifOnb__card{ width:calc(100vw - 20px); padding:18px; }
+      .ifOnb__demoCard{ top:60%; height:200px; }
+    }
+
+    /* Make whole card clickable except buttons */
+    .swipe-card .card-front,
+    .swipe-card .card-back {
+      cursor: pointer;
+    }
+
+    /* Buttons stay buttons */
+    .swipe-card .swipe-btn {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    /* --- Fix: prevent onboarding tooltip flash --- */
+    .ifOnb__tooltip,
+    .ifOnb__spot,
+    .ifOnb__demoCard,
+    .ifOnb__demoStamp {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .ifOnb__tooltip.show,
+    .ifOnb__spot.show,
+    .ifOnb__demoCard.show,
+    .ifOnb__demoStamp.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);  /* important */
+    }
+
+
+
+    /* --- Fix: enforce Manrope font on onboarding buttons --- */
+    #ifOnb,
+    #ifOnb * {
+      font-family: 'Manrope', sans-serif !important;
+    }
+
+    #ifOnb .ifOnb__actions button {
+      font-family: 'Manrope', sans-serif !important;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    /* 🔹 Swipe explainer pill */
+    /* 🔹 Swipe explainer pill (attached to swipe-right button) */
+    .swipe-hint {
+      position: fixed;              /* we’ll position it via JS over the button/card */
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(2,6,23,0.96);
+      color: #f9fafb;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+      z-index: 9999;
+      transition: opacity .25s ease, transform .25s ease;
+      transform: translate(-50%, -100%);  /* centered above anchor point */
+    }
+
+    .theme-light .swipe-hint {
+      background: #020617;
+      color: #ffffff;
+    }
+
+    .swipe-hint__icon {
+      font-size: 16px;
+    }
+
+    .swipe-hint.hide {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, calc(-100% + 8px)); /* slide down slightly when hiding */
+    }
+
+    /* 🔹 Next button inside swipe hint */
+    .swipe-hint__next {
+      display: none; /* HIDE the button, autoplay instead */
+      border: none;
+      background: #FF2F5A;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .swipe-hint__next:hover {
+      background: #e92650;
+    }
 
 
   </style>
@@ -2199,6 +2181,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2 = "Swipe left to dismiss"
   // 3 = "Click the card to see more info"
   let hintStage = 1;
+  let hintTimers = [];
+
+  function clearHintTimers() {
+    hintTimers.forEach(id => clearTimeout(id));
+    hintTimers = [];
+  }
 
   function showToast(msg) {
     if (!toastEl) return;
@@ -2235,24 +2223,68 @@ document.addEventListener('DOMContentLoaded', () => {
     swipeHint.style.transform = 'translate(-50%, -100%)';
   }
 
+  // 🔹 Autoplay hint stages: 1 → 2 → 3 → hide
+  function autoAdvanceHints() {
+    if (!swipeHint) return;
+
+    clearHintTimers();
+
+    // Start at stage 1 explicitly
+    hintStage = 1;
+    if (swipeHintText) swipeHintText.textContent = 'Swipe right to apply';
+    if (swipeHintIcon) swipeHintIcon.textContent = '✓';
+    swipeHint.classList.remove('hide');
+    positionSwipeHint();
+
+    // Stage 2 after 2 seconds
+    hintTimers.push(setTimeout(() => {
+      if (!swipeHint || swipeHint.classList.contains('hide')) return;
+      hintStage = 2;
+      if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
+      if (swipeHintIcon) swipeHintIcon.textContent = '✕';
+      positionSwipeHint();
+    }, 2000));
+
+    // Stage 3 after 4 seconds total
+    hintTimers.push(setTimeout(() => {
+      if (!swipeHint || swipeHint.classList.contains('hide')) return;
+      hintStage = 3;
+      if (swipeHintText) swipeHintText.textContent = 'Click the card to see more info';
+      if (swipeHintIcon) swipeHintIcon.textContent = '👆';
+      if (cardInner && !cardInner.classList.contains('is-flipped')) {
+        cardInner.classList.add('is-flipped');
+      }
+      positionSwipeHint();
+    }, 4000));
+
+    // End sequence after 6 seconds total: flip back + hide
+    hintTimers.push(setTimeout(() => {
+      if (!swipeHint) return;
+      if (cardInner && cardInner.classList.contains('is-flipped')) {
+        cardInner.classList.remove('is-flipped');
+      }
+      swipeHint.classList.add('hide');
+      clearHintTimers();
+    }, 6000));
+  }
+
   if (swipeHint && (swipeRightBtn || swipeLeftBtn || container)) {
     positionSwipeHint();
     window.addEventListener('resize', positionSwipeHint);
+    autoAdvanceHints(); // start automatic sequence
   }
 
-  // 🔹 "Next" inside hint → cycle through 3 stages
+  // (Manual "Next" handler left in place but button is hidden; it won't be used)
   if (swipeHintNext) {
     swipeHintNext.addEventListener('click', (e) => {
       e.stopPropagation();
 
       if (hintStage === 1) {
-        // Stage 1 → 2: show left swipe hint
         hintStage = 2;
         if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
         if (swipeHintIcon) swipeHintIcon.textContent = '✕';
         positionSwipeHint();
       } else if (hintStage === 2) {
-        // Stage 2 → 3: show "click card" hint and auto-flip card
         hintStage = 3;
         if (swipeHintText) swipeHintText.textContent = 'Click the card to see more info';
         if (swipeHintIcon) swipeHintIcon.textContent = '👆';
@@ -2261,7 +2293,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         positionSwipeHint();
       } else if (hintStage === 3) {
-        // Stage 3 → done: flip back to front and hide hint
         if (cardInner && cardInner.classList.contains('is-flipped')) {
           cardInner.classList.remove('is-flipped');
         }
@@ -2283,9 +2314,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!btn) return;
     e.stopPropagation();
 
-    // 🔹 First real interaction with a swipe button hides the hint
+    // 🔹 First real interaction with a swipe button hides the hint and stops autoplay
     if (swipeHint && !swipeHint.classList.contains('hide')) {
       swipeHint.classList.add('hide');
+      clearHintTimers();
     }
 
     if (btn.classList.contains('swipe-right')) {
