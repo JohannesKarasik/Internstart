@@ -2067,9 +2067,6 @@ main.layout {
   letter-spacing: 0.02em;
 }
 
-#ifOnbTip {
-  display: block !important;
-}
 
 
 </style>
@@ -2556,7 +2553,11 @@ document.addEventListener("click", e => {
 
   // Initial layout
   styleStack();
-  updateDeckHUD();
+updateDeckHUD();
+
+// 🔥 Notify onboarding that the card stack is ready
+document.dispatchEvent(new Event("cardstack:ready"));
+
 
   // ✅ Immediately load AI-generated preview card on first page load
   loadNextCard();
