@@ -50,7 +50,23 @@
         </svg>
 
 
-        <button id="showEFSNow" class="btn-secondary" style="position:fixed;bottom:14px;left:14px;z-index:9999; display: none;">Show demo</button>
+        <button id="showEFSNow" class="btn-secondary"
+        style="position:fixed;bottom:14px;left:14px;z-index:9999;
+               display:flex;align-items:center;justify-content:center;">
+  Show demo
+</button>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('showEFSNow');
+    if (!btn) {
+      console.log('❌ showEFSNow not found in DOM');
+      return;
+    }
+    console.log('✅ showEFSNow found, forcing visible');
+    btn.style.display = 'flex';
+  });
+</script>
 
         <span class="logo-chip">
           <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
