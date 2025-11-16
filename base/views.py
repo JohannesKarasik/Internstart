@@ -1142,6 +1142,12 @@ from django.contrib.auth.decorators import login_required
 import json
 
 client = OpenAI()
+from openai import OpenAI
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+import json
+
+client = OpenAI()
 
 @login_required
 def next_card_json(request):
@@ -1195,10 +1201,15 @@ def next_card_json(request):
           "domain": "company website domain ONLY (example: revolut.com, airbnb.com, company.dk)",
           "title": "Specific job title that matches the employment type",
           "role": "Short label for the employment type (e.g. 'Internship', 'Student job', 'Full-time')",
-          "description": "Compact 1 sentence on daily work"
+          "description": "Compact 1 sentence on daily work",
+          "long_description": "3–5 sentences with more detail about responsibilities, tools, team and growth opportunities",
+          "compensation_type": "salary | stipend | hourly",
+          "compensation": "Human readable compensation. For full-time use yearly or monthly salary in local currency; for internships and student jobs use stipend or hourly pay in local currency."
         }}
 
         IMPORTANT:
+        - If job type is "full-time", compensation_type MUST be "salary".
+        - If job type is "internship" or "student job", compensation_type MUST be "stipend" or "hourly" (pick whichever is more realistic).
         - "domain" must include .com or the correct local TLD (e.g. .dk, .se, .co.uk, .de).
         - JSON ONLY, no backticks, no explanations.
         """
@@ -1229,20 +1240,27 @@ def next_card_json(request):
             "location": getattr(user, "country", "") or "",
             "logo_domain": domain,
             "desc": obj.get("description", ""),
+            "long_desc": obj.get("long_description", ""),
+            "compensation_type": obj.get("compensation_type", ""),
+            "compensation": obj.get("compensation", ""),
             "badges": [],
-            "job_type": job_type_label,   # extra field if you want it in JS/template
+            "job_type": job_type_label,
         })
 
     except Exception as e:
         # Fallback title based on job type so it still "feels" right
         if job_type_label == "internship":
             fb_title = dt or "Internship"
+            fb_comp_type = "stipend"
         elif job_type_label == "student job":
             fb_title = dt or "Student job"
+            fb_comp_type = "hourly"
         elif job_type_label == "full-time":
             fb_title = dt or "Full-time role"
+            fb_comp_type = "salary"
         else:
             fb_title = dt or "Job"
+            fb_comp_type = ""
 
         return JsonResponse({
             "id": "fallback",
@@ -1252,9 +1270,13 @@ def next_card_json(request):
             "location": getattr(user, "country", "") or "",
             "logo_domain": "",
             "desc": "",
+            "long_desc": "",
+            "compensation_type": fb_comp_type,
+            "compensation": "",
             "badges": [],
             "job_type": job_type_label,
         })
+
 
 from openai import OpenAI
 client = OpenAI()
