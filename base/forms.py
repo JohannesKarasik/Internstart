@@ -98,6 +98,11 @@ class StudentCreationForm(UserCreationForm):
         })
     )
 
+    willing_to_relocate = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput()
+    )
+
     class Meta:
         model = User
         fields = [
