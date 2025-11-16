@@ -2006,7 +2006,7 @@ main.layout {
 /* 🔹 Swipe explainer pill */
 /* 🔹 Swipe explainer pill (attached to swipe-right button) */
 .swipe-hint {
-  position: fixed;              /* we’ll position it via JS over the button */
+  position: fixed;              /* we’ll position it via JS over the button/card */
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(15,23,42,0.92);
@@ -2089,7 +2089,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let applied = 0;
   let swipesLeft = parseInt(swipesLeftEl?.textContent || '0', 10) || 10;
-  let hintStage = 1; // 1 = "Swipe right to apply", 2 = "Swipe left to dismiss"
+
+  // 1 = "Swipe right to apply"
+  // 2 = "Swipe left to dismiss"
+  // 3 = "Click the card to see more info"
+  let hintStage = 1;
 
   function showToast(msg) {
     if (!toastEl) return;
@@ -2101,32 +2105,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
   }
 
-  // 🔹 Position hint directly above the current anchor swipe button
+  // 🔹 Position hint directly above the current anchor (button for stages 1–2, card for stage 3)
   function positionSwipeHint() {
     if (!swipeHint) return;
-    const anchorBtn = hintStage === 1 ? swipeRightBtn : swipeLeftBtn;
-    if (!anchorBtn) return;
 
-    const rect = anchorBtn.getBoundingClientRect();
+    let anchorEl = null;
+    if (hintStage === 1) {
+      anchorEl = swipeRightBtn;
+    } else if (hintStage === 2) {
+      anchorEl = swipeLeftBtn;
+    } else if (hintStage === 3) {
+      anchorEl = container || swipeRightBtn || swipeLeftBtn;
+    }
+
+    if (!anchorEl) return;
+
+    const rect = anchorEl.getBoundingClientRect();
+    const left = rect.left + rect.width / 2;
+    const top = rect.top - 8; // a bit above anchor
+
     swipeHint.style.position = 'fixed';
-    swipeHint.style.left = `${rect.left + rect.width / 2}px`;
-    swipeHint.style.top = `${rect.top - 8}px`;   // a bit above the button
+    swipeHint.style.left = `${left}px`;
+    swipeHint.style.top = `${top}px`;
     swipeHint.style.transform = 'translate(-50%, -100%)';
   }
 
-  if (swipeHint && (swipeRightBtn || swipeLeftBtn)) {
+  if (swipeHint && (swipeRightBtn || swipeLeftBtn || container)) {
     positionSwipeHint();
     window.addEventListener('resize', positionSwipeHint);
   }
 
-  // 🔹 "Next" inside hint → switch to left-swipe hint
+  // 🔹 "Next" inside hint → cycle through 3 stages
   if (swipeHintNext) {
     swipeHintNext.addEventListener('click', (e) => {
       e.stopPropagation();
-      hintStage = 2;
-      if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
-      if (swipeHintIcon) swipeHintIcon.textContent = '✕';
-      positionSwipeHint();
+
+      if (hintStage === 1) {
+        // Stage 1 → 2: show left swipe hint
+        hintStage = 2;
+        if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
+        if (swipeHintIcon) swipeHintIcon.textContent = '✕';
+        positionSwipeHint();
+      } else if (hintStage === 2) {
+        // Stage 2 → 3: show "click card" hint and auto-flip card
+        hintStage = 3;
+        if (swipeHintText) swipeHintText.textContent = 'Click the card to see more info';
+        if (swipeHintIcon) swipeHintIcon.textContent = '👆';
+        if (cardInner && !cardInner.classList.contains('is-flipped')) {
+          cardInner.classList.add('is-flipped');
+        }
+        positionSwipeHint();
+      } else if (hintStage === 3) {
+        // Stage 3 → done: flip back to front and hide hint
+        if (cardInner && cardInner.classList.contains('is-flipped')) {
+          cardInner.classList.remove('is-flipped');
+        }
+        if (swipeHint) swipeHint.classList.add('hide');
+      }
     });
   }
 
@@ -2162,8 +2197,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Demo only: skipped');
     }
   });
-
-  // (⛔️ removed the old setTimeout that hid the hint after a few seconds)
 
   // Open premium modal visually only
   const openPremium = document.getElementById('openPremium');
