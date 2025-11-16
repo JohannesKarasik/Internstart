@@ -2024,6 +2024,17 @@ main.layout {
   .ifOnb__demoCard{ top:60%; height:200px; }
 }
 
+/* Make whole card clickable except buttons */
+.swipe-card .card-front,
+.swipe-card .card-back {
+  cursor: pointer;
+}
+
+/* Buttons stay buttons */
+.swipe-card .swipe-btn {
+  pointer-events: auto;
+  cursor: pointer;
+}
 
 /* --- Fix: prevent onboarding tooltip flash --- */
 #ifOnbTip,
@@ -2465,6 +2476,20 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Skipped');
     }
   }
+
+
+  // Disable parallax while flipped (prevents weird tilting)
+document.addEventListener("click", e => {
+  const inner = e.target.closest(".card-inner");
+  if (!inner) return;
+  
+  // If flipped, stop tilt
+  if (inner.classList.contains("is-flipped")) {
+    inner.style.transform = "rotateY(180deg)";
+  } else {
+    inner.style.transform = "";
+  }
+});
 
   /* ===============================
      UI wiring (buttons / keys / parallax)
