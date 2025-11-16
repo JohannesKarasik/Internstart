@@ -3,7 +3,6 @@
 {% block content %}
 {% if not partial %}
 
-
 <main
   class="layout"
   data-user-id="{{ request.user.id|default_if_none:'anon' }}"
@@ -34,6 +33,7 @@
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
   <!-- ===== Collapsible Sidebar ===== -->
+
   <aside id="sidebar" class="sidebar" aria-label="Primary">
     <div class="sidebar__header">
       <div class="sidebar__brand">
@@ -47,12 +47,13 @@
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="url(#sbG)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
 
+```
+    <button id="showEFSNow" class="btn-secondary"
+    style="position:fixed;bottom:14px;left:14px;z-index:9999;
+           display:flex;align-items:center;justify-content:center;">
+```
 
-        <button id="showEFSNow" class="btn-secondary"
-        style="position:fixed;bottom:14px;left:14px;z-index:9999;
-               display:flex;align-items:center;justify-content:center;">
-  Show demo
-</button>
+Show demo </button>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -66,48 +67,52 @@
   });
 </script>
 
-        <span class="logo-chip">
-          <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
-        </span>
-      </div>
+```
+    <span class="logo-chip">
+      <img class="sidebar__brand-img" src="{% static 'images/logolog.png' %}" alt="Internstart" loading="lazy">
+    </span>
+  </div>
 
-      <button id="sidebarToggle" class="sidebar__toggle" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
-        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
+  <button id="sidebarToggle" class="sidebar__toggle" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
+    <svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
 
-    <nav class="sidebar__nav" role="navigation">
-      <a class="sbi is-active" href="#" title="Discover">
-        <span class="sbi__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-3v-7H8v7H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="sbi__label">Discover</span>
-      </a>
+<nav class="sidebar__nav" role="navigation">
+  <a class="sbi is-active" href="#" title="Discover">
+    <span class="sbi__icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-3v-7H8v7H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <span class="sbi__label">Discover</span>
+  </a>
 
-      <a class="sbi" href="#" id="openSaved" title="Saved">
-        <span class="sbi__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="sbi__label">Saved</span>
-  <span class="sbi__badge" id="savedBadge">{{ request.user.savedjob_set.count|default:0 }}</span>
-      </a>
+  <a class="sbi" href="#" id="openSaved" title="Saved">
+    <span class="sbi__icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <span class="sbi__label">Saved</span>
+```
 
-      <a class="sbi" href="#" title="Applied" style="display: none;">
-        <span class="sbi__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="sbi__label">Applied</span>
-      </a>
+<span class="sbi__badge" id="savedBadge">{{ request.user.savedjob_set.count|default:0 }}</span> </a>
 
-      <a class="sbi" href="#" title="Messages" style="display: none;">
-        <span class="sbi__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="sbi__label">Messages</span>
-        <span class="sbi__dot" aria-hidden="true"></span>
-      </a>
+```
+  <a class="sbi" href="#" title="Applied" style="display: none;">
+    <span class="sbi__icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <span class="sbi__label">Applied</span>
+  </a>
 
-      <div class="sidebar__sep" role="separator" aria-hidden="true"></div>
+  <a class="sbi" href="#" title="Messages" style="display: none;">
+    <span class="sbi__icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <span class="sbi__label">Messages</span>
+    <span class="sbi__dot" aria-hidden="true"></span>
+  </a>
+
+  <div class="sidebar__sep" role="separator" aria-hidden="true"></div>
+```
 
 <a class="sbi" href="{% url 'update-user' %}" title="Settings">
         <span class="sbi__icon" aria-hidden="true">
@@ -116,30 +121,34 @@
         <span class="sbi__label">Settings</span>
       </a>
 
-      <a class="sbi" href="{% url 'app_logout' %}" title="Logout">
-        <span class="sbi__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-7" 
-                  fill="none" stroke="currentColor" stroke-width="2" 
-                  stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="sbi__label">Logout</span>
-      </a>
-    </nav>
+```
+  <a class="sbi" href="{% url 'app_logout' %}" title="Logout">
+    <span class="sbi__icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-7" 
+              fill="none" stroke="currentColor" stroke-width="2" 
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="sbi__label">Logout</span>
+  </a>
+</nav>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__plan">
-        <span class="plan-dot" aria-hidden="true"></span>
-        <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
-      </div>
-      <button class="sidebar__upgrade" type="button" id="openPremium">Get more swipes</button>
-    </div>
+<div class="sidebar__footer">
+  <div class="sidebar__plan">
+    <span class="plan-dot" aria-hidden="true"></span>
+    <span class="plan-text">{{ request.user.subscription_tier|default:'free'|title }}</span>
+  </div>
+  <button class="sidebar__upgrade" type="button" id="openPremium">Get more swipes</button>
+</div>
+```
+
   </aside>
   <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
   <!-- ===== /Sidebar ===== -->
 
   <!-- ===== Header ===== -->
+
   <header class="custom-header">
     <div class="header-left">
       <!-- Theme switch -->
@@ -148,16 +157,15 @@
         <svg class="tt-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/></svg>
         <svg class="tt-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
       </button>
-    
-      <!-- Mobile: Get more swipes -->
-      <button class="mobile-premium-btn mobile-only" id="openPremiumMobile">
-        Get more swipes
-      </button>
-    </div>
 
-    
+```
+  <!-- Mobile: Get more swipes -->
+  <button class="mobile-premium-btn mobile-only" id="openPremiumMobile">
+    Get more swipes
+  </button>
+</div>
 
-
+```
 
 <a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
   <svg xmlns="http://.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -169,6 +177,7 @@
   </header>
 
   <!-- ===== Background FX ===== -->
+
   <div class="bgFX" aria-hidden="true">
     <div class="bgFX__grid"></div>
     <div class="bgFX__beam b1"></div>
@@ -179,6 +188,7 @@
   </div>
 
 <!-- ===== HUD ===== -->
+
 <div class="hud hud--balanced">
   <div class="hud__left">
     <!-- Streak -->
@@ -186,8 +196,8 @@
     <div class="hud__combo" id="comboBadge" aria-live="polite"></div>
   </div>
 
-
   <!-- new compact mobile HUD -->
+
 <div class="hud-mobile">
   <div class="hud-mobile__swipes">
     <span id="swipesLeftMobile">{{ swipes_left }}</span> left
@@ -196,7 +206,6 @@
     <span id="appliedCountMobile">0</span> applied
   </div>
 </div>
-
 
   <div class="hud__right" title="Cards remaining / applied">
     <!-- Swipes left -->
@@ -212,42 +221,46 @@
       </div>
     </div>
 
-    <!-- Applied -->
-    <div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
-      <div class="applied-widget__icon" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="applied-widget__text">
-        <span id="appliedCount">0</span>
-        <small>Applied</small>
-      </div>
-    </div>
+```
+<!-- Applied -->
+<div class="applied-widget" id="appliedWidget" aria-live="polite" role="status">
+  <div class="applied-widget__icon" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="applied-widget__text">
+    <span id="appliedCount">0</span>
+    <small>Applied</small>
+  </div>
+</div>
 
-    <!-- Deck progress -->
-    <div class="ring" role="img" style="display: none;" aria-label="Deck progress">
-      <svg viewBox="0 0 36 36">
-        <path class="ring-track" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
-        <path class="ring-bar" id="ringBar" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
-      </svg>
-      <div class="ring__label" style="display: none;"><span id="cardsLeft">0</span></div>
-    </div>
+<!-- Deck progress -->
+<div class="ring" role="img" style="display: none;" aria-label="Deck progress">
+  <svg viewBox="0 0 36 36">
+    <path class="ring-track" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
+    <path class="ring-bar" id="ringBar" d="M18 2 a16 16 0 0 1 0 32 a16 16 0 0 1 0 -32"/>
+  </svg>
+  <div class="ring__label" style="display: none;"><span id="cardsLeft">0</span></div>
+</div>
+```
+
   </div>
 </div>
 <!-- ===== /HUD ===== -->
 
-
-
-
-
   <!-- Hidden topics -->
+
   <div class="topics" style="display:none;"></div>
 
   <!-- Premium upsell modal -->
+
 <!-- Premium upsell modal -->
+
 <!-- Premium upsell modal -->
+
 <!-- Load the font -->
+
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
@@ -260,8 +273,6 @@
 </style>
 
 {% include "base/components/no_swipes_modal.html" %}
-
-
 
 <style>
   /* Keep borders visible on hover & avoid clipping */
@@ -292,7 +303,6 @@
 
 <!-- (Stripe scripts removed in staging) -->
 
-
 <style>
   #noSwipesModal,
   #noSwipesModal h2,
@@ -302,14 +312,13 @@
   }
 </style>
 
-
-
 <script>
 
   
   // (checkout + quota logic removed for staging)
   
 </script>
+
 </div>
 
 <div class="swipe-container" id="swipeDeck" style="opacity:0; pointer-events:none;">
@@ -321,37 +330,41 @@
           <img class="company-logo" id="cLogo" src="https://logo.clearbit.com/{{ first_room.logo_domain|default:'openai.com' }}" alt="" loading="lazy">
         </div>
 
-        <div class="title-block">
-          <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
-          <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
-          <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
-          <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:"Your city" }}</span></p>
-        </div>
-
-        <div class="info-badges" id="cBadges"></div>
-
-        <div class="card-cta">
-          <button class="swipe-btn swipe-left"  aria-label="Skip"><span class="btn-ripple"></span>✕</button>
-          <button class="swipe-btn swipe-right" aria-label="Apply"><span class="btn-ripple"></span>✓</button>
-        </div>
-
-        <div class="stamp stamp--apply">APPLY</div>
-        <div class="stamp stamp--dismiss">SKIP</div>
-      </div>
-
-      <!-- BACK -->
-      <div class="card-back">
-        <h3 id="bCompany">{{ first_room.company|default:'OpenAI' }}</h3>
-        <h4 id="bRole">{{ first_room.role|default:'Intern' }}</h4>
-        <p class="location">📍 <span id="bLoc">{{ first_room.location|default:'Copenhagen, DK' }}</span></p>
-        <div class="divider"></div>
-        <p class="desc" id="bDesc">{{ first_room.desc|default:'AI generated example job. Upgrade to unlock real listings.' }}</p>
-      </div>
+```
+    <div class="title-block">
+      <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
+      <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
+      <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
+      <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:"Your city" }}</span></p>
     </div>
+
+    <div class="info-badges" id="cBadges"></div>
+
+    <div class="card-cta">
+      <button class="swipe-btn swipe-left"  aria-label="Skip"><span class="btn-ripple"></span>✕</button>
+      <button class="swipe-btn swipe-right" aria-label="Apply"><span class="btn-ripple"></span>✓</button>
+    </div>
+
+    <div class="stamp stamp--apply">APPLY</div>
+    <div class="stamp stamp--dismiss">SKIP</div>
+  </div>
+
+  <!-- BACK -->
+  <div class="card-back">
+    <h3 id="bCompany">{{ first_room.company|default:'OpenAI' }}</h3>
+    <h4 id="bRole">{{ first_room.role|default:'Intern' }}</h4>
+    <p class="location">📍 <span id="bLoc">{{ first_room.location|default:'Copenhagen, DK' }}</span></p>
+    <div class="divider"></div>
+    <p class="desc" id="bDesc">{{ first_room.desc|default:'AI generated example job. Upgrade to unlock real listings.' }}</p>
+  </div>
+</div>
+```
+
   </div>
 </div>
 
 <!-- 🔹 New explainer: shows every time page loads -->
+
 <div id="swipeHint" class="swipe-hint">
   <span class="swipe-hint__icon">✓</span>
   <span class="swipe-hint__text">Swipe right to apply</span>
@@ -361,27 +374,29 @@
   <div id="loadMoreSentinel" style="height:1px;"></div>
 </div>
 
+```
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    
-
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-    <div id="onboarding-overlay" 
-    style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:10000; font-family:'Manrope', sans-serif !important;">
+<div id="onboarding-overlay" 
+style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:10000; font-family:'Manrope', sans-serif !important;">
+```
 
  <div id="onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="onb-title" aria-describedby="onb-desc" 
       style="position:relative; margin:auto; max-width:380px; width:calc(100% - 32px); background:#0f1525; border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,0.45); padding:20px; border:1px solid rgba(148,163,184,.15); color:#e6eef8; font-family:'Manrope', sans-serif !important; left:0; right:0;">
-      
+
    <!-- Step info -->
+
    <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display: none;">Step <span id="onb-step" style="display: none;">1</span> of <span id="onb-total">3</span></div>
-   
+
    <!-- Title + desc -->
+
    <h3 id="onb-title" style="margin:0 0 8px; font-size:19px; color:#fff; font-weight:700;">Welcome!</h3>
    <p id="onb-desc" style="margin:0 0 16px; font-size:14px; color:#cbd5e1;">
      Let’s get started by connecting your email so applications can be sent directly.
    </p>
-   
+
    <!-- Guide box -->
+
    <div style="padding:14px 16px; margin-bottom:14px; border-radius:10px; background:linear-gradient(145deg, rgba(45,55,72,.6), rgba(26,32,44,.9)); border:1px solid rgba(99,102,241,.25); font-size:13px; line-height:1.55; color:#e6eaf2; text-align:left;">
     <div style="font-weight:600; color:#f8fafc; margin-bottom:6px; font-size:14px;">Connect your Gmail to send applications</div>
     <p style="margin:0 0 8px 0;">
@@ -396,6 +411,7 @@
   </div>
 
    <!-- Action buttons -->
+
    <div style="display:flex; gap:8px; justify-content:flex-end;">
      <button id="onb-prev" type="button" style="display:none; padding:6px 10px; font-size:13px; background:#0b1220; color:#e6eef8; border:1px solid rgba(148,163,184,.28); border-radius:6px;">Back</button>
      <button id="onb-next" type="button" style="padding:6px 12px; font-size:13px; background:#1b2337; color:#fff; border:1px solid rgba(148,163,184,.28); border-radius:6px; display: none;">Okay</button>
@@ -407,43 +423,33 @@
  </div>
 </div>
 
-
-
   <div id="savedList" style="display:none; width:min(440px, 92vw);"></div>
 
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-
-
-
-
-
-
-
-
-
-
 <!-- Mobile trigger (optional) -->
+
 <button id="showOnboardingMobile" class="mobile-premium-btn mobile-only" style="margin-left:10px;">Onboarding</button>
 
 <!-- ===== Onboarding overlay ===== -->
+
 <div id="ifOnb" hidden>
   <div class="ifOnb__backdrop" data-onb-close></div>
 
-
   <!-- Floating “spotlight” & tooltip that point to real UI -->
+
   <div class="ifOnb__spot" id="ifOnbSpot"></div>
   <div class="ifOnb__tooltip" id="ifOnbTip">
     <div class="ifOnb__tipTitle" id="ifOnbTipTitle">Dismiss</div>
     <div class="ifOnb__tipText"  id="ifOnbTipText">Swipe left or tap the X to skip and keep browsing.</div>
   </div>
 
-
 <!-- add -->
+
 <div class="ifOnb__leader" id="ifOnbLeader" aria-hidden="true"></div>
 
-
   <!-- Mini demo card (we animate this so we don’t touch real data) -->
+
   <div class="ifOnb__demoCard" id="ifOnbDemo" aria-hidden="true">
     <div class="ifOnb__demoStamp" id="ifOnbDemoStamp">SKIP</div>
   </div>
@@ -484,12 +490,12 @@
   <div id="ifOnbTipText" class="ifOnb__text">Text</div>
 
   <!-- Buttons will be injected here by JS -->
+
 </div>
 
 <div id="ifOnbDemo" class="ifOnb__demo" style="display:none;">
   <div id="ifOnbDemoStamp" class="ifOnb__stamp"></div>
 </div>
-
 
   <style>
 
@@ -549,7 +555,7 @@
     .modal.show{display:flex;}
     .modal__backdrop{
       position:absolute;inset:0;
-      background:rgba(2,6,23,.65);
+      background:rgba(2,6,23,.75);
       backdrop-filter:blur(10px);
     }
     .modal__dialog{
@@ -1334,9 +1340,9 @@
   transform: translateY(-50%) translateX(8px);
   background: var(--brand);
   color: #fff;
-  font: 700 11px/1 Inter;
+  font: 700 12px/1 Inter;
   white-space: nowrap;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 999px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   opacity: 0;
@@ -1370,8 +1376,8 @@
   transform: translateY(-50%) translateX(6px);
   background: var(--brand);
   color: #fff;
-  font: 700 11px/1 Inter;
-  padding: 4px 8px;
+  font: 700 12px/1 Inter;
+  padding: 5px 10px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 4px 10px rgba(0,0,0,.25);
@@ -1841,7 +1847,7 @@ main.layout {
   position:fixed; inset:0; z-index:10050; font-family:'Manrope',sans-serif !important;
 }
 .ifOnb__backdrop{
-  position:absolute; inset:0; background: transparent;
+  position:absolute; inset:0; background: rgba(2,6,23,0.72);
   animation: if-fade .25s ease both;
 }
 .ifOnb__card{
@@ -1872,7 +1878,7 @@ main.layout {
 /* Spotlight ring that positions over real targets */
 .ifOnb__spot{
   position:fixed; width:96px; height:96px; border-radius:999px; pointer-events:none;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.35), 0 0 0 2px var(--brand);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55), 0 0 0 2px var(--brand);
   transform:scale(.9); opacity:0; transition: .25s ease;
 }
 .ifOnb__spot.show{ transform:scale(1); opacity:1; }
@@ -1880,19 +1886,19 @@ main.layout {
 /* Tooltip arrow (auto flips) */
 .ifOnb__tooltip{
   position:fixed;
-  max-width:280px;
-  background:linear-gradient(180deg,#0b1220,#0e1729);
+  max-width:340px;
+  background:linear-gradient(180deg,#020617,#020617);
   color:#fff; border:1px solid var(--border);
-  border-radius:12px; padding:12px 14px;
-  box-shadow:0 14px 36px rgba(2,6,23,.36);
+  border-radius:16px; padding:16px 18px;
+  box-shadow:0 18px 44px rgba(2,6,23,.6);
   opacity:0; transform:translateY(6px);
   transition:.18s ease;
 }
 
-.theme-light .ifOnb__tooltip{ background:#0e162a; color:#fff; }
+.theme-light .ifOnb__tooltip{ background:#020617; color:#fff; }
 .ifOnb__tooltip.show{ opacity:1; transform:translateY(0); }
-.ifOnb__tipTitle{ font-weight:800; margin-bottom:4px; }
-.ifOnb__tipText{ color:#cbd5e1; font-weight:600; }
+.ifOnb__tipTitle{ font-weight:800; margin:0 0 6px; font-size:16px; }
+.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; font-size:14px; line-height:1.6; }
 
 
 .ifOnb__tooltip::after{
@@ -1923,8 +1929,8 @@ main.layout {
 }
 
 /* little polish on the title spacing */
-.ifOnb__tipTitle{ font-weight:800; margin:0 0 4px; }
-.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; }
+.ifOnb__tipTitle{ font-weight:800; margin:0 0 6px; font-size:16px; }
+.ifOnb__tipText{ color:#cbd5e1; font-weight:600; margin:0; font-size:14px; line-height:1.6; }
 
 
 
@@ -2007,28 +2013,28 @@ main.layout {
 /* 🔹 Swipe explainer pill (attached to swipe-right button) */
 .swipe-hint {
   position: fixed;              /* we’ll position it via JS over the button/card */
-  padding: 8px 14px;
+  padding: 10px 18px;
   border-radius: 999px;
-  background: rgba(15,23,42,0.92);
+  background: rgba(2,6,23,0.96);
   color: #f9fafb;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  gap: 10px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.6);
   z-index: 9999;
   transition: opacity .25s ease, transform .25s ease;
   transform: translate(-50%, -100%);  /* centered above anchor point */
 }
 
 .theme-light .swipe-hint {
-  background: #0e162a;
+  background: #020617;
   color: #ffffff;
 }
 
 .swipe-hint__icon {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .swipe-hint.hide {
@@ -2042,9 +2048,9 @@ main.layout {
   border: none;
   background: #FF2F5A;
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 5px 12px;
   border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
@@ -2057,9 +2063,8 @@ main.layout {
   </style>
 
 {% include "base/email_flow_showcase.html" %}
-<script src="{% static 'js/email_flow_showcase.js' %}"></script>
 
-  
+<script src="{% static 'js/email_flow_showcase.js' %}"></script>
 
   <!-- ===== Core JS (staging: visual only) ===== -->
 
@@ -2237,13 +2242,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-
-
-
-
-
 </main>
-
 
 {% endif %}
 {% endblock %}
