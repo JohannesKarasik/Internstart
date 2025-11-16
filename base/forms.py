@@ -140,35 +140,35 @@ class StudentCreationForm(UserCreationForm):
         self.fields['job_type'].required = True
 
 
-def clean_resume(self):
-    f = self.cleaned_data.get('resume')
-    if not f:
-        return None  # no resume uploaded — totally fine
+    def clean_resume(self):
+        f = self.cleaned_data.get('resume')
+        if not f:
+            return None  # no resume uploaded — totally fine
 
-    import os
-    ext = os.path.splitext(f.name)[1].lower()
-    if ext not in {'.pdf', '.doc', '.docx'}:
-        raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
+        import os
+        ext = os.path.splitext(f.name)[1].lower()
+        if ext not in {'.pdf', '.doc', '.docx'}:
+            raise forms.ValidationError("Resume must be a PDF or Word document (.pdf, .doc, .docx).")
 
-    if getattr(f, 'size', 0) > 10 * 1024 * 1024:
-        raise forms.ValidationError("Resume file is too large (max 10MB).")
+        if getattr(f, 'size', 0) > 10 * 1024 * 1024:
+            raise forms.ValidationError("Resume file is too large (max 10MB).")
 
-    return f
-
-
-def save(self, commit=True):
-        user = super().save(commit=False)
-        user.role = 'student'
-        # ❌ removed country assignment. done in view
-        user.desired_job_title = self.cleaned_data['desired_job_title']
-        user.job_type = self.cleaned_data['job_type']
-        if commit:
-            user.save()
-        return user
+        return f
 
 
-from django import forms
-from .models import Room
+    def save(self, commit=True):
+            user = super().save(commit=False)
+            user.role = 'student'
+            # ❌ removed country assignment. done in view
+            user.desired_job_title = self.cleaned_data['desired_job_title']
+            user.job_type = self.cleaned_data['job_type']
+            if commit:
+                user.save()
+            return user
+
+
+    from django import forms
+    from .models import Room
 
 
 LISTING_CHOICES = [
