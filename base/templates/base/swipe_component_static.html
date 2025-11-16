@@ -2224,49 +2224,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 🔹 Autoplay hint stages: 1 → 2 → 3 → hide
-  function autoAdvanceHints() {
-    if (!swipeHint) return;
+function autoAdvanceHints() {
+  if (!swipeHint) return;
 
-    clearHintTimers();
+  clearHintTimers();
 
-    // Start at stage 1 explicitly
-    hintStage = 1;
-    if (swipeHintText) swipeHintText.textContent = 'Swipe right to apply';
-    if (swipeHintIcon) swipeHintIcon.textContent = '✓';
-    swipeHint.classList.remove('hide');
+  // Start at stage 1 explicitly
+  hintStage = 1;
+  if (swipeHintText) swipeHintText.textContent = 'Swipe right to apply';
+  if (swipeHintIcon) swipeHintIcon.textContent = '✓';
+  swipeHint.classList.remove('hide');
+  positionSwipeHint();
+
+  // Stage 2 after **1 second**
+  hintTimers.push(setTimeout(() => {
+    if (!swipeHint || swipeHint.classList.contains('hide')) return;
+    hintStage = 2;
+    swipeHintText.textContent = 'Swipe left to dismiss';
+    swipeHintIcon.textContent = '✕';
     positionSwipeHint();
+  }, 1000));
 
-    // Stage 2 after 7 seconds (keep first hint on screen longer)
-    hintTimers.push(setTimeout(() => {
-      if (!swipeHint || swipeHint.classList.contains('hide')) return;
-      hintStage = 2;
-      if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
-      if (swipeHintIcon) swipeHintIcon.textContent = '✕';
-      positionSwipeHint();
-    }, 7000));
+  // Stage 3 after **2 seconds**
+  hintTimers.push(setTimeout(() => {
+    if (!swipeHint || swipeHint.classList.contains('hide')) return;
+    hintStage = 3;
+    swipeHintText.textContent = 'Click the card to see more info';
+    swipeHintIcon.textContent = '👆';
+    if (cardInner && !cardInner.classList.contains('is-flipped')) {
+      cardInner.classList.add('is-flipped');
+    }
+    positionSwipeHint();
+  }, 2000));
 
-    // Stage 3 after 9 seconds total
-    hintTimers.push(setTimeout(() => {
-      if (!swipeHint || swipeHint.classList.contains('hide')) return;
-      hintStage = 3;
-      if (swipeHintText) swipeHintText.textContent = 'Click the card to see more info';
-      if (swipeHintIcon) swipeHintIcon.textContent = '👆';
-      if (cardInner && !cardInner.classList.contains('is-flipped')) {
-        cardInner.classList.add('is-flipped');
-      }
-      positionSwipeHint();
-    }, 9000));
+  // End sequence after **3 seconds**
+  hintTimers.push(setTimeout(() => {
+    if (!swipeHint) return;
+    if (cardInner && cardInner.classList.contains('is-flipped')) {
+      cardInner.classList.remove('is-flipped');
+    }
+    swipeHint.classList.add('hide');
+    clearHintTimers();
+  }, 3000));
+}
 
-    // End sequence after 11 seconds total: flip back + hide
-    hintTimers.push(setTimeout(() => {
-      if (!swipeHint) return;
-      if (cardInner && cardInner.classList.contains('is-flipped')) {
-        cardInner.classList.remove('is-flipped');
-      }
-      swipeHint.classList.add('hide');
-      clearHintTimers();
-    }, 11000));
-  }
 
   if (swipeHint && (swipeRightBtn || swipeLeftBtn || container)) {
     positionSwipeHint();
