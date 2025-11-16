@@ -2236,16 +2236,16 @@ function autoAdvanceHints() {
   swipeHint.classList.remove('hide');
   positionSwipeHint();
 
-  // Stage 2 after **2 seconds**
+  // Stage 2 after **3 seconds**
   hintTimers.push(setTimeout(() => {
     if (!swipeHint || swipeHint.classList.contains('hide')) return;
     hintStage = 2;
     swipeHintText.textContent = 'Swipe left to dismiss';
     swipeHintIcon.textContent = '✕';
     positionSwipeHint();
-  }, 2000));
+  }, 3000));
 
-  // Stage 3 after **4 seconds**
+  // Stage 3 after **6 seconds**
   hintTimers.push(setTimeout(() => {
     if (!swipeHint || swipeHint.classList.contains('hide')) return;
     hintStage = 3;
@@ -2255,9 +2255,9 @@ function autoAdvanceHints() {
       cardInner.classList.add('is-flipped');
     }
     positionSwipeHint();
-  }, 4000));
+  }, 6000));
 
-  // End sequence after **6 seconds**
+  // End sequence after **9 seconds**
   hintTimers.push(setTimeout(() => {
     if (!swipeHint) return;
     if (cardInner && cardInner.classList.contains('is-flipped')) {
@@ -2265,7 +2265,7 @@ function autoAdvanceHints() {
     }
     swipeHint.classList.add('hide');
     clearHintTimers();
-  }, 6000));
+  }, 9000));
 }
 
 
