@@ -2003,11 +2003,9 @@ main.layout {
 }
 
 /* 🔹 Swipe explainer pill */
+/* 🔹 Swipe explainer pill (attached to swipe-right button) */
 .swipe-hint {
-  position: fixed;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;              /* we’ll position it via JS over the button */
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(15,23,42,0.92);
@@ -2020,6 +2018,7 @@ main.layout {
   box-shadow: 0 10px 30px rgba(0,0,0,0.45);
   z-index: 9999;
   transition: opacity .25s ease, transform .25s ease;
+  transform: translate(-50%, -100%);  /* centered above anchor point */
 }
 
 .theme-light .swipe-hint {
@@ -2034,8 +2033,9 @@ main.layout {
 .swipe-hint.hide {
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, 8px);
+  transform: translate(-50%, calc(-100% + 8px)); /* slide down slightly when hiding */
 }
+
 
 
   </style>
@@ -2064,6 +2064,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const swipesLeftEl = document.getElementById('swipesLeft');
   const swipesLeftMobileEl = document.getElementById('swipesLeftMobile');
 
+  const swipeHint = document.getElementById('swipeHint');
+  const swipeRightBtn = document.querySelector('.swipe-btn.swipe-right');
+
   let applied = 0;
   let swipesLeft = parseInt(swipesLeftEl?.textContent || '0', 10) || 10;
 
@@ -2075,6 +2078,23 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast._t = setTimeout(() => {
       toastEl.classList.remove('show');
     }, 1500);
+  }
+
+  // 🔹 Position hint directly above the swipe-right button
+  function positionSwipeHint() {
+    if (!swipeHint || !swipeRightBtn) return;
+
+    const rect = swipeRightBtn.getBoundingClientRect();
+    swipeHint.style.position = 'fixed';
+    swipeHint.style.bottom = 'auto';
+    swipeHint.style.left = `${rect.left + rect.width / 2}px`;
+    swipeHint.style.top = `${rect.top - 8}px`;   // a bit above the button
+    swipeHint.style.transform = 'translate(-50%, -100%)';
+  }
+
+  if (swipeHint && swipeRightBtn) {
+    positionSwipeHint();
+    window.addEventListener('resize', positionSwipeHint);
   }
 
   // Simple card flip: click anywhere on card (except buttons)
@@ -2089,6 +2109,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = e.target.closest('.swipe-btn');
     if (!btn) return;
     e.stopPropagation();
+
+    // 🔹 First real interaction with a swipe button hides the hint
+    if (swipeHint && !swipeHint.classList.contains('hide')) {
+      swipeHint.classList.add('hide');
+    }
 
     if (btn.classList.contains('swipe-right')) {
       applied += 1;
@@ -2105,13 +2130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 🔹 Hide "swipe right to apply" explainer after a few seconds
-  const swipeHint = document.getElementById('swipeHint');
-  if (swipeHint) {
-    setTimeout(() => {
-      swipeHint.classList.add('hide');
-    }, 3500);
-  }
+  // (⛔️ removed the old setTimeout that hid the hint after a few seconds)
 
   // Open premium modal visually only
   const openPremium = document.getElementById('openPremium');
@@ -2151,6 +2170,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
 
 
 
