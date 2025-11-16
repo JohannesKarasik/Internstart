@@ -344,22 +344,29 @@
   }
 }
 
-/* Mobile: HERO TITLE on TWO LINES */
+/* Desktop default: show desktop title */
+.desktop-title { display: inline; }
+.mobile-title { display: none; }
+
+/* Mobile: TWO-LINE layout */
 @media (max-width: 600px) {
-  .desktop-title { display: none !important; }
+  .desktop-title { 
+    display: none !important; 
+  }
+
   .mobile-title { 
     display: flex !important;
     flex-direction: column;
+    gap: 2px;                /* tighter spacing */
     text-align: center;
-    gap: 2px;
   }
 
   .mobile-title .ml {
-    display: block;
-    white-space: nowrap;
-    font-size: clamp(26px, 8vw, 34px);
-    line-height: 1.15;
-    font-weight: 800;
+    display: block;          /* each line separate */
+    white-space: nowrap;     /* prevents bad wrapping */
+    font-size: clamp(26px, 8vw, 34px); /* slightly smaller so 2 lines fit */
+    line-height: 1.12;       /* tighter line height */
+    font-weight: 800;        /* strong title weight */
   }
 }
 
