@@ -2705,47 +2705,48 @@ document.addEventListener('DOMContentLoaded', () => {
         stopDemo();
       }
       function place(targetEl) {
-      if (!targetEl) { clearUI(); return; }
+  if (!targetEl) { clearUI(); return; }
 
-      // Make sure parent isn't hidden
-      onb.hidden = false;
+  // 🔥 Force visibility BEFORE measuring
+  tip.style.display = "block";
+  tip.style.visibility = "hidden";
+  tip.style.opacity = "1";
 
-      // TEMPORARILY reveal tooltip so it has real dimensions
-      tip.style.visibility = "hidden";
-      tip.style.display = "block";
-      tip.classList.add("show");
+  // Now safe to read target geometry
+  const r = targetEl.getBoundingClientRect();
+  const size = Math.max(r.width, r.height) + 28;
 
-      const r = targetEl.getBoundingClientRect();
+  spot.style.width = spot.style.height = size + 'px';
+  spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
+  spot.style.top   = (r.top + r.height/2 - size/2) + 'px';
+  spot.classList.add('show');
 
-      // spotlight
-      const size = Math.max(r.width, r.height) + 28;
-      spot.style.width = spot.style.height = size + "px";
-      spot.style.left  = (r.left + r.width/2 - size/2) + "px";
-      spot.style.top   = (r.top + r.height/2 - size/2) + "px";
-      spot.classList.add("show");
+  const PAD = 12, GAP = 10;
 
-      // Now measure tooltip
-      const tb = tip.getBoundingClientRect();
+  const prevVis = tip.style.visibility;
+  tip.style.visibility = 'hidden';
+  tip.style.left = '-9999px';
+  tip.style.top = '-9999px';
+  tip.classList.remove('is-above','is-below');
 
-      // calculate position
-      const centerX = r.left + r.width/2;
-      const PAD = 12, GAP = 10;
+  // 🔥 NOW tooltip has real dimensions
+  const tb = tip.getBoundingClientRect();
+  tip.style.visibility = prevVis || '';
 
-      const preferAbove = r.top - GAP - tb.height;
-      const showBelow = (preferAbove < PAD);
+  const centerX = r.left + r.width/2;
+  const preferAboveY = r.top - GAP - tb.height;
+  const needBelow = (preferAboveY < PAD);
+  const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
 
-      const topY = showBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
-      const leftX = Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
+  const clampedLeft =
+    Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
 
-      // apply final positioning
-      tip.style.left = `${leftX}px`;
-      tip.style.top = `${topY}px`;
-      tip.classList.toggle("is-below", showBelow);
-      tip.classList.toggle("is-above", !showBelow);
+  tip.style.left = `${clampedLeft}px`;
+  tip.style.top  = `${Math.max(PAD, Math.min(topY, innerHeight - tb.height - PAD))}px`;
 
-      // make visible now that it's placed
-      tip.style.visibility = "visible";
-    }
+  tip.classList.add(needBelow ? 'is-below' : 'is-above', 'show');
+}
+
 
       function stopDemo() { demo.style.display='none'; demoStamp.classList.remove('show'); }
       function playDemo(kind) {
