@@ -2317,11 +2317,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = await r.json();
     setCardData(card);
 
-    // ✅ reveal card
     const deck = document.getElementById("swipeDeck");
     deck.style.opacity = "1";
     deck.style.pointerEvents = "auto";
-
   } catch (err) {
     console.error('Failed to load next AI card', err);
     setCardData({
@@ -2334,12 +2332,15 @@ document.addEventListener('DOMContentLoaded', () => {
       desc: 'AI generated example. Try again.'
     });
 
-    // reveal anyway
     const deck = document.getElementById("swipeDeck");
     deck.style.opacity = "1";
     deck.style.pointerEvents = "auto";
   }
+
+  // 🔥 NEW: notify onboarding system that card is ready
+  document.dispatchEvent(new Event("card:ready"));
 }
+
 
 
 
@@ -2753,10 +2754,15 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 // 🔥 IMPORTANT CHANGE: remove `{ once: true }` AND still listen for the event
-document.addEventListener('onboarding:finished', afterEmail);
+document.addEventListener('onboarding:finished', () => {
+  // Wait until card exists before starting tooltip onboarding
+  document.addEventListener("card:ready", afterEmail, { once: true });
+});
 
-// 🔥 NEW: Always wire tooltip onboarding even if email onboarding never runs
-wireButtons(open);
+
+document.addEventListener("card:ready", () => {
+  wireButtons(open);
+});
 
 const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
 const main = document.querySelector('main.layout');
