@@ -547,4 +547,27 @@
     });
   })();
   </script>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const vid = document.querySelector(".sp__video");
+    if (!vid) return;
+  
+    // Must wait a tiny bit for Safari to attach media state
+    setTimeout(() => {
+      try {
+        // 1) Fake a touch event
+        const evt = new Event("touchstart", { bubbles: true, cancelable: true });
+        vid.dispatchEvent(evt);
+  
+        // 2) Try to play after fake interaction
+        vid.play().catch(() => {});
+      } catch (e) {
+        console.log("Autoplay assist failed:", e);
+      }
+    }, 150);
+  });
+  </script>
+  
   
