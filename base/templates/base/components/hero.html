@@ -18,14 +18,10 @@
     
       <!-- MOBILE VERSION (forced 4 lines) -->
       <span class="mobile-title">
-        <span class="ml">
-          Apply to <span class="accent">200+ jobs</span> in minutes
-        </span>
-        <span class="ml accent">
-          with AI
-        </span>
+        <span class="ml">Apply to <span class="accent">200+ jobs</span></span>
+        <span class="ml">in minutes</span>
+        <span class="ml accent">with AI</span>
       </span>
-      
       
     
     </h1>
@@ -348,28 +344,23 @@
 .desktop-title { display: inline; }
 .mobile-title { display: none; }
 
-/* Mobile: TWO-LINE layout */
+/* Mobile forced layout */
 @media (max-width: 600px) {
-  .desktop-title { 
-    display: none !important; 
-  }
-
+  .desktop-title { display: none !important; }
   .mobile-title { 
     display: flex !important;
     flex-direction: column;
-    gap: 2px;                /* tighter spacing */
+    gap: 4px;           /* spacing between lines */
     text-align: center;
   }
 
   .mobile-title .ml {
-    display: block;          /* each line separate */
-    white-space: nowrap;     /* prevents bad wrapping */
-    font-size: clamp(26px, 8vw, 34px); /* slightly smaller so 2 lines fit */
-    line-height: 1.12;       /* tighter line height */
-    font-weight: 800;        /* strong title weight */
+    display: block;     /* forces each line */
+    white-space: nowrap; /* prevents wrapping 200+ jobs */
+    font-size: clamp(30px, 9vw, 40px);
+    line-height: 1.15;
   }
 }
-
 
 
 @media (max-width: 600px) {
