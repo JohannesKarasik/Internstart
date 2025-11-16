@@ -266,7 +266,7 @@
             
           
           <!-- 1) Desired job title -->
-          <div id="step2-jobtitle">
+          <div id="step2-jobtitle" style="display:none;">
             <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 16px;">
               <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
                 What's your desired job title?
@@ -1001,9 +1001,12 @@
 
 
   // Willing to relocate buttons
+// Willing to relocate buttons
 document.addEventListener('DOMContentLoaded', () => {
   const hiddenField = document.querySelector('[name$="willing_to_relocate"]');
   const buttons = document.querySelectorAll('.relocate-btn');
+
+  const jobTitleSection = document.getElementById('step2-jobtitle'); // ⭐ reveal this after click
 
   if (!hiddenField || !buttons.length) return;
 
@@ -1015,9 +1018,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // Highlight selected button
       buttons.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+
+      // ⭐ After picking yes/no → show job title
+      if (jobTitleSection) {
+        jobTitleSection.style.display = 'block';
+      }
     });
   });
 });
+
 
   </script>
   
