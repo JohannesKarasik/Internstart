@@ -2502,6 +2502,26 @@ document.addEventListener("click", e => {
       return;
     }
 
+      // flip only if NOT already flipped
+  container?.addEventListener('click', (e) => {
+    const inner = e.target.closest('.card-inner');
+
+    // Don't flip if it's already flipped
+    if (inner && inner.classList.contains('is-flipped') && !e.target.closest('.swipe-btn')) {
+      return;
+    }
+
+    // Existing flip logic
+    if (!e.target.closest('.swipe-btn')) {
+      const card = e.target.closest('.swipe-card');
+      card?.querySelector('.card-inner')?.classList.toggle('is-flipped');
+      return;
+    }
+
+    // other button logic...
+  });
+
+
     // buttons
     const btn = e.target.closest('.swipe-btn');
     if (!btn) return;
