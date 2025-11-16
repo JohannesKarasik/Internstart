@@ -2478,19 +2478,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  container?.addEventListener("mousemove", e => {
-  const top = cards().slice(-1)[0];
-  if (!top) return;
-
-  const inner = top.querySelector(".card-inner");
-  if (inner.classList.contains("is-flipped")) return; // ⛔ stop tilt if flipped
-
-  const r = top.getBoundingClientRect();
-  const rx = ((e.clientY - r.top)/r.height - 0.5) * -6;
-  const ry = ((e.clientX - r.left)/r.width - 0.5) * 6;
-  inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  // Disable parallax while flipped (prevents weird tilting)
+document.addEventListener("click", e => {
+  const inner = e.target.closest(".card-inner");
+  if (!inner) return;
+  
+  // If flipped, stop tilt
+  if (inner.classList.contains("is-flipped")) {
+    inner.style.transform = "rotateY(180deg)";
+  } else {
+    inner.style.transform = "";
+  }
 });
-
 
   /* ===============================
      UI wiring (buttons / keys / parallax)
