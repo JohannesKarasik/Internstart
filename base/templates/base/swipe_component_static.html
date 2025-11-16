@@ -1467,10 +1467,11 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     @media (max-width: 600px) {
 
       .swipe-container {
-        width: 98vw;
-        height: calc(100dvh - 130px);
-        max-height: 88vh;
-      }
+    width: 94vw !important;
+    max-width: 480px !important;
+    height: auto !important;
+    max-height: calc(100dvh - 210px) !important; /* was 170px */
+  }
 
       .card-front,
       .card-back {
@@ -2259,6 +2260,36 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
   border-radius: 14px !important;
 }
 }
+
+
+
+
+
+
+
+
+
+/* ✅ Allow vertical scroll + relax layout on mobile */
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+
+  main.layout {
+    height: auto !important;             /* stop forcing 100dvh */
+    min-height: 100dvh;                  /* still fill the screen initially */
+    align-items: flex-start !important;  /* card starts a bit below header */
+    justify-content: flex-start !important;
+    padding-top: calc(64px + env(safe-area-inset-top)) !important;
+    padding-bottom: 16px !important;
+    overflow-y: visible !important;      /* let content grow */
+  }
+}
+
+
+
+
 
 
   </style>
