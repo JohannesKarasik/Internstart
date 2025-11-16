@@ -44,6 +44,28 @@
         <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt="Uber"></div>
         <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt="DoorDash"></div>
       </div>
+
+
+      <!-- Row D -->
+<div class="logos__track logos__track--d" data-speed="46">
+  <div class="logo"><img class="logo__img" src="{% static 'images/netflix.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/airbnb.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/paypal.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/databricks.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/robinhood.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/stripe.png' %}" alt=""></div>
+</div>
+
+<!-- Row E -->
+<div class="logos__track logos__track--e" data-speed="60">
+  <div class="logo"><img class="logo__img" src="{% static 'images/vercel.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/twitch.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/canva.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/doordash.png' %}" alt=""></div>
+  <div class="logo"><img class="logo__img" src="{% static 'images/uber.png' %}" alt=""></div>
+</div>
+
+
     </div>
   </div>
 </section>
@@ -192,6 +214,27 @@
     z-index: 1;
   }
 }
+
+/* Desktop: show only 3 rows */
+.logos__track--d,
+.logos__track--e {
+  display: none;
+}
+
+
+@media (max-width: 640px) {
+  /* Mobile: show all 5 rows */
+  .logos__track--d,
+  .logos__track--e {
+    display: flex !important;
+  }
+
+  /* Increase vertical spacing slightly if needed */
+  .logos__viewport {
+    gap: 12px;
+  }
+}
+
 
 
 
