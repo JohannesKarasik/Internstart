@@ -4,6 +4,55 @@
 {% if not partial %}
 
 <main
+<!-- 🔥 FULL PAGE LOADER -->
+<div id="pageLoader" 
+     style="
+        position:fixed;
+        inset:0;
+        background:#0b0f1a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:99999;
+     ">
+    
+    <!-- 🔄 Smooth loading animation -->
+    <div class="lds-ring">
+      <div></div><div></div><div></div><div></div>
+    </div>
+
+</div>
+
+<style>
+/* Circle loader */
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 7px solid #ed003c;
+  border-radius: 50%;
+  animation: lds-ring 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #ed003c transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) { animation-delay: -0.3s; }
+.lds-ring div:nth-child(2) { animation-delay: -0.15s; }
+.lds-ring div:nth-child(3) { animation-delay: 0s; }
+
+@keyframes lds-ring {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
   class="layout"
   data-user-id="{{ request.user.id|default_if_none:'anon' }}"
   data-first-login="{{ first_login|yesno:'true,false' }}"
@@ -2249,31 +2298,36 @@ document.addEventListener('DOMContentLoaded', () => {
 // 👉 LOAD AI-GENERATED FIRST CARD
 // 👉 LOAD AI-GENERATED FIRST CARD
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("/swipe/next/", { credentials: "include" })
-        .then(r => r.json())
-        .then(job => {
-            console.log("AI job loaded:", job);
+  fetch("/swipe/next/", { credentials: "include" })
+    .then(r => r.json())
+    .then(job => {
+        console.log("AI job loaded:", job);
 
-            // FRONT
-            document.getElementById("cCompany").textContent = job.company || "Company";
-            document.getElementById("cTitle").textContent   = job.title || "Title";
-            document.getElementById("cRole").textContent    = job.role || "Role";
-            document.getElementById("cLoc").textContent     = job.location || "Location";
+        // Insert card data
+        document.getElementById("cCompany").textContent = job.company || "Company";
+        document.getElementById("cTitle").textContent   = job.title || "Title";
+        document.getElementById("cRole").textContent    = job.role || "Role";
+        document.getElementById("cLoc").textContent     = job.location || "Location";
 
-            // LOGO
-            const logoURL = job.logo_domain 
-                ? `https://logo.clearbit.com/${job.logo_domain}`
-                : "https://logo.clearbit.com/openai.com";
-            document.getElementById("cLogo").src = logoURL;
+        const logoURL = job.logo_domain 
+            ? `https://logo.clearbit.com/${job.logo_domain}`
+            : "https://logo.clearbit.com/openai.com";
+        document.getElementById("cLogo").src = logoURL;
 
-            // BACK OF CARD
-            document.getElementById("bCompany").textContent = job.company || "Company";
-            document.getElementById("bRole").textContent    = job.role || "Role";
-            document.getElementById("bLoc").textContent     = job.location || "Location";
-            document.getElementById("bDesc").textContent    = job.desc || "";
-        })
-        .catch(err => console.error("AI job fetch failed:", err));
-});
+        // Back
+        document.getElementById("bCompany").textContent = job.company || "Company";
+        document.getElementById("bRole").textContent    = job.role || "Role";
+        document.getElementById("bLoc").textContent     = job.location || "Location";
+        document.getElementById("bDesc").textContent    = job.desc || "";
+
+        // 🔥 HIDE LOADER NOW
+        document.getElementById("pageLoader").style.display = "none";
+        document.getElementById("swipeDeck").style.opacity = "1";
+    })
+    .catch(err => {
+        console.error("AI job fetch failed:", err);
+        document.getElementById("pageLoader").style.display = "none";
+    });
 
 
 // ===============================
