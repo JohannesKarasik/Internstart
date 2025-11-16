@@ -461,9 +461,15 @@
 
 .hero__phone .sp__card.is-active {
   opacity: 1 !important;
-  transform: scale(1) !important;
 }
 
+
+/* Fix for iOS autoplay: make the FIRST card fully visible immediately */
+.hero__phone .sp__card:first-child {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
 
 </style>
 <script>
