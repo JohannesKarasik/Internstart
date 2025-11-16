@@ -76,9 +76,7 @@
     font-family: 'Inter', sans-serif;
     overflow: hidden;
   "
-
-
-
+>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
@@ -2342,7 +2340,7 @@ const elCompany = document.getElementById("cCompany");
 const elTitle   = document.getElementById("cTitle");
 const elRole    = document.getElementById("cRole");
 const elLoc     = document.getElementById("cLoc");
-const elLogo    = document.getElementById("cLogo");
+const elLogo    = document.getElementById("companyLogo");
 const elDesc    = document.getElementById("cDesc");
 
 // API endpoint
@@ -2439,23 +2437,21 @@ loadNextCard();
 
 // 🔥 AUTO-HIDE LOADER AFTER 5 SECONDS
 document.addEventListener("DOMContentLoaded", () => {
-  // 🔥 AUTO-HIDE LOADER AFTER 5 SECONDS (fallback)
-  setTimeout(() => {
-    const loader = document.getElementById("pageLoader");
-    if (loader) {
-      loader.style.opacity = "0";
-      loader.style.transition = "opacity 0.6s ease";
-      setTimeout(() => { loader.style.display = "none"; }, 600);
-    }
+    setTimeout(() => {
+        const loader = document.getElementById("pageLoader");
+        if (loader) {
+            loader.style.opacity = "0";
+            loader.style.transition = "opacity 0.6s ease";
+            setTimeout(() => { loader.style.display = "none"; }, 600);
+        }
 
-    const deck = document.getElementById("swipeDeck");
-    if (deck) {
-      deck.style.opacity = "1";
-      deck.style.pointerEvents = "auto";
-    }
-  }, 5000); // 5 seconds
+        const deck = document.getElementById("swipeDeck");
+        if (deck) {
+            deck.style.opacity = "1";
+            deck.style.pointerEvents = "auto";
+        }
+    }, 5000); // 5 seconds
 });
-
 
 </script>
 
