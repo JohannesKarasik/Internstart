@@ -78,10 +78,16 @@
       <!-- Card 1 -->
       <article class="sp__card is-active">
         <video
-          class="sp__video"
-
-          src="{% static 'images/Final2_ios.mp4' %}">
-        </video>
+        class="sp__video"
+        src="{% static 'images/Final2_ios.mp4' %}"
+        autoplay
+        muted
+        playsinline
+        webkit-playsinline
+        loop
+        preload="auto">
+      </video>
+      
       </article>
       
       
@@ -470,25 +476,30 @@
       /* ============================================
          A) Activate first card & let browser autoplay
          ============================================ */
-      const firstCard = document.querySelector('.hero__phone .sp__card');
-      const firstVideo = firstCard?.querySelector('video');
-  
-      if (firstCard && firstVideo) {
-        firstCard.classList.add('is-active');
-  
-        // Ensure autoplay conditions are satisfied on iOS Safari
-        firstVideo.muted = true;
-        firstVideo.setAttribute('autoplay', '');
-        firstVideo.setAttribute('playsinline', '');
-        firstVideo.setAttribute('webkit-playsinline', '');
-  
-        // DO NOT manually call .play() — breaks iOS autoplay
-        firstVideo.addEventListener('ended', () => {
-          firstVideo.currentTime = 0;
-          // again, DO NOT call play() manually on iOS
-        });
-      }
-  
+         const firstCard = document.querySelector('.hero__phone .sp__card');
+        const firstVideo = firstCard?.querySelector('video');
+
+        if (firstCard && firstVideo) {
+          firstCard.classList.add('is-active');
+
+          // Just make sure it's muted; attributes are already on the tag
+          firstVideo.muted = true;
+
+          // Optional: nudge Chrome/Android to start playback
+          const playPromise = firstVideo.play?.();
+          if (playPromise && typeof playPromise.then === "function") {
+            playPromise.catch(() => {
+              // Autoplay blocked – user can tap to start, but at least we tried
+            });
+          }
+
+          firstVideo.addEventListener('ended', () => {
+            firstVideo.currentTime = 0;
+            firstVideo.play?.().catch(() => {});
+          });
+        }
+
+          
       // Pause all other videos (just safety)
       document.querySelectorAll('.hero__phone .sp__card:not(:first-child) video')
         .forEach(v => {
@@ -541,25 +552,5 @@
   </script>
 
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const vid = document.querySelector(".sp__video");
-    if (!vid) return;
-  
-    // Must wait a tiny bit for Safari to attach media state
-    setTimeout(() => {
-      try {
-        // 1) Fake a touch event
-        const evt = new Event("touchstart", { bubbles: true, cancelable: true });
-        vid.dispatchEvent(evt);
-  
-        // 2) Try to play after fake interaction
-        vid.play().catch(() => {});
-      } catch (e) {
-        console.log("Autoplay assist failed:", e);
-      }
-    }, 150);
-  });
-  </script>
-  
+
   
