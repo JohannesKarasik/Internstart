@@ -2055,22 +2055,24 @@ main.layout {
 }
 
 /* --- Fix: prevent onboarding tooltip flash --- */
-#ifOnbTip,
-#ifOnbSpot,
-#ifOnbDemo,
-#ifOnbDemoStamp {
+.ifOnb__tooltip,
+.ifOnb__spot,
+.ifOnb__demoCard,
+.ifOnb__demoStamp {
   visibility: hidden;
   opacity: 0;
   transition: opacity .25s ease;
 }
 
-#ifOnbTip.show,
-#ifOnbSpot.show,
-#ifOnbDemo.show,
-#ifOnbDemoStamp.show {
+.ifOnb__tooltip.show,
+.ifOnb__spot.show,
+.ifOnb__demoCard.show,
+.ifOnb__demoStamp.show {
   visibility: visible;
   opacity: 1;
+  transform: translateY(0);  /* important */
 }
+
 
 
 /* --- Fix: enforce Manrope font on onboarding buttons --- */
