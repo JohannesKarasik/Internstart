@@ -169,7 +169,7 @@
     <a class="header__account" href="{% url 'update-user' %}" aria-label="Account">
       <svg xmlns="http://.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+          d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 4 0 0 0 0 8Z"/>
       </svg>
     </a>
 
@@ -2236,16 +2236,16 @@ document.addEventListener('DOMContentLoaded', () => {
     swipeHint.classList.remove('hide');
     positionSwipeHint();
 
-    // Stage 2 after 2 seconds
+    // Stage 2 after 7 seconds (keep first hint on screen longer)
     hintTimers.push(setTimeout(() => {
       if (!swipeHint || swipeHint.classList.contains('hide')) return;
       hintStage = 2;
       if (swipeHintText) swipeHintText.textContent = 'Swipe left to dismiss';
       if (swipeHintIcon) swipeHintIcon.textContent = '✕';
       positionSwipeHint();
-    }, 2000));
+    }, 7000));
 
-    // Stage 3 after 4 seconds total
+    // Stage 3 after 9 seconds total
     hintTimers.push(setTimeout(() => {
       if (!swipeHint || swipeHint.classList.contains('hide')) return;
       hintStage = 3;
@@ -2255,9 +2255,9 @@ document.addEventListener('DOMContentLoaded', () => {
         cardInner.classList.add('is-flipped');
       }
       positionSwipeHint();
-    }, 4000));
+    }, 9000));
 
-    // End sequence after 6 seconds total: flip back + hide
+    // End sequence after 11 seconds total: flip back + hide
     hintTimers.push(setTimeout(() => {
       if (!swipeHint) return;
       if (cardInner && cardInner.classList.contains('is-flipped')) {
@@ -2265,13 +2265,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       swipeHint.classList.add('hide');
       clearHintTimers();
-    }, 6000));
+    }, 11000));
   }
 
   if (swipeHint && (swipeRightBtn || swipeLeftBtn || container)) {
     positionSwipeHint();
     window.addEventListener('resize', positionSwipeHint);
-    autoAdvanceHints(); // start automatic sequence
+    // Delay hint sequence until after 5s loader overlay is gone
+    setTimeout(() => {
+      autoAdvanceHints(); // start automatic sequence
+    }, 5000);
   }
 
   // (Manual "Next" handler left in place but button is hidden; it won't be used)
