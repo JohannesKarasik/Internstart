@@ -1,5 +1,3 @@
-
-
 {% load static %}
 
 {% block content %}
@@ -103,7 +101,7 @@
 
       <a class="sbi" href="#" title="Messages" style="display: none;">
         <span class="sbi__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="18" height="18" viewBox="0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <span class="sbi__label">Messages</span>
         <span class="sbi__dot" aria-hidden="true"></span>
@@ -292,36 +290,7 @@
   }
 </style>
 
-<!-- Stripe.js -->
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}"); // Django will inject your publishable key
-
-  function startCheckout(tier) {
-    fetch(`/billing/checkout/${tier}/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: "{}"
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.id) {
-        stripe.redirectToCheckout({ sessionId: data.id });
-      } else {
-        alert("Error creating checkout session: " + (data.error || "Unknown"));
-      }
-    })
-    .catch(err => console.error("Checkout error:", err));
-  }
-
-  // Attach event listeners (IDs kept the same)
-  document.getElementById("subscribe-starter").addEventListener("click", () => startCheckout("starter"));
-  document.getElementById("subscribe-pro").addEventListener("click", () => startCheckout("pro"));
-  document.getElementById("subscribe-elite").addEventListener("click", () => startCheckout("elite"));
-</script>
+<!-- (Stripe scripts removed in staging) -->
 
 
 <style>
@@ -338,83 +307,8 @@
 <script>
 
   
-  // Add this AFTER your premium modal code has been defined
-  (function () {
-    const link = document.getElementById('getPremiumLink');
-    if (!link) return;
-
-    function csrf() {
-      return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-    }
-
-    link.addEventListener('click', async (e) => {
-      // Prevent navigation to /upgrade/ and use the checkout session POST instead
-      e.preventDefault();
-
-      try {
-        const res = await fetch('/billing/create-checkout-session/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrf()
-          },
-          // 🔴 IMPORTANT: pass what your server expects
-          body: JSON.stringify({
-            // replace with your actual Stripe Price ID:
-            price_id: 'price_XXXXXXXXXXXX',
-            // optional but common:
-            mode: 'subscription' // or 'payment'
-          }),
-          credentials: 'same-origin'
-        });
-
-        // If the view returns a plain 400 with no JSON, this will throw.
-        let data = {};
-        try { data = await res.json(); } catch (_) {}
-
-        if (!res.ok) {
-          const msg = data?.error || `Checkout failed (${res.status}).`;
-          alert(msg);
-          return;
-        }
-
-        // Expecting {url: "..."} OR {id: "..."} depending on your view
-        if (data.url) {
-          window.location.href = data.url; // redirect to Stripe Checkout
-        } else if (data.id && window.Stripe) {
-          // Alternate flow if you return a sessionId and use Stripe.js
-          const stripe = Stripe('pk_live_or_test_xxx'); // your publishable key
-          await stripe.redirectToCheckout({ sessionId: data.id });
-        } else {
-          alert('No redirect URL received from server.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Network error starting checkout.');
-      }
-    });
-  })();
-</script>
-
-<script>
+  // (checkout + quota logic removed for staging)
   
-  async function checkQuotaFresh() {
-  try {
-    const r = await fetch('/quota/?t=' + Date.now());
-    const d = await r.json();
-    const el = document.getElementById('swipesLeft');
-    if (el) el.textContent = d.left;
-    return (d.left > 0);
-  } catch {
-    return false;
-  }
-}
-
-
-  document.getElementById('openPremium')?.addEventListener('click', () => {
-    document.getElementById('premiumModal')?.classList.add('show');
-    document.documentElement.style.overflow = 'hidden';
-  });
 </script>
 </div>
 
@@ -2112,716 +2006,102 @@ main.layout {
 
   
 
-  <!-- ===== Core JS ===== -->
-
-  <script src="https://js.stripe.com/v3/"></script>
+  <!-- ===== Core JS (staging: visual only) ===== -->
 
   <script>
 document.addEventListener('DOMContentLoaded', () => {
-  /* ===============================
-     Helpers
-  =============================== */
-  const $  = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const CSRF = () => document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-  // Persistently hide already-applied jobs (frontend safety)
-  const USER_ID   = "{{ request.user.id|default_if_none:'anon' }}";
-  const SWIPED_KEY = `swiped_jobs_${USER_ID}`;
-  const getSwipedSet  = () => { try { return new Set(JSON.parse(localStorage.getItem(SWIPED_KEY) || "[]")); } catch { return new Set(); } };
-  const saveSwipedSet = (set) => localStorage.setItem(SWIPED_KEY, JSON.stringify([...set]));
-  const markSwiped    = (roomId) => { const s=getSwipedSet(); s.add(String(roomId)); saveSwipedSet(s); };
-  const unmarkSwiped  = (roomId) => { const s=getSwipedSet(); s.delete(String(roomId)); saveSwipedSet(s); };
-
-  // Remove cards the user already applied to (in case multiple exist)
-  (function hidePreviouslySwiped(){
-    const swiped = getSwipedSet(); if (!swiped.size) return;
-    $$('.swipe-card[data-room-id]').forEach(card => {
-      if (swiped.has(String(card.dataset.roomId))) card.remove();
-    });
-  })();
-
-  /* ===============================
-     Deck & HUD
-  =============================== */
-  const container      = $('.swipe-container');
-  const cards          = () => $$('.swipe-card', container);
-  const ringBar        = $('#ringBar');
-  const cardsLeftEl    = $('#cardsLeft');
-  const appliedWidget  = $('#appliedWidget');
-  const appliedCountEl = $('#appliedCount');
-  const toastEl        = $('#toast');
-  const swipesLeftEl   = $('#swipesLeft');
-
-  let totalCards = Math.max(1, cards().length || 1);
-
-  function updateDeckHUD() {
-    const left = Math.max(1, cards().length || 1);
-    if (cardsLeftEl) cardsLeftEl.textContent = left;
-    if (ringBar) {
-      const pct  = (1 - (left / totalCards)) * 100;
-      const CIRC = 2 * Math.PI * 16;
-      ringBar.style.strokeDasharray  = CIRC;
-      ringBar.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
-    }
+  const deck = document.getElementById('swipeDeck');
+  if (deck) {
+    deck.style.opacity = '1';
+    deck.style.pointerEvents = 'auto';
   }
 
-  function styleStack() {
-    const list = cards();
-    list.forEach(c => {
-      c.style.display = 'none';
-      c.style.zIndex = '';
-      c.style.pointerEvents = 'none';
-      c.classList.remove('is-top', 'is-next');
-    });
-    const top  = list[list.length - 1];
-    const next = list[list.length - 2];
+  const container = document.querySelector('.swipe-container');
+  const cardInner = container?.querySelector('.card-inner');
+  const toastEl = document.getElementById('toast');
 
-    if (next) {
-      next.style.display = 'block';
-      next.style.zIndex = 5;
-      next.classList.add('is-next');
-      next.style.transform = 'scale(0.97) translateY(5px)';
-      next.style.opacity = '0.9';
-      next.style.pointerEvents = 'none';
-    }
-    if (top) {
-      top.style.display = 'block';
-      top.style.zIndex = 10;
-      top.classList.add('is-top');
-      top.style.transform = 'scale(1) translateY(0)';
-      top.style.opacity = '1';
-      top.style.pointerEvents = 'auto';
-    }
-  }
+  const appliedCount = document.getElementById('appliedCount');
+  const appliedMobile = document.getElementById('appliedCountMobile');
+  const swipesLeftEl = document.getElementById('swipesLeft');
+  const swipesLeftMobileEl = document.getElementById('swipesLeftMobile');
 
-  /* ===============================
-     Gamification / Streak
-  =============================== */
-  const userKey   = (suffix) => `if_swipe_${('{{ request.user.id|default_if_none:"anon" }}')}_${suffix}`;
-  const todayKey  = () => new Date().toISOString().slice(0,10);
-  const getNum    = (k,d=0)=> Number(localStorage.getItem(k) ?? d);
-  const setNum    = (k,v)=> localStorage.setItem(k, String(v));
+  let applied = 0;
+  let swipesLeft = parseInt(swipesLeftEl?.textContent || '0', 10) || 10;
 
-  function getStreak(){
-    const lastDay = localStorage.getItem(userKey('last_day'));
-    const today = todayKey();
-    let streak = getNum(userKey('streak'), 0);
-    if (lastDay && lastDay !== today) {
-      const diff = (new Date(today) - new Date(lastDay)) / 86400000;
-      if (diff !== 1) { streak = 0; setNum(userKey('streak'), streak); }
-    }
-    return streak;
-  }
-  function bumpStreak(){
-    const today = todayKey();
-    let s = getStreak();
-    const lastDay = localStorage.getItem(userKey('last_day'));
-    if (lastDay !== today) s++;
-    localStorage.setItem(userKey('last_day'), today);
-    setNum(userKey('streak'), s);
-    const el = document.getElementById('streakVal');
-    if (el) el.textContent = s;
-    return s;
-  }
-  { const el = document.getElementById('streakVal'); if (el) el.textContent = getStreak(); }
-
-  let combo=0, lastActionAt=0;
-  function registerCombo(){
-    const now = Date.now();
-    combo = (now - lastActionAt < 4000) ? combo+1 : 1;
-    lastActionAt = now;
-    const comboEl = document.getElementById('comboBadge');
-    if (comboEl) {
-      comboEl.textContent = combo>1 ? `Combo x${combo}!` : '';
-      comboEl.classList.toggle('is-active', combo>1);
-      setTimeout(()=> comboEl.classList.remove('is-active'), 1200);
-    }
-  }
-
-  function showToast(msg){
+  function showToast(msg) {
     if (!toastEl) return;
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 1400);
+    showToast._t = setTimeout(() => {
+      toastEl.classList.remove('show');
+    }, 1500);
   }
 
-  function confettiBurst(x, y, n=18){
-    const canvas=document.createElement('canvas'), ctx=canvas.getContext('2d');
-    canvas.width=innerWidth; canvas.height=innerHeight; canvas.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:9999';
-    document.body.appendChild(canvas);
-    const p=Array.from({length:n},()=>({x,y,vx:(Math.random()*2-1)*6,vy:(Math.random()*-4-2),g:.18+Math.random()*.2,s:4+Math.random()*3,c:`hsl(${Math.random()*360},85%,60%)`,life:60+Math.random()*20}));
-    (function tick(){ ctx.clearRect(0,0,canvas.width,canvas.height); p.forEach(o=>{o.vy+=o.g;o.x+=o.vx;o.y+=o.vy;o.life--;ctx.fillStyle=o.c;ctx.fillRect(o.x,o.y,o.s,o.s);}); if(p.some(o=>o.life>0)) requestAnimationFrame(tick); else canvas.remove(); })();
-  }
-
-  function incrementApplied(){
-    const prev = getNum(userKey('applied'), 0);
-    const next = prev + 1;
-    setNum(userKey('applied'), next);
-    if (!appliedCountEl) return;
-    const start = Number(appliedCountEl.textContent || 0);
-    const duration = 350; let t0=null;
-    function step(ts){ if(!t0) t0 = ts; const p = Math.min(1, (ts - t0)/duration); appliedCountEl.textContent = String(Math.round(start + (next-start)*p)); if (p<1) requestAnimationFrame(step); }
-    requestAnimationFrame(step);
-  }
-
-  function stamp(card, type){
-    const el = card.querySelector(type==='right' ? '.stamp--apply' : '.stamp--dismiss');
-    if (!el) return;
-    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-    setTimeout(()=> el.classList.remove('show'), 450);
-  }
-
-  function flyCardToAppliedCounter(fromCard){
-    const target = appliedWidget;
-    if (!fromCard || !target) return;
-    const r = fromCard.getBoundingClientRect();
-    const t = target.getBoundingClientRect();
-
-    const ghost = document.createElement('div');
-    ghost.className = 'fly-ghost';
-    ghost.style.left = r.left + 'px';
-    ghost.style.top = r.top + 'px';
-    ghost.style.width = r.width + 'px';
-    ghost.style.height = r.height + 'px';
-    document.body.appendChild(ghost);
-
-    const dx = (t.left + t.width/2) - (r.left + r.width/2);
-    const dy = (t.top + t.height/2) - (r.top + r.height/2);
-    requestAnimationFrame(()=> {
-      ghost.classList.add('run');
-      ghost.style.transform = `translate(${dx}px, ${dy}px) scale(.15) rotate(12deg)`;
-      ghost.style.opacity = .05;
-    });
-
-    ghost.addEventListener('transitionend', () => {
-      ghost.remove();
-      target.classList.remove('ping'); void target.offsetWidth; target.classList.add('ping','bump');
-    }, { once:true });
-  }
-
-  /* ===============================
-     Single-card data binding
-  =============================== */
-  const elLogo    = $('#cLogo');
-  const elC       = $('#cCompany');
-  const elT       = $('#cTitle');
-  const elR       = $('#cRole');
-  const elLoc     = $('#cLoc');
-  const elBC      = $('#bCompany');
-  const elBR      = $('#bRole');
-  const elBLoc    = $('#bLoc');
-  const elBDesc   = $('#bDesc');
-  const elCard    = $('#swipeCard');
-
-  function setCardData(card) {
-  const company = card.company   || '';
-  const title   = card.title     || '';
-  const role    = card.role      || '';
-  const loc     = card.location  || '';
-  const desc    = card.desc      || '';
-  const domain  = (card.logo_domain || '').trim() || 'clearbit.com';
-
-  if (elLogo)  elLogo.src = `https://logo.clearbit.com/${domain}`;
-  if (elC)     elC.textContent = company;
-  if (elT)     elT.textContent = title;
-  if (elR)     elR.textContent = role;
-
-  // ❌ wrong — shows job location
-  // if (elLoc) elLoc.textContent = loc;
-
-  // ✅ FIX — always show user's city
-  if (elLoc) elLoc.textContent = "{{ request.user.city|escapejs|default:'Your city' }}";
-
-  if (elBC)    elBC.textContent = company;
-  if (elBR)    elBR.textContent = role;
-  if (elBLoc)  elBLoc.textContent = loc;
-  if (elBDesc) elBDesc.textContent = desc;
-
-
-    if (elCard && card.id !== undefined && card.id !== null) {
-      elCard.dataset.roomId = card.id;
-    }
-  }
-
-  async function loadNextCard() {
-  try {
-    const r = await fetch('/swipe/next/', { credentials:'same-origin' });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const card = await r.json();
-    setCardData(card);
-
-    // ✅ reveal card
-    const deck = document.getElementById("swipeDeck");
-    deck.style.opacity = "1";
-    deck.style.pointerEvents = "auto";
-
-  } catch (err) {
-    console.error('Failed to load next AI card', err);
-    setCardData({
-      id: 'fallback',
-      company: 'Internstart',
-      title: 'Internship',
-      role: '',
-      location: '',
-      logo_domain: 'internstart.com',
-      desc: 'AI generated example. Try again.'
-    });
-
-    // reveal anyway
-    const deck = document.getElementById("swipeDeck");
-    deck.style.opacity = "1";
-    deck.style.pointerEvents = "auto";
-  }
-}
-
-
-
-  /* ===============================
-     Undo stack
-  =============================== */
-  const undoStack = [];
-  function undoLast(){
-    const last = undoStack.pop();
-    if (!last) { showToast('Nothing to undo'); return; }
-
-    container.appendChild(last.el);
-    last.el.style.opacity = '0';
-    last.el.style.transform = 'translateY(14px) scale(.98)';
-    last.el.style.transition = 'transform .26s ease, opacity .26s ease';
-
-    requestAnimationFrame(() => {
-      last.el.style.opacity = '1';
-      last.el.style.transform = 'translateY(0) scale(1)';
-    });
-
-    last.el.addEventListener('transitionend', () => {
-      last.el.style.transition = '';
-      styleStack(); updateDeckHUD();
-    }, { once:true });
-
-    showToast('Brought back');
-  }
-
-  /* ===============================
-     Throw card (single-card reuse)
-  =============================== */
-  function throwCard(direction = 'right', { doFetch = false, save = false } = {}) {
-    const list = cards();
-    if (!list.length) return;
-    const current = list[list.length - 1];
-
-    if (direction === 'right' && doFetch) {
-      const left = parseInt(swipesLeftEl?.textContent || '0', 10);
-      if (left <= 0) {
-        const noSwipesModal = document.getElementById('noSwipesModal');
-        noSwipesModal?.classList.add('show');
-        document.documentElement.style.overflow = 'hidden';
-        return;
-      }
-    }
-
-    // Snapshot for undo (UI only)
-    const clone = current.cloneNode(true);
-    clone.classList.remove('leaving', 'is-top', 'is-next');
-    clone.style.transform = '';
-    clone.style.opacity = '';
-    clone.style.transition = '';
-    undoStack.push({ el: clone, direction, doFetch, save, time: Date.now() });
-
-    // Visuals
-    current.classList.add('leaving');
-    stamp(current, direction);
-
-    // animation
-    if (direction === 'right' && doFetch) {
-      current.style.opacity = 0;
-      flyCardToAppliedCounter(current);
-    } else {
-      const x = direction === 'right' ? innerWidth * 1.2 : -innerWidth * 1.2;
-      const y = Math.random() * 80 - 40;
-      const rot = direction === 'right' ? 22 : -22;
-      current.style.transition = 'transform .7s cubic-bezier(0.22,1,0.36,1), opacity .7s ease';
-      current.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) scale(1.02)`;
-      current.style.opacity = 0;
-    }
-
-    setTimeout(() => {
-      // keep single card DOM; just reset classes/stack
-      current.classList.remove('leaving');
-      styleStack(); updateDeckHUD();
-    }, 680);
-
-    // Server apply + then fetch NEXT AI JSON and fill current DOM
-    if (doFetch) {
-      const leftNow = parseInt(swipesLeftEl?.textContent || '0', 10);
-      if (swipesLeftEl) swipesLeftEl.textContent = String(Math.max(0, leftNow - 1));
-
-      const roomId = current.dataset.roomId;
-      markSwiped(roomId);
-
-      fetch("{% url 'apply_swipe_job' %}", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF() },
-        body: JSON.stringify({ room_id: roomId }),
-        credentials: 'same-origin'
-      })
-      .then(async r => {
-        const text = await r.text();
-        try { return JSON.parse(text); }
-        catch { console.error("Non-JSON response from server:", text); throw new Error("Server error, see logs."); }
-      })
-      .then(async data => {
-        if (data.error === "OAuth required" && data.redirect) {
-          unmarkSwiped(roomId);
-          window.location.href = data.redirect;
-          return;
-        }
-        if (data.error) {
-          unmarkSwiped(roomId);
-          alert("Error: " + data.error);
-          return;
-        }
-        if (typeof data.left === 'number' && swipesLeftEl) {
-          swipesLeftEl.textContent = String(data.left);
-        }
-        // ✅ Load the next AI/job JSON and fill our single preview card
-        await loadNextCard();
-      })
-      .catch(err => {
-        console.error("Apply error:", err);
-        unmarkSwiped(roomId);
-      });
-
-      // Gamification + counters
-      const xp = 15;
-      registerCombo();
-      const s = bumpStreak();
-      incrementApplied();
-      showToast(`Applied! +${xp} XP · 🔥 Streak ${s}`);
-      const t = appliedWidget?.getBoundingClientRect?.();
-      if (t) confettiBurst(t.left + t.width / 2, t.top + t.height / 2, 22);
-    } else if (save) {
-      const xp = 8;
-      registerCombo();
-      showToast(`Saved! +${xp} XP`);
-    } else if (direction === 'left') {
-      combo = 0;
-      showToast('Skipped');
-    }
-  }
-
-
-  // Disable parallax while flipped (prevents weird tilting)
-document.addEventListener("click", e => {
-  const inner = e.target.closest(".card-inner");
-  if (!inner) return;
-  
-  // If flipped, stop tilt
-  if (inner.classList.contains("is-flipped")) {
-    inner.style.transform = "rotateY(180deg)";
-  } else {
-    inner.style.transform = "";
-  }
-});
-
-  /* ===============================
-     UI wiring (buttons / keys / parallax)
-  =============================== */
+  // Simple card flip: click anywhere on card (except buttons)
   container?.addEventListener('click', (e) => {
-    // flip
-    if (!e.target.closest('.swipe-btn')) {
-      const card = e.target.closest('.swipe-card');
-      card?.querySelector('.card-inner')?.classList.toggle('is-flipped');
-      return;
-    }
-
-      // flip only if NOT already flipped
-  container?.addEventListener('click', (e) => {
-    const inner = e.target.closest('.card-inner');
-
-    // Don't flip if it's already flipped
-    if (inner && inner.classList.contains('is-flipped') && !e.target.closest('.swipe-btn')) {
-      return;
-    }
-
-    // Existing flip logic
-    if (!e.target.closest('.swipe-btn')) {
-      const card = e.target.closest('.swipe-card');
-      card?.querySelector('.card-inner')?.classList.toggle('is-flipped');
-      return;
-    }
-
-    // other button logic...
+    if (e.target.closest('.swipe-btn')) return;
+    if (!cardInner) return;
+    cardInner.classList.toggle('is-flipped');
   });
 
-
-    // buttons
+  // Fake swipe buttons: just animate counters & toast (no backend)
+  container?.addEventListener('click', (e) => {
     const btn = e.target.closest('.swipe-btn');
     if (!btn) return;
     e.stopPropagation();
 
-    if (btn.classList.contains('swipe-left'))      return void throwCard('left');
-    if (btn.classList.contains('swipe-right'))     return void throwCard('right', {doFetch:true});
-    if (btn.classList.contains('swipe-lightning')) return void throwCard('right', {doFetch:true});
-    if (btn.classList.contains('swipe-return'))    return void undoLast();
-  });
+    if (btn.classList.contains('swipe-right')) {
+      applied += 1;
+      if (appliedCount) appliedCount.textContent = applied;
+      if (appliedMobile) appliedMobile.textContent = applied;
 
-  document.addEventListener('keydown', (e) => {
-    const topCard = cards().slice(-1)[0];
-    if (!topCard) return;
-    if (e.key === 'ArrowLeft')  return void throwCard('left');
-    if (e.key === 'ArrowRight') return void throwCard('right', {doFetch:true});
-    if (e.key.toLowerCase() === 's') return void throwCard('right', {save:true});
-    if (e.key === 'Backspace')  return void undoLast();
-  });
+      swipesLeft = Math.max(0, swipesLeft - 1);
+      if (swipesLeftEl) swipesLeftEl.textContent = swipesLeft;
+      if (swipesLeftMobileEl) swipesLeftMobileEl.textContent = swipesLeft;
 
-  container?.addEventListener('mousemove', (e) => {
-    const c = cards().slice(-1)[0]; if (!c) return;
-    const inner = c.querySelector('.card-inner'); const r=c.getBoundingClientRect();
-    const rx=((e.clientY-r.top)/r.height - .5)*-6; const ry=((e.clientX-r.left)/r.width - .5)*6;
-    inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-  });
-  container?.addEventListener('mouseleave', () => {
-    const c=cards().slice(-1)[0]; if (!c) return; c.querySelector('.card-inner').style.transform='';
-  });
-
-  // Initial layout
-  styleStack();
-updateDeckHUD();
-
-// 🔥 Notify onboarding that the card stack is ready
-document.dispatchEvent(new Event("cardstack:ready"));
-
-
-  // ✅ Immediately load AI-generated preview card on first page load
-  loadNextCard();
-});
-
-/* ===============================
-   Email onboarding overlay wiring
-   (kept intact; triggers after OAuth etc.)
-=============================== */
-document.addEventListener('DOMContentLoaded', () => {
-  const overlay = document.getElementById('onboarding-overlay');
-  const primaryLink = document.getElementById('onb-primary-link');
-  const nextBtn = document.getElementById('onb-next');
-
-  const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
-  const PENDING_ONB_AFTER_OAUTH = 'pending_onb_after_oauth';
-
-  function openEmailOnboarding() {
-    if (!overlay) return;
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  }
-  function closeEmailOnboarding() {
-    if (!overlay) return;
-    overlay.style.display = 'none';
-    document.body.style.overflow = '';
-    localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
-    document.dispatchEvent(new Event('onboarding:finished'));
-  }
-
-  document.addEventListener('onboarding:email', openEmailOnboarding);
-  nextBtn?.addEventListener('click', closeEmailOnboarding);
-  primaryLink?.addEventListener('click', () => {
-    localStorage.setItem(PENDING_ONB_AFTER_OAUTH, '1');
-  });
-
-  const main = document.querySelector('main.layout');
-  const firstLogin = main?.dataset.firstLogin === 'true';
-  if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
-    setTimeout(() => {
-      document.dispatchEvent(new Event('onboarding:email'));
-    }, 600);
-  }
-
-  if (localStorage.getItem(PENDING_ONB_AFTER_OAUTH) === '1') {
-    const maxWait = 6000;
-    const start = Date.now();
-    const checkReady = setInterval(() => {
-      const onb = document.getElementById('ifOnb');
-      if (onb || Date.now() - start > maxWait) {
-        clearInterval(checkReady);
-        localStorage.removeItem(PENDING_ONB_AFTER_OAUTH);
-        localStorage.setItem(EMAIL_ONB_SEEN_KEY, '1');
-        document.dispatchEvent(new Event('onboarding:finished'));
-      }
-    }, 400);
-  }
-});
-
-/* ===============================
-   Button coachmarks onboarding
-=============================== */
-document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('if_full_onboarding_done') === '1') return;
-
-  const $ = s => document.querySelector(s);
-  const whenReady = (ids, cb) => {
-    const ok = () => ids.every(id => document.getElementById(id));
-    if (ok()) return cb();
-    const mo = new MutationObserver(() => { if (ok()) { mo.disconnect(); cb(); } });
-    mo.observe(document.documentElement, { childList: true, subtree: true });
-  };
-  function wireButtons(openFn) {
-    const btnDesktop = document.getElementById('showOnboarding');
-    const btnMobile  = document.getElementById('showOnboardingMobile');
-    [btnDesktop, btnMobile].forEach(btn => {
-      if (!btn) return;
-      btn.hidden = false;
-      btn.style.display = 'inline-flex';
-      btn.addEventListener('click', e => { e.preventDefault(); openFn(); });
-    });
-  }
-
-  whenReady(
-    ['ifOnb','ifOnbSpot','ifOnbTip','ifOnbTipTitle','ifOnbTipText','ifOnbDemo','ifOnbDemoStamp'],
-    () => {
-      const onb   = $('#ifOnb');
-      const spot  = $('#ifOnbSpot');
-      const tip   = $('#ifOnbTip');
-      const title = $('#ifOnbTipTitle');
-      const text  = $('#ifOnbTipText');
-      const demo  = $('#ifOnbDemo');
-      const demoStamp = $('#ifOnbDemoStamp');
-      const leader = $('#ifOnbLeader');
-
-      const ctl = document.createElement('div');
-      ctl.style.marginTop = '8px';
-      ctl.innerHTML = `
-        <div style="display:flex; gap:8px;">
-          <button id="ifOnbPrev2" class="btn-secondary" style="padding:6px 10px;">Back</button>
-          <button id="ifOnbNext2" class="btn-primary"  style="padding:6px 10px;">Next</button>
-        </div>`;
-      tip.appendChild(ctl);
-      const btnPrev = () => $('#ifOnbPrev2');
-      const btnNext = () => $('#ifOnbNext2');
-
-      const steps = [
-        {
-          target: () => document.querySelector('.swipe-card.is-top .swipe-left') || document.querySelector('.swipe-left'),
-          title: 'Dismiss',
-          text: 'Quickly skip roles that aren’t a match.',
-          demo: 'skip'
-        },
-        {
-          target: () => document.querySelector('.swipe-card.is-top .swipe-right') || document.querySelector('.swipe-right'),
-          title: 'Apply',
-          text: 'One tap and our AI model creates a full job application. It writes a personalized cover letter based on your resume, attaches both your cover letter and resume, and sends the email directly to the employer.',
-          demo: 'apply'
-        }
-      ];
-      let i = 0;
-
-      function clearUI() {
-        spot.classList.remove('show');
-        tip.classList.remove('show','is-above','is-below');
-        if (leader) leader.style.width = '0';
-        stopDemo();
-      }
-      function place(targetEl) {
-  if (!targetEl) { clearUI(); return; }
-
-  // 🔥 Force visibility BEFORE measuring
-  tip.style.display = "block";
-  tip.style.visibility = "hidden";
-  tip.style.opacity = "1";
-
-  // Now safe to read target geometry
-  const r = targetEl.getBoundingClientRect();
-  const size = Math.max(r.width, r.height) + 28;
-
-  spot.style.width = spot.style.height = size + 'px';
-  spot.style.left  = (r.left + r.width/2 - size/2) + 'px';
-  spot.style.top   = (r.top + r.height/2 - size/2) + 'px';
-  spot.classList.add('show');
-
-  const PAD = 12, GAP = 10;
-
-  const prevVis = tip.style.visibility;
-  tip.style.visibility = 'hidden';
-  tip.style.left = '-9999px';
-  tip.style.top = '-9999px';
-  tip.classList.remove('is-above','is-below');
-
-  // 🔥 NOW tooltip has real dimensions
-  const tb = tip.getBoundingClientRect();
-  tip.style.visibility = prevVis || '';
-
-  const centerX = r.left + r.width/2;
-  const preferAboveY = r.top - GAP - tb.height;
-  const needBelow = (preferAboveY < PAD);
-  const topY = needBelow ? (r.bottom + GAP) : (r.top - tb.height - GAP);
-
-  const clampedLeft =
-    Math.max(PAD, Math.min(centerX - tb.width/2, innerWidth - tb.width - PAD));
-
-  tip.style.left = `${clampedLeft}px`;
-  tip.style.top  = `${Math.max(PAD, Math.min(topY, innerHeight - tb.height - PAD))}px`;
-
-  tip.classList.add(needBelow ? 'is-below' : 'is-above', 'show');
-}
-
-
-      function stopDemo() { demo.style.display='none'; demoStamp.classList.remove('show'); }
-      function playDemo(kind) {
-        demo.style.display='flex';
-        demoStamp.textContent = (kind === 'apply') ? 'APPLY' : 'SKIP';
-        demoStamp.classList.add('show');
-        setTimeout(stopDemo, 600);
-      }
-      function render() {
-        const step = steps[i];
-        title.textContent = step.title;
-        text.textContent  = step.text;
-        place(step.target());
-        playDemo(step.demo);
-        btnPrev().style.display = (i === 0) ? 'none' : 'inline-flex';
-        btnNext().textContent   = (i === steps.length - 1) ? 'Finish' : 'Next';
-      }
-      function open()  { onb.hidden = false; render(); }
-      function close() { onb.hidden = true; clearUI(); }
-      window.ifOnbOpen = open;
-
-      tip.addEventListener('click', e => {
-        if (e.target.id === 'ifOnbPrev2') { i = Math.max(0, i - 1); render(); }
-        if (e.target.id === 'ifOnbNext2') {
-          if (i < steps.length - 1) { i++; render(); }
-          else { close(); localStorage.setItem('if_full_onboarding_done', '1'); }
-        }
-      });
-
-      function showEmailConnectedToast() {
-        const toast = document.getElementById('emailConnectedToast');
-        if (!toast) return;
-        toast.style.opacity = '1';
-        toast.style.transform = 'translate(-50%, 0)';
-        setTimeout(() => {
-          toast.style.opacity = '0';
-          toast.style.transform = 'translate(-50%, -10px)';
-        }, 2500);
-      }
-
-      function afterEmail() {
-        showEmailConnectedToast();
-        open();
-        wireButtons(open);
-      }
-      document.addEventListener('onboarding:finished', afterEmail, { once:true });
-
-      const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
-      const main = document.querySelector('main.layout');
-      const firstLogin = main?.dataset.firstLogin === 'true';
-      if (firstLogin && !localStorage.getItem(EMAIL_ONB_SEEN_KEY)) {
-        setTimeout(() => {
-          document.dispatchEvent(new Event('onboarding:email'));
-        }, 800);
-      }
+      showToast('Demo only: no real application sent');
+    } else if (btn.classList.contains('swipe-left')) {
+      showToast('Demo only: skipped');
     }
-  );
+  });
+
+  // Open premium modal visually only
+  const openPremium = document.getElementById('openPremium');
+  const openPremiumMobile = document.getElementById('openPremiumMobile');
+  const noSwipesModal = document.getElementById('noSwipesModal');
+
+  function openModal() {
+    if (!noSwipesModal) return;
+    noSwipesModal.classList.add('show');
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  openPremium?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal();
+  });
+
+  openPremiumMobile?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal();
+  });
+
+  // Simple theme toggle (dark / light)
+  const themeToggle = document.getElementById('themeToggle');
+  themeToggle?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('theme-light');
+  });
+
+  // Saved list toggle (visual only)
+  const openSaved = document.getElementById('openSaved');
+  const savedList = document.getElementById('savedList');
+  openSaved?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!savedList) return;
+    const visible = savedList.style.display === 'block';
+    savedList.style.display = visible ? 'none' : 'block';
+  });
 });
 </script>
 
@@ -2834,4 +2114,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 {% endif %}
 {% endblock %}
-
