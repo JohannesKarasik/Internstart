@@ -109,35 +109,35 @@ class StudentCreationForm(UserCreationForm):
             'job_type',
         ]
 
-def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    # remove password confirmation field
-    if "password2" in self.fields:
-        del self.fields["password2"]
+        # remove password confirmation field
+        if "password2" in self.fields:
+            del self.fields["password2"]
 
-    # placeholders
-    self.fields['full_name'].widget.attrs.update({
-        'placeholder': _("Your full name"),
-        'autocomplete': 'name',
-        'class': 'form__control',
-    })
-    self.fields['email'].widget.attrs.update({
-        'placeholder': _("you@mail.com"),
-        'autocomplete': 'email',
-        'class': 'form__control',
-    })
-    self.fields['password1'].widget.attrs.update({
-        'placeholder': _("Create a password"),
-        'autocomplete': 'new-password',
-        'class': 'form__control',
-    })
+        # placeholders
+        self.fields['full_name'].widget.attrs.update({
+            'placeholder': _("Your full name"),
+            'autocomplete': 'name',
+            'class': 'form__control',
+        })
+        self.fields['email'].widget.attrs.update({
+            'placeholder': _("you@mail.com"),
+            'autocomplete': 'email',
+            'class': 'form__control',
+        })
+        self.fields['password1'].widget.attrs.update({
+            'placeholder': _("Create a password"),
+            'autocomplete': 'new-password',
+            'class': 'form__control',
+        })
 
-    # required
-    self.fields['full_name'].required = True
-    self.fields['email'].required = True
-    self.fields['desired_job_title'].required = True
-    self.fields['job_type'].required = True
+        # required
+        self.fields['full_name'].required = True
+        self.fields['email'].required = True
+        self.fields['desired_job_title'].required = True
+        self.fields['job_type'].required = True
 
 
     def clean_resume(self):

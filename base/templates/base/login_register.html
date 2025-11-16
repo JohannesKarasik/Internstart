@@ -57,12 +57,7 @@
         </header>
 
         <form method="POST" novalidate>
-          {% if student_form.errors %}
-  <pre style="color:red; padding:10px; background:#fee;">
-    {{ student_form.errors }}
-  </pre>
-{% endif %}
-
+          
           {% csrf_token %}
           <div class="form-grid">
             <div class="form__group">
