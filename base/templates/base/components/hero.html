@@ -77,8 +77,8 @@
     <div class="sp__rail" aria-label="{% trans 'User videos' %}">
       <!-- Card 1 -->
       <article class="sp__card is-active">
-        <video class="sp__video" playsinline muted loop preload="metadata"
-               src="{% static 'images/Final2_compressed.mp4' %}"></video>
+        <video class="sp__video" playsinline muted autoplay loop preload="metadata"
+        src="{% static 'images/Final2_compressed.mp4' %}"></video>
        
       </article>
 
@@ -448,6 +448,11 @@
   .hero__faces {
     margin-left: 0 !important;
   }
+}
+
+.hero__phone .sp__card.is-active {
+  opacity: 1 !important;
+  transform: scale(1) !important;
 }
 
 
