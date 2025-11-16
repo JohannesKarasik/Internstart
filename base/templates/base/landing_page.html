@@ -11,7 +11,7 @@
 
   <div class="home-layout">
 
-    <section class="reviews" aria-label="User reviews">
+    <section class="reviews" id="reviews" aria-label="User reviews">
       <div class="reviews__inner">
         <div class="reviews__viewport">
           <ul class="reviews__track">
@@ -378,10 +378,30 @@ html, body {
     
       io.observe(viewport);
     })();
+
+    
     </script>
     
 
-
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const rating = document.querySelector(".hero__rating");
+        if (!rating) return;
+      
+        rating.style.cursor = "pointer";
+      
+        rating.addEventListener("click", () => {
+          const target = document.getElementById("reviews");
+          if (!target) return;
+      
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        });
+      });
+      </script>
+      
 
 <!-- ===== Count Up (KPIs) ===== -->
 <section class="kpi" aria-label="Key product stats">
