@@ -1466,14 +1466,11 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     /* --- Phones & small tablets ------------------------------------------------ */
     @media (max-width: 600px) {
 
-/* Make card wider + much shorter */
-    .swipe-container {
-      width: 94vw !important;
-      max-width: 480px !important;
-      height: min(520px, calc(100dvh - 170px)) !important;  /* ✅ give it real height */
-      max-height: none !important;
-    }
-
+      .swipe-container {
+        width: 98vw;
+        height: calc(100dvh - 130px);
+        max-height: 88vh;
+      }
 
       .card-front,
       .card-back {
@@ -2288,7 +2285,6 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     overflow-y: visible !important;      /* let content grow */
   }
 }
-
 
 
 
