@@ -136,6 +136,7 @@ class StudentCreationForm(UserCreationForm):
         # required
         self.fields['full_name'].required = True
         self.fields['email'].required = True
+        self.fields['willing_to_relocate'].required = True
         self.fields['desired_job_title'].required = True
         self.fields['job_type'].required = True
 
@@ -162,6 +163,8 @@ class StudentCreationForm(UserCreationForm):
             # ❌ removed country assignment. done in view
             user.desired_job_title = self.cleaned_data['desired_job_title']
             user.job_type = self.cleaned_data['job_type']
+            user.willing_to_relocate = self.cleaned_data['willing_to_relocate']
+
             if commit:
                 user.save()
             return user
@@ -206,17 +209,33 @@ class RoomForm(forms.ModelForm):
         })
     )
 
+
+        # Willing to relocate?
+    willing_to_relocate = forms.ChoiceField(
+        choices=[
+            ('', 'Select an option'),
+            ('yes', 'Yes'),
+            ('no', 'No'),
+            ('maybe', 'Maybe'),
+        ],
+        required=True,
+        label=_("Are you willing to relocate for work?"),
+        widget=forms.Select(attrs={
+            'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
+        })
+    )
+
+
     class Meta:
-        model = Room   # ✅ CORRECT
+        model = User
         fields = [
-            'company_name',
-            'location',
-            'job_title',
-            'description',
-            'topic',
-            'logo',
-            'country',
+            'full_name',
+            'email',
+            'password1',
+            'resume',
+            'desired_job_title',
             'job_type',
+            'willing_to_relocate',   # <— ADD THIS
         ]
 
         widgets = {

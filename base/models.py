@@ -62,6 +62,8 @@ class User(AbstractUser):
     onboarding_shown = models.BooleanField(default=False)
     ready = models.BooleanField(default=False)
     user_attribute = models.ForeignKey(RoomAttribute, on_delete=models.SET_NULL, null=True, blank=True)
+    willing_to_relocate = models.CharField(max_length=10, blank=True, null=True)
+
 
 
 
