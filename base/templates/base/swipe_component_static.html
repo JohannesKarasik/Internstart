@@ -399,13 +399,30 @@
       </div>
 
       <!-- BACK -->
+      <!-- BACK -->
       <div class="card-back">
         <h3 id="bCompany">{{ first_room.company|default:'OpenAI' }}</h3>
         <h4 id="bRole">{{ first_room.role|default:'Intern' }}</h4>
-        <p class="location">📍 <span id="bLoc">{{ first_room.location|default:'Copenhagen, DK' }}</span></p>
+        <p class="location">
+          📍 <span id="bLoc">{{ first_room.location|default:'Copenhagen, DK' }}</span>
+        </p>
+
         <div class="divider"></div>
-        <p class="desc" id="bDesc">{{ first_room.desc|default:'AI generated example job. Upgrade to unlock real listings.' }}</p>
+
+        <!-- Main description (longer text from AI) -->
+        <p class="desc" id="bDesc">
+          {{ first_room.desc|default:'AI generated example job. Upgrade to unlock real listings.' }}
+        </p>
+
+        <!-- Compensation block (filled by JS; hidden if no data) -->
+        <div class="compensation" id="bCompWrap" style="margin-top:10px; display:none;">
+          <p class="comp-line">
+            💰 <span id="bCompType">Compensation</span>:
+            <span id="bCompValue">N/A</span>
+          </p>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -2105,6 +2122,21 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
     }
 
 
+    .card-back .compensation {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e2e8f5;
+    }
+    .card-back .comp-line {
+      margin: 0;
+      font-weight: 600;
+    }
+    .theme-light .card-back .compensation {
+      color: #1f2b3b;
+    }
+
+
   </style>
 
 {% include "base/email_flow_showcase.html" %}
@@ -2387,24 +2419,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // FRONT
       document.getElementById("cCompany").textContent = job.company || "Company";
-      document.getElementById("cTitle").textContent   = job.title || "Title";
-      document.getElementById("cRole").textContent    = job.role || "Role";
+      document.getElementById("cTitle").textContent   = job.title   || "Title";
+      document.getElementById("cRole").textContent    = job.role    || "Role";
       document.getElementById("cLoc").textContent     = job.location || "Location";
 
       // LOGO
-      const logoURL = job.logo_domain 
+      const logoURL = job.logo_domain
         ? `https://logo.clearbit.com/${job.logo_domain}`
         : "https://logo.clearbit.com/openai.com";
       document.getElementById("cLogo").src = logoURL;
 
       // BACK OF CARD
       document.getElementById("bCompany").textContent = job.company || "Company";
-      document.getElementById("bRole").textContent    = job.role || "Role";
+      document.getElementById("bRole").textContent    = job.role    || "Role";
       document.getElementById("bLoc").textContent     = job.location || "Location";
-      document.getElementById("bDesc").textContent    = job.desc || "";
+
+      // Use long_description if available, fallback to short desc
+      const longDesc = job.long_desc || job.long_description || job.desc || "";
+      document.getElementById("bDesc").textContent = longDesc;
+
+      // Compensation
+      const compWrap   = document.getElementById("bCompWrap");
+      const compTypeEl = document.getElementById("bCompType");
+      const compValEl  = document.getElementById("bCompValue");
+
+      const compType = (job.compensation_type || "").toLowerCase().trim();
+      const compVal  = (job.compensation || "").trim();
+
+      if (compVal && compWrap) {
+        // Decide label
+        let label = "Compensation";
+        if (compType === "salary") label = "Salary";
+        else if (compType === "hourly") label = "Hourly pay";
+        else if (compType === "stipend") label = "Stipend";
+
+        compWrap.style.display = "block";
+        if (compTypeEl) compTypeEl.textContent = label;
+        if (compValEl)  compValEl.textContent  = compVal;
+      } else if (compWrap) {
+        // Hide block if AI didn’t return any comp
+        compWrap.style.display = "none";
+      }
     })
     .catch(err => console.error("AI job fetch failed:", err));
 });
+
 
 
 // ===============================
