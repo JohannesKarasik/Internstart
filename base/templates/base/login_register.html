@@ -271,26 +271,41 @@
                 <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
                   What's your desired job title?
                 </label>
-                {{ student_form.desired_job_title|add_class:"form__control"|attr:"placeholder=e.g. Marketing intern, Software developer, Analyst" }}
+                {{ student_form.desired_job_title
+                    |add_class:"form__control"
+                    |attr:"placeholder=e.g. Marketing intern, Software developer, Analyst" }}
               </div>
             </div>
           
-
-          
-            <!-- 3) Job Type -->
+            <!-- 2) Job Type (hidden until Continue) -->
             <div id="step2-jobtype" style="display:none;">
               <div class="form__group" style="margin-bottom:16px;">
-                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">What type of job are you looking for?</label>
+                <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
+                  What type of job are you looking for?
+                </label>
                 {{ student_form.job_type|add_class:"form__control" }}
               </div>
             </div>
           
+            <!-- Step-2 actions -->
             <div class="wizard-actions wizard-actions--split">
+          
+              <!-- Back to Step 1 -->
               <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
-              <button type="submit" class="btn btn--primary">Create account</button>
-              <button type="button" id="toStep3" style="display:none"></button>
+          
+              <!-- Continue button (Job Title → Job Type) -->
+              <button type="button" class="btn btn--primary" id="step2-continue">
+                Continue
+              </button>
+          
+              <!-- Final submit (hidden until job type is shown) -->
+              <button type="submit" class="btn btn--primary" id="finalSubmitBtn" style="display:none;">
+                Create account
+              </button>
+          
             </div>
           </div>
+          
           
 
 
