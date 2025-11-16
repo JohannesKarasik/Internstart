@@ -954,8 +954,8 @@ def registerPage(request, template='base/login_register.html'):
         # =====================================
         # STEP 2 → FINAL SUBMIT (Create account)
         # =====================================
-        if step == '2':
-            print("➡️ Final submit from step 2")
+        if step in ["2", "3"]:
+            print("➡️ FINAL SUBMIT (job type completed) — creating account")
 
             if form.is_valid():
                 print("✅ Form valid — creating user")
