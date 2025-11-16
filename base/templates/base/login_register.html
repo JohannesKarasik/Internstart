@@ -651,6 +651,25 @@
   }
 }
 
+/* Desktop: Make the right form column narrower & centered */
+@media (min-width: 981px) {
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center content */
+  }
+
+  .auth-form__header,
+  .auth-form .auth-form-body,
+  .auth-form .wizard-actions,
+  .auth-form .auth-legal,
+  .auth-form .auth-alt {
+    max-width: 460px;   /* <-- adjust this to 420px or 480px if needed */
+    width: 100%;
+  }
+}
+
+
 
   </style>
 
