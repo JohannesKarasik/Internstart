@@ -287,15 +287,50 @@
           
             <div class="wizard-actions wizard-actions--split">
               <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
-              <button type="button" class="btn btn--primary" id="step2Continue">Continue</button>
-              <button type="submit" class="btn btn--primary" id="createAccountBtn" style="display:none;">Create account</button>
+              <button type="submit" class="btn btn--primary">Create account</button>
               <button type="button" id="toStep3" style="display:none"></button>
             </div>
           </div>
           
 
+          <!-- ========== STEP 2: Resume ========== -->
+# <div class="form-step" id="step-3" data-step="3" role="group" aria-labelledby="step3label">
+#   <h2 id="step3label" class="sr-only">Upload resume</h2>
+#   
+#   <!-- Drag-drop styled wrapper -->
+#   <div class="form-grid">
+#     {% if student_form.resume %}
+#       <div class="form__group{% if student_form.resume.errors %} form__group--error{% endif %}">
+#         <label class="form__label" for="{{ student_form.resume.id_for_label }}">{{ student_form.resume.label }}</label>
+#
+#         <div class="dropzone" id="resumeDrop">
+#           <div class="dz-icon">📄</div>
+#           <div class="dz-copy">
+#             <strong>Drag & drop</strong> your resume here<br>
+#             <span class="dz-sub">or click to browse (PDF/DOCX)</span>
+#           </div>
+#           <!-- Use the actual Django field; we visually style the container -->
+#           {{ student_form.resume|add_class:"form__control dz-input"|attr:"accept=.pdf,.doc,.docx" }}
+#         </div>
+#
+#         <small class="form__help" id="resumeFileName">No file chosen</small>
+#
+#         {% if student_form.resume.help_text %}
+#           <small class="form__help">{{ student_form.resume.help_text }}</small>
+#         {% endif %}
+#         {% if student_form.resume.errors %}
+#           <small class="form__error">{{ student_form.resume.errors|striptags }}</small>
+#         {% endif %}
+#       </div>
+#     {% else %}
+#       <p class="form__help">Resume field missing from form — add it to your Django form to enable uploads.</p>
+#     {% endif %}
+#   </div>
+# </div>
 
-            <div class="wizard-actions wizard-actions--split" style="display:none;">
+
+
+            <div class="wizard-actions wizard-actions--split">
               <button type="button" class="btn btn--ghost" id="backToStep2">  Back</button>
               <button type="submit" class="btn btn--primary">Create account</button>
             </div>
@@ -317,7 +352,7 @@
         </form>
       </div>
     </div>
-  </section>  
+  </section>
   {% endif %}
 
 </main>
@@ -658,105 +693,224 @@
   </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const registerForm = document.getElementById('registerForm');
-    if (!registerForm) return;  // Only run on register page
+  document.addEventListener('DOMContentLoaded', function () {
+    /* ===== Helper: add .form__control to raw widgets ===== */
+    document.querySelectorAll('.form__group :is(input,select,textarea):not(.form__control)')
+      .forEach(el => el.classList.add('form__control'));
   
-    const regStepInput = document.getElementById('regStep');
+    /* ===== Password visibility toggle(s) ===== */
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.togglePwd');
+      if (!btn) return;
+      const input = btn.previousElementSibling;
+      if (!input) return;
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+      btn.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
+      btn.dataset.state = isPwd ? 'hide' : 'show';
+    });
+  
+    /* ===== Hide password help until needed (only if step-1 exists) ===== */
+    if (document.getElementById('step-1')) {
+      const pwdInputs = document.querySelectorAll('#step-1 input[type="password"]');
+      pwdInputs.forEach((input) => {
+        const help = input.closest('.form__group')?.querySelector('.form__help');
+        if (!help) return;
+        help.classList.add('is-hidden');
+        const validate = () => {
+          const v = input.value || '';
+          const tooShort   = v.length > 0 && v.length < 8;
+          const numericOnly = /^\d+$/.test(v) && v.length > 0;
+          help.classList.toggle('is-hidden', !(tooShort || numericOnly));
+        };
+        input.addEventListener('input', validate);
+        input.addEventListener('blur', validate);
+      });
+    }
+  
+    /* ===== Register wizard (guard if this is the login page) ===== */
+    const form = document.getElementById('registerForm');
+    if (!form) return; // not on the register page
+  
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
   
-    const toStep2Btn = document.getElementById('toStep2');
+    const toStep2Btn     = document.getElementById('toStep2');
+    const toStep3Btn     = document.getElementById('toStep3');  // hidden helper (optional)
     const backToStep1Btn = document.getElementById('backToStep1');
+    const backToStep2Btn = document.getElementById('backToStep2');
   
-    const jobTitleBlock = document.getElementById('step2-jobtitle');
-    const jobTypeBlock = document.getElementById('step2-jobtype');
-    const step2ContinueBtn = document.getElementById('step2Continue');
-    const createAccountBtn = document.getElementById('createAccountBtn');
+    const stepperItems = document.querySelectorAll('.stepper__item');
+    const progressBar  = document.getElementById('regProgress');
+    const stepInput    = document.getElementById('regStep'); // hidden input
   
-    const stepperItems = document.querySelectorAll('.stepper .stepper__item');
-    const progressBar = document.getElementById('regProgress');
+    const setProgress = (step) => {
+      if (!progressBar) return;
+      const pct = step === 1 ? 33 : step === 2 ? 66 : 100;
+      progressBar.style.width = pct + '%';
+    };
   
-    function updateStepper(step) {
-      if (!stepperItems.length) return;
-  
-      stepperItems.forEach((item, idx) => {
-        const itemStep = idx + 1; // 1,2,3
-        if (itemStep === step) {
-          item.classList.add('is-active');
-        } else {
-          item.classList.remove('is-active');
-        }
-        if (itemStep < step) {
-          item.classList.add('is-complete');
-        } else {
-          item.classList.remove('is-complete');
-        }
+    const showStep = (step) => {
+      [step1, step2, step3].forEach((el, idx) => {
+        if (!el) return;
+        el.classList.toggle('is-active', idx + 1 === step);
       });
   
-      if (progressBar) {
-        let width = 33;
-        if (step === 2) width = 66;
-        if (step === 3) width = 100;
-        progressBar.style.width = width + '%';
+      stepperItems.forEach(el => {
+        el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
+      });
+  
+      setProgress(step);
+      if (stepInput) stepInput.value = String(step);
+  
+      const active = step === 1 ? step1 : step === 2 ? step2 : step3;
+      const first  = active?.querySelector('input,select,textarea,button');
+      if (first) setTimeout(() => first.focus({ preventScroll: true }), 30);
+    };
+  
+    // ---- Step 1 validator ----
+    const step1Valid = () => {
+      if (!step1) return true;
+      const controls = step1.querySelectorAll('input,select,textarea');
+      for (const el of controls) {
+        if (!el.checkValidity()) { el.reportValidity(); return false; }
       }
+      const p1 = step1.querySelector('input[name$="password1"]');
+      const p2 = step1.querySelector('input[name$="password2"]');
+      if (p1 && p2 && p1.value !== p2.value) {
+        p2.setCustomValidity("Passwords don't match");
+        p2.reportValidity();
+        p2.addEventListener('input', () => p2.setCustomValidity(''), { once: true });
+        return false;
+      }
+      return true;
+    };
+  
+    // ---- Next / Back handlers (all null-safe) ----
+    toStep2Btn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (step1Valid()) showStep(2);
+    });
+  
+    backToStep1Btn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showStep(1);
+    });
+  
+    backToStep2Btn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showStep(2);
+    });
+  
+    // ---- Enter to advance on steps 1 & 2 (but not submit early) ----
+    form.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      if (step1?.classList.contains('is-active')) {
+        e.preventDefault();
+        toStep2Btn?.click();
+      } else if (step2?.classList.contains('is-active')) {
+        e.preventDefault();
+        // mirror clicking the “Continue” button on step 2
+        document.getElementById('step2-continue')?.click();
+      }
+    });
+  
+    // ---- Initialize from server-provided step (defaults to 1) ----
+    const serverStepNumber = Number('{{ show_step|default:"1" }}');
+    const initial = [1, 2, 3].includes(serverStepNumber) ? serverStepNumber : 1;
+    showStep(initial);
+  
+    /* ===== Resume dropzone filename preview + drag hover ===== */
+    const dz = document.getElementById('resumeDrop');
+    if (dz) {
+      const input = dz.querySelector('input[type="file"]');
+      const label = document.getElementById('resumeFileName');
+      input?.addEventListener('change', () => {
+        const f = input.files && input.files[0];
+        if (label) label.textContent = f ? `Selected: ${f.name}` : 'No file chosen';
+      });
+  
+      ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        dz.style.borderColor = '#9aa7b7';
+        dz.style.background = 'linear-gradient(180deg, #fff, #f6f9ff)';
+      }));
+      ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        dz.style.borderColor = '#d7dbe2';
+        dz.style.background = 'linear-gradient(180deg, #fff, #fbfcff)';
+      }));
+      dz.addEventListener('drop', (e) => {
+        if (!e.dataTransfer?.files?.length) return;
+        if (input) {
+          input.files = e.dataTransfer.files;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
     }
   
-    function setStep(step) {
-      if (regStepInput) regStepInput.value = String(step);
+    /* ===== STEP-2 staged questions (job title → job type) ===== */
+    let step2Stage = 1;
+    const btnStep2 = document.getElementById('step2-continue');
   
-      if (step1 && step2) {
-        if (step === 1) {
-          step1.classList.add('is-active');
-          step2.classList.remove('is-active');
-        } else if (step === 2) {
-          step1.classList.remove('is-active');
-          step2.classList.add('is-active');
+    btnStep2?.addEventListener('click', function () {
+      // Stage 1 → validate desired_job_title then show job_type
+      if (step2Stage === 1) {
+        const jobTitle = document.querySelector('[name$="desired_job_title"]');
+        if (!jobTitle || !jobTitle.value.trim()) {
+          jobTitle?.reportValidity();
+          return;
         }
+        const jt  = document.getElementById('step2-jobtitle');
+        const jtp = document.getElementById('step2-jobtype');
+        if (jt)  jt.style.display  = 'none';
+        if (jtp) jtp.style.display = 'block';
+        step2Stage = 2;
+        return;
       }
   
-      updateStepper(step);
-    }
+      // Stage 2 → validate job_type then go to step 3
+      if (step2Stage === 2) {
+        const jobType = document.querySelector('[name$="job_type"]');
+        if (!jobType || !jobType.value.trim()) {
+          jobType?.reportValidity();
+          return;
+        }
+        if (stepInput) stepInput.value = '3';
+        showStep(3);
+      }
+    });
   
-    function showJobTitleSubstep() {
-      if (jobTitleBlock) jobTitleBlock.style.display = '';
-      if (jobTypeBlock) jobTypeBlock.style.display = 'none';
-      if (step2ContinueBtn) step2ContinueBtn.style.display = '';
-      if (createAccountBtn) createAccountBtn.style.display = 'none';
-    }
+    /* ===== Final submit safety: ensure step=3 and resume exists ===== */
+    form.addEventListener('submit', (e) => {
+      // force step=3 on submit so the view hits the final branch
+      if (stepInput) stepInput.value = '3';
   
-    function showJobTypeSubstep() {
-      if (jobTitleBlock) jobTitleBlock.style.display = 'none';
-      if (jobTypeBlock) jobTypeBlock.style.display = '';
-      if (step2ContinueBtn) step2ContinueBtn.style.display = 'none';
-      if (createAccountBtn) createAccountBtn.style.display = '';
-    }
-  
-    if (toStep2Btn) {
-      toStep2Btn.addEventListener('click', function() {
-        setStep(2);
-        showJobTitleSubstep();
-      });
-    }
-  
-    if (backToStep1Btn) {
-      backToStep1Btn.addEventListener('click', function() {
-        setStep(1);
-        // When going back to step 2 later, we start at job title again
-      });
-    }
-  
-    if (step2ContinueBtn) {
-      step2ContinueBtn.addEventListener('click', function() {
-        // Inside step 2: move from desired job title to job type
-        showJobTypeSubstep();
-      });
-    }
-  
-    // Initial state
-    setStep(1);
-    showJobTitleSubstep();
+      // optional: client-side resume presence check to give instant feedback
+      const resumeInput = form.querySelector('input[type="file"][name$="resume"]');
+      if (resumeInput && resumeInput.required && (!resumeInput.files || !resumeInput.files.length)) {
+        e.preventDefault();
+        resumeInput.reportValidity();
+        // also make sure the user is viewing step 3 if they somehow submit earlier
+        showStep(3);
+      }
+    });
   });
   </script>
   
-  {% endblock %}
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const regForm = document.querySelector('#registerForm');
+    if (!regForm) return; // login page or other views
+    regForm.addEventListener('submit', function () {
+      const stepVal = document.getElementById('regStep')?.value;
+      console.log('SUBMIT FIRED');
+      console.log('STEP VALUE:', stepVal);
+    });
+  });
+  </script>
+  
+
+{% endblock content %}
