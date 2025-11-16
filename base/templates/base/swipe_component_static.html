@@ -2207,34 +2207,6 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
   }
 }
 
-/* 🔥 FINAL OVERRIDE — FORCE REAL MOBILE HEIGHT */
-@media (max-width: 600px) {
-
-.swipe-container {
-  width: 94vw !important;
-  max-width: 480px !important;
-
-  /* ↓↓↓ make card MUCH shorter */
-  height: auto !important;
-  max-height: calc(100dvh - 260px) !important;
-
-  margin-top: 40px !important; /* optional breathing space */
-}
-
-.card-front,
-.card-back {
-  padding-top: 16px !important;
-  padding-bottom: 16px !important;
-}
-
-.company-logo {
-  max-height: 110px !important;
-}
-
-/* optional stronger shrink of title */
-.title-block h3 { font-size: 24px !important; }
-.title-block h2 { font-size: 15px !important; }
-}
 
 
 
