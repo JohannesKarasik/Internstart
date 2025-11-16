@@ -415,6 +415,7 @@
           <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
           <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
           <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
+          <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:"Your city" }}</span></p>
         </div>
 
         <div class="info-badges" id="cBadges"></div>
@@ -2269,35 +2270,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const elCard    = $('#swipeCard');
 
   function setCardData(card) {
-    const company = card.company   || '';
-    const title   = card.title     || '';
-    const role    = card.role      || '';
-    const loc     = card.location  || '';
-    const desc    = card.desc      || '';
-    const domain  = (card.logo_domain || '').trim() || 'clearbit.com';
+  const company = card.company   || '';
+  const title   = card.title     || '';
+  const role    = card.role      || '';
+  const loc     = card.location  || '';
+  const desc    = card.desc      || '';
+  const domain  = (card.logo_domain || '').trim() || 'clearbit.com';
 
-    if (elLogo)  elLogo.src = `https://logo.clearbit.com/${domain}`;
-    if (elC)     elC.textContent = company;
-    if (elT)     elT.textContent = title;
-    if (elR)     elR.textContent = role;
-    if (elLoc)   elLoc.textContent = loc;
+  if (elLogo)  elLogo.src = `https://logo.clearbit.com/${domain}`;
+  if (elC)     elC.textContent = company;
+  if (elT)     elT.textContent = title;
+  if (elR)     elR.textContent = role;
 
-    // FIX: update the badge
-    const elBadges = $('#cBadges');
-    if (elBadges) {
-      elBadges.innerHTML = `
-      <div class="badge-pill">
-          <span class="dot"></span>
-          <span class="badge-text">${loc || "{{ request.user.city|default:'Your city' }}"}</span>
-      </div>
-  `;
+  // ❌ wrong — shows job location
+  // if (elLoc) elLoc.textContent = loc;
 
-}
+  // ✅ FIX — always show user's city
+  if (elLoc) elLoc.textContent = "{{ request.user.city|escapejs|default:'Your city' }}";
 
-    if (elBC)    elBC.textContent = company;
-    if (elBR)    elBR.textContent = role;
-    if (elBLoc)  elBLoc.textContent = loc;
-    if (elBDesc) elBDesc.textContent = desc;
+  if (elBC)    elBC.textContent = company;
+  if (elBR)    elBR.textContent = role;
+  if (elBLoc)  elBLoc.textContent = loc;
+  if (elBDesc) elBDesc.textContent = desc;
+
 
     if (elCard && card.id !== undefined && card.id !== null) {
       elCard.dataset.roomId = card.id;
