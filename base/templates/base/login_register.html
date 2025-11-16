@@ -249,17 +249,35 @@
           <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
             <h2 id="step2label" class="sr-only">Preferences</h2>
           
+          <!-- STEP 2: Relocate question -->
+          <div id="step2-relocate" class="form__group" style="grid-column: 1 / -1; margin-bottom: 20px;">
+            <label class="form__label">Are you willing to relocate for work?</label>
 
-            <div id="step2-relocate" class="form__group" style="grid-column: 1 / -1; margin-bottom: 20px;">
-              <label class="form__label">Are you willing to relocate for work?</label>
-            
-              {{ student_form.willing_to_relocate }}
-            
-              <div class="relocate-buttons">
-                <button type="button" class="relocate-btn yes" data-value="yes">Yes</button>
-                <button type="button" class="relocate-btn no" data-value="no">No</button>
-              </div>
+            {{ student_form.willing_to_relocate }}  <!-- hidden field -->
+
+            <div class="relocate-buttons">
+              <button type="button" class="relocate-btn yes" data-value="yes">Yes</button>
+              <button type="button" class="relocate-btn no" data-value="no">No</button>
             </div>
+          </div>
+
+          <!-- STEP 2B: City selection (ONLY if user clicks "NO") -->
+          <div id="step2-city" style="display:none; grid-column: 1 / -1; margin-bottom: 20px;">
+
+            <div class="form__group" style="margin-top: 10px;">
+              <label class="form__label" for="{{ student_form.city.id_for_label }}">
+                Which city do you live in?
+              </label>
+              {{ student_form.city|add_class:"form__control"|attr:"placeholder=e.g. Copenhagen, Madrid, Berlin" }}
+            </div>
+
+            <div class="wizard-actions wizard-actions--split">
+              <button type="button" class="btn btn--ghost" id="cityBack">Back</button>
+              <button type="button" class="btn btn--primary" id="cityContinue">Continue</button>
+            </div>
+
+          </div>
+
             
           
 
@@ -1006,8 +1024,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const hiddenField = document.querySelector('[name$="willing_to_relocate"]');
   const buttons = document.querySelectorAll('.relocate-btn');
 
-  const relocateSection = document.getElementById('step2-relocate');   // ⭐ whole block
-  const jobTitleSection = document.getElementById('step2-jobtitle');   // job title block
+  const relocateSection = document.getElementById('step2-relocate');
+  const citySection     = document.getElementById('step2-city');
+  const jobTitleSection = document.getElementById('step2-jobtitle');
 
   if (!hiddenField || !buttons.length) return;
 
@@ -1016,19 +1035,35 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = btn.dataset.value;
       hiddenField.value = value;
 
-      // Highlight button
+      // highlight button
       buttons.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
 
-      // ⭐ Hide relocate block
-      if (relocateSection) relocateSection.style.display = 'none';
+      // hide relocate question
+      relocateSection.style.display = 'none';
 
-      // ⭐ Show job title block
-      if (jobTitleSection) jobTitleSection.style.display = 'block';
+      if (value === "no") {
+        // show city step
+        citySection.style.display = 'block';
+      } else {
+        // skip city → go directly to job title
+        jobTitleSection.style.display = 'block';
+      }
     });
   });
-});
 
+  // city → job title
+  document.getElementById('cityContinue')?.addEventListener('click', () => {
+    citySection.style.display = 'none';
+    jobTitleSection.style.display = 'block';
+  });
+
+  // city ← relocate
+  document.getElementById('cityBack')?.addEventListener('click', () => {
+    citySection.style.display = 'none';
+    relocateSection.style.display = 'block';
+  });
+});
 
 
   </script>

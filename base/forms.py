@@ -103,6 +103,16 @@ class StudentCreationForm(UserCreationForm):
         widget=forms.HiddenInput()
     )
 
+    city = forms.CharField(
+    required=False,
+    label=_("Which city do you live in?"),
+    widget=forms.TextInput(attrs={
+        'placeholder': _('e.g. Copenhagen, Madrid, Berlin'),
+        'style': 'width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;',
+    })
+)
+
+
     class Meta:
         model = User
         fields = [
@@ -112,6 +122,8 @@ class StudentCreationForm(UserCreationForm):
             'desired_job_title',
             'job_type',
             'willing_to_relocate',
+            'city',
+
         ]
 
 
