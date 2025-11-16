@@ -2240,6 +2240,45 @@ document.addEventListener('DOMContentLoaded', () => {
     savedList.style.display = visible ? 'none' : 'block';
   });
 });
+
+// 👉 LOAD AI-GENERATED FIRST CARD
+document.addEventListener("DOMContentLoaded", () => {
+    fetch("/next_card_json/")
+        .then(r => r.json())
+        .then(job => {
+            console.log("AI job loaded:", job);
+
+            // FRONT
+            document.getElementById("cCompany").textContent = job.company || "Company";
+            document.getElementById("cTitle").textContent   = job.title || "Title";
+            document.getElementById("cRole").textContent    = job.role || "Role";
+            document.getElementById("cLoc").textContent     = job.location || "Location";
+
+            // LOGO
+            const logoURL = job.logo_domain 
+                ? `https://logo.clearbit.com/${job.logo_domain}`
+                : "https://logo.clearbit.com/openai.com";
+            document.getElementById("cLogo").src = logoURL;
+
+            // BACK OF CARD
+            document.getElementById("bCompany").textContent = job.company || "Company";
+            document.getElementById("bRole").textContent    = job.role || "Role";
+            document.getElementById("bLoc").textContent     = job.location || "Location";
+            document.getElementById("bDesc").textContent    = job.desc || "";
+
+            // Badges (empty for now)
+            const badges = document.getElementById("cBadges");
+            badges.innerHTML = "";
+            (job.badges || []).forEach(b => {
+                const el = document.createElement("span");
+                el.className = "badge";
+                el.textContent = b;
+                badges.appendChild(el);
+            });
+        })
+        .catch(err => console.error("AI job fetch failed:", err));
+});
+
 </script>
 
 </main>
