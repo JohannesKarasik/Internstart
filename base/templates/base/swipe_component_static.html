@@ -2638,6 +2638,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  document.addEventListener("card:ready", () => {
+  wireButtons(window.ifOnbOpen);
+});
+
+document.addEventListener('onboarding:finished', () => {
+  document.addEventListener("card:ready", () => {
+    afterEmail();
+  }, { once: true });
+});
+
   whenReady(
     ['ifOnb','ifOnbSpot','ifOnbTip','ifOnbTipTitle','ifOnbTipText','ifOnbDemo','ifOnbDemoStamp'],
     () => {
@@ -2753,16 +2763,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wireButtons(open); // enables "show onboarding" buttons
 }
 
-// 🔥 IMPORTANT CHANGE: remove `{ once: true }` AND still listen for the event
-document.addEventListener('onboarding:finished', () => {
-  // Wait until card exists before starting tooltip onboarding
-  document.addEventListener("card:ready", afterEmail, { once: true });
-});
 
-
-document.addEventListener("card:ready", () => {
-  wireButtons(open);
-});
 
 const EMAIL_ONB_SEEN_KEY = 'if_seen_onboarding';
 const main = document.querySelector('main.layout');
