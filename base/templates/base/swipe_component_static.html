@@ -29,6 +29,15 @@
   "
 >
 
+<!-- Full-page loading overlay (5s) -->
+<div id="page-loader">
+  <div class="page-loader__inner">
+    <div class="page-loader__spinner"></div>
+    <p class="page-loader__text">Loading your jobs…</p>
+  </div>
+</div>
+
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
@@ -267,6 +276,59 @@ Show demo </button>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; overscroll-behavior:none; background:#0b0f1a; }
+
+  /* ===== Simple full-page loading overlay (5s) ===== */
+#page-loader {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(237,0,60,0.22), transparent 60%),
+    #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.4s ease;
+}
+
+#page-loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.page-loader__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-radius: 16px;
+  background: rgba(15,23,42,0.92);
+  border: 1px solid rgba(148,163,184,0.4);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.7);
+  font-family: 'Manrope', sans-serif;
+  color: #e5e7eb;
+}
+
+.page-loader__spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 3px solid rgba(148,163,184,0.5);
+  border-top-color: #FF2F5A;
+  animation: loaderSpin 0.8s linear infinite;
+}
+
+.page-loader__text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
   /* Keep borders visible on hover & avoid clipping */
   #noSwipesModal .modal__plans { overflow: visible !important; }
   #noSwipesModal .plan-card { position: relative; z-index: 1; }
@@ -2380,6 +2442,25 @@ document.getElementById("swipe-right-btn")
 // INITIAL LOAD
 // -------------------------------
 loadNextCard();
+
+
+// ===== 5-second page loading overlay =====
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+
+  // Keep overlay for 5 seconds, then fade out
+  setTimeout(() => {
+    loader.classList.add('hidden');
+
+    // After the fade-out transition, remove it from layout
+    const removeAfter = () => {
+      loader.style.display = 'none';
+      loader.removeEventListener('transitionend', removeAfter);
+    };
+    loader.addEventListener('transitionend', removeAfter);
+  }, 5000); // 5000ms = 5 seconds
+});
 
 
 </script>
