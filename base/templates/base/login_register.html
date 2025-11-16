@@ -1006,7 +1006,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const hiddenField = document.querySelector('[name$="willing_to_relocate"]');
   const buttons = document.querySelectorAll('.relocate-btn');
 
-  const jobTitleSection = document.getElementById('step2-jobtitle'); // ⭐ reveal this after click
+  const relocateSection = document.getElementById('step2-relocate');   // ⭐ whole block
+  const jobTitleSection = document.getElementById('step2-jobtitle');   // job title block
 
   if (!hiddenField || !buttons.length) return;
 
@@ -1015,17 +1016,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = btn.dataset.value;
       hiddenField.value = value;
 
-      // Highlight selected button
+      // Highlight button
       buttons.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
 
-      // ⭐ After picking yes/no → show job title
-      if (jobTitleSection) {
-        jobTitleSection.style.display = 'block';
-      }
+      // ⭐ Hide relocate block
+      if (relocateSection) relocateSection.style.display = 'none';
+
+      // ⭐ Show job title block
+      if (jobTitleSection) jobTitleSection.style.display = 'block';
     });
   });
 });
+
 
 
   </script>
