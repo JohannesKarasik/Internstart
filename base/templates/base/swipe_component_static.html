@@ -2247,8 +2247,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 👉 LOAD AI-GENERATED FIRST CARD
+// 👉 LOAD AI-GENERATED FIRST CARD
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("/next_card_json/")
+    fetch("/swipe/next/", { credentials: "include" })
         .then(r => r.json())
         .then(job => {
             console.log("AI job loaded:", job);
@@ -2270,19 +2271,10 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("bRole").textContent    = job.role || "Role";
             document.getElementById("bLoc").textContent     = job.location || "Location";
             document.getElementById("bDesc").textContent    = job.desc || "";
-
-            // Badges (empty for now)
-            const badges = document.getElementById("cBadges");
-            badges.innerHTML = "";
-            (job.badges || []).forEach(b => {
-                const el = document.createElement("span");
-                el.className = "badge";
-                el.textContent = b;
-                badges.appendChild(el);
-            });
         })
         .catch(err => console.error("AI job fetch failed:", err));
 });
+
 
 // ===============================
 //  EASY SWIPE CARD ENGINE
