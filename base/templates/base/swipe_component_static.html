@@ -2207,58 +2207,35 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
   }
 }
 
-/* 🔥 FINAL MOBILE CARD FIX — wider, shorter, balanced buttons */
+/* 🔥 FINAL OVERRIDE — FORCE REAL MOBILE HEIGHT */
 @media (max-width: 600px) {
 
-/* Make card wider + much shorter */
 .swipe-container {
   width: 94vw !important;
   max-width: 480px !important;
+
+  /* ↓↓↓ make card MUCH shorter */
   height: auto !important;
-  max-height: calc(100dvh - 170px) !important; /* ↓ reduces card height */
+  max-height: calc(100dvh - 260px) !important;
+
+  margin-top: 40px !important; /* optional breathing space */
 }
 
-.swipe-card,
-.card-inner,
 .card-front,
 .card-back {
-  border-radius: 20px !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
 }
 
-/* Decrease vertical padding inside card */
-.card-front,
-.card-back {
-  padding-top: 18px !important;
-  padding-bottom: 18px !important;
-}
-
-/* Make logo smaller so card shrinks */
 .company-logo {
-  max-height: 130px !important;
+  max-height: 110px !important;
 }
 
-/* Title spacing tightened */
-.title-block {
-  margin-top: 4px !important;
-  margin-bottom: 8px !important;
+/* optional stronger shrink of title */
+.title-block h3 { font-size: 24px !important; }
+.title-block h2 { font-size: 15px !important; }
 }
 
-/* 🔥 Buttons: full far-left & far-right alignment */
-.card-cta {
-  display: flex !important;
-  justify-content: space-between !important; /* <-- pushes to edges */
-  width: 100% !important;
-  padding: 16px 24px !important; /* more breathing room */
-  margin-top: auto !important;
-}
-
-/* Buttons scaled slightly down to avoid touching edges */
-.card-cta .swipe-btn {
-  width: 60px !important;
-  height: 60px !important;
-  border-radius: 14px !important;
-}
-}
 
 
   </style>
