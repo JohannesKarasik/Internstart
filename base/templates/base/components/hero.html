@@ -77,10 +77,18 @@
     <div class="sp__rail" aria-label="{% trans 'User videos' %}">
       <!-- Card 1 -->
       <article class="sp__card is-active">
-        <video class="sp__video" playsinline muted autoplay loop preload="metadata"
-        src="{% static 'images/Final2_compressed.mp4' %}"></video>
-       
+        <video
+          class="sp__video"
+          playsinline
+          webkit-playsinline
+          muted
+          autoplay
+          loop
+          preload="auto"
+          src="{% static 'images/Final2_compressed.mp4' %}">
+        </video>
       </article>
+      
 
 
     </div>
@@ -457,67 +465,86 @@
 
 
 </style>
-
 <script>
-/* ===== Hero JS (carousel + mute + smooth scroll) ===== */
-(() => {
-  const ready = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
-
-  ready(() => {
-    // A) TikTok-style rotation inside the hero phone
-// A) Only play and loop the first video
-    const firstCard = document.querySelector('.hero__phone .sp__card');
-    const firstVideo = firstCard?.querySelector('video');
-    if (firstCard && firstVideo) {
-  firstCard.classList.add('is-active');
-  firstVideo.currentTime = 0;
-  firstVideo.play().catch(() => {});
-
-  // Force instant loop without pause
-  firstVideo.addEventListener('ended', () => {
-    firstVideo.currentTime = 0;
-    firstVideo.play().catch(() => {});
-  });
-}
-
-    // Pause all other videos just in case
-    document.querySelectorAll('.hero__phone .sp__card:not(:first-child) video').forEach(v => v.pause());
-
-
-    // B) Tap to toggle mute (per card)
-    document.querySelectorAll('.hero__phone .sp__mute').forEach((btn) => {
-      const card = btn.closest('.sp__card');
-      const video = card?.querySelector('video');
-      if (!video) return;
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        video.muted = !video.muted;
-        btn.classList.toggle('is-on', !video.muted);
-        btn.setAttribute('aria-pressed', String(!video.muted));
-        btn.setAttribute('aria-label', video.muted ? '{{ _("Unmute video") }}' : '{{ _("Mute video") }}');
-        if (!video.paused) video.play().catch(() => {});
+  /* ===== Hero JS (carousel + mute + smooth scroll) ===== */
+  (() => {
+    const ready = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    ready(() => {
+  
+      /* ============================================
+         A) Activate first card & let browser autoplay
+         ============================================ */
+      const firstCard = document.querySelector('.hero__phone .sp__card');
+      const firstVideo = firstCard?.querySelector('video');
+  
+      if (firstCard && firstVideo) {
+        firstCard.classList.add('is-active');
+  
+        // Ensure autoplay conditions are satisfied on iOS Safari
+        firstVideo.muted = true;
+        firstVideo.setAttribute('autoplay', '');
+        firstVideo.setAttribute('playsinline', '');
+        firstVideo.setAttribute('webkit-playsinline', '');
+  
+        // DO NOT manually call .play() — breaks iOS autoplay
+        firstVideo.addEventListener('ended', () => {
+          firstVideo.currentTime = 0;
+          // again, DO NOT call play() manually on iOS
+        });
+      }
+  
+      // Pause all other videos (just safety)
+      document.querySelectorAll('.hero__phone .sp__card:not(:first-child) video')
+        .forEach(v => {
+          v.muted = true;
+          v.pause();
+        });
+  
+  
+      /* ============================================
+         B) Tap to toggle mute (still allowed)
+         ============================================ */
+      document.querySelectorAll('.hero__phone .sp__mute').forEach((btn) => {
+        const card = btn.closest('.sp__card');
+        const video = card?.querySelector('video');
+        if (!video) return;
+  
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          video.muted = !video.muted;
+          btn.classList.toggle('is-on', !video.muted);
+          btn.setAttribute('aria-pressed', String(!video.muted));
+          btn.setAttribute('aria-label', video.muted ? '{{ _("Unmute video") }}'
+                                                    : '{{ _("Mute video") }}');
+        });
+  
+        card.addEventListener('click', () => btn.click());
       });
-      // Click anywhere on card to toggle
-      card.addEventListener('click', () => btn.click());
+  
+  
+      /* ============================================
+         C) Smooth scroll for sticky CTA
+         ============================================ */
+      document.addEventListener('click', function(e){
+        const a = e.target.closest('.btn--sticky[href^="#"]');
+        if (!a) return;
+  
+        const id = a.getAttribute('href');
+        const target = document.querySelector(id);
+        if (!target) return;
+  
+        e.preventDefault();
+        const y = target.getBoundingClientRect().top + window.pageYOffset - 72;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+  
+        setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
+      });
+  
     });
-
-    // C) Smooth scroll for sticky CTA (respects fixed headers if you later add an offset)
-    document.addEventListener('click', function(e){
-      const a = e.target.closest('.btn--sticky[href^="#"]');
-      if(!a) return;
-      const id = a.getAttribute('href');
-      const target = document.querySelector(id);
-      if(!target) return;
-
-      e.preventDefault();
-      const y = target.getBoundingClientRect().top + window.pageYOffset - 72; // adjust offset to your header
-      window.scrollTo({ top: y, behavior: 'smooth' });
-
-      setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
-    });
-  });
-})();
-</script>
+  })();
+  </script>
+  
