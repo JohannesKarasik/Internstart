@@ -103,41 +103,41 @@ class StudentCreationForm(UserCreationForm):
         fields = [
             'full_name',
             'email',
+            'password1',   # added
             'resume',
             'desired_job_title',
             'job_type',
-        ]   # ✅ removed country
+        ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
 
-        # ✅ Translated placeholders
-        self.fields['full_name'].widget.attrs.update({
-            'placeholder': _("Your full name"),
-            'autocomplete': 'name',
-            'class': 'form__control',
-        })
-        self.fields['email'].widget.attrs.update({
-            'placeholder': _("you@mail.com"),
-            'autocomplete': 'email',
-            'class': 'form__control',
-        })
-        self.fields['password1'].widget.attrs.update({
-            'placeholder': _("Create a password"),
-            'autocomplete': 'new-password',
-            'class': 'form__control',
-        })
-        self.fields['password2'].widget.attrs.update({
-            'placeholder': _("Confirm password"),
-            'autocomplete': 'new-password',
-            'class': 'form__control',
-        })
+    # remove password confirmation field
+    if "password2" in self.fields:
+        del self.fields["password2"]
 
-        # keep your required logic
-        self.fields['full_name'].required = True
-        self.fields['email'].required = True
-        self.fields['desired_job_title'].required = True
-        self.fields['job_type'].required = True
+    # placeholders
+    self.fields['full_name'].widget.attrs.update({
+        'placeholder': _("Your full name"),
+        'autocomplete': 'name',
+        'class': 'form__control',
+    })
+    self.fields['email'].widget.attrs.update({
+        'placeholder': _("you@mail.com"),
+        'autocomplete': 'email',
+        'class': 'form__control',
+    })
+    self.fields['password1'].widget.attrs.update({
+        'placeholder': _("Create a password"),
+        'autocomplete': 'new-password',
+        'class': 'form__control',
+    })
+
+    # required
+    self.fields['full_name'].required = True
+    self.fields['email'].required = True
+    self.fields['desired_job_title'].required = True
+    self.fields['job_type'].required = True
 
 
     def clean_resume(self):
