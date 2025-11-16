@@ -2286,12 +2286,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // FIX: update the badge
     const elBadges = $('#cBadges');
     if (elBadges) {
-        elBadges.innerHTML = `
-            <div class="badge">
-                <span class="dot"></span>
-                ${loc || "{{ request.user.city|default:'Your city' }}"}
-            </div>
-        `;
+      elBadges.innerHTML = `
+      <div class="badge-pill">
+          <span class="dot"></span>
+          <span class="badge-text">${loc || "{{ request.user.city|default:'Your city' }}"}</span>
+      </div>
+  `;
+
 }
 
     if (elBC)    elBC.textContent = company;
