@@ -690,12 +690,13 @@
 
 /* 📱 Hide stepper + progress bar on mobile */
 
-/* 📱 Hide step labels, keep dots + progress bar */
+/* 📱 MOBILE: hide dots, lines, and labels (show only progress bar) */
 @media (max-width: 768px) {
-  .stepper__label {
-    display: none !important;
+  .stepper { 
+    display: none !important; 
   }
 }
+
 
 /* 📱 Reduce inner form padding on mobile */
 @media (max-width: 768px) {
