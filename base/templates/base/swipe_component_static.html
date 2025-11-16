@@ -2341,58 +2341,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 }
 
-// =======================
-// New Tooltip Onboarding
-// =======================
-function showSimpleTooltip(text, targetSelector, duration = 2000) {
-  const tip = document.getElementById("simple-tooltip");
-  const tipText = document.getElementById("simple-tooltip-text");
-  const target = document.querySelector(targetSelector);
-
-  if (!tip || !tipText || !target) return;
-
-  const r = target.getBoundingClientRect();
-
-  tipText.textContent = text;
-
-  tip.style.left = r.right + 12 + "px";
-  tip.style.top = (r.top + r.height/2 - 20) + "px";
-  tip.style.display = "block";
-  tip.style.opacity = "1";
-
-  setTimeout(() => {
-    tip.style.opacity = "0";
-    tip.style.display = "none";
-  }, duration);
-}
-
-// Run small tooltip tour only once
-
-  // Tooltip #1 — swipe left
-  setTimeout(() => {
-    showSimpleTooltip(
-      "Swipe left to skip jobs you don’t want.",
-      ".swipe-card.is-top .swipe-left"
-    );
-  }, 700);
-
-  // Tooltip #2 — flip card
-  setTimeout(() => {
-    showSimpleTooltip(
-      "Tap the card to see description & details.",
-      ".swipe-card.is-top .card-inner"
-    );
-  }, 3000);
-
-  // Tooltip #3 — swipe right
-  setTimeout(() => {
-    showSimpleTooltip(
-      "Swipe right to apply with AI.",
-      ".swipe-card.is-top .swipe-right"
-    );
-  }, 5200);
-
-}
 
 
 
