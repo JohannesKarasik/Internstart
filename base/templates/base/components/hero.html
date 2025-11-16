@@ -412,6 +412,22 @@
   }
 }
 
+@media (max-width: 600px) {
+
+.hero {
+  grid-template-columns: 1fr !important;   /* Stop the skew */
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+
+  /* Override the desktop padding: 0 2vw 0 6vw */
+  padding-top: 20px !important;
+}
+
+.hero__copy {
+  margin: 0 auto !important;
+  width: 100%;
+}
+}
 
 </style>
 
