@@ -2434,6 +2434,23 @@ document.getElementById("swipe-right-btn")
 // -------------------------------
 loadNextCard();
 
+// 🔥 AUTO-HIDE LOADER AFTER 5 SECONDS
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        const loader = document.getElementById("pageLoader");
+        if (loader) {
+            loader.style.opacity = "0";
+            loader.style.transition = "opacity 0.6s ease";
+            setTimeout(() => { loader.style.display = "none"; }, 600);
+        }
+
+        const deck = document.getElementById("swipeDeck");
+        if (deck) {
+            deck.style.opacity = "1";
+            deck.style.pointerEvents = "auto";
+        }
+    }, 5000); // 5 seconds
+});
 
 </script>
 
