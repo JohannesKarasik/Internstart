@@ -105,20 +105,21 @@
   ======================== -->
   <section class="auth-shell">
     <div class="auth-card auth-card--split">
+  
       <!-- Left side -->
       <aside class="auth-side auth-side--register">
         <div class="auth-side__inner">
-          <div class="ai-badge"> AI job applications      </div>
-          <h2 class="auth-side__title"> Land your dream job 🚀 </h2>
+          <div class="ai-badge">AI job applications</div>
+          <h2 class="auth-side__title">Land your dream job 🚀</h2>
           <p class="auth-side__copy">
             Swipe through top opportunities, send instant applications, and let AI craft your perfect cover letter.
           </p>
           <ul class="auth-side__bullets">
-            <li> 👉 Swipe to apply in one tap</li>
-            <li> 🤖 AI-tailored cover letters</li>
-            <li> 📊 Track every application in one place </li>
+            <li>👉 Swipe to apply in one tap</li>
+            <li>🤖 AI-tailored cover letters</li>
+            <li>📊 Track every application in one place</li>
           </ul>
-          
+  
           <!-- Decorative "AI nodes" -->
           <div class="ai-orbit">
             <span class="node n1"></span>
@@ -128,23 +129,23 @@
           </div>
         </div>
       </aside>
-
+  
       <!-- Right side (Form) -->
       <div class="auth-form">
+  
         <header class="auth-form__header auth-form__header--card">
           {% if messages %}
-          <div class="form__messages" style="margin:10px 0;">
-            {% for message in messages %}
-              <p class="form__error">{{ message }}</p>
-            {% endfor %}
-          </div>
-        {% endif %}
+            <div class="form__messages" style="margin:10px 0;">
+              {% for message in messages %}
+                <p class="form__error">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
           <h1 class="auth-title">Join Internstart</h1>
-          <p class="auth-sub">    It takes under a minute — we’ll guide you.</p>
-
+          <p class="auth-sub">It takes under a minute — we’ll guide you.</p>
+  
           <!-- stepper + progress -->
           <div class="stepper-wrap stepper-wrap--left">
-            <!-- stepper -->
             <div class="stepper stepper--tight" aria-label="Registreringsfremskridt">
               <div class="stepper__item is-active" data-step-index="1">
                 <span class="stepper__dot"></span><span class="stepper__label">Konto</span>
@@ -158,32 +159,28 @@
                 <span class="stepper__dot"></span><span class="stepper__label">Resume</span>
               </div>
             </div>
-          
-            <!-- progressbar -->
+  
             <div class="progressbar" aria-hidden="true">
               <span id="regProgress" style="width:33%"></span>
             </div>
           </div>
-
-          <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
-            {% csrf_token %}
-            <input type="hidden" name="step" id="regStep" value="1">
-          
+        </header>
+  
+        <form method="POST" enctype="multipart/form-data" class="auth-form-body" id="registerForm" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="step" id="regStep" value="1">
+  
+  
           <!-- ========== STEP 1: Account ========== -->
           <div class="form-step is-active" id="step-1" data-step="1" role="group" aria-labelledby="step1label">
             <h2 id="step1label" class="sr-only">Account details</h2>
+  
             <div class="form-grid form-grid--2">
-              <!-- Country -->
-
-
-              <!-- Full name (support both field names) -->
+  
+              <!-- Full name -->
               {% if student_form.full_name %}
                 <div class="form__group{% if student_form.full_name.errors %} form__group--error{% endif %}">
-                  <label class="form__label" for="{{ student_form.full_name.id_for_label }}">
-                    Full name
-                  </label>
-
-
+                  <label class="form__label" for="{{ student_form.full_name.id_for_label }}">Full name</label>
                   {{ student_form.full_name }}
                   {% if student_form.full_name.errors %}
                     <small class="form__error">{{ student_form.full_name.errors|striptags }}</small>
@@ -200,7 +197,7 @@
                   </div>
                 {% endif %}
               {% endif %}
-
+  
               <!-- Email -->
               <div class="form__group{% if student_form.email.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.email.id_for_label }}">{{ student_form.email.label }}</label>
@@ -209,75 +206,64 @@
                   <small class="form__error">{{ student_form.email.errors|striptags }}</small>
                 {% endif %}
               </div>
-
+  
               <!-- Password -->
               <div class="form__group{% if student_form.password1.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.password1.id_for_label }}">{{ student_form.password1.label }}</label>
                 <div class="form__controlWrap">
                   {{ student_form.password1 }}
-                  <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
-                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M3 3l18 18M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42M9.88 5.08A10.46 10.46 0 0 1 12 5c7 0 11 7 11 7a18.46 18.46 0 0 1-3.22 3.72M6.12 6.12A18.42 18.42 0 0 0 1 12s4 7 11 7a10.6 10.6 0 0 0 3.88-.72"/>
-                    </svg>
+                  <button class="togglePwd" type="button" aria-label="Show password" data-state="show">
+                    <svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/></svg>
                   </button>
                 </div>
-                {% if student_form.password1.help_text %}
-                  <small class="form__help">{{ student_form.password1.help_text }}</small>
-                {% endif %}
                 {% if student_form.password1.errors %}
                   <small class="form__error">{{ student_form.password1.errors|striptags }}</small>
                 {% endif %}
               </div>
-
-              <!-- Confirm Password -->
+  
+              <!-- Confirm password -->
               <div class="form__group{% if student_form.password2.errors %} form__group--error{% endif %}">
                 <label class="form__label" for="{{ student_form.password2.id_for_label }}">{{ student_form.password2.label }}</label>
                 <div class="form__controlWrap">
                   {{ student_form.password2 }}
-                  <button class="togglePwd" type="button" aria-label="Show password" title="Show password" data-state="show">
-                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M3 3l18 18M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42M9.88 5.08A10.46 10.46 0 0 1 12 5c7 0 11 7 11 7a18.46 18.46 0 0 1-3.22 3.72M6.12 6.12A18.42 18.42 0 0 0 1 12s4 7 11 7a10.6 10.6 0 0 0 3.88-.72"/>
-                    </svg>
+                  <button class="togglePwd" type="button" aria-label="Show password" data-state="show">
+                    <svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/></svg>
                   </button>
                 </div>
                 {% if student_form.password2.errors %}
                   <small class="form__error">{{ student_form.password2.errors|striptags }}</small>
                 {% endif %}
               </div>
+  
             </div>
-
-
+  
             <div class="wizard-actions">
               <button type="button" class="btn btn--primary btn--block" id="toStep2">
                 Continue
               </button>
             </div>
           </div>
-
+  
+  
+          <!-- ========== STEP 2: Preferences ========== -->
           <div class="form-step" id="step-2" data-step="2" role="group" aria-labelledby="step2label">
             <h2 id="step2label" class="sr-only">Preferences</h2>
-          
-            <!-- 1) Desired job title -->
+  
+            <!-- Desired job title -->
             <div id="step2-jobtitle">
-              <div class="form__group" style="grid-column: 1 / -1; margin-bottom: 16px;">
+              <div class="form__group" style="grid-column:1/-1;margin-bottom:16px;">
                 <label class="form__label" for="{{ student_form.desired_job_title.id_for_label }}">
                   What's your desired job title?
                 </label>
                 {{ student_form.desired_job_title
-                    |add_class:"form__control"
-                    |attr:"placeholder=e.g. Marketing intern, Software developer, Analyst" }}
+                     |add_class:"form__control"
+                     |attr:"placeholder=e.g. Marketing intern, Software developer, Analyst" }}
               </div>
             </div>
-          
-            <!-- 2) Job Type (hidden until Continue) -->
+  
+            <!-- Job type -->
             <div id="step2-jobtype" style="display:none;">
               <div class="form__group" style="margin-bottom:16px;">
                 <label class="form__label" for="{{ student_form.job_type.id_for_label }}">
@@ -286,52 +272,39 @@
                 {{ student_form.job_type|add_class:"form__control" }}
               </div>
             </div>
-          
-            <!-- Step-2 actions -->
+  
             <div class="wizard-actions wizard-actions--split">
-          
-              <!-- Back to Step 1 -->
               <button type="button" class="btn btn--ghost" id="backToStep1">Back</button>
-          
-              <!-- Continue button (Job Title → Job Type) -->
+  
               <button type="button" class="btn btn--primary" id="step2-continue">
                 Continue
               </button>
-          
-              <!-- Final submit (hidden until job type is shown) -->
+  
               <button type="submit" class="btn btn--primary" id="finalSubmitBtn" style="display:none;">
                 Create account
               </button>
-          
             </div>
           </div>
-          
-          
-
-
-            <div class="wizard-actions wizard-actions--split">
-              <button type="button" class="btn btn--ghost" id="backToStep2">  Back</button>
-              <button type="submit" class="btn btn--primary">Create account</button>
-            </div>
-          </div>
-
+  
+  
           <p class="auth-legal">
             By continuing you agree to our
             <a href="{% url 'terms_conditions' %}" class="link">Terms</a>
             and
             <a href="{% url 'privacy_policy' %}" class="link">Privacy Policy</a>.
           </p>
-          
+  
           <footer class="auth-alt auth-alt--center">
             <span>Already have an account?</span>
             <a href="{% url 'app_login' %}" class="link">Login</a>
           </footer>
-          
-          </footer>
+  
         </form>
+  
       </div>
     </div>
   </section>
+  
   {% endif %}
 
 </main>
