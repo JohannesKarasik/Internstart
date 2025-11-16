@@ -782,6 +782,29 @@ html, body {
   }
 }
 
+/* 📱 Mobile: show exactly ONE centered review card */
+@media (max-width: 768px) {
+
+/* Make the viewport full-width without side padding */
+.reviews__inner {
+  max-width: 100%;
+}
+
+.reviews__viewport {
+  padding: 32px 0 48px; /* top & bottom only */
+}
+
+/* Card almost full width, but with a bit of side margin */
+:root {
+  --rv-card-w: calc(100vw - 48px);  /* 24px margin on each side */
+}
+
+.review-card {
+  margin: 0 auto;        /* center the card horizontally */
+}
+}
+
+
 </style>
 
 <script>
