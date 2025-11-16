@@ -2341,6 +2341,60 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 }
 
+// =======================
+// New Tooltip Onboarding
+// =======================
+function showSimpleTooltip(text, targetSelector, duration = 2000) {
+  const tip = document.getElementById("simple-tooltip");
+  const tipText = document.getElementById("simple-tooltip-text");
+  const target = document.querySelector(targetSelector);
+
+  if (!tip || !tipText || !target) return;
+
+  const r = target.getBoundingClientRect();
+
+  tipText.textContent = text;
+
+  tip.style.left = r.right + 12 + "px";
+  tip.style.top = (r.top + r.height/2 - 20) + "px";
+  tip.style.display = "block";
+  tip.style.opacity = "1";
+
+  setTimeout(() => {
+    tip.style.opacity = "0";
+    tip.style.display = "none";
+  }, duration);
+}
+
+// Run small tooltip tour only once
+
+  // Tooltip #1 — swipe left
+  setTimeout(() => {
+    showSimpleTooltip(
+      "Swipe left to skip jobs you don’t want.",
+      ".swipe-card.is-top .swipe-left"
+    );
+  }, 700);
+
+  // Tooltip #2 — flip card
+  setTimeout(() => {
+    showSimpleTooltip(
+      "Tap the card to see description & details.",
+      ".swipe-card.is-top .card-inner"
+    );
+  }, 3000);
+
+  // Tooltip #3 — swipe right
+  setTimeout(() => {
+    showSimpleTooltip(
+      "Swipe right to apply with AI.",
+      ".swipe-card.is-top .swipe-right"
+    );
+  }, 5200);
+
+}
+
+
 
 
   /* ===============================
@@ -2768,6 +2822,23 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
+<div id="simple-tooltip" 
+     style="
+       position: fixed;
+       max-width: 240px;
+       padding: 10px 14px;
+       background: #0e162a;
+       border-radius: 10px;
+       border: 1px solid rgba(148,163,184,.25);
+       color: #fff;
+       font-size: 14px;
+       line-height: 1.45;
+       box-shadow: 0 10px 22px rgba(0,0,0,.35);
+       z-index: 99999;
+       display: none;
+     ">
+   <div id="simple-tooltip-text" style="font-weight:600;"></div>
+</div>
 
 
 
