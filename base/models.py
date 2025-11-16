@@ -63,6 +63,8 @@ class User(AbstractUser):
     ready = models.BooleanField(default=False)
     user_attribute = models.ForeignKey(RoomAttribute, on_delete=models.SET_NULL, null=True, blank=True)
     willing_to_relocate = models.CharField(max_length=10, blank=True, null=True)
+    city = models.CharField(max_length=120, blank=True, null=True)
+
 
 
 
