@@ -386,13 +386,8 @@
           <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
           <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
           <p class="meta"><span class="dot"></span> <span id="cLoc">
-            {% if request.user.city %}
-                {{ request.user.city }}
-            {% elif request.user.location %}
-                {{ request.user.location }}
-            {% else %}
-                {{ top_list|random }}
-            {% endif %}
+            {{ request.user.city|default:request.user.location|default:"" }}
+
           </span>
           </p>
         </div>
