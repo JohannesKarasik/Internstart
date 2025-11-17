@@ -2639,7 +2639,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("cCompany").textContent = job.company || "Company";
       document.getElementById("cTitle").textContent   = job.title   || "Title";
       document.getElementById("cRole").textContent    = job.role    || "Role";
-      document.getElementById("cLoc").textContent     = job.location || "Location";
+      document.getElementById("cLoc").textContent = window.USER_CITY || "Your city";
 
       // LOGO
       const logoURL = job.logo_domain
