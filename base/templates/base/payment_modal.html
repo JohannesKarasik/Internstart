@@ -5,7 +5,7 @@
       <button class="pm-x" aria-label="Close" id="closePaymentModal" data-close>&times;</button>
   
       <h2 class="pm-title" id="pmTitle">Choose Your Plan</h2>
-      <p class="pm-sub" id="pmSubtitle">Upgrade your account to continue applying.</p>
+      <p class="pm-sub" id="pmSubtitle">Upgrade your account to keep applying in seconds.</p>
   
       <div class="pm-plans" role="list">
         <!-- Plan 1 -->
@@ -18,6 +18,7 @@
           </p>
           <ul class="pm-feats">
             <li>25 swipes / month</li>
+            <li>Dedicated customer support</li>
           </ul>
           <button class="pm-select" data-select>Choose Starter</button>
         </div>
@@ -32,7 +33,11 @@
             <span class="pm-price__amount">$28</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
-            <li><strong>200</strong> swipes / month</li>
+            <li>
+              <strong>200</strong> swipes / month
+              <span class="pm-feats__note">Applications are automatically sent when you swipe.</span>
+            </li>
+            <li>Dedicated customer support</li>
           </ul>
           <button class="pm-select pm-select--primary" data-select>Continue with Pro</button>
         </div>
@@ -47,13 +52,15 @@
           </p>
           <ul class="pm-feats">
             <li><strong>400</strong> swipes / month</li>
+            <li>Dedicated customer support</li>
           </ul>
           <button class="pm-select" data-select>Choose Elite</button>
         </div>
       </div>
   
       <div class="pm-reassure">
-        <span class="lock">🔒</span> Secure checkout • Cancel anytime • 7-day money-back guarantee
+        <span class="lock">🔒</span>
+        Secure checkout • Cancel anytime • 7-day money-back guarantee • Dedicated customer support on every plan
       </div>
     </div>
   </div>
@@ -74,7 +81,10 @@
   }
   
   .payment-modal.hidden { display: none; }
-  .payment-modal{ position:fixed; inset:0; z-index:9999; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+  .payment-modal{
+    position:fixed; inset:0; z-index:9999;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  }
   .payment-modal__backdrop{
     position:absolute; inset:0;
     background:
@@ -92,13 +102,19 @@
     padding:40px; text-align:center;
   }
   
-  .pm-x{ position:absolute; top:12px; right:14px; width:40px; height:40px; border-radius:12px; border:1px solid var(--border);
-    background:transparent; color:var(--muted); font-size:24px; line-height:1; cursor:pointer; transition:.2s ease; }
+  .pm-x{
+    position:absolute; top:12px; right:14px; width:40px; height:40px; border-radius:12px; border:1px solid var(--border);
+    background:transparent; color:var(--muted); font-size:24px; line-height:1; cursor:pointer; transition:.2s ease;
+  }
   .pm-x:hover{ color:var(--text); background:rgba(255,255,255,.05); }
   .pm-x:focus{ outline:none; box-shadow:var(--focus); }
   
-  .pm-title{ margin:0 0 4px; font-size:28px; font-weight:800; letter-spacing:.2px; }
-  .pm-sub{ margin:0 0 28px; font-size:15px; color:var(--muted); }
+  .pm-title{
+    margin:0 0 4px; font-size:28px; font-weight:800; letter-spacing:.2px;
+  }
+  .pm-sub{
+    margin:0 0 28px; font-size:15px; color:var(--muted);
+  }
   
   .pm-plans{
     display:grid; grid-template-columns:1fr; gap:18px; margin-top:4px;
@@ -111,14 +127,20 @@
     background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
     border:1px solid var(--border); border-radius: var(--radius);
     padding:28px 22px; text-align:left; transition: transform .22s ease, border-color .2s, box-shadow .2s;
-    position:relative; overflow:hidden; min-height: 360px; /* taller */
+    position:relative; overflow:hidden; min-height: 360px;
     display:flex; flex-direction:column; justify-content:flex-start;
   }
-  .pm-plan:hover{ transform: translateY(-4px); border-color: rgba(255,255,255,.18); box-shadow: 0 16px 40px rgba(0,0,0,.3); }
+  .pm-plan:hover{
+    transform: translateY(-4px); border-color: rgba(255,255,255,.18); box-shadow: 0 16px 40px rgba(0,0,0,.3);
+  }
   .pm-plan:focus{ outline:none; box-shadow: var(--focus); }
   
-  .pm-plan__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .pm-plan__title{ margin:0; font-size:22px; font-weight:800; letter-spacing:.2px; }
+  .pm-plan__head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+  }
+  .pm-plan__title{
+    margin:0; font-size:22px; font-weight:800; letter-spacing:.2px;
+  }
   
   .pm-pill{
     display:inline-block; padding:4px 10px; font-size:11px; font-weight:900; letter-spacing:.5px; text-transform:uppercase;
@@ -126,15 +148,34 @@
     border-radius:999px; border:1px solid rgba(0,0,0,.08);
   }
   
-  .pm-price{ margin:10px 0 18px; font-weight:900; font-size:34px; }
-  .pm-price__amount{ background: linear-gradient(90deg, #fff, #ffd0db); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .pm-price__cycle{ color:var(--muted); font-size:15px; font-weight:600; margin-left:2px; }
+  .pm-price{
+    margin:10px 0 18px; font-weight:900; font-size:34px;
+  }
+  .pm-price__amount{
+    background: linear-gradient(90deg, #fff, #ffd0db);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .pm-price__cycle{
+    color:var(--muted); font-size:15px; font-weight:600; margin-left:2px;
+  }
   
-  .pm-feats{ list-style:none; padding:0; margin:10px 0 28px; }
-  .pm-feats li{ font-size:14px; color:#d9d9e3; padding-left:22px; position:relative; }
+  .pm-feats{
+    list-style:none; padding:0; margin:10px 0 28px;
+  }
+  .pm-feats li{
+    font-size:14px; color:#d9d9e3; padding-left:22px; position:relative; margin-bottom:8px;
+  }
   .pm-feats li::before{
     content:""; position:absolute; left:0; top:6px; width:12px; height:12px; border-radius:3px;
     background: linear-gradient(135deg, var(--accent), #ff6f8b); box-shadow: 0 0 0 3px rgba(255,47,90,.18);
+  }
+  
+  /* Small secondary note under a feature (e.g. Pro auto-send text) */
+  .pm-feats__note{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    color:var(--muted);
   }
   
   .pm-select{
@@ -142,7 +183,9 @@
     background: linear-gradient(180deg, #2a2946, #1c1a32); color:#fff; border:1px solid rgba(255,255,255,.08);
     transition:transform .06s ease, box-shadow .2s, background .2s, border-color .2s;
   }
-  .pm-select:hover{ transform: translateY(-1px); box-shadow: 0 10px 28px rgba(0,0,0,.32); border-color: rgba(255,255,255,.18); }
+  .pm-select:hover{
+    transform: translateY(-1px); box-shadow: 0 10px 28px rgba(0,0,0,.32); border-color: rgba(255,255,255,.18);
+  }
   .pm-select:active{ transform: translateY(0); }
   
   .pm-select--primary{
@@ -157,11 +200,19 @@
     box-shadow: 0 0 0 1px rgba(255,47,90,.35) inset, 0 30px 70px rgba(255,47,90,.12);
     transform: translateY(-2px);
   }
-  .pm-plan--featured .pm-price__amount{ background: linear-gradient(90deg, var(--accent), #fff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .pm-plan--featured .pm-price__amount{
+    background: linear-gradient(90deg, var(--accent), #fff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
   .pm-plan--featured .pm-plan__title{ color:#fff; }
-  .pm-plan--featured .pm-feats li::before{ background: linear-gradient(135deg, #fff, var(--accent)); }
+  .pm-plan--featured .pm-feats li::before{
+    background: linear-gradient(135deg, #fff, var(--accent));
+  }
   
-  .pm-reassure{ margin-top:18px; color:var(--muted); font-size:12px; display:flex; gap:8px; align-items:center; justify-content:center; }
+  .pm-reassure{
+    margin-top:18px; color:var(--muted); font-size:12px;
+    display:flex; gap:8px; align-items:center; justify-content:center; text-align:center;
+  }
   .pm-reassure .lock{ filter:saturate(0) brightness(1.2); }
   
   /* Accessibility focus for interactive items */
@@ -170,7 +221,9 @@
   
   /* Reduce motion preference */
   @media (prefers-reduced-motion: reduce){
-    .pm-plan, .pm-select, .pm-plan:hover { transition: none !important; transform: none !important; }
+    .pm-plan, .pm-select, .pm-plan:hover {
+      transition: none !important; transform: none !important;
+    }
   }
   </style>
   
