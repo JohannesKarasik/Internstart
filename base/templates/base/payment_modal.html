@@ -1,16 +1,40 @@
 <div id="paymentModal" class="payment-modal hidden">
     <div class="payment-modal__backdrop"></div>
+  
     <div class="payment-modal__box">
-        <h2>Upgrade to Premium</h2>
-        <p>Get unlimited applications, priority AI, and more.</p>
   
-        <button id="goToCheckout" class="btn-primary">
-          Continue to checkout
-        </button>
+      <h2 class="pm-title">Choose Your Plan</h2>
+      <p class="pm-sub">Upgrade your account to continue applying.</p>
   
-        <button id="closePaymentModal" class="btn-secondary">
-          Cancel
-        </button>
+      <div class="pm-plans">
+  
+        <!-- Plan 1 -->
+        <div class="pm-plan" data-tier="starter">
+          <h3>Starter</h3>
+          <p class="pm-price">$15 / month</p>
+          <p class="pm-detail">25 swipes per month</p>
+          <button class="pm-select">Select</button>
+        </div>
+  
+        <!-- Plan 2 -->
+        <div class="pm-plan" data-tier="pro">
+          <h3>Pro</h3>
+          <p class="pm-price">$28 / month</p>
+          <p class="pm-detail">200 swipes per month</p>
+          <button class="pm-select">Select</button>
+        </div>
+  
+        <!-- Plan 3 -->
+        <div class="pm-plan" data-tier="elite">
+          <h3>Elite</h3>
+          <p class="pm-price">$48 / month</p>
+          <p class="pm-detail">400 swipes per month</p>
+          <button class="pm-select">Select</button>
+        </div>
+  
+      </div>
+  
+      <button id="closePaymentModal" class="pm-cancel">Cancel</button>
     </div>
   </div>
   
@@ -26,7 +50,7 @@
   .payment-modal__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.55);
   }
   
   .payment-modal__box {
@@ -35,9 +59,101 @@
     transform: translate(-50%, -50%);
     width: 92%;
     max-width: 420px;
-    background: white;
-    padding: 28px;
-    border-radius: 16px;
+    background: #fff;
+    padding: 26px;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    font-family: Inter, sans-serif;
+    text-align: center;
+  }
+  
+  .pm-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  
+  .pm-sub {
+    margin-top: 4px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .pm-plans {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .pm-plan {
+    border: 1px solid #eee;
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-align: center;
+    transition: 0.15s ease;
+  }
+  
+  .pm-plan:hover {
+    border-color: #000;
+    transform: translateY(-2px);
+  }
+  
+  .pm-price {
+    margin: 4px 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  .pm-detail {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .pm-select {
+    margin-top: 12px;
+    padding: 8px 18px;
+    border: none;
+    background: black;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .pm-select:hover {
+    background: #333;
+  }
+  
+  .pm-cancel {
+    margin-top: 20px;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
   }
   </style>
-  
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Close modal
+      document.getElementById("closePaymentModal")?.addEventListener("click", () => {
+        document.getElementById("paymentModal").classList.add("hidden");
+        document.body.style.overflow = "";
+      });
+    
+      // Handle selecting a plan
+      document.querySelectorAll(".pm-plan .pm-select").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tier = btn.closest(".pm-plan").dataset.tier;
+    
+          // Go to checkout
+          window.location.href = `/billing/checkout/${tier}/`;
+        });
+      });
+    });
+    </script>
+    
