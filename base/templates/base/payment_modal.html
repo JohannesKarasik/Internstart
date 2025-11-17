@@ -7,16 +7,6 @@
       <h2 class="pm-title" id="pmTitle">Choose Your Plan</h2>
       <p class="pm-sub" id="pmSubtitle">Upgrade your account to continue applying.</p>
   
-      <!-- Billing toggle -->
-      <div class="pm-billing">
-        <span class="pm-billing__label">Monthly</span>
-        <label class="switch">
-          <input type="checkbox" id="billingToggle" aria-label="Toggle yearly billing">
-          <span class="slider"></span>
-        </label>
-        <span class="pm-billing__label">Yearly <em class="save-badge">save 20%</em></span>
-      </div>
-  
       <div class="pm-plans" role="list">
         <!-- Plan 1 -->
         <div class="pm-plan" data-tier="starter" role="listitem" tabindex="0">
@@ -25,7 +15,7 @@
             <p class="pm-plan__sub">Getting started</p>
           </div>
           <p class="pm-price">
-            <span class="pm-price__amount" data-monthly="$15" data-yearly="$12">$15</span> <span class="pm-price__cycle">/mo</span>
+            <span class="pm-price__amount">$15</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
             <li>25 swipes / month</li>
@@ -43,7 +33,7 @@
             <p class="pm-plan__sub">For power users</p>
           </div>
           <p class="pm-price">
-            <span class="pm-price__amount" data-monthly="$28" data-yearly="$22">$28</span> <span class="pm-price__cycle">/mo</span>
+            <span class="pm-price__amount">$28</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
             <li><strong>200</strong> swipes / month</li>
@@ -62,7 +52,7 @@
             <p class="pm-plan__sub">Teams & heavy usage</p>
           </div>
           <p class="pm-price">
-            <span class="pm-price__amount" data-monthly="$48" data-yearly="$38">$48</span> <span class="pm-price__cycle">/mo</span>
+            <span class="pm-price__amount">$48</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
             <li><strong>400</strong> swipes / month</li>
@@ -84,7 +74,7 @@
   :root{
     --plum:#471527;
     --navy:#17162a;
-    --accent:#57E0E6; /* complementary cyan accent */
+    --accent:#FF2F5A; /* new accent */
     --text:#e9e9ef;
     --muted:#9aa0b4;
     --card:#1e1c34;
@@ -92,19 +82,23 @@
     --shadow:0 12px 40px rgba(0,0,0,.35);
     --radius:16px;
     --radius-lg:20px;
-    --focus:0 0 0 3px rgba(87,224,230,.4), 0 0 0 6px rgba(87,224,230,.18);
+    --focus:0 0 0 3px rgba(255,47,90,.35), 0 0 0 6px rgba(255,47,90,.18);
   }
   
   .payment-modal.hidden { display: none; }
   .payment-modal{ position:fixed; inset:0; z-index:9999; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
-  .payment-modal__backdrop{ position:absolute; inset:0; background: radial-gradient(1200px 800px at 20% 10%, rgba(71,21,39,.55), transparent 60%), radial-gradient(900px 700px at 80% 90%, rgba(23,22,42,.55), transparent 60%), rgba(0,0,0,.6); backdrop-filter: blur(2px); }
+  .payment-modal__backdrop{ position:absolute; inset:0; background:
+    radial-gradient(1200px 800px at 20% 10%, rgba(71,21,39,.55), transparent 60%),
+    radial-gradient(900px 700px at 80% 90%, rgba(23,22,42,.55), transparent 60%),
+    rgba(0,0,0,.6); backdrop-filter: blur(2px); }
   
   .payment-modal__box{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:min(960px,92vw); background: linear-gradient(180deg, rgba(23,22,42,.95), rgba(23,22,42,.92));
+    width:min(960px,92vw); background: linear-gradient(180deg, rgba(23,22,42,.96), rgba(23,22,42,.93));
     border:1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); color: var(--text);
     padding:28px 26px 22px; text-align:center;
   }
+  
   .pm-x{ position:absolute; top:10px; right:12px; width:36px; height:36px; border-radius:10px; border:1px solid var(--border);
     background:transparent; color:var(--muted); font-size:22px; line-height:1; cursor:pointer; transition:.2s ease; }
   .pm-x:hover{ color:var(--text); background:rgba(255,255,255,.04); }
@@ -112,17 +106,6 @@
   
   .pm-title{ margin:4px 0 2px; font-size:24px; font-weight:800; letter-spacing:.2px; }
   .pm-sub{ margin:0 0 18px; font-size:14px; color:var(--muted); }
-  
-  .pm-billing{ display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:18px; }
-  .pm-billing__label{ font-size:13px; color:var(--muted); }
-  .save-badge{ color:var(--accent); font-style:normal; font-weight:700; margin-left:6px; }
-  
-  .switch{ position:relative; display:inline-block; width:52px; height:28px; }
-  .switch input{ display:none; }
-  .slider{ position:absolute; cursor:pointer; inset:0; background:linear-gradient(135deg, var(--plum), var(--navy)); border:1px solid var(--border); border-radius:999px; transition:.25s; }
-  .slider:before{ content:""; position:absolute; height:22px; width:22px; left:3px; top:50%; transform:translateY(-50%); background:#fff; border-radius:50%; transition:.25s; }
-  .switch input:checked + .slider{ background: linear-gradient(135deg, var(--navy), var(--plum)); }
-  .switch input:checked + .slider:before{ transform:translate(22px,-50%); }
   
   .pm-plans{ display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px; }
   @media (min-width:820px){ .payment-modal__box{ padding:34px; } .pm-plans{ grid-template-columns: repeat(3, 1fr); gap:16px; } }
@@ -141,32 +124,36 @@
   .pm-plan__sub{ margin:0; font-size:12px; color:var(--muted); }
   
   .pm-price{ margin:6px 0 10px; font-weight:900; font-size:28px; }
-  .pm-price__amount{ background: linear-gradient(90deg, #fff, #B9F7FA); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .pm-price__amount{ background: linear-gradient(90deg, #fff, #ffd0db); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .pm-price__cycle{ color:var(--muted); font-size:14px; font-weight:600; margin-left:2px; }
   
   .pm-feats{ list-style:none; padding:0; margin:10px 0 12px; display:grid; gap:8px; }
   .pm-feats li{ font-size:13px; color:#d9d9e3; padding-left:22px; position:relative; }
-  .pm-feats li::before{ content:""; position:absolute; left:0; top:6px; width:12px; height:12px; border-radius:3px; background: linear-gradient(135deg, var(--accent), #9FF2F6); box-shadow: 0 0 0 3px rgba(87,224,230,.15); }
+  .pm-feats li::before{
+    content:""; position:absolute; left:0; top:6px; width:12px; height:12px; border-radius:3px;
+    background: linear-gradient(135deg, var(--accent), #ff6f8b); box-shadow: 0 0 0 3px rgba(255,47,90,.18);
+  }
   
   .pm-select{
     width:100%; padding:10px 14px; border:none; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer;
     background: linear-gradient(180deg, #2a2946, #1c1a32); color:#fff; border:1px solid rgba(255,255,255,.08);
-    transition:transform .06s ease, box-shadow .2s, background .2s, border-color .2s; }
+    transition:transform .06s ease, box-shadow .2s, background .2s, border-color .2s;
+  }
   .pm-select:hover{ transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.28); border-color: rgba(255,255,255,.18); }
   .pm-select:active{ transform: translateY(0); }
   
   .pm-select--primary{
-    background: linear-gradient(135deg, var(--accent), #78F1F6); color:#07141a; border-color: transparent;
-    text-shadow: 0 1px 0 rgba(255,255,255,.3);
+    background: linear-gradient(135deg, var(--accent), #ff758f);
+    color:#2a0c15; border-color: transparent; text-shadow: 0 1px 0 rgba(255,255,255,.25);
   }
-  .pm-select--primary:hover{ box-shadow: 0 10px 28px rgba(87,224,230,.35); }
+  .pm-select--primary:hover{ box-shadow: 0 10px 28px rgba(255,47,90,.35); }
   
   .pm-note{ text-align:center; font-size:12px; color:var(--muted); margin-top:8px; }
   
   .pm-plan--featured{
-    background: linear-gradient(180deg, rgba(87,224,230,.06), rgba(255,255,255,.02));
-    border: 1px solid rgba(87,224,230,.35);
-    box-shadow: 0 0 0 1px rgba(87,224,230,.25) inset, 0 25px 60px rgba(87,224,230,.08);
+    background: linear-gradient(180deg, rgba(255,47,90,.06), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,47,90,.45);
+    box-shadow: 0 0 0 1px rgba(255,47,90,.35) inset, 0 25px 60px rgba(255,47,90,.1);
     transform: translateY(-2px);
   }
   .pm-plan--featured .pm-price__amount{ background: linear-gradient(90deg, var(--accent), #fff); -webkit-background-clip:text; background-clip:text; color:transparent; }
@@ -175,7 +162,7 @@
   
   .pm-ribbon{
     position:absolute; top:12px; right:-38px; transform: rotate(40deg);
-    background: linear-gradient(90deg, var(--plum), var(--navy));
+    background: linear-gradient(90deg, var(--plum), var(--accent));
     color:#fff; font-size:11px; letter-spacing:.6px; text-transform:uppercase; font-weight:900;
     padding:6px 54px; border:1px solid rgba(255,255,255,.08);
   }
@@ -185,12 +172,11 @@
   
   /* Accessibility focus for interactive items */
   .pm-plan [data-select]:focus,
-  .switch input:focus + .slider,
   .pm-select:focus { outline: none; box-shadow: var(--focus); }
   
   /* Reduce motion preference */
   @media (prefers-reduced-motion: reduce){
-    .pm-plan, .pm-select, .slider, .pm-plan:hover { transition: none !important; transform: none !important; }
+    .pm-plan, .pm-select, .pm-plan:hover { transition: none !important; transform: none !important; }
   }
   </style>
   
@@ -198,9 +184,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("paymentModal");
     const closeEls = modal.querySelectorAll("[data-close]");
-    const billingToggle = document.getElementById("billingToggle");
-    const priceSpans = modal.querySelectorAll(".pm-price__amount");
-    const cycleEls = modal.querySelectorAll(".pm-price__cycle");
     const selectButtons = modal.querySelectorAll("[data-select]");
     const focusBox = modal.querySelector(".payment-modal__box");
   
@@ -215,30 +198,18 @@
       document.body.style.overflow = "";
     }
   
-    // Toggle monthly/yearly pricing
-    billingToggle?.addEventListener("change", () => {
-      const yearly = billingToggle.checked;
-      priceSpans.forEach(span => {
-        span.textContent = yearly ? span.dataset.yearly : span.dataset.monthly;
-      });
-      cycleEls.forEach(el => el.textContent = yearly ? "/mo • billed yearly" : "/mo");
-    });
-  
     // Selection routing
     selectButtons.forEach(btn => {
       btn.addEventListener("click", () => {
         const tier = btn.closest(".pm-plan").dataset.tier;
-        const yearly = billingToggle?.checked ? "yearly" : "monthly";
-        // Go to checkout with billing period
-        window.location.href = `/billing/checkout/${tier}/?period=${yearly}`;
+        window.location.href = `/billing/checkout/${tier}/`;
       });
     });
   
-    // Optional: expose an API to open the modal
+    // Optional open API
     window.openPaymentModal = () => {
       modal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
-      // focus trap entry
       setTimeout(() => focusBox?.focus(), 0);
     };
   });
