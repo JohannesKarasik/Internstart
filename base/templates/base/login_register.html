@@ -9,7 +9,7 @@
 
 
 
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <!-- Manrope to match landing -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -655,10 +655,10 @@
   
   /* Optional: nudge input size down a hair since we made the form narrower */
   .form__control{
-    height: 50px;        /* was 52px */
-    border-radius: 12px; /* was 14px */
-    font-size: 15px;     /* was 16px */
-  }
+    height: 50px;
+    border-radius: 12px;
+    font-size: 16px; /* 🔥 prevents iOS focus zoom */
+}
   textarea.form__control{ min-height: 116px; }
 
 
