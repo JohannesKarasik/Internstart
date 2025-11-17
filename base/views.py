@@ -1540,47 +1540,37 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def create_checkout_session(request, tier):
-    # 👇 Detect current mode from environment
     stripe_mode = getattr(settings, "STRIPE_MODE", "test")
 
-    # 💳 LIVE price IDs
     live_prices = {
         "starter": "price_1SUIKU6IJebVII3FthSU8j6w",
         "pro": "price_1SUINH6IJebVII3FUnKMaUcY",
         "elite": "price_1SDxhc6IJebVII3F87lwDxEC",
     }
 
-    # 🧪 TEST price IDs
     test_prices = {
         "starter": "price_1SUIQg6IJebVII3FslXEDxdk",
         "pro": "price_1SUIQO6IJebVII3FpRdvZ1ng",
         "elite": "price_1SKRNX6IJebVII3F0VBJLXjd",
     }
 
-    # ✅ Choose correct set
     prices = live_prices if stripe_mode == "live" else test_prices
 
-    # 🛡️ Validate
     if tier not in prices:
         return JsonResponse({"error": f"Invalid tier '{tier}'"}, status=400)
 
-    try:
-        session = stripe.checkout.Session.create(
-            customer_email=request.user.email,
-            payment_method_types=["card"],
-            mode="subscription",
-            line_items=[{"price": prices[tier], "quantity": 1}],
-            success_url="https://internstart.com/billing/success/?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url="https://internstart.com/swipe/",
-            metadata={"tier": tier, "mode": stripe_mode},
-        )
+    session = stripe.checkout.Session.create(
+        customer_email=request.user.email,
+        payment_method_types=["card"],
+        mode="subscription",
+        line_items=[{"price": prices[tier], "quantity": 1}],
+        success_url="https://internstart.com/billing/success/?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url="https://internstart.com/swipe/",
+        metadata={"tier": tier, "mode": stripe_mode},
+    )
 
-        return JsonResponse({"url": session.url})
-
-    except Exception as e:
-        print("❌ Stripe checkout error:", str(e))
-        return JsonResponse({"error": str(e)}, status=500)
-
+    # 🔥 FIX THAT SOLVES YOUR PROBLEM
+    return redirect(session.url)
 
 @login_required
 @require_POST
