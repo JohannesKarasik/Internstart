@@ -3273,6 +3273,39 @@ def apply_with_ai(request):
         return JsonResponse(result)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+
+
+import random
+
+TOP_CITIES = [
+    "New York, NY",
+    "Los Angeles, CA",
+    "Chicago, IL",
+    "Houston, TX",
+    "Phoenix, AZ",
+    "Philadelphia, PA",
+    "San Antonio, TX",
+    "San Diego, CA",
+    "Dallas, TX",
+    "Austin, TX",
+]
+
+def dashboard(request):
+    user = request.user
+
+    # pick whichever field they actually use
+    real_city = user.city or user.location
+
+    # fallback → random city
+    safe_city = real_city if real_city not in [None, "", "None"] else random.choice(TOP_CITIES)
+
+    return render(request, "TEMPLATE.html", {
+        "safe_city": safe_city,
+        # everything else stays the same
+    })
+
+
 
 
 def robots_txt(request):
