@@ -2330,7 +2330,7 @@ main.layout {
 {% include "base/email_flow_showcase.html" %}
 
 <script>
-  window.USER_CITY = "{{ request.user.city|default:request.user.location|escapejs }}";
+  window.USER_CITY = "{{ safe_city|escapejs }}";
 </script>
 
 <script>
