@@ -12,53 +12,41 @@
         <div class="pm-plan" data-tier="starter" role="listitem" tabindex="0">
           <div class="pm-plan__head">
             <h3 class="pm-plan__title">Starter</h3>
-            <p class="pm-plan__sub">Getting started</p>
           </div>
           <p class="pm-price">
             <span class="pm-price__amount">$15</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
             <li>25 swipes / month</li>
-            <li>Basic matching</li>
-            <li>Email support</li>
           </ul>
           <button class="pm-select" data-select>Choose Starter</button>
         </div>
   
-        <!-- Plan 2 (Most Popular) -->
+        <!-- Plan 2 (Most Popular inside header) -->
         <div class="pm-plan pm-plan--featured" data-tier="pro" role="listitem" aria-label="Pro plan, most popular" tabindex="0">
-          <div class="pm-ribbon">Most Popular</div>
           <div class="pm-plan__head">
             <h3 class="pm-plan__title">Pro</h3>
-            <p class="pm-plan__sub">For power users</p>
+            <span class="pm-pill" aria-hidden="true">Most popular</span>
           </div>
           <p class="pm-price">
             <span class="pm-price__amount">$28</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
             <li><strong>200</strong> swipes / month</li>
-            <li>Priority matching</li>
-            <li>Smart filters + insights</li>
-            <li>Priority support</li>
           </ul>
           <button class="pm-select pm-select--primary" data-select>Continue with Pro</button>
-          <p class="pm-note">Best value for most users</p>
         </div>
   
         <!-- Plan 3 -->
         <div class="pm-plan" data-tier="elite" role="listitem" tabindex="0">
           <div class="pm-plan__head">
             <h3 class="pm-plan__title">Elite</h3>
-            <p class="pm-plan__sub">Teams & heavy usage</p>
           </div>
           <p class="pm-price">
             <span class="pm-price__amount">$48</span> <span class="pm-price__cycle">/mo</span>
           </p>
           <ul class="pm-feats">
             <li><strong>400</strong> swipes / month</li>
-            <li>Advanced automation</li>
-            <li>Team seats (up to 3)</li>
-            <li>Dedicated success manager</li>
           </ul>
           <button class="pm-select" data-select>Choose Elite</button>
         </div>
@@ -74,100 +62,106 @@
   :root{
     --plum:#471527;
     --navy:#17162a;
-    --accent:#FF2F5A; /* new accent */
+    --accent:#FF2F5A;
     --text:#e9e9ef;
     --muted:#9aa0b4;
     --card:#1e1c34;
     --border:rgba(255,255,255,0.08);
-    --shadow:0 12px 40px rgba(0,0,0,.35);
+    --shadow:0 16px 60px rgba(0,0,0,.45);
     --radius:16px;
-    --radius-lg:20px;
+    --radius-lg:24px;
     --focus:0 0 0 3px rgba(255,47,90,.35), 0 0 0 6px rgba(255,47,90,.18);
   }
   
   .payment-modal.hidden { display: none; }
-  .payment-modal{ position:fixed; inset:0; z-index:9999; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
-  .payment-modal__backdrop{ position:absolute; inset:0; background:
-    radial-gradient(1200px 800px at 20% 10%, rgba(71,21,39,.55), transparent 60%),
-    radial-gradient(900px 700px at 80% 90%, rgba(23,22,42,.55), transparent 60%),
-    rgba(0,0,0,.6); backdrop-filter: blur(2px); }
+  .payment-modal{ position:fixed; inset:0; z-index:9999; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+  .payment-modal__backdrop{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(1200px 800px at 20% 10%, rgba(71,21,39,.55), transparent 60%),
+      radial-gradient(900px 700px at 80% 90%, rgba(23,22,42,.55), transparent 60%),
+      rgba(0,0,0,.6);
+    backdrop-filter: blur(2px);
+  }
   
   .payment-modal__box{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:min(960px,92vw); background: linear-gradient(180deg, rgba(23,22,42,.96), rgba(23,22,42,.93));
+    width:min(1040px,94vw);
+    background: linear-gradient(180deg, rgba(23,22,42,.97), rgba(23,22,42,.94));
     border:1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); color: var(--text);
-    padding:28px 26px 22px; text-align:center;
+    padding:40px; text-align:center;
   }
   
-  .pm-x{ position:absolute; top:10px; right:12px; width:36px; height:36px; border-radius:10px; border:1px solid var(--border);
-    background:transparent; color:var(--muted); font-size:22px; line-height:1; cursor:pointer; transition:.2s ease; }
-  .pm-x:hover{ color:var(--text); background:rgba(255,255,255,.04); }
+  .pm-x{ position:absolute; top:12px; right:14px; width:40px; height:40px; border-radius:12px; border:1px solid var(--border);
+    background:transparent; color:var(--muted); font-size:24px; line-height:1; cursor:pointer; transition:.2s ease; }
+  .pm-x:hover{ color:var(--text); background:rgba(255,255,255,.05); }
   .pm-x:focus{ outline:none; box-shadow:var(--focus); }
   
-  .pm-title{ margin:4px 0 2px; font-size:24px; font-weight:800; letter-spacing:.2px; }
-  .pm-sub{ margin:0 0 18px; font-size:14px; color:var(--muted); }
+  .pm-title{ margin:0 0 4px; font-size:28px; font-weight:800; letter-spacing:.2px; }
+  .pm-sub{ margin:0 0 28px; font-size:15px; color:var(--muted); }
   
-  .pm-plans{ display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px; }
-  @media (min-width:820px){ .payment-modal__box{ padding:34px; } .pm-plans{ grid-template-columns: repeat(3, 1fr); gap:16px; } }
+  .pm-plans{
+    display:grid; grid-template-columns:1fr; gap:18px; margin-top:4px;
+  }
+  @media (min-width:860px){
+    .pm-plans{ grid-template-columns: repeat(3, 1fr); gap:20px; }
+  }
   
   .pm-plan{
     background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
     border:1px solid var(--border); border-radius: var(--radius);
-    padding:18px 16px; text-align:left; transition: transform .22s ease, border-color .2s, box-shadow .2s;
-    position:relative; overflow:hidden;
+    padding:28px 22px; text-align:left; transition: transform .22s ease, border-color .2s, box-shadow .2s;
+    position:relative; overflow:hidden; min-height: 360px; /* taller */
+    display:flex; flex-direction:column; justify-content:flex-start;
   }
-  .pm-plan:hover{ transform: translateY(-3px); border-color: rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .pm-plan:hover{ transform: translateY(-4px); border-color: rgba(255,255,255,.18); box-shadow: 0 16px 40px rgba(0,0,0,.3); }
   .pm-plan:focus{ outline:none; box-shadow: var(--focus); }
   
-  .pm-plan__head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
-  .pm-plan__title{ margin:0; font-size:18px; font-weight:800; letter-spacing:.2px; }
-  .pm-plan__sub{ margin:0; font-size:12px; color:var(--muted); }
+  .pm-plan__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .pm-plan__title{ margin:0; font-size:22px; font-weight:800; letter-spacing:.2px; }
   
-  .pm-price{ margin:6px 0 10px; font-weight:900; font-size:28px; }
+  .pm-pill{
+    display:inline-block; padding:4px 10px; font-size:11px; font-weight:900; letter-spacing:.5px; text-transform:uppercase;
+    color:#2a0c15; background: linear-gradient(135deg, var(--accent), #ff6f8b);
+    border-radius:999px; border:1px solid rgba(0,0,0,.08);
+  }
+  
+  .pm-price{ margin:10px 0 18px; font-weight:900; font-size:34px; }
   .pm-price__amount{ background: linear-gradient(90deg, #fff, #ffd0db); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .pm-price__cycle{ color:var(--muted); font-size:14px; font-weight:600; margin-left:2px; }
+  .pm-price__cycle{ color:var(--muted); font-size:15px; font-weight:600; margin-left:2px; }
   
-  .pm-feats{ list-style:none; padding:0; margin:10px 0 12px; display:grid; gap:8px; }
-  .pm-feats li{ font-size:13px; color:#d9d9e3; padding-left:22px; position:relative; }
+  .pm-feats{ list-style:none; padding:0; margin:10px 0 28px; }
+  .pm-feats li{ font-size:14px; color:#d9d9e3; padding-left:22px; position:relative; }
   .pm-feats li::before{
     content:""; position:absolute; left:0; top:6px; width:12px; height:12px; border-radius:3px;
     background: linear-gradient(135deg, var(--accent), #ff6f8b); box-shadow: 0 0 0 3px rgba(255,47,90,.18);
   }
   
   .pm-select{
-    width:100%; padding:10px 14px; border:none; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer;
+    margin-top:auto; width:100%; padding:14px 16px; border:none; border-radius:14px; font-weight:900; font-size:15px; cursor:pointer;
     background: linear-gradient(180deg, #2a2946, #1c1a32); color:#fff; border:1px solid rgba(255,255,255,.08);
     transition:transform .06s ease, box-shadow .2s, background .2s, border-color .2s;
   }
-  .pm-select:hover{ transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.28); border-color: rgba(255,255,255,.18); }
+  .pm-select:hover{ transform: translateY(-1px); box-shadow: 0 10px 28px rgba(0,0,0,.32); border-color: rgba(255,255,255,.18); }
   .pm-select:active{ transform: translateY(0); }
   
   .pm-select--primary{
     background: linear-gradient(135deg, var(--accent), #ff758f);
     color:#2a0c15; border-color: transparent; text-shadow: 0 1px 0 rgba(255,255,255,.25);
   }
-  .pm-select--primary:hover{ box-shadow: 0 10px 28px rgba(255,47,90,.35); }
-  
-  .pm-note{ text-align:center; font-size:12px; color:var(--muted); margin-top:8px; }
+  .pm-select--primary:hover{ box-shadow: 0 14px 34px rgba(255,47,90,.35); }
   
   .pm-plan--featured{
     background: linear-gradient(180deg, rgba(255,47,90,.06), rgba(255,255,255,.02));
     border: 1px solid rgba(255,47,90,.45);
-    box-shadow: 0 0 0 1px rgba(255,47,90,.35) inset, 0 25px 60px rgba(255,47,90,.1);
+    box-shadow: 0 0 0 1px rgba(255,47,90,.35) inset, 0 30px 70px rgba(255,47,90,.12);
     transform: translateY(-2px);
   }
   .pm-plan--featured .pm-price__amount{ background: linear-gradient(90deg, var(--accent), #fff); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .pm-plan--featured .pm-plan__title{ color:#fff; }
   .pm-plan--featured .pm-feats li::before{ background: linear-gradient(135deg, #fff, var(--accent)); }
   
-  .pm-ribbon{
-    position:absolute; top:12px; right:-38px; transform: rotate(40deg);
-    background: linear-gradient(90deg, var(--plum), var(--accent));
-    color:#fff; font-size:11px; letter-spacing:.6px; text-transform:uppercase; font-weight:900;
-    padding:6px 54px; border:1px solid rgba(255,255,255,.08);
-  }
-  
-  .pm-reassure{ margin-top:14px; color:var(--muted); font-size:12px; display:flex; gap:8px; align-items:center; justify-content:center; }
+  .pm-reassure{ margin-top:18px; color:var(--muted); font-size:12px; display:flex; gap:8px; align-items:center; justify-content:center; }
   .pm-reassure .lock{ filter:saturate(0) brightness(1.2); }
   
   /* Accessibility focus for interactive items */
