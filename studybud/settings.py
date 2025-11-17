@@ -40,7 +40,7 @@ LOCALE_PATHS = [
 
 # === Stripe Configuration ===
 # Toggle between test and live with STRIPE_MODE env var
-STRIPE_MODE = os.getenv("STRIPE_MODE", "test")  # "test" or "live"
+STRIPE_MODE = os.getenv("STRIPE_MODE", "live")  # "test" or "live"
 
 if STRIPE_MODE == "live":
     STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
