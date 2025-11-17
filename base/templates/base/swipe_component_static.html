@@ -2284,25 +2284,24 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
 
 
 
-
-
-/* 🔧 Make swipe card shorter on mobile */
-@media (max-width: 600px) {
+/* 🚀 FORCE FINAL MOBILE CARD SIZE */
+@media screen and (max-width: 600px), screen and (max-device-width: 600px) {
   .swipe-container {
-    width: 92vw;
-    max-width: 440px;
+    width: 92vw !important;
+    max-width: 440px !important;
     height: auto !important;
-    max-height: 520px !important;   /* tweak this number up/down */
+    max-height: 520px !important;  /* adjust as needed */
+    margin: 0 auto !important;
   }
 
   .card-front,
   .card-back {
-    padding-top: 18px;
-    padding-bottom: 18px;
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
   }
 
   .company-logo {
-    max-height: 140px !important;   /* stops logo from eating the whole card */
+    max-height: 140px !important;
   }
 }
 
