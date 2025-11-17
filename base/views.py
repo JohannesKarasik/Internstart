@@ -1545,15 +1545,15 @@ def create_checkout_session(request, tier):
 
     # 💳 LIVE price IDs
     live_prices = {
-        "starter": "price_1SDxgh6IJebVII3FaIOLhBkn",
-        "pro": "price_1SCRta6IJebVII3Feda7JGJf",
+        "starter": "price_1SUIKU6IJebVII3FthSU8j6w",
+        "pro": "price_1SUINH6IJebVII3FUnKMaUcY",
         "elite": "price_1SDxhc6IJebVII3F87lwDxEC",
     }
 
     # 🧪 TEST price IDs
     test_prices = {
-        "starter": "price_1SKRMg6IJebVII3Fw3XxREoq",
-        "pro": "price_1SKRNB6IJebVII3FoLCAkGnk",
+        "starter": "price_1SUIQg6IJebVII3FslXEDxdk",
+        "pro": "price_1SUIQO6IJebVII3FpRdvZ1ng",
         "elite": "price_1SKRNX6IJebVII3F0VBJLXjd",
     }
 
