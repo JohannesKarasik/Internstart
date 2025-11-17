@@ -2249,13 +2249,13 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
   }
 
   .swipe-container {
-    flex: 1 1 auto;        /* 🔑 let it grow to full width */
+    flex: 1 1 auto;        /* let it grow to full width */
     width: 100%;
     max-width: 100%;
     height: 100dvh;
     max-height: 100dvh;
     margin: 0;
-    padding: 0;
+    padding-inline: 12px;   /* 🔹 space on left & right */
   }
 
   .swipe-card,
@@ -2264,9 +2264,10 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
   .card-back {
     width: 100%;
     height: 100%;
-    border-radius: 0;       /* optional – remove rounded corners */
+    border-radius: 0;       /* keep flat edges – change if you want rounded */
   }
 }
+
 
 
   </style>
