@@ -2810,7 +2810,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // 🔥 HOOK INTO THE SWIPE-RIGHT BUTTON
-    document.getElementById("swipe-right-btn")?.addEventListener("click", (e) => {
+    document.querySelector(".swipe-btn.swipe-right")?.addEventListener("click", (e) => {
 
         // EXAMPLE: only open modal if no swipes left
         const swipesLeft = parseInt(
