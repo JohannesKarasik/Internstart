@@ -266,9 +266,9 @@
 
             <div class="form__group" style="margin-top: 10px;">
               <label class="form__label" for="{{ student_form.city.id_for_label }}">
-                Which city do you live in?
+                Which city are you looking to work in?
               </label>
-              {{ student_form.city|add_class:"form__control"|attr:"placeholder=e.g. Copenhagen, Madrid, Berlin" }}
+              {{ student_form.city|add_class:"form__control"|attr:"placeholder=e.g. New York City, Los Angeles, Miami" }}
             </div>
 
             <div class="wizard-actions wizard-actions--split">
@@ -320,7 +320,7 @@
 
 
 
-          <p class="auth-legal">
+          <p class="auth-legal" style="display: none;">
             By continuing you agree to our
             <a href="{% url 'terms_conditions' %}" class="link">Terms</a>
             and
