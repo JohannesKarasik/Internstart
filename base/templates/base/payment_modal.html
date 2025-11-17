@@ -1,0 +1,43 @@
+<div id="paymentModal" class="payment-modal hidden">
+    <div class="payment-modal__backdrop"></div>
+    <div class="payment-modal__box">
+        <h2>Upgrade to Premium</h2>
+        <p>Get unlimited applications, priority AI, and more.</p>
+  
+        <button id="goToCheckout" class="btn-primary">
+          Continue to checkout
+        </button>
+  
+        <button id="closePaymentModal" class="btn-secondary">
+          Cancel
+        </button>
+    </div>
+  </div>
+  
+  <style>
+  .payment-modal.hidden { display: none; }
+  
+  .payment-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+  }
+  
+  .payment-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+  }
+  
+  .payment-modal__box {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 92%;
+    max-width: 420px;
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+  }
+  </style>
+  

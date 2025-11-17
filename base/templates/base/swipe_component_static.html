@@ -1,4 +1,5 @@
 {% load static %}
+{% include "base/payment_modal.html" %}
 
 {% block content %}
 {% if not partial %}
@@ -2778,6 +2779,55 @@ document.getElementById("swipe-right-btn")
 // -------------------------------
 loadNextCard();
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("paymentModal");
+    const closeBtn = document.getElementById("closePaymentModal");
+    const checkoutBtn = document.getElementById("goToCheckout");
+
+    function openPaymentModal() {
+        modal.classList.remove("hidden");
+        document.body.style.overflow = "hidden"; // lock scroll
+    }
+
+    function closePaymentModal() {
+        modal.classList.add("hidden");
+        document.body.style.overflow = "";
+    }
+
+    closeBtn?.addEventListener("click", closePaymentModal);
+
+    checkoutBtn?.addEventListener("click", () => {
+        window.location.href = "/billing/checkout/pro/";   // or your dynamic link
+    });
+
+    // CLICK OUTSIDE closes popup
+    modal.addEventListener("click", (e) => {
+        if (e.target.classList.contains("payment-modal__backdrop")) {
+            closePaymentModal();
+        }
+    });
+
+    // 🔥 HOOK INTO THE SWIPE-RIGHT BUTTON
+    document.getElementById("swipe-right-btn")?.addEventListener("click", (e) => {
+
+        // EXAMPLE: only open modal if no swipes left
+        const swipesLeft = parseInt(
+            document.getElementById("swipesLeft").textContent || "0"
+        );
+
+        if (swipesLeft <= 0) {
+            e.preventDefault();
+            openPaymentModal();
+            return;
+        }
+
+        // otherwise let the normal swipe action run
+    });
+});
+</script>
+
 
 
 </main>
