@@ -1780,14 +1780,11 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
       .bgFX__grid {
         display: none !important;
       }
-
-      .swipe-container {
-        perspective: none !important;
-      }
-
+      
       .card-inner {
-        transform: none !important;
-      }
+    /* allow flip on mobile */
+    transform-style: preserve-3d !important;
+}
 
       /* Ensure logo container still behaves as intended */
       .logo-frame {
