@@ -2306,6 +2306,24 @@ style="position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align
 }
 
 
+/* 🔥 FINAL FIX — lift card up on real phones */
+@media (max-width: 600px) {
+
+/* stop stretching full height */
+.swipe-container {
+  height: auto !important;
+  max-height: calc(100dvh - 160px) !important; /* adjust gap here */
+  margin-bottom: env(safe-area-inset-bottom, 20px) !important;
+}
+
+/* center card vertically but leave gap below */
+main.layout {
+  justify-content: flex-start !important;
+  padding-top: calc(40px + env(safe-area-inset-top)) !important;
+}
+}
+
+
 
   </style>
 
