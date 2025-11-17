@@ -2328,6 +2328,13 @@ main.layout {
 {% include "base/email_flow_showcase.html" %}
 
 <script>
+  window.USER_CITY = "{{ request.user.city|escapejs }}";
+</script>
+
+<script>
+
+
+  
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('showEFSNow');
     if (!btn) {
@@ -2702,7 +2709,7 @@ async function loadNextCard() {
     elTitle.textContent   = data.title   || "Job Title";
     elRole.textContent    = data.role    || "";
 
-    elLoc.textContent     = data.location || "";
+    elLoc.textContent = window.USER_CITY || "Your city";
     elDesc.textContent    = data.desc || "";
 
     // logo: only if domain exists
