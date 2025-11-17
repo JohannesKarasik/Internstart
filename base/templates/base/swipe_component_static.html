@@ -385,7 +385,9 @@
           <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
           <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
           <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
-          <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:"Your city" }}</span></p>
+          <p class="meta"><span class="dot"></span> <span id="cLoc">
+            {{ request.user.city|default:request.user.location|default:"Your city" }}
+        </span></p>
         </div>
 
         <div class="info-badges" id="cBadges"></div>
@@ -2328,7 +2330,7 @@ main.layout {
 {% include "base/email_flow_showcase.html" %}
 
 <script>
-  window.USER_CITY = "{{ request.user.city|escapejs }}";
+  window.USER_CITY = "{{ request.user.city|default:request.user.location|escapejs }}";
 </script>
 
 <script>
