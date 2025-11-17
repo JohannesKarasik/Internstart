@@ -769,6 +769,7 @@
   margin-top: 10px;
 }
 
+/* Base button style */
 .relocate-btn {
   flex: 1;
   height: 48px;
@@ -776,23 +777,42 @@
   font-weight: 800;
   font-size: 15px;
   cursor: pointer;
-  border: none;
-  transition: transform .15s ease, box-shadow .15s ease;
+  background: #fff;                 /* white background */
+  border: 2px solid transparent;    /* border set per variant */
+  transition: 
+      transform .15s ease, 
+      box-shadow .15s ease,
+      border-color .2s ease,
+      color .2s ease;
 }
 
+/* YES button */
 .relocate-btn.yes {
-  background: #10B981; /* green */
-  color: white;
+  border-color: #10B981;        /* green border */
+  color: #10B981;               /* green text */
 }
 
+.relocate-btn.yes:hover {
+  background: #ECFDF5;          /* subtle green-tinted background */
+  box-shadow: 0 4px 14px rgba(16,185,129,.25);
+}
+
+/* NO button */
 .relocate-btn.no {
-  background: #EF4444; /* red */
-  color: white;
+  border-color: #EF4444;        /* red border */
+  color: #EF4444;               /* red text */
 }
 
+.relocate-btn.no:hover {
+  background: #FEF2F2;          /* subtle red-tinted background */
+  box-shadow: 0 4px 14px rgba(239,68,68,.25);
+}
+
+/* Selected state */
 .relocate-btn.selected {
-  box-shadow: 0 0 0 3px rgba(0,0,0,.15);
+  background: #fff;
   transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.15);
 }
 
 
