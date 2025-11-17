@@ -883,18 +883,21 @@
         if (!el) return;
         el.classList.toggle('is-active', idx + 1 === step);
       });
-  
+
       stepperItems.forEach(el => {
         el.classList.toggle('is-active', Number(el.dataset.stepIndex) === step);
       });
-  
+
       setProgress(step);
       if (stepInput) stepInput.value = String(step);
-  
+
       const active = step === 1 ? step1 : step === 2 ? step2 : step3;
       const first  = active?.querySelector('input,select,textarea,button');
       if (first) setTimeout(() => first.focus({ preventScroll: true }), 30);
+
+      forceTop();   // 🔥 FIXES MOBILE SCROLLING PROBLEM
     };
+
   
     // ---- Step 1 validator ----
     const step1Valid = () => {
@@ -1084,6 +1087,21 @@ document.addEventListener('DOMContentLoaded', () => {
     relocateSection.style.display = 'block';
   });
 });
+
+
+function forceTop() {
+  // Hard reset scroll for iOS + Android
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  
+  // Also reset any scroll inside containers
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+
+  // Fix Safari bounce
+  setTimeout(() => {
+    window.scrollTo(0, 0);
+  }, 30);
+}
 
 
   </script>
