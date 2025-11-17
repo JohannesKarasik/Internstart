@@ -386,8 +386,15 @@
           <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
           <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
           <p class="meta"><span class="dot"></span> <span id="cLoc">
-            {{ request.user.city|default:request.user.location|default:"Your city" }}
-        </span></p>
+            {% if request.user.city %}
+                {{ request.user.city }}
+            {% elif request.user.location %}
+                {{ request.user.location }}
+            {% else %}
+                {{ top_list|random }}
+            {% endif %}
+          </span>
+          </p>
         </div>
 
         <div class="info-badges" id="cBadges"></div>
@@ -2330,7 +2337,9 @@ main.layout {
 {% include "base/email_flow_showcase.html" %}
 
 <script>
-  window.USER_CITY = "{{ request.user.city|default:request.user.location|escapejs }}";
+  window.USER_CITY = "{% if request.user.city %}{{ request.user.city|escapejs }}
+{% elif request.user.location %}{{ request.user.location|escapejs }}
+{% else %}{{ top_list|random|escapejs }}{% endif %}";
 </script>
 
 <script>
