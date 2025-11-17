@@ -2417,28 +2417,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 🔹 Position hint directly above the current anchor (button for stages 1–2, card for stage 3)
   function positionSwipeHint() {
-    if (!swipeHint) return;
+  if (!swipeHint) return;
 
-    let anchorEl = null;
-    if (hintStage === 1) {
-      anchorEl = swipeRightBtn;
-    } else if (hintStage === 2) {
-      anchorEl = swipeLeftBtn;
-    } else if (hintStage === 3) {
-      anchorEl = container || swipeRightBtn || swipeLeftBtn;
-    }
+  // detect mobile
+  const isMobile = window.innerWidth <= 600;
 
-    if (!anchorEl) return;
+  // mobile → center on card
+  if (isMobile) {
+    const containerEl = document.querySelector('.swipe-container');
+    if (!containerEl) return;
 
-    const rect = anchorEl.getBoundingClientRect();
-    const left = rect.left + rect.width / 2;
-    const top = rect.top - 8; // a bit above anchor
+    const rect = containerEl.getBoundingClientRect();
 
-    swipeHint.style.position = 'fixed';
-    swipeHint.style.left = `${left}px`;
-    swipeHint.style.top = `${top}px`;
-    swipeHint.style.transform = 'translate(-50%, -100%)';
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height * 0.18; // nice placement near top of card
+
+    swipeHint.style.position = "fixed";
+    swipeHint.style.left = `${centerX}px`;
+    swipeHint.style.top = `${centerY}px`;
+    swipeHint.style.transform = "translate(-50%, -50%)";
+
+    return; // stop here → prevents desktop logic running
   }
+
+  // DESKTOP — your original logic
+  let anchorEl = null;
+  if (hintStage === 1) {
+    anchorEl = swipeRightBtn;
+  } else if (hintStage === 2) {
+    anchorEl = swipeLeftBtn;
+  } else if (hintStage === 3) {
+    anchorEl = container || swipeRightBtn || swipeLeftBtn;
+  }
+
+  if (!anchorEl) return;
+
+  const rect = anchorEl.getBoundingClientRect();
+  const left = rect.left + rect.width / 2;
+  const top = rect.top - 8;
+
+  swipeHint.style.position = 'fixed';
+  swipeHint.style.left = `${left}px`;
+  swipeHint.style.top = `${top}px`;
+  swipeHint.style.transform = 'translate(-50%, -100%)';
+}
+
 
   // 🔹 Autoplay hint stages: 1 → 2 → 3 → hide
 function autoAdvanceHints() {
