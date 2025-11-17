@@ -385,8 +385,14 @@
           <h4 id="cCompany">{{ first_room.company|default:'OpenAI' }}</h4>
           <h3 id="cTitle">{{ first_room.title|default:'Software Engineer' }}</h3>
           <h2 id="cRole">{{ first_room.role|default:'Intern' }}</h2>
-          <p class="meta"><span class="dot"></span> <span id="cLoc">{{ request.user.city|default:request.user.location|default:"" }}</span>
-
+          <p class="meta"><span class="dot"></span> <span id="cLoc">
+            {% if request.user.city %}
+                {{ request.user.city }}
+            {% elif request.user.location %}
+                {{ request.user.location }}
+            {% else %}
+                {{ top_list|random }}
+            {% endif %}
           </span>
           </p>
         </div>
@@ -2331,34 +2337,12 @@ main.layout {
 {% include "base/email_flow_showcase.html" %}
 
 <script>
-    // If user has no city, generate a random US city in the frontend
-    const TOP_US_CITIES = [
-        "New York, NY",
-        "Los Angeles, CA",
-        "Chicago, IL",
-        "Houston, TX",
-        "Phoenix, AZ",
-        "Philadelphia, PA",
-        "San Antonio, TX",
-        "San Diego, CA",
-        "Dallas, TX",
-        "Austin, TX"
-    ];
-
-    // Grab city from template
-    let frontendCity = "{{ request.user.city|default:request.user.location|default:'' }}";
-
-    if (!frontendCity || frontendCity === "None") {
-        frontendCity = TOP_US_CITIES[Math.floor(Math.random() * TOP_US_CITIES.length)];
-    }
-
-    // Apply city to DOM
-    window.USER_CITY = frontendCity;
-
-    // Populate the card immediately
-    const locEl = document.getElementById("cLoc");
-    if (locEl) locEl.textContent = frontendCity;
+  window.USER_CITY = "{% if request.user.city %}{{ request.user.city|escapejs }}
+{% elif request.user.location %}{{ request.user.location|escapejs }}
+{% else %}{{ top_list|random|escapejs }}{% endif %}";
 </script>
+
+<script>
 
 
   
