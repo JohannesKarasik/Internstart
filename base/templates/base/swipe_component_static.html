@@ -2332,9 +2332,8 @@ main.layout {
 {% include "base/email_flow_showcase.html" %}
 
 <script>
-  window.USER_CITY = "{% if request.user.city %}{{ request.user.city|escapejs }}
-{% elif request.user.location %}{{ request.user.location|escapejs }}
-{% else %}{{ top_list|random|escapejs }}{% endif %}";
+  window.USER_CITY = "{{ request.user.city|default:request.user.location|default:''|escapejs }}";
+
 </script>
 
 <script>
