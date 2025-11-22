@@ -72,7 +72,7 @@
 </div>
 
 
-  <!-- Phone-shaped TikTok-style carousel (replaced inner content with Tinder-style cards) -->
+  <!-- Tinder-style cards container (no phone frame) -->
   <div class="hero__phone"> 
     <div class="sp__rail" aria-label="{% trans 'Job cards' %}">
       <div class="tinder-deck">
@@ -323,9 +323,6 @@
   color:transparent;
 }
 
-
-
-
 .hero__subhead{ font-family:var(--font); font-size: clamp(20px, 2vw, 26px); line-height:1.6; color: var(--muted); max-width: 65ch; margin: 0 0 36px; }
 
 .btn{ display:inline-flex; align-items:center; justify-content:center; height:56px; padding:0 22px; border-radius:12px; font-weight:700; font-size:18px; text-decoration:none; transition:.2s ease; border:1px solid transparent; }
@@ -334,14 +331,28 @@
 .btn--ghost{ background:#f5f5f5; color:#111; }
 .btn--ghost:hover{ background:#efefef; }
 
-/* Phone viewport */
+/* Card container (no phone frame) */
 .hero__phone{
-  --phone-w: clamp(260px, 32vw, 360px);
-  justify-self:center; display:flex; align-items:center; justify-content:center;
-  padding:6px; border-radius:26px; background:#ffffff; box-shadow:0 14px 38px rgba(0,0,0,.28); align-self:center; margin-top:2vh;
+  --deck-w: clamp(320px, 36vw, 460px);
+  justify-self:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border-radius:24px;
+  background:transparent;
+  box-shadow:none;
+  align-self:center;
+  margin-top:2vh;
 }
 .hero__phone .sp__rail{
-  width:var(--phone-w); aspect-ratio:9/16; border-radius:22px; overflow:hidden; background:#f5f7fb; box-shadow:0 10px 30px rgba(0,0,0,.30); position:relative;
+  width:var(--deck-w);
+  min-height:520px;
+  border-radius:24px;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+  position:relative;
 }
 .hero__phone .sp__card{ position:absolute; inset:0; opacity:0; transform:scale(.985); transition: opacity .6s ease, transform .6s ease; }
 .hero__phone .sp__card.is-active{ opacity:1; transform:none; z-index:2; }
@@ -417,7 +428,6 @@
   background:#eee;
 }
 
-
 .rating__sep{
   color:#c6cbd2;
   margin:0 6px;
@@ -430,7 +440,6 @@
   color:#9ca3af;
   margin-left: -4px; /* was 6 */
 }
-
 
 .hero__sticky {
   position: fixed;
@@ -485,7 +494,6 @@
   transform: rotate(180deg) translateY(2px);
 }
 
-/* Mobile: smaller and a bit higher to avoid UI overlap */
 @media (max-width: 600px) {
   .hero__sticky {
     padding: 12px;
@@ -520,7 +528,6 @@
   }
 }
 
-
 @media (max-width: 600px) {
   .hero__ctas .btn--ghost {
     display: none !important;
@@ -548,7 +555,6 @@
     line-height: 1.15;
   }
 }
-
 
 @media (max-width: 600px) {
   .hero {
@@ -582,7 +588,7 @@
 }
 }
 
-/* Ensure the entire phone (frame + video) stays above marquees */
+/* Ensure the entire card deck stays above marquees */
 .hero__phone {
   position: relative !important;
   z-index: 50 !important;
@@ -623,7 +629,6 @@
     justify-content: center !important;
     gap: 6px !important;
   }
-
 
   .rating__stars {
     --size: 14px !important;            /* smaller stars */
