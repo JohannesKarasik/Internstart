@@ -548,7 +548,7 @@ html, body {
 /* ===== Base tokens (scoped-friendly) ===== */
 :root{
   --font:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  --brand:#FF2F5A; --accent:#3B82F6; --ok:#10B981;
+  --brand:#0967C2; --accent:#3B82F6; --ok:#10B981;
   --text:#0f172a; --muted:#667085; --line:#e7edf5;
   --container-max: 1480px;
   --card-w: clamp(360px, 30vw, 440px);
@@ -1550,7 +1550,7 @@ html, body {
       exclusive(null);
 
       /* ========== 2) AI analyserer ========== */
-      if (spTitle) spTitle.innerHTML = `<span style="color:#FF2F5A;">{{ _("AI") }}</span> {{ _("analyserer dit") }} <span style="color:#FF2F5A;">{{ _("CV") }}</span>`;
+      if (spTitle) spTitle.innerHTML = `<span style="color:#0967C2;">{{ _("AI") }}</span> {{ _("analyserer dit") }} <span style="color:#0967C2;">{{ _("CV") }}</span>`;
       exclusive('analysis');
       await window.RADemo?.runOnce?.();
 
@@ -1558,7 +1558,7 @@ html, body {
       exclusive(null);
 
       /* ========== 3) Tinder-dæk ========== */
-      if (spTitle) spTitle.innerHTML = `{{ _("Ansøg til jobs med") }} <span style="color:#FF2F5A;">{{ _("ét klik") }}</span>`;
+      if (spTitle) spTitle.innerHTML = `{{ _("Ansøg til jobs med") }} <span style="color:#0967C2;">{{ _("ét klik") }}</span>`;
       showOverlayDeck('{{ _("Swipe højre for at ansøge") }}');
       exclusive('tinder');
       await window.TinderDemo?.runOnce?.();

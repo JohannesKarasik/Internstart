@@ -552,7 +552,7 @@ html, body {
 /* ===== Base tokens (scoped-friendly) ===== */
 :root{
   --font:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  --brand:#FF2F5A; --accent:#3B82F6; --ok:#10B981;
+  --brand: #0967C2; --accent:#3B82F6; --ok:#10B981;
   --text:#0f172a; --muted:#667085; --line:#e7edf5;
   --container-max: 1480px;
   --card-w: clamp(360px, 30vw, 440px);
@@ -1079,7 +1079,7 @@ html, body {
         // Title/overlay switch to form look, but do NOT start the form here
         if (spTitle) {
           spTitle.style.removeProperty('display');
-          spTitle.innerHTML = `<span style="color:#FF2F5A;">{{ _("AI") }}</span> {{ _("fills out your applications for you") }}`;
+          spTitle.innerHTML = `<span style="color:#0967C2;">{{ _("AI") }}</span> {{ _("fills out your applications for you") }}`;
         }
         overlay?.classList.remove('is-deck-right');
         overlay?.classList.add('is-form');
@@ -1598,7 +1598,7 @@ html, body {
       exclusive(null);
 
       /* ========== 1) Upload Resume ========== */
-      if (spTitle) spTitle.innerHTML = `{{ _("Upload your") }} <span style="color:#FF2F5A;">{{ _("resume") }}</span>`;
+      if (spTitle) spTitle.innerHTML = `{{ _("Upload your") }} <span style="color:#0967C2;">{{ _("resume") }}</span>`;
       exclusive('resume');
       await window.ResumeDemo?.runOnce?.();
 
@@ -1606,7 +1606,7 @@ html, body {
       exclusive(null);
 
       /* ========== 2) AI Analyzes ========== */
-      if (spTitle) spTitle.innerHTML = `<span style="color:#FF2F5A;">{{ _("AI") }}</span> {{ _("analyzes your") }} <span style="color:#FF2F5A;">{{ _("resume") }}</span>`;
+      if (spTitle) spTitle.innerHTML = `<span style="color:#0967C2;">{{ _("AI") }}</span> {{ _("analyzes your") }} <span style="color:#FF2F5A;">{{ _("resume") }}</span>`;
       exclusive('analysis');
       await window.RADemo?.runOnce?.();
 
@@ -1614,7 +1614,7 @@ html, body {
       exclusive(null);
 
       /* ========== 3) Tinder Deck ========== */
-      if (spTitle) spTitle.innerHTML = `{{ _("Apply to jobs with") }} <span style="color:#FF2F5A;">{{ _("one click") }}</span>`;
+      if (spTitle) spTitle.innerHTML = `{{ _("Apply to jobs with") }} <span style="color:#0967C2;">{{ _("one click") }}</span>`;
       showOverlayDeck('{{ _("Swipe right to apply") }}');
       exclusive('tinder');
       await window.TinderDemo?.runOnce?.();
