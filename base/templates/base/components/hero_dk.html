@@ -2,7 +2,6 @@
 {% load static i18n %}
 
 <!-- Google Font (safe to include here; duplicate loads are ignored by browser) -->
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
@@ -10,113 +9,274 @@
 <section class="hero">
   <div class="hero__copy">
     <h1 class="hero__title">
-      Ansøg <span class="accent">200+ jobs</span> på<br>
-      få minutter med <span class="accent">AI</span>
+  
+      <!-- DESKTOP VERSION -->
+      <span class="desktop-title">
+        Ansøg <span class="accent">200+ jobs</span> på<br>
+        få minutter med <span class="accent">AI</span>
+      </span>
+    
+      <!-- MOBILE VERSION (forced 4 lines) -->
+      <span class="mobile-title">
+        <span class="ml">Ansøg <span class="accent">200+ jobs</span></span>
+        <span class="ml">på få minutter <span class="ml-accent">med AI</span></span>
+      </span>
+      
+      <span></span>
+    
     </h1>
+    
+    <p class="hero__subhead">
+      Internstart finder de rette muligheder, udfylder ansøgningerne og sender dem for dig. Få samtaler hurtigere uden endeløse formularer.
+    </p>
 
-<p class="hero__subhead">
-  Internstart finder de rette muligheder, udfylder ansøgningerne og sender dem for dig. Få samtaler hurtigere uden endeløse formularer.
-</p>
+    <div class="hero__ctas">
+      <a href="{% url 'register' %}"
+      class="cta-pulse"
+      style="padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; background: #0967C2; color: white; font-family: 'Manrope', sans-serif; transition: background 0.3s;">
+      Begynd at ansøge med AI
+   </a>
+      <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">
+       Log ind
+      </a>
+    </div>
 
-<div class="hero__ctas">
-  <a href="{% url 'register' %}" class="btn btn--primary">
-    Begynd at ansøge med AI
-  </a>
-  <a href="{% url 'app_login' %}" class="btn btn--ghost" style="box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;">
-    Log ind
-  </a>
-</div>
+    <div class="hero__rating"
+    aria-label="Bedømt 4,8 ud af 5">
 
-<div class="hero__rating"
-     aria-label="Bedømt 4,8 ud af 5">
+    <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
+    <span class="rating__text">
+      <strong>4,8</strong>
+      <span class="muted">ud af 5</span>
+    </span>
+  
+    <span class="rating__sep">•</span>
+  
+    <div class="hero__faces">
+      <img src="{% static 'images/review1.png' %}" alt="" class="hero__face">
+      <img src="{% static 'images/review2.png' %}" alt="" class="hero__face">
+      <img src="{% static 'images/review3.png' %}" alt="" class="hero__face">
+    </div>
 
-  <span class="rating__stars" style="--rating:4.8" aria-hidden="true"></span>
-  <span class="rating__text">
-    <strong>4,8</strong>
-    <span class="muted">ud af 5</span>
-  </span>
+    <span class="rating__more muted"> + 354 flere</span>
 
-  <span class="rating__sep">•</span>
-
-  <div class="hero__faces">
-    <img src="{% static 'images/review1.png' %}" alt="" class="hero__face">
-    <img src="{% static 'images/review2.png' %}" alt="" class="hero__face">
-    <img src="{% static 'images/review3.png' %}" alt="" class="hero__face">
   </div>
 
-  <span class="rating__more muted"> + 354 flere</span>
-</div>
-
-
   </div>
-
-  <!-- Phone-shaped TikTok-style carousel -->
-
-  <div class="hero__phone">
-    <div class="sp__rail" aria-label="Brugervideoer">
-      <!-- Card 1 -->
-      <article class="sp__card is-active">
-        <video class="sp__video" playsinline muted loop preload="metadata"
-               src="{% static 'images/Final2_compressed.mp4' %}"></video>
-        <div class="sp__overlay">
-          <div class="sp__meta">
-            <div class="sp__handle">@sofia • CBS</div>
-            <div class="sp__caption">Sendte 40 ansøgninger i denne uge.</div>
-          </div>
-          <div class="sp__actions">
-            <button type="button" class="sp__mute" aria-pressed="true" aria-label="Slå lyden til">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
-              </svg>
-            </button>
-            <div class="sp__stat">❤️ 1,2k</div>
-          </div>
-        </div>
-      </article>
-
-```
-  <!-- Card 2 -->
-  <article class="sp__card">
-    <video class="sp__video" playsinline muted loop preload="metadata"
-           src="{% static 'images/internstart2_small.mp4' %}"></video>
-    <div class="sp__overlay">
-      <div class="sp__meta">
-        <div class="sp__handle">@Sophi • {% trans "UF" %}</div>
-        <div class="sp__caption">AI udfyldte mine ansøgninger, mens jeg studerede.</div>
-      </div>
-      <div class="sp__actions">
-        <button type="button" class="sp__mute" aria-pressed="true" aria-label="Slå lyden til">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
-          </svg>
-        </button>
-        <div class="sp__stat">❤️ 980</div>
-      </div>
-    </div>
-  </article>
-
-  <!-- Card 3 -->
-  <article class="sp__card">
-    <video class="sp__video" playsinline muted loop preload="metadata"
-           src="{% static 'images/internstart3_small.mp4' %}"></video>
-    <div class="sp__overlay">
-      <div class="sp__meta">
-        <div class="sp__handle">@Anas • NCU</div>
-        <div class="sp__caption">2 samtaler efter én aften.</div>
-      </div>
-      <div class="sp__actions">
-        <button type="button" class="sp__mute" aria-pressed="true" aria-label="Slå lyden til">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 9v6h4l5 4V5L8 9H4zM16 8v8m3-10v12" fill="currentColor"></path>
-          </svg>
-        </button>
-        <div class="sp__stat">❤️ 1,6k</div>
-      </div>
-    </div>
-  </article>
 </div>
-```
 
+  <!-- Tinder-style cards container (no phone frame) -->
+  <div class="hero__phone"> 
+    <div class="sp__rail" aria-label="Jobkort">
+      <div class="tinder-deck">
+
+        <!-- Card 1 -->
+        <article class="card card--yellow">
+          <div class="card__body">
+            <header class="card__header">
+              <div class="card__logo-wrap">
+                <img src="{% static 'images/deutsche-bank.png' %}" alt="Deutsche Bank" class="card__logo">
+              </div>
+              <div class="card__titles">
+                <h4 class="card__role">Global Markets Intern</h4>
+                <h3 class="card__company">Deutsche Bank</h3>
+              </div>
+            </header>
+
+            <ul class="card__meta-list">
+              <li>📍 Frankfurt, Germany</li>
+              <li>💼 Full-time Internship</li>
+              <li>🗓️ Start: June 2026</li>
+            </ul>
+
+            <p class="card__desc">
+              Support trading desks on macro research, pricing, and risk reporting while learning fixed income & FX products.
+            </p>
+
+            <div class="card__tags">
+              <span class="tag">Excel</span>
+              <span class="tag">Bloomberg</span>
+              <span class="tag">Fixed Income</span>
+              <span class="tag">Python</span>
+            </div>
+
+            <footer class="card__footer">
+              <span class="foot-item">⏳ Deadline: Nov 30</span>
+            </footer>
+
+            <div class="card__actions">
+              <button type="button" class="action action--dismiss">Dismiss</button>
+              <button type="button" class="action action--apply">Apply</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="card card--blue">
+          <div class="card__body">
+            <header class="card__header">
+              <div class="card__logo-wrap">
+                <img src="{% static 'images/jpmorgan.png' %}" alt="J.P. Morgan" class="card__logo">
+              </div>
+              <div class="card__titles">
+                <h4 class="card__role">Investment Banking Intern</h4>
+                <h3 class="card__company">J.P. Morgan</h3>
+              </div>
+            </header>
+
+            <ul class="card__meta-list">
+              <li>📍 London, UK</li>
+              <li>💼 Off-cycle Internship</li>
+              <li>🗓️ Start: March 2026</li>
+            </ul>
+
+            <p class="card__desc">
+              Work on live M&A, DCM and ECM deals; build valuation models and create client-ready presentations.
+            </p>
+
+            <div class="card__tags">
+              <span class="tag">DCF</span>
+              <span class="tag">LBO</span>
+              <span class="tag">PowerPoint</span>
+              <span class="tag">Comps</span>
+            </div>
+
+            <footer class="card__footer">
+              <span class="foot-item">⏳ Deadline: Dec 10</span>
+            </footer>
+
+            <div class="card__actions">
+              <button type="button" class="action action--dismiss">Dismiss</button>
+              <button type="button" class="action action--apply">Apply</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="card card--pink">
+          <div class="card__body">
+            <header class="card__header">
+              <div class="card__logo-wrap">
+                <img src="{% static 'images/mdd.png' %}" alt="McKinsey & Company" class="card__logo">
+              </div>
+              <div class="card__titles">
+                <h4 class="card__role">Business Analyst Intern</h4>
+                <h3 class="card__company">McKinsey &amp; Company</h3>
+              </div>
+            </header>
+
+            <ul class="card__meta-list">
+              <li>📍 Copenhagen, DK</li>
+              <li>💼 Summer Internship</li>
+              <li>🗓️ Start: July 2026</li>
+            </ul>
+
+            <p class="card__desc">
+              Analyze markets and customer data, craft insights, and present recommendations that drive measurable client impact.
+            </p>
+
+            <div class="card__tags">
+              <span class="tag">SQL</span>
+              <span class="tag">Excel</span>
+              <span class="tag">Storytelling</span>
+              <span class="tag">Slides</span>
+            </div>
+
+            <footer class="card__footer">
+              <span class="foot-item">⏳ Deadline: Dec 20</span>
+            </footer>
+
+            <div class="card__actions">
+              <button type="button" class="action action--dismiss">Dismiss</button>
+              <button type="button" class="action action--apply">Apply</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="card card--yellow">
+          <div class="card__body">
+            <header class="card__header">
+              <div class="card__logo-wrap">
+                <img src="{% static 'images/spotify.png' %}" alt="Spotify" class="card__logo">
+              </div>
+              <div class="card__titles">
+                <h4 class="card__role">Data Analyst Intern</h4>
+                <h3 class="card__company">Spotify</h3>
+              </div>
+            </header>
+
+            <ul class="card__meta-list">
+              <li>📍 Stockholm, SE</li>
+              <li>💼 Summer Internship</li>
+              <li>🗓️ Start: June 2026</li>
+            </ul>
+
+            <p class="card__desc">
+              Help product teams experiment and measure features; build dashboards and discover user behavior patterns.
+            </p>
+
+            <div class="card__tags">
+              <span class="tag">Python</span>
+              <span class="tag">Pandas</span>
+              <span class="tag">A/B Testing</span>
+              <span class="tag">SQL</span>
+            </div>
+
+            <footer class="card__footer">
+              <span class="foot-item">⏳ Deadline: Jan 5</span>
+            </footer>
+
+            <div class="card__actions">
+              <button type="button" class="action action--dismiss">Dismiss</button>
+              <button type="button" class="action action--apply">Apply</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="card card--blue">
+          <div class="card__body">
+            <header class="card__header">
+              <div class="card__logo-wrap">
+                <img src="{% static 'images/goldman.png' %}" alt="Goldman Sachs" class="card__logo">
+              </div>
+              <div class="card__titles">
+                <h4 class="card__role">Markets Spring Intern</h4>
+                <h3 class="card__company">Goldman Sachs</h3>
+              </div>
+            </header>
+
+            <ul class="card__meta-list">
+              <li>📍 Paris, FR</li>
+              <li>💼 Spring Internship</li>
+              <li>🗓️ Start: April 2026</li>
+            </ul>
+
+            <p class="card__desc">
+              Rotate across sales &amp; trading, help prepare morning notes, and support trade execution.
+            </p>
+
+            <div class="card__tags">
+              <span class="tag">Markets</span>
+              <span class="tag">Python</span>
+              <span class="tag">Options</span>
+              <span class="tag">Excel</span>
+            </div>
+
+            <footer class="card__footer">
+              <span class="foot-item">⏳ Deadline: Dec 15</span>
+            </footer>
+
+            <div class="card__actions">
+              <button type="button" class="action action--dismiss">Dismiss</button>
+              <button type="button" class="action action--apply">Apply</button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
   </div>
 
   <div class="hero__sticky">
@@ -127,6 +287,7 @@
       </svg>
     </a>
   </div>
+  
 </section>
 
 <style>
@@ -145,11 +306,11 @@
   margin:0 auto; padding: 0 2vw 0 6vw; min-height:80vh; position:relative;
   padding-bottom: 40px;
 }
-.hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; align-self:stretch; max-width:900px; padding-top:8vh; }
+.hero__copy{ display:flex; flex-direction:column; justify-content:flex-start; alignself:stretch; max-width:900px; padding-top:8vh; }
 .hero__title{ font-family:var(--font); color:var(--text); font-size: clamp(48px, 5.6vw, 78px); font-weight:800; line-height:1.05; margin:0 0 24px; max-width:16ch; }
 
 .hero__title .accent{
-  background-color:var(--brand);
+  background-color: #0967C2;
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
@@ -163,17 +324,31 @@
 .btn--ghost{ background:#f5f5f5; color:#111; }
 .btn--ghost:hover{ background:#efefef; }
 
-/* Phone viewport */
+/* Card container (no phone frame) */
 .hero__phone{
-  --phone-w: clamp(260px, 32vw, 360px);
-  justify-self:center; display:flex; align-items:center; justify-content:center;
-  padding:6px; border-radius:26px; background:#0b0b0b; box-shadow:0 14px 38px rgba(0,0,0,.28); align-self:center; margin-top:2vh;
+  --deck-w: clamp(320px, 36vw, 460px);
+  justify-self:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border-radius:24px;
+  background:transparent;
+  box-shadow:none;
+  align-self:center;
+  margin-top:2vh;
 }
 .hero__phone .sp__rail{
-  width:var(--phone-w); aspect-ratio:9/16; border-radius:22px; overflow:hidden; background:#000; box-shadow:0 10px 30px rgba(0,0,0,.30); position:relative;
+  width:var(--deck-w);
+  min-height:520px;
+  border-radius:24px;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+  position:relative;
 }
 .hero__phone .sp__card{ position:absolute; inset:0; opacity:0; transform:scale(.985); transition: opacity .6s ease, transform .6s ease; }
-.hero__phone .sp__card.is-active{ opacity:1; transform:scale(1); z-index:2; }
+.hero__phone .sp__card.is-active{ opacity:1; transform:none; z-index:2; }
 .hero__phone .sp__video{ width:100%; height:100%; object-fit:cover; display:block; border-radius:inherit; }
 .hero__phone .sp__overlay{
   position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end;
@@ -233,7 +408,7 @@
 .hero__faces{
   display:flex;
   align-items:center;
-  margin-left:4px;
+  margin-left:4px; /* was 10 */
 }
 
 .hero__face{
@@ -256,16 +431,16 @@
   font-weight:600;
   font-size:13px;
   color:#9ca3af;
-  margin-left: -4px;
+  margin-left: -4px; /* was 6 */
 }
 
 .hero__sticky {
   position: fixed;
-  bottom: 0;
-  right: 0;
+  bottom: 0;       /* flush with bottom */
+  right: 0;        /* flush with right */
   z-index: 9999;
   pointer-events: none;
-  padding: 18px;
+  padding: 18px;   /* gives space inside viewport edges */
 }
 
 .btn--sticky {
@@ -282,8 +457,8 @@
   border-radius: 999px;
   padding: 14px 22px;
   box-shadow:
-    0 6px 20px rgba(255, 107, 133, 0.28),
-    0 0 0 1px rgba(255, 47, 90, 0.12);
+    0 6px 20px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease,
@@ -293,12 +468,12 @@
 .btn--sticky:hover {
   background: #0967C2;
   transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(255, 47, 90, 0.3);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
 
 .btn--sticky:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(255, 47, 90, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .btn--sticky .chev {
@@ -322,69 +497,450 @@
     padding: 12px 18px;
   }
 }
+@keyframes ctaPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.cta-pulse {
+  animation: ctaPulse 2.6s ease-in-out infinite;
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 20px 14px 80px !important;  /* MUCH less top padding */
+  }
+  .hero__copy {
+    padding-top: 2vh !important;  /* was 8vh */
+  }
+}
+
+@media (max-width: 600px) {
+  .hero__subhead {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero__ctas .btn--ghost {
+    display: none !important;
+  }
+}
+
+/* Desktop default: show desktop title */
+.desktop-title { display: inline; }
+.mobile-title { display: none; }
+
+/* Mobile forced layout */
+@media (max-width: 600px) {
+  .desktop-title { display: none !important; }
+  .mobile-title { 
+    display: flex !important;
+    flex-direction: column;
+    gap: 4px;           /* spacing between lines */
+    text-align: center;
+  }
+
+  .mobile-title .ml {
+    display: block;     /* forces each line */
+    white-space: nowrap; /* prevents wrapping 200+ jobs */
+    font-size: clamp(30px, 9vw, 40px);
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 600px) {
+
+/* Center CTA container on mobile */
+.hero__ctas {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100%;
+}
+
+/* Primary CTA button text improvements */
+.cta-pulse {
+  font-size: 19px !important;      /* bigger text */
+  font-weight: 800 !important;     /* more bold */
+  text-align: center !important;   /* center text */
+  width: 100%;                     /* make full width */
+  max-width: 360px;                /* prevent too wide */
+  padding: 14px 22px !important;   /* taller button */
+  display: flex;
+  justify-content: center;
+}
+}
+
+/* Ensure the entire card deck stays above marquees */
+.hero__phone {
+  position: relative !important;
+  z-index: 50 !important;
+}
+
+@media (max-width: 600px) {
+  .hero__ctas {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100%;
+  }
+
+  @media (max-width: 600px) {
+  .cta-pulse {
+    font-size: 16px !important;        /* smaller font */
+    font-weight: 700 !important;        /* slightly lighter */
+    width: 80%;
+    max-width: 180;                   /* significantly smaller width */
+    padding: 10px 16px !important;      /* smaller height */
+    border-radius: 10px !important;     /* slightly tighter shape */
+    display: flex;
+    justify-content: center;
+  }
+}
+@media (max-width: 600px) {
+  .hero__rating {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    justify-content: center !important;
+    text-align: center !important;
+    display: flex !important;
+    /* same compact size as button */
+    padding: 6px 10px !important;       /* smaller pill */
+    transform: translateX(0);           /* ensure perfect centering */
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+
+  .rating__stars {
+    --size: 14px !important;            /* smaller stars */
+    --spacing: 1px !important;
+  }
+
+  .rating__text {
+    font-size: 12px !important;         /* smaller text */
+  }
+
+  .rating__more {
+    font-size: 12px !important;
+  }
+
+  .hero__face {
+    width: 28px !important;             /* smaller avatars */
+    height: 28px !important;
+    margin-left: -8px !important;
+  }
+}
+
+  .hero__faces {
+    margin-left: 0 !important;
+  }
+}
+
+/* ===== Tinder-style cards inside hero__phone ===== */
+.hero__phone .tinder-deck{
+  position:absolute;
+  inset:0;
+  padding:10px;
+  box-sizing:border-box;
+}
+
+.hero__phone .card{
+  position:absolute;
+  inset:10px;
+  border-radius:18px;
+  background:#ffffff;
+  border:1px solid #e8eef6;
+  box-shadow:0 18px 40px rgba(2,8,23,.10);
+  opacity:0;
+  transform: translateY(8px) scale(.98);
+  transition: opacity .45s ease, transform .45s ease;
+  display:flex;
+  flex-direction:column;
+  pointer-events:none;
+}
+
+.hero__phone .card.is-active{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+}
+
+.hero__phone .card__body{
+  height:100%;
+  padding:18px 18px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  font-family:var(--font);
+}
+
+.hero__phone .card__header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.hero__phone .card__logo-wrap{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  background:#f3f7ff;
+  display:grid;
+  place-items:center;
+  border:1px solid #e6eefc;
+}
+
+.hero__phone .card__logo{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+}
+
+.hero__phone .card__titles{
+  display:flex;
+  flex-direction:column;
+}
+
+.hero__phone .card__role{
+  margin:0;
+  font-weight:800;
+  font-size:15px;
+  line-height:1.2;
+  color:#0f172a;
+}
+
+.hero__phone .card__company{
+  margin:2px 0 0;
+  font-weight:800;
+  font-size:14px;
+  color:#344053;
+}
+
+.hero__phone .card__meta-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:0;
+  margin:0;
+  list-style:none;
+  font-size:11px;
+  font-weight:700;
+  color:#475467;
+}
+
+.hero__phone .card__meta-list li{
+  padding:6px 8px;
+  border-radius:999px;
+  background:#f6f9ff;
+  border:1px solid #e7eef7;
+}
+
+.hero__phone .card__desc{
+  margin:0;
+  font-size:12px;
+  font-weight:500;
+  color:#344054;
+  background:#fbfdff;
+  border-radius:10px;
+  border:1px solid #eef3fa;
+  padding:8px 10px;
+}
+
+.hero__phone .card__tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.hero__phone .tag{
+  font-size:11px;
+  font-weight:800;
+  padding:6px 8px;
+  border-radius:999px;
+  background:#eef5ff;
+  border:1px solid #dbe8ff;
+  color:#0f4aad;
+}
+
+.hero__phone .card__footer{
+  margin-top:auto;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.hero__phone .foot-item{
+  font-size:11px;
+  font-weight:800;
+  padding:6px 8px;
+  border-radius:999px;
+  background:#f6fff9;
+  border:1px solid #def7eb;
+  color:#475467;
+}
+
+.hero__phone .card__actions{
+  margin-top:8px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+
+.hero__phone .action{
+  height:38px;
+  min-width:96px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1.5px solid #e5e7eb;
+  background:#fff;
+  font-size:13px;
+  font-weight:800;
+  font-family:var(--font);
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.hero__phone .action--dismiss{
+  color:#ef4444;
+  border-color:#fecaca;
+}
+
+.hero__phone .action--apply{
+  color:#10b981;
+  border-color:#a7f3d0;
+}
+
+.hero__phone .action.is-pressed{
+  transform:scale(.96);
+  box-shadow:inset 0 1px 0 rgba(0,0,0,.04);
+}
+
+.hero__phone .card.is-applied{
+  box-shadow:0 18px 40px rgba(16,185,129,.24);
+  border-color:rgba(16,185,129,.6);
+  transform: translate(110%, -12%) rotate(10deg);
+  opacity:0;
+}
 </style>
 
 <script>
-/* ===== Hero JS (carousel + mute + smooth scroll) ===== */
-(() => {
-  const ready = (fn) =>
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', fn, { once: true })
-      : fn();
+  /* ===== Hero JS (Tinder cards + smooth scroll) ===== */
+  (() => {
+    const ready = (fn) =>
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+        : fn();
+  
+    ready(() => {
+  
+      /* ============================================
+         A) Tinder-style cards inside hero__phone
+         ============================================ */
+      const deck = document.querySelector('.hero__phone .tinder-deck');
+      if (deck) {
+        const cards = Array.from(deck.querySelectorAll('.card'));
+        const N = cards.length;
+        let idx = 0;
+        let autoplayId = null;
 
-  ready(() => {
-    // A) TikTok-style rotation inside the hero phone
-    const cards = [...document.querySelectorAll('.hero__phone .sp__card')];
-    const DURATION = 5000; // ms per clip
-    if (cards.length) {
-      let index = 0;
-      const showCard = (i) => {
-        cards.forEach((c, j) => {
-          const v = c.querySelector('video');
-          if (j === i) {
-            c.classList.add('is-active');
-            if (v) { v.currentTime = 0; v.play().catch(() => {}); }
-          } else {
-            c.classList.remove('is-active');
-            if (v) v.pause();
+        const setActive = (i) => {
+          cards.forEach((card, k) => {
+            card.classList.toggle('is-active', k === i);
+            if (k !== i) {
+              card.classList.remove('is-applied');
+            }
+          });
+        };
+
+        const press = (btn) =>
+          new Promise((resolve) => {
+            if (!btn) return resolve();
+            btn.classList.add('is-pressed');
+            setTimeout(() => {
+              btn.classList.remove('is-pressed');
+              resolve();
+            }, 160);
+          });
+
+        const next = () => {
+          idx = (idx + 1) % N;
+          setActive(idx);
+        };
+
+        const applyCurrent = async () => {
+          const card = cards[idx];
+          if (!card) return;
+          const btn = card.querySelector('.action--apply');
+          await press(btn);
+          card.classList.add('is-applied');
+          setTimeout(next, 450);
+        };
+
+        const dismissCurrent = async () => {
+          const card = cards[idx];
+          if (!card) return;
+          const btn = card.querySelector('.action--dismiss');
+          await press(btn);
+          setTimeout(next, 250);
+        };
+
+        deck.addEventListener('click', (e) => {
+          const applyBtn = e.target.closest('.action--apply');
+          const dismissBtn = e.target.closest('.action--dismiss');
+          if (applyBtn) {
+            if (autoplayId) {
+              clearInterval(autoplayId);
+              autoplayId = null;
+            }
+            applyCurrent();
+          } else if (dismissBtn) {
+            if (autoplayId) {
+              clearInterval(autoplayId);
+              autoplayId = null;
+            }
+            dismissCurrent();
           }
         });
-      };
-      showCard(index);
-      setInterval(() => { index = (index + 1) % cards.length; showCard(index); }, DURATION);
-    }
 
-    // B) Tap to toggle mute (per card) — Danish aria-labels
-    document.querySelectorAll('.hero__phone .sp__mute').forEach((btn) => {
-      const card = btn.closest('.sp__card');
-      const video = card?.querySelector('video');
-      if (!video) return;
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        video.muted = !video.muted;
-        btn.classList.toggle('is-on', !video.muted);
-        btn.setAttribute('aria-pressed', String(!video.muted));
-        btn.setAttribute('aria-label', video.muted ? 'Slå lyden til' : 'Slå lyden fra');
-        if (!video.paused) video.play().catch(() => {});
+        // Initial state
+        setActive(idx);
+
+        // Lightweight autoplay: periodically "apply" current card
+        autoplayId = setInterval(() => {
+          applyCurrent();
+        }, 2600);
+      }
+  
+      /* ============================================
+         C) Smooth scroll for sticky CTA
+         ============================================ */
+      document.addEventListener('click', function(e){
+        const a = e.target.closest('.btn--sticky[href^="#"]');
+        if (!a) return;
+  
+        const id = a.getAttribute('href');
+        const target = document.querySelector(id);
+        if (!target) return;
+  
+        e.preventDefault();
+        const y = target.getBoundingClientRect().top + window.pageYOffset - 72;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+  
+        setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
       });
-      // Click anywhere on card to toggle
-      card.addEventListener('click', () => btn.click());
+  
     });
-
-    // C) Smooth scroll for sticky CTA
-    document.addEventListener('click', function(e){
-      const a = e.target.closest('.btn--sticky[href^="#"]');
-      if(!a) return;
-      const id = a.getAttribute('href');
-      const target = document.querySelector(id);
-      if(!target) return;
-
-      e.preventDefault();
-      const y = target.getBoundingClientRect().top + window.pageYOffset - 72; // adjust offset to your header
-      window.scrollTo({ top: y, behavior: 'smooth' });
-
-      setTimeout(() => target.querySelector('h2, [tabindex], button, a')?.focus?.(), 600);
-    });
-  });
-})();
+  })();
 </script>
