@@ -1567,9 +1567,11 @@ def create_checkout_session(request, tier):
         success_url="https://internstart.com/billing/success/?session_id={CHECKOUT_SESSION_ID}",
         cancel_url="https://internstart.com/swipe/",
         metadata={"tier": tier, "mode": stripe_mode},
+
+        # ✅ THIS ENABLES THE "Add promotion code" FIELD IN CHECKOUT
+        allow_promotion_codes=True,
     )
 
-    # 🔥 FIX THAT SOLVES YOUR PROBLEM
     return redirect(session.url)
 
 @login_required
