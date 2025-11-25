@@ -3315,4 +3315,4 @@ def robots_txt(request):
 
 
 def side_hustle_guide(request):
-    return render(request, "blog/side-hustle-guide-for-students.html")
+    return render(request, "base/blog/side-hustle-guide-for-students.html")
