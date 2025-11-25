@@ -188,6 +188,12 @@ urlpatterns = [
         path("blog/", views.blog_index, name="blog_index"),
         path("blog/<slug:slug>/", views.blog_detail, name="blog_detail"),
 
+        path(
+            "blog/side-hustle-guide-for-students/",
+            views.side_hustle_guide,
+            name="side_hustle_guide",
+        ),
+
 
 
 

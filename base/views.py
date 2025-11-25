@@ -3313,3 +3313,6 @@ def dashboard(request):
 def robots_txt(request):
     return render(request, 'robots.txt', content_type='text/plain')
 
+
+def side_hustle_guide(request):
+    return render(request, "blog/side-hustle-guide-for-students.html")

@@ -1,0 +1,585 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BR9N9VEYNF"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BR9N9VEYNF');
+  </script>
+
+  <!-- META SEO -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+  <title>How to Stand Out in the Job Market with Side Projects & Side Hustles</title>
+  <meta name="description"
+        content="Learn how to stand out in a competitive job market by building small side projects and simple side hustles—especially as a tech or finance student. Turn ideas into proof and impress recruiters.">
+
+  <link rel="canonical" href="https://internstart.com/blog/how-to-stand-out-in-the-job-market-with-side-projects/">
+  <meta property="og:title" content="How to Stand Out in the Job Market with Side Projects & Side Hustles">
+  <meta property="og:description" content="A practical guide on how to stand out in today’s job market by building small side projects and simple side hustles—especially for students in tech and finance.">
+  <meta property="og:type" content="article">
+  <meta name="theme-color" content="#ff2a55">
+
+  <!-- ✅ FAVICON -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+  <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+  <!-- FONT -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --text-main:#0f172a;
+      --text-dim:#6b7280;
+      --bg:#ffffff;
+      --border:#e5e7eb;
+      --accent:#FF2F5A;
+      --content-width:760px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+    }
+    img { max-width: 100%; height: auto; border-radius: 12px; }
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+
+    /* highlight spans for keyword phrases */
+    .keyword-highlight {
+      background: rgba(255,47,90,.08);
+      border-radius: 4px;
+      padding: 0 .25em;
+      box-decoration-break: clone;
+    }
+
+    /* Header */
+    .site-header {
+      border-bottom: 1px solid var(--border);
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .site-header-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      row-gap: 8px;
+    }
+    .brand-block { display: flex; flex-direction: column; gap: 4px; }
+    .brand-row {
+      display: flex; align-items: baseline; gap: 8px;
+      font-size: 16px; font-weight: 700; color: var(--text-main); line-height: 1.2;
+    }
+    .brand-badge {
+      background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+      line-height: 1; padding: 3px 6px; border-radius: 4px;
+    }
+    .breadcrumb { font-size: 14px; color: var(--text-dim); line-height: 1.4; }
+    .breadcrumb a { color: var(--text-dim); font-weight: 500; text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent); text-decoration: underline; }
+    .cta-header {
+      display: inline-block; background-color: var(--accent); color: #fff;
+      border-radius: 6px; font-size: 14px; font-weight: 600; padding: 9px 13px;
+      line-height: 1.2; text-decoration: none;
+    }
+    .cta-header:hover { filter: brightness(1.05); text-decoration: none; }
+
+    /* Article layout */
+    .page-wrapper { max-width: var(--content-width); margin: 32px auto 80px; padding: 0 16px 64px; }
+    header.post-header { margin-bottom: 24px; }
+    .post-eyebrow {
+      color: var(--accent); font-size: 15px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: -.02em; margin-bottom: 8px;
+    }
+    h1.post-title {
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
+      line-height: 1.15; font-weight: 800; color: var(--text-main);
+      margin: 0 0 12px; letter-spacing: -.04em;
+    }
+    .post-meta { font-size: 16px; color: var(--text-dim); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-image { margin-top: 24px; margin-bottom: 24px; }
+
+    /* Typography blocks */
+    h2 {
+      font-size: 1.4rem; line-height: 1.3; font-weight: 700;
+      margin: 40px 0 12px; color: var(--text-main); letter-spacing: -.03em;
+    }
+    h3 {
+      font-size: 1.2rem; line-height: 1.4; font-weight: 600;
+      margin: 24px 0 8px; color: var(--text-main); letter-spacing: -.02em;
+    }
+    p { margin: 0 0 16px; font-size: 18px; color: var(--text-main); }
+    .example-note { font-weight: 600; font-size: 18px; }
+
+    /* Utilities */
+    .note {
+      background: #fff;
+      border: 1px dashed var(--border);
+      padding: 14px 16px; border-radius: 10px; color: var(--text-dim);
+      font-size: 15px;
+    }
+    .toc {
+      border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+      background: #fafafa; margin: 24px 0 8px; font-size: 16px;
+    }
+    .toc ul { margin: 0; padding-left: 18px; }
+    .toc a { font-weight: 600; }
+    .inline-cta {
+      background: rgba(255,47,90,.08);
+      border: 1px solid rgba(255,47,90,.25);
+      padding: 16px; border-radius: 12px; margin: 24px 0;
+    }
+
+    /* Tables (kept for compatibility; article now uses paragraphs) */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 16px; }
+    th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
+    th { background: #fbfbfb; font-weight: 700; }
+
+    /* Footer */
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      background-color: #fff;
+      padding: 32px 16px 64px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    .footer-inner { max-width: var(--content-width); margin: 0 auto; }
+    .footer-inner p { margin: 0 0 12px; line-height: 1.5; color: var(--text-dim); font-size: 14px; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: 14px; font-weight: 500; margin-top: 16px; }
+    .footer-nav a { color: var(--text-main); text-decoration: none; }
+    .footer-nav a:hover { color: var(--accent); text-decoration: underline; }
+  </style>
+
+  <!-- Article + FAQ structured data -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":"How to Stand Out in the Job Market with Side Projects & Side Hustles",
+    "description":"A practical guide on how to stand out in a competitive job market by building small side projects and simple side hustles, especially as a tech or finance student.",
+    "author":{"@type":"Person","name":"Selma"},
+    "publisher":{"@type":"Organization","name":"Internstart"},
+    "dateModified":"2025-11-26",
+    "datePublished":"2025-11-26",
+    "mainEntityOfPage":{"@type":"WebPage","@id":"https://internstart.com/blog/how-to-stand-out-in-the-job-market-with-side-projects/"}
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {
+        "@type":"Question",
+        "name":"How do side projects help me stand out in the job market?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"Side projects turn your skills into concrete proof. Instead of just listing tools on your CV, you can show real work that solves a problem, which makes you far more memorable to recruiters."
+        }
+      },
+      {
+        "@type":"Question",
+        "name":"Do I need a big startup idea for my side project?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"No. The best side projects are often small and focused. A simple dashboard, a budgeting tool, a micro web app, or a small automation script is enough to demonstrate initiative and ability."
+        }
+      },
+      {
+        "@type":"Question",
+        "name":"Can a tiny side hustle really impress employers?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"Yes. Even a small side hustle that earns a little money shows you understand customers, can deliver value, and can manage practical details like communication and follow-through."
+        }
+      },
+      {
+        "@type":"Question",
+        "name":"Is this relevant for students in tech or finance?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"Absolutely. Tech and finance students can build tools, dashboards, simple apps, or services that align directly with their target roles, giving them a strong competitive edge."
+        }
+      },
+      {
+        "@type":"Question",
+        "name":"How can Internstart support my job search if I have side projects?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"Internstart helps you apply to many relevant roles quickly and tailors your applications. You can highlight your side projects as proof and let Internstart handle volume and matching."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <!-- Global header -->
+
+  <header class="site-header">
+    <div class="site-header-inner">
+  
+      <!-- Left: Logo + Breadcrumb -->
+      <div class="brand-block">
+        <a href="/" class="brand-logo-link">
+          <img
+            src="{% static 'images/Internstartlogo (1).jpg' %}"
+            alt="Internstart logo"
+            width="160"
+            height="auto"
+            style="border-radius:6px; display:block;"
+          >
+        </a>
+  
+        <div class="breadcrumb">
+          <a href="/blog/">Blog</a> / <a>How to Stand Out in the Job Market</a>
+        </div>
+      </div>
+  
+      <!-- Right: CTA -->
+      <a class="cta-header" href="/register/">
+        Apply to 1,000+ jobs in minutes with AI
+      </a>
+    </div>
+  </header>
+  
+  <style>
+    .site-header {
+      border-bottom: 1px solid #e5e7eb;
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .site-header-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .brand-logo-link img {
+      display: block;
+      max-width: 160px;
+      height: auto;
+    }
+    .breadcrumb {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .breadcrumb a {
+      color: #6b7280;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .breadcrumb a:hover {
+      color: #FF2F5A;
+      text-decoration: underline;
+    }
+    .cta-header {
+      display: inline-block;
+      background-color: #FF2F5A;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      line-height: 1.2;
+      text-decoration: none;
+      transition: background 0.2s ease;
+      white-space: nowrap;
+      box-shadow: 0 0 0 0 rgba(255,47,90, 0.6);
+      animation: pulse 2.5s infinite;
+    }
+    .cta-header:hover {
+      background-color: #e92650;
+      text-decoration: none;
+      animation: none; /* pause pulse on hover for polish */
+    }
+  
+    /* Subtle pulse animation */
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255,47,90, 0.55);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255,47,90, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255,47,90, 0);
+      }
+    }
+  </style>
+  
+  <main class="page-wrapper">
+    <!-- Post intro / hero -->
+    <header class="post-header">
+      <div class="post-eyebrow">Career Strategy Guide 2025</div>
+
+      <h1 class="post-title">
+        <a>How to Stand Out in the Job Market</a>
+        with Side Projects & Side Hustles
+      </h1>
+
+      <div class="post-meta">
+        <div>Written by <strong>Selma Kursiz</strong></div>
+        <div>Updated: Nov 26, 2025</div>
+      </div>
+
+      <div class="hero-image">
+        <img src="{% static 'images/student-side-hustle-guide.jpg' %}"
+             alt="Student working on a laptop and building a side project to stand out in the job market">
+      </div>
+
+      <div class="note">
+        Short answer: You stand out in a crowded job market by showing
+        <span class="keyword-highlight">real proof of what you can do</span> — not just grades or buzzwords.
+        Small side projects and simple side hustles are one of the fastest ways to build that proof, especially if you’re in tech or finance.
+      </div>
+
+      <nav class="toc" aria-label="Table of contents">
+        <strong>Contents</strong>
+        <ul>
+          <li><a href="#why-side-projects">Why side projects are a secret weapon</a></li>
+          <li><a href="#why-side-hustles">Why tiny side hustles impress recruiters</a></li>
+          <li><a href="#examples">Examples for tech & finance students</a></li>
+          <li><a href="#how-to-start">How to start your first side project this week</a></li>
+          <li><a href="#formskies">Real-world example: Formskies & solving boring problems</a></li>
+          <li><a href="#internstart">How Internstart multiplies your chances</a></li>
+          <li><a href="#faq">FAQ: Side projects, side hustles & job search</a></li>
+          <li><a href="#next-steps">Next steps</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Main article content -->
+    <h2 id="why-side-projects">Why side projects are a secret weapon in the job market</h2>
+    <p>Most candidates look the same on paper: similar degrees, similar student jobs, similar bullet points. Recruiters scan hundreds of CVs and LinkedIn profiles that blur into one. If you want to truly
+      <span class="keyword-highlight">stand out in the job market</span>, you need something that cuts through the noise.</p>
+    <p>That “something” is proof. Not just “I know Python” or “I’m good with Excel,” but visible, clickable evidence that you’ve built, fixed, or improved something in the real world. That’s exactly what side projects give you.</p>
+    <p>Side projects show:</p>
+    <ul>
+      <li>🧠 <strong>Initiative</strong> – you don’t wait for permission to start.</li>
+      <li>🧩 <strong>Problem-solving</strong> – you can spot a problem and create a solution.</li>
+      <li>📈 <strong>Growth mindset</strong> – you teach yourself tools and concepts on the way.</li>
+      <li>🔗 <strong>Relevance</strong> – you’re already doing work similar to the job you want.</li>
+    </ul>
+    <p>For a recruiter, that’s a dream. They don’t have to guess if you can deliver; they can click a link and see it.</p>
+
+    <h2 id="why-side-hustles">Why tiny side hustles impress recruiters even more</h2>
+    <p>If a side project is proof of skill, a small side hustle is proof of value. It shows that someone out there was willing to pay, or at least rely on you consistently.</p>
+    <p>You don’t need a unicorn startup. A “side hustle” can be as simple as:</p>
+    <ul>
+      <li>Helping a local café clean up their Excel sheets and track daily revenue.</li>
+      <li>Building a lightweight web tool that 10 people use every month.</li>
+      <li>Offering a small automation script to freelancers who hate manual tasks.</li>
+      <li>Creating financial templates for students and selling a few online.</li>
+    </ul>
+    <p>To employers, this signals:</p>
+    <ul>
+      <li>🧭 You understand real customers and real constraints.</li>
+      <li>🤝 You can communicate, deliver on time, and follow up.</li>
+      <li>📊 You can turn skills into outcomes — not just homework.</li>
+    </ul>
+    <p>Especially for <strong>tech and finance students</strong>, this is huge. You’re already playing in the same sandbox as your future job, just at a smaller scale.</p>
+
+    <h2 id="examples">Concrete examples for tech & finance students</h2>
+    <p>If you’re stuck thinking, “Okay but… what would I actually build?”, here are concrete ideas you can ship fast.</p>
+
+    <h3>Ideas for tech students</h3>
+    <p><strong>1. Simple web app that solves a tiny pain</strong><br>
+      Examples:</p>
+    <ul>
+      <li>A “study sprint timer” with focus sessions and break tracking.</li>
+      <li>A job-application tracker where students can log roles, status, and interview notes.</li>
+      <li>A micro-tool that converts, cleans, or formats files people struggle with (e.g. CSV → formatted Excel).</li>
+    </ul>
+
+    <p><strong>2. Automation script</strong><br>
+      Automate a boring task for yourself or a friend:
+    </p>
+    <ul>
+      <li>Pulling data from an API and summarizing it in a Google Sheet.</li>
+      <li>Renaming and cleaning up messy files.</li>
+      <li>Sending simple automated reminders for invoices or deadlines.</li>
+    </ul>
+
+    <h3>Ideas for finance students</h3>
+    <p><strong>1. Personal finance dashboard for students</strong><br>
+      Build a spreadsheet or web dashboard so students can track expenses, savings, and key ratios. Add a one-page explanation of how to use it — that alone is portfolio-worthy.</p>
+
+    <p><strong>2. Simple valuation or analysis pack</strong><br>
+      Pick a real company and create:</p>
+    <ul>
+      <li>A valuation model in Excel or Google Sheets.</li>
+      <li>A 2–3 page summary slide deck with your insights.</li>
+      <li>A short write-up with your thesis and risks.</li>
+    </ul>
+    <p>Now you have a “mini equity research” project you can talk through in interviews.</p>
+
+    <h2 id="how-to-start">How to start your first side project this week</h2>
+    <p>The biggest trap is overthinking. You don’t need a perfect idea. You need a tiny, shippable one. Here’s a simple framework:</p>
+
+    <h3>1) Pick one problem you actually feel</h3>
+    <p>Think of things that annoy you or your friends:
+      slow paperwork, confusing forms, messy data, bad schedules, manual copy-pasting. These are great starting points.</p>
+
+    <h3>2) Define a tiny version (1–3 days max)</h3>
+    <p>Instead of “build a full product,” think:</p>
+    <ul>
+      <li>“Create a basic prototype that works for one use case.”</li>
+      <li>“Build a spreadsheet that solves 80% of the headache.”</li>
+      <li>“Make a v1 page people can use without instructions.”</li>
+    </ul>
+
+    <h3>3) Use tools you already know (and AI where it helps)</h3>
+    <p>If you’re in tech, that might be Python, JavaScript, or simple no-code tools. If you’re in finance, that might be Excel, Google Sheets, or Power BI.</p>
+    <p>AI tools like Internstart can help you with copy, messaging, outreach templates, and even brainstorming names and positioning for your project.</p>
+
+    <h3>4) Publish and link it</h3>
+    <p>Don’t leave your project trapped on your laptop. Put it where recruiters can see it:</p>
+    <ul>
+      <li>A GitHub repo with a clear README and screenshots.</li>
+      <li>A shared Google Sheet with “view only” access.</li>
+      <li>A simple landing page or Notion page explaining what it does.</li>
+    </ul>
+    <p>Then add the link to your CV, LinkedIn, and job applications.</p>
+
+    <h3>5) Talk about it in interviews</h3>
+    <p>When they ask, “Tell me about a time you took initiative,” you now have a concrete story:
+      the problem, your approach, the result, and what you’d do next.</p>
+
+    <div class="inline-cta">
+      Want to make sure your side projects actually get seen? <a href="/register/">Internstart</a> helps you apply to many relevant roles at once, tailors your applications, and lets you highlight your best projects in every application.
+    </div>
+
+    <h2 id="formskies">Real-world example: Formskies & solving boring problems</h2>
+    <p>One of the most powerful angles for a side project or side hustle is very simple:
+      <strong>take something boring and annoying, and make it easier.</strong></p>
+    <p>Think about official paperwork, government forms, tax documents, and registration PDFs. Most people have to:</p>
+    <ul>
+      <li>Download a PDF.</li>
+      <li>Print it.</li>
+      <li>Fill it out by hand.</li>
+      <li>Scan and upload it again.</li>
+    </ul>
+    <p>It’s slow and frustrating — which is exactly why a tool that simplifies this is so valuable.</p>
+    <p><strong>Formskies.com</strong> is a real example of this kind of idea in action. It’s a platform where users can
+      <span class="keyword-highlight">fill out important forms online directly in the browser</span>, instead of printing them out and doing everything by hand.</p>
+    <p>Instead of juggling PDFs and printers, people can open the correct form, type their information, and download a clean, completed PDF ready to submit.</p>
+    <p>If you ever need inspiration for practical, problem-solving projects — or if you personally need to deal with official forms — you can check it out here:
+      <a href="https://formskies.com/">Formskies.com</a>.</p>
+    <p>Projects like this stand out to employers because they show you:</p>
+    <ul>
+      <li>Understand real-world friction (paperwork, bureaucracy, time-wasting tasks).</li>
+      <li>Can design a flow that’s simpler for real people.</li>
+      <li>Think beyond code or spreadsheets and into user experience.</li>
+    </ul>
+
+    <h2 id="internstart">How Internstart multiplies your chances once you have proof</h2>
+    <p>Side projects and side hustles make you a much stronger candidate — but you still need to get your profile in front of the right companies.</p>
+    <p>This is where <strong>Internstart</strong> comes in. Instead of manually applying to one role at a time, you can:</p>
+    <ul>
+      <li>Create a strong profile that highlights your side projects and achievements.</li>
+      <li>Let AI help you tailor your applications to each job’s requirements.</li>
+      <li>Apply to many relevant positions in minutes instead of hours.</li>
+    </ul>
+    <p>Your projects and side hustles become the “engine” that makes you stand out. Internstart becomes the “distribution system” that gets that engine in front of recruiters at scale.</p>
+
+    <div class="inline-cta">
+      Build something small this week — then <a href="/register/">use Internstart</a> to get it in front of recruiters faster. Side projects get you noticed; smart volume gets you offers.
+    </div>
+
+    <h2 id="faq">FAQ: Side projects, side hustles & standing out</h2>
+
+    <h3>Do recruiters really care about side projects?</h3>
+    <p>Yes — especially when you don’t have years of experience yet. Side projects give recruiters a way to quickly see how you think and what you can do. A strong project can easily become the main topic of an interview.</p>
+
+    <h3>What if my project is very small?</h3>
+    <p>That’s completely fine. A tiny but finished project is far better than a big, unfinished idea. Employers care more about execution than perfection.</p>
+
+    <h3>Should I charge money for my side project?</h3>
+    <p>You don’t have to, but even a small paid version (or a single paying customer) sends a strong signal that your work creates value. If it makes sense, try a simple paid option.</p>
+
+    <h3>I’m in my first or second year — is it too early?</h3>
+    <p>Not at all. In fact, the earlier you start experimenting with small projects, the easier future job searches become. By the time you apply for internships or graduate roles, you’ll already have stories and proof ready.</p>
+
+    <h2 id="next-steps">Next steps</h2>
+    <p>If you want to <span class="keyword-highlight">stand out from the competition in the job market</span>, don’t wait for experience to appear out of nowhere. Create your own proof:</p>
+    <ul>
+      <li>Pick one tiny problem you’d like to solve.</li>
+      <li>Build a very small side project or micro side hustle around it.</li>
+      <li>Make it visible with a link on your CV and LinkedIn.</li>
+      <li>Use tools like <a href="/register/">Internstart</a> to multiply the number of quality applications you send.</li>
+    </ul>
+    <p>Along the way, look at real-world tools like <a href="https://formskies.com/">Formskies.com</a> for inspiration: practical solutions to boring problems that people actually need. That’s the kind of thinking employers remember.</p>
+    <p>Start small, stay consistent, and let your projects do the talking.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer__inner">
+      <h3>Internstart</h3>
+      <p>Helping students and graduates connect with top companies and discover career opportunities.</p>
+
+      <nav class="footer__links" aria-label="Footer">
+        <a href="{% url 'about' %}">About</a>
+        <a href="#">Careers</a>
+        <a href="{% url 'blog_index' %}">Blog</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+      </nav>
+
+      <div class="footer__legal">
+        © 2025 Internship Platform. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <style>
+    /* Footer (dark theme alternative retained from template) */
+    .site-footer{ background:#111; color:#bbb; text-align:center; padding:56px 20px; margin-top:80px; font-family:var(--font); }
+    .footer__inner{ max-width:1000px; margin:0 auto; }
+    .site-footer h3{ color:#fff; font-weight:600; margin:0 0 16px; }
+    .site-footer p{ font-size:16px; line-height:1.6; margin:0 0 24px; color:#cfcfcf; }
+    .footer__links a{ color:#bbb; text-decoration:none; margin: 0 14px; }
+    .footer__links{ margin-bottom:28px; }
+    .footer__legal{ font-size:14px; color:#777; }
+  </style>
+</body>
+</html>
